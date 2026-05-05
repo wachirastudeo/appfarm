@@ -4,45 +4,43 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Plant App UI - Buttons & Brand Matching */
-  --background: #e9f0df;
+  /* Restored Bright Nature UI - Fresh Green & Vibrant Orange */
+  --background: #f8faf5;                  /* Soft fresh background */
   --foreground: #111811;
   --card: #ffffff;
   --card-foreground: #111811;
   --popover: #ffffff;
   --popover-foreground: #111811;
-  --primary: #000000;                    /* Black like the "Water plant" button */
+  --primary: #559e45;                    /* Fresh Bright Green (Original style) */
   --primary-foreground: #ffffff;
-  --secondary: #fbb75c;                  /* Orange like the "Add Plant" / "Set Reminder" buttons */
-  --secondary-foreground: #111811;
-  --muted: #e1ecd3;
+  --secondary: #fbb75c;                  /* Original Vibrant Orange */
+  --secondary-foreground: #ffffff;
+  --muted: #edf3e8;
   --muted-foreground: #5c6b5c;
-  --accent: #6eb85c;                     /* Green moved to accent for header/icons */
+  --accent: #559e45;                     /* Matching primary for consistency */
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #d2e0c5;
+  --border: #e1e9d9;
   --input: #ffffff;
-  --ring: #6eb85c;
-  --chart-1: #6eb85c;
+  --ring: #559e45;
+  --chart-1: #559e45;
   --chart-2: #fbb75c;
-  --chart-3: #000000;
-  --radius: 1.5rem;
-  --sidebar: #e9f0df;
+  --chart-3: #111811;
+  --radius: 1.25rem;
+  --sidebar: #f8faf5;
   --sidebar-foreground: #111811;
-  --sidebar-primary: #000000;
+  --sidebar-primary: #559e45;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e1ecd3;
+  --sidebar-accent: #edf3e8;
   --sidebar-accent-foreground: #111811;
-  --sidebar-border: #d2e0c5;
-  --sidebar-ring: #6eb85c;
+  --sidebar-border: #e1e9d9;
+  --sidebar-ring: #559e45;
 
-  /* Specific Design Tokens */
-  --brand-green: #6eb85c;
+  /* Design Tokens */
+  --brand-green: #559e45;
   --brand-orange: #fbb75c;
-  --brand-black: #000000;
-
-  --status-good: #6eb85c;
+  --status-good: #559e45;
   --status-warn: #fbb75c;
   --status-danger: #ef4444;
 }

@@ -3,32 +3,38 @@ import { useState, useEffect, useCallback } from "react"
 
 // ---- Types ----
 export type FlowerStage =
-  | "vegetative"
-  | "egg_fish"   // ไข่ปลา
-  | "nail"       // ตาปู
-  | "mouse_foot" // เหยียดตีนหนู
-  | "pencil"     // ดินสอ
-  | "rice"       // ข้าวตอก
-  | "small_fruit"// ลูกเล็ก
-  | "mature"     // ผลโต
-  | "harvest"    // เก็บเกี่ยว
-  | "dormant"    // พักต้น
+  | "vegetative"   // ผลิใบ / เจริญเติบโต
+  | "egg_fish"     // ไข่ปลา
+  | "nail"         // ตาปู
+  | "mouse_foot"   // เหยียดตีนหนู
+  | "eggplant"     // มะเขือพวง
+  | "bracelet"     // หัวกำไล
+  | "white_flower" // ดอกขาว
+  | "bloom"        // ดอกบาน
+  | "rat_tail"     // หางแย้
+  | "chicken_egg"  // ไข่ไก่
+  | "expanding"    // ขยายพู / ผลโต
+  | "harvest"      // เก็บเกี่ยว
+  | "dormant"      // พักต้น
 
 export const FLOWER_STAGE_LABELS: Record<FlowerStage, string> = {
   vegetative: "ผลิใบ / เจริญเติบโต",
   egg_fish: "ไข่ปลา",
   nail: "ตาปู",
   mouse_foot: "เหยียดตีนหนู",
-  pencil: "ดินสอ",
-  rice: "ข้าวตอก",
-  small_fruit: "ลูกเล็ก",
-  mature: "ผลโต",
+  eggplant: "มะเขือพวง",
+  bracelet: "หัวกำไล",
+  white_flower: "ดอกขาว",
+  bloom: "ดอกบาน",
+  rat_tail: "หางแย้",
+  chicken_egg: "ไข่ไก่",
+  expanding: "ขยายพู / ผลโต",
   harvest: "เก็บเกี่ยว",
   dormant: "พักต้น",
 }
 
 export const FLOWER_STAGES: FlowerStage[] = [
-  "vegetative","egg_fish","nail","mouse_foot","pencil","rice","small_fruit","mature","harvest","dormant"
+  "vegetative","egg_fish","nail","mouse_foot","eggplant","bracelet","white_flower","bloom","rat_tail","chicken_egg","expanding","harvest","dormant"
 ]
 
 export type DurianVariety = "หมอนทอง" | "ชะนี" | "กันยาว" | "พวงมณี" | "ก้านยาว" | "อื่นๆ"
@@ -134,11 +140,11 @@ const SEED: AppData = {
       area: 5,
       notes: "แปลงหมอนทองเก่า ต้นอายุ 8-12 ปี",
       trees: [
-        { id: "t1", treeNumber: "A-001", variety: "หมอนทอง", age: 10, stage: "pencil", health: "good", notes: "", batches: [], lastUpdated: new Date().toISOString() },
+        { id: "t1", treeNumber: "A-001", variety: "หมอนทอง", age: 10, stage: "eggplant", health: "good", notes: "", batches: [], lastUpdated: new Date().toISOString() },
         { id: "t2", treeNumber: "A-002", variety: "หมอนทอง", age: 10, stage: "nail", health: "good", notes: "", batches: [], lastUpdated: new Date().toISOString() },
         { id: "t3", treeNumber: "A-003", variety: "หมอนทอง", age: 8, stage: "egg_fish", health: "fair", notes: "ต้นอ่อนแอเล็กน้อย", batches: [], lastUpdated: new Date().toISOString() },
-        { id: "t4", treeNumber: "A-004", variety: "หมอนทอง", age: 12, stage: "small_fruit", health: "good", notes: "", batches: [], lastUpdated: new Date().toISOString() },
-        { id: "t5", treeNumber: "A-005", variety: "หมอนทอง", age: 11, stage: "mature", health: "good", notes: "", batches: [], lastUpdated: new Date().toISOString() },
+        { id: "t4", treeNumber: "A-004", variety: "หมอนทอง", age: 12, stage: "rat_tail", health: "good", notes: "", batches: [], lastUpdated: new Date().toISOString() },
+        { id: "t5", treeNumber: "A-005", variety: "หมอนทอง", age: 11, stage: "expanding", health: "good", notes: "", batches: [], lastUpdated: new Date().toISOString() },
       ],
     },
     {
@@ -158,8 +164,8 @@ const SEED: AppData = {
       area: 4,
       notes: "แปลงผสมพันธุ์",
       trees: [
-        { id: "t9", treeNumber: "C-001", variety: "กันยาว", age: 7, stage: "rice", health: "good", notes: "", batches: [], lastUpdated: new Date().toISOString() },
-        { id: "t10", treeNumber: "C-002", variety: "พวงมณี", age: 6, stage: "pencil", health: "good", notes: "", batches: [], lastUpdated: new Date().toISOString() },
+        { id: "t9", treeNumber: "C-001", variety: "กันยาว", age: 7, stage: "white_flower", health: "good", notes: "", batches: [], lastUpdated: new Date().toISOString() },
+        { id: "t10", treeNumber: "C-002", variety: "พวงมณี", age: 6, stage: "eggplant", health: "good", notes: "", batches: [], lastUpdated: new Date().toISOString() },
       ],
     },
   ],
@@ -311,7 +317,7 @@ export function useAppData() {
                   ? { 
                       ...b, 
                       stages: [newStage, ...b.stages],
-                      bloomDate: stageData.stage === 'rice' ? stageData.date : b.bloomDate // 'rice' or 'bloom' logic
+                      bloomDate: stageData.stage === 'bloom' ? stageData.date : b.bloomDate // 'bloom' logic
                     } 
                   : b) 
               } 

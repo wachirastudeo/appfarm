@@ -6,13 +6,17 @@ import Image from "next/image"
 
 interface Props {
   data: AppData
+  onNavigate?: (tab: "dashboard" | "plots" | "activities" | "tasks" | "finance") => void
 }
 
-function StatCard({ icon: Icon, label, value, sub, color = "text-primary", bgColor = "bg-primary/10" }: {
-  icon: React.ElementType; label: string; value: string | number; sub?: string; color?: string; bgColor?: string
+function StatCard({ icon: Icon, label, value, sub, color = "text-primary", bgColor = "bg-primary/10", onClick }: {
+  icon: React.ElementType; label: string; value: string | number; sub?: string; color?: string; bgColor?: string; onClick?: () => void
 }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 flex gap-3 items-start shadow-sm hover:shadow-md transition-shadow">
+    <div 
+      onClick={onClick}
+      className={`bg-card border border-border rounded-2xl p-4 flex gap-3 items-start shadow-sm hover:shadow-md transition-all duration-200 ${onClick ? 'cursor-pointer hover:border-primary/50 hover:-translate-y-0.5' : ''}`}
+    >
       <div className={`p-2.5 rounded-xl ${bgColor}`}><Icon size={20} className={color} /></div>
       <div>
         <p className="text-muted-foreground text-xs leading-relaxed">{label}</p>
@@ -25,7 +29,7 @@ function StatCard({ icon: Icon, label, value, sub, color = "text-primary", bgCol
 
 const WEATHER = { temp: 31, humidity: 75, wind: 12, condition: "มีเมฆบางส่วน" }
 
-export default function Dashboard({ data }: Props) {
+export default function Dashboard({ data, onNavigate }: Props) {
   const totalTrees = useMemo(() => data.plots.reduce((s, p) => s + p.trees.length, 0), [data])
   const totalArea = useMemo(() => data.plots.reduce((s, p) => s + p.area, 0), [data])
   const pendingTasks = useMemo(() => data.tasks.filter(t => t.status === "pending").length, [data])
@@ -94,15 +98,18 @@ export default function Dashboard({ data }: Props) {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
-        <StatCard icon={Trees} label="ต้นทั้งหมด" value={totalTrees} sub={`${data.plots.length} แปลง · ${totalArea} ไร่`} color="text-accent" bgColor="bg-accent/15" />
-        <StatCard icon={ListTodo} label="งานรอดำเนินการ" value={pendingTasks} sub="งาน" color="text-secondary" bgColor="bg-secondary/15" />
-        <StatCard icon={TrendingUp} label="รายรับเดือนนี้" value={`฿${thisMonthIncome.toLocaleString()}`} color="text-accent" bgColor="bg-accent/15" />
-        <StatCard icon={TrendingDown} label="รายจ่ายเดือนนี้" value={`฿${thisMonthExpense.toLocaleString()}`} color="text-destructive" bgColor="bg-destructive/15" />
+        <StatCard onClick={() => onNavigate?.("plots")} icon={Trees} label="ต้นทั้งหมด" value={totalTrees} sub={`${data.plots.length} แปลง · ${totalArea} ไร่`} color="text-accent" bgColor="bg-accent/15" />
+        <StatCard onClick={() => onNavigate?.("tasks")} icon={ListTodo} label="งานรอดำเนินการ" value={pendingTasks} sub="งาน" color="text-secondary" bgColor="bg-secondary/15" />
+        <StatCard onClick={() => onNavigate?.("finance")} icon={TrendingUp} label="รายรับเดือนนี้" value={`฿${thisMonthIncome.toLocaleString()}`} color="text-accent" bgColor="bg-accent/15" />
+        <StatCard onClick={() => onNavigate?.("finance")} icon={TrendingDown} label="รายจ่ายเดือนนี้" value={`฿${thisMonthExpense.toLocaleString()}`} color="text-destructive" bgColor="bg-destructive/15" />
       </div>
 
       {/* Upcoming Tasks */}
       {upcomingTasks.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+        <div 
+          className="bg-card border border-border rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:border-primary/50"
+          onClick={() => onNavigate?.("tasks")}
+        >
           <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><ListTodo size={16} className="text-amber-500" />งานที่ต้องทำเร็วๆ นี้</h3>
           <div className="space-y-2">
             {upcomingTasks.map(t => (
@@ -125,7 +132,10 @@ export default function Dashboard({ data }: Props) {
 
       {/* Recent Activities */}
       {recentActivities.length > 0 && (
-        <div className="bg-card border border-border rounded-xl p-4">
+        <div 
+          className="bg-card border border-border rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer hover:border-primary/50"
+          onClick={() => onNavigate?.("activities")}
+        >
           <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><Coins size={16} className="text-primary" />กิจกรรมล่าสุด</h3>
           <div className="space-y-2">
             {recentActivities.map(a => (

@@ -37,10 +37,13 @@ const STAGE_BADGE: Record<string, string> = {
   egg_fish: "bg-yellow-100 text-yellow-700",
   nail: "bg-amber-100 text-amber-700",
   mouse_foot: "bg-orange-100 text-orange-700",
-  pencil: "bg-lime-100 text-lime-700",
-  rice: "bg-emerald-100 text-emerald-700",
-  small_fruit: "bg-teal-100 text-teal-700",
-  mature: "bg-cyan-100 text-cyan-700",
+  eggplant: "bg-lime-100 text-lime-700",
+  bracelet: "bg-emerald-100 text-emerald-700",
+  white_flower: "bg-teal-100 text-teal-700",
+  bloom: "bg-blue-100 text-blue-700",
+  rat_tail: "bg-indigo-100 text-indigo-700",
+  chicken_egg: "bg-violet-100 text-violet-700",
+  expanding: "bg-purple-100 text-purple-700",
   harvest: "bg-primary/15 text-primary",
   dormant: "bg-muted text-muted-foreground",
 }
@@ -279,8 +282,8 @@ function TreeDetailView({
 
   return (
     <div className="space-y-6">
-      {/* Unified Header & Card */}
-      <div className="-mx-4 -mt-4 px-4 pt-4 pb-6 bg-accent text-white relative z-0 shadow-md">
+      {/* Unified Header & Card - Transparent background to show AppShell background */}
+      <div className="-mx-5 -mt-4 px-5 pt-4 pb-8 text-white relative z-0">
         <div className="absolute top-0 right-0 p-4 opacity-10">
            <TreePine size={120} />
         </div>
@@ -296,7 +299,7 @@ function TreeDetailView({
         </div>
 
         {/* Info */}
-        <div className="flex items-center gap-4 relative z-10">
+        <div className="flex items-center gap-5 relative z-10">
           <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-sm border border-white/10">
             <TreePine size={32} className="text-white" />
           </div>
@@ -573,14 +576,14 @@ function PlotDetailView({
   const poorCount = plot.trees.filter(t => t.health === "poor").length
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {showBulk && <BulkUpdateModal plot={plot} onClose={() => setShowBulk(false)} onUpdate={s => bulkUpdateTrees(plot.id, s)} />}
       {qrTree && <QRModal tree={qrTree} plot={plot} onClose={() => setQrTree(null)} />}
       {showAllQR && <AllQRModal plot={plot} onClose={() => setShowAllQR(false)} />}
 
       {/* Top Green Section */}
-      <div className="-mx-4 -mt-4 px-4 pt-4 pb-6 relative z-0">
-        <div className="flex items-start gap-3 mb-6">
+      <div className="-mx-4 -mt-4 px-4 pt-4 pb-4 relative z-0">
+        <div className="flex items-start gap-3 mb-4">
           <button onClick={onBack} className="p-2 rounded-full border border-accent-foreground/30 text-accent-foreground hover:bg-accent-foreground/10 transition-colors mt-1">
             <ArrowLeft size={18} />
           </button>
@@ -595,24 +598,24 @@ function PlotDetailView({
         </div>
 
         {/* Summary cards inside the green background */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-card rounded-3xl p-4 text-center shadow-sm border border-border">
-            <p className="text-2xl font-black text-foreground">{plot.trees.length}</p>
-            <p className="text-[10px] text-muted-foreground font-medium mt-1">ต้นทั้งหมด</p>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-card rounded-3xl p-3 text-center shadow-sm border border-border">
+            <p className="text-xl font-black text-foreground">{plot.trees.length}</p>
+            <p className="text-[10px] text-muted-foreground font-medium mt-0.5">ต้นทั้งหมด</p>
           </div>
-          <div className="bg-emerald-50 rounded-3xl p-4 text-center shadow-sm border border-emerald-100">
-            <p className="text-2xl font-black text-emerald-700">{goodCount}</p>
-            <p className="text-[10px] text-emerald-600 font-medium mt-1">สุขภาพดี</p>
+          <div className="bg-emerald-50 rounded-3xl p-3 text-center shadow-sm border border-emerald-100">
+            <p className="text-xl font-black text-emerald-700">{goodCount}</p>
+            <p className="text-[10px] text-emerald-600 font-medium mt-0.5">สุขภาพดี</p>
           </div>
-          <div className="bg-amber-50 rounded-3xl p-4 text-center shadow-sm border border-amber-100">
-            <p className="text-2xl font-black text-amber-700">{fairCount + poorCount}</p>
-            <p className="text-[10px] text-amber-600 font-medium mt-1">ต้องดูแล</p>
+          <div className="bg-amber-50 rounded-3xl p-3 text-center shadow-sm border border-amber-100">
+            <p className="text-xl font-black text-amber-700">{fairCount + poorCount}</p>
+            <p className="text-[10px] text-amber-600 font-medium mt-0.5">ต้องดูแล</p>
           </div>
         </div>
       </div>
 
       {/* Add Tree Button */}
-      <div className="px-2 mb-4 flex gap-2">
+      <div className="px-2 mb-2 flex gap-2">
         {addingTree ? (
           <div className="w-full bg-card border border-border rounded-xl p-4 shadow-sm">
             <p className="text-sm font-semibold text-foreground mb-3">เพิ่มต้นทุเรียน</p>
@@ -625,7 +628,7 @@ function PlotDetailView({
         ) : (
           <>
             <button onClick={() => setAddingTree(true)}
-              className="flex-1 bg-[#EEF5E6] text-accent font-bold rounded-2xl py-4 flex items-center justify-center gap-2 text-sm hover:opacity-90 transition-all border border-[#85C46E]/30">
+              className="flex-1 bg-[#EEF5E6] text-accent font-bold rounded-2xl py-3 flex items-center justify-center gap-2 text-sm hover:opacity-90 transition-all border border-[#85C46E]/30">
               <Plus size={18} strokeWidth={2.5} /> เพิ่มต้นทุเรียน
             </button>
             <button onClick={() => setShowAllQR(true)}
@@ -657,7 +660,7 @@ function PlotDetailView({
                 />
               </div>
             ) : (
-              <div onClick={() => setSelectedTreeId(tree.id)} className="bg-card border border-border rounded-xl p-4 flex flex-col gap-3 group hover:border-accent/50 hover:shadow-md cursor-pointer transition-all h-full relative">
+              <div onClick={() => setSelectedTreeId(tree.id)} className="bg-card border border-border rounded-xl p-3 flex flex-col gap-2 group hover:border-accent/50 hover:shadow-md cursor-pointer transition-all h-full relative">
                 <div className="flex items-start justify-between">
                   <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
                     <TreePine size={16} className="text-accent" />
@@ -679,11 +682,11 @@ function PlotDetailView({
                     <span className="font-bold text-foreground text-lg">{tree.treeNumber}</span>
                     <span className="text-sm text-muted-foreground">{tree.variety} · {tree.age} ปี</span>
                   </div>
-                  <div className="flex flex-col gap-1.5 items-start">
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${STAGE_BADGE[tree.stage] || "bg-muted text-muted-foreground"}`}>
+                  <div className="flex flex-wrap gap-1 items-center">
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${STAGE_BADGE[tree.stage] || "bg-muted text-muted-foreground"}`}>
                       {FLOWER_STAGE_LABELS[tree.stage]}
                     </span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${HEALTH_BG[tree.health]}`}>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${HEALTH_BG[tree.health]}`}>
                       {HEALTH_LABELS[tree.health]}
                     </span>
                   </div>

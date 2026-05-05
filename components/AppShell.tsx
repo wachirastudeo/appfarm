@@ -34,7 +34,7 @@ export default function AppShell() {
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard data={store.data} />
+        return <Dashboard data={store.data} onNavigate={setActiveTab} />
       case "plots":
         return (
           <PlotManagement
