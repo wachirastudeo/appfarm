@@ -64,29 +64,29 @@ export default function Dashboard({ data }: Props) {
       {/* Hero Banner with Image */}
       <div className="relative rounded-2xl overflow-hidden shadow-lg">
         <Image
-          src="/images/durian-banner.jpg"
+          src="/images/durian-banner.png"
           alt="สวนทุเรียน"
           width={800}
           height={300}
           className="w-full h-44 sm:h-52 object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <p className="text-white/80 text-xs mb-1">{new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
-          <h1 className="text-white text-xl font-bold mb-2">สวัสดี, ยินดีต้อนรับ</h1>
-          <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-              <Sun size={14} className="text-yellow-300" />
-              <span className="text-white text-sm font-medium">{WEATHER.temp}°C</span>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+        <div className="absolute bottom-0 left-0 right-0 p-5">
+          <p className="text-white/90 text-sm font-medium mb-1 drop-shadow-md">{new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
+          <h1 className="text-white text-2xl font-black mb-3 drop-shadow-lg">สวัสดี, ยินดีต้อนรับ</h1>
+          <div className="flex flex-wrap gap-2.5">
+            <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5 shadow-sm">
+              <Sun size={15} className="text-yellow-400" />
+              <span className="text-white text-sm font-semibold">{WEATHER.temp}°C</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-              <Droplets size={14} className="text-blue-300" />
-              <span className="text-white text-sm font-medium">{WEATHER.humidity}%</span>
+            <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5 shadow-sm">
+              <Droplets size={15} className="text-blue-300" />
+              <span className="text-white text-sm font-semibold">{WEATHER.humidity}%</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-              <CloudSun size={14} className="text-white" />
-              <span className="text-white text-sm font-medium">{WEATHER.condition}</span>
+            <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5 shadow-sm">
+              <CloudSun size={15} className="text-white" />
+              <span className="text-white text-sm font-semibold">{WEATHER.condition}</span>
             </div>
           </div>
         </div>

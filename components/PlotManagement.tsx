@@ -279,21 +279,50 @@ function TreeDetailView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <button onClick={onBack} className="p-2 rounded-xl bg-white/50 border border-white/20 backdrop-blur-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex-1">
-          <h2 className="text-xl font-bold text-foreground">ต้น {tree.treeNumber}</h2>
-          <p className="text-xs text-muted-foreground">{plot.name} · {tree.variety}</p>
+      {/* Unified Header & Card */}
+      <div className="-mx-4 -mt-4 px-4 pt-4 pb-6 bg-accent text-white relative z-0 shadow-md">
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+           <TreePine size={120} />
         </div>
-        <button onClick={() => setShowEdit(!showEdit)} className="p-2 rounded-xl bg-white/50 border border-white/20 text-muted-foreground hover:text-accent">
-          <Pencil size={18} />
-        </button>
+        
+        {/* Nav */}
+        <div className="flex items-center justify-between gap-3 mb-6 relative z-10">
+          <button onClick={onBack} className="p-2 rounded-xl bg-black/10 backdrop-blur-md text-white hover:bg-black/20 transition-colors">
+            <ArrowLeft size={20} />
+          </button>
+          <button onClick={() => setShowEdit(!showEdit)} className={`p-2 rounded-xl backdrop-blur-md transition-colors ${showEdit ? 'bg-white text-accent' : 'bg-black/10 text-white hover:bg-black/20'}`}>
+            <Pencil size={18} />
+          </button>
+        </div>
+
+        {/* Info */}
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-sm border border-white/10">
+            <TreePine size={32} className="text-white" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-black leading-tight drop-shadow-md">ต้น {tree.treeNumber}</h2>
+            <p className="text-white/90 text-sm font-medium drop-shadow-sm mt-0.5">{plot.name} · {tree.variety} · อายุ {tree.age} ปี</p>
+          </div>
+        </div>
+
+        {/* Stats */}
+        {!showEdit && (
+          <div className="flex gap-3 w-full relative z-10 mt-6">
+            <div className="flex-1 bg-black/15 backdrop-blur-md border border-black/5 rounded-2xl p-3 flex items-center justify-between shadow-inner">
+              <span className="text-xs uppercase tracking-wider text-white/90 font-semibold drop-shadow-md">สุขภาพ</span>
+              <span className="font-bold text-sm text-white drop-shadow-md">{HEALTH_LABELS[tree.health]}</span>
+            </div>
+            <div className="flex-1 bg-black/15 backdrop-blur-md border border-black/5 rounded-2xl p-3 flex items-center justify-between shadow-inner">
+              <span className="text-xs uppercase tracking-wider text-white/90 font-semibold drop-shadow-md">ระยะดอก</span>
+              <span className="font-bold text-sm text-white drop-shadow-md">{tree.stage === 'vegetative' ? 'ไม่มี' : FLOWER_STAGE_LABELS[tree.stage]}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {showEdit ? (
-        <div className="bg-card rounded-[2rem] p-6 shadow-sm border border-white/40">
+        <div className="bg-card rounded-[2rem] p-6 shadow-sm border border-border">
           <TreeForm
             plotId={plot.id}
             tree={tree}
@@ -303,28 +332,6 @@ function TreeDetailView({
         </div>
       ) : (
         <>
-          {/* Main Tree Card */}
-          <div className="bg-accent rounded-[3rem] p-8 flex flex-col items-center text-center text-white shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-6 opacity-20">
-               <TreePine size={120} />
-            </div>
-            <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-4">
-              <TreePine size={48} className="text-white" />
-            </div>
-            <h3 className="text-3xl font-black mb-1">{tree.variety}</h3>
-            <p className="text-white/80 font-medium mb-6">อายุ {tree.age} ปี · {FLOWER_STAGE_LABELS[tree.stage]}</p>
-            
-            <div className="flex gap-4 w-full">
-              <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-3xl p-4">
-                <p className="text-[10px] uppercase tracking-wider opacity-70 mb-1">สุขภาพ</p>
-                <p className="font-bold">{HEALTH_LABELS[tree.health]}</p>
-              </div>
-              <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-3xl p-4">
-                <p className="text-[10px] uppercase tracking-wider opacity-70 mb-1">ระยะดอก</p>
-                <p className="font-bold">{tree.stage === 'vegetative' ? 'ไม่มี' : FLOWER_STAGE_LABELS[tree.stage]}</p>
-              </div>
-            </div>
-          </div>
 
           {/* Batch Management (The "Form" requested) */}
           <div className="space-y-4">
