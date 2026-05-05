@@ -205,7 +205,7 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
 
       <div className="space-y-2">
         {filtered.length === 0 ? (
-          <div className="bg-card border border-border rounded-xl p-8 text-center">
+          <div className="bg-card border border-border rounded-xl p-5 text-center">
             <Wallet size={36} className="text-muted-foreground mx-auto mb-2" />
             <p className="text-muted-foreground">ยังไม่มีรายการ</p>
           </div>

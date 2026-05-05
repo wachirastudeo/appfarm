@@ -147,7 +147,7 @@ export default function Dashboard({ data, onNavigate, updateTask, deleteTask }: 
             ))}
           </div>
         ) : (
-          <div className="bg-card border border-border border-dashed rounded-xl p-6 text-center">
+          <div className="bg-card border border-border border-dashed rounded-xl p-4 text-center">
             <ListTodo size={24} className="text-muted-foreground/50 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">ไม่มีงานที่ต้องทำเร็วๆ นี้</p>
           </div>

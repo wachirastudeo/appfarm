@@ -57,7 +57,7 @@ export default function AppShell() {
         return <Operations 
           data={store.data} 
           addTask={store.addTask} updateTask={store.updateTask} deleteTask={store.deleteTask} 
-          addActivity={store.addActivity} deleteActivity={store.deleteActivity} 
+          addActivity={store.addActivity} deleteActivity={store.deleteActivity} updateActivity={store.updateActivity}
         />
       case "finance":
         return <Finance data={store.data} addFinance={store.addFinance} deleteFinance={store.deleteFinance} />
@@ -67,19 +67,16 @@ export default function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative">
-      {/* Top Background Decoration (Large Green Area like the design) */}
-      <div className="absolute top-0 left-0 right-0 h-80 bg-accent rounded-b-[3rem] z-0" />
-
-      {/* Top Header */}
-      <header className="relative z-10 px-6 pt-4 pb-2 flex items-center justify-between">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Top Header Bar (compact) */}
+      <header className="relative z-20 bg-accent px-4 md:px-8 pt-3 pb-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-white/20 backdrop-blur-md rounded-xl">
-            <Leaf size={24} className="text-white" />
+            <Leaf size={22} className="text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-white text-xl tracking-tight">สวนทุเรียน</h1>
-            <p className="text-white/70 text-xs font-medium uppercase tracking-wider">Smart Orchard Management</p>
+            <h1 className="font-bold text-white text-lg tracking-tight">สวนทุเรียน</h1>
+            <p className="text-white/70 text-[10px] font-medium uppercase tracking-wider">Smart Orchard Management</p>
           </div>
         </div>
         <div className="text-right">
@@ -88,18 +85,19 @@ export default function AppShell() {
         </div>
       </header>
 
-      {/* Desktop Sidebar */}
-      <div className="flex flex-1 overflow-hidden relative z-10">
-        <nav className="hidden md:flex flex-col w-56 bg-sidebar/80 backdrop-blur-md border-r border-sidebar-border py-4 px-3 gap-1 shrink-0">
+      {/* Body: Sidebar + Content */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Desktop Sidebar */}
+        <nav className="hidden md:flex flex-col w-56 bg-sidebar border-r border-sidebar-border py-4 px-3 gap-1 shrink-0">
           {TABS.map(tab => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors text-left ${
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all text-left ${
                   activeTab === tab.id
-                    ? "bg-primary/15 text-primary"
+                    ? "bg-primary text-primary-foreground shadow-md"
                     : "text-sidebar-foreground hover:bg-primary/10 hover:text-primary"
                 }`}
               >
@@ -110,9 +108,9 @@ export default function AppShell() {
           })}
         </nav>
 
-        {/* Main Content */}
-        <main className="flex-1 relative z-10 overflow-y-auto pb-28 md:pb-8">
-          <div className="w-full max-w-7xl mx-auto px-5 md:px-8 py-4 md:py-6">
+        {/* Main Content — full width, no extra card */}
+        <main className="flex-1 overflow-y-auto pb-28 md:pb-6 bg-background">
+          <div className="w-full max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
             {renderContent()}
           </div>
         </main>

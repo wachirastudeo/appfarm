@@ -355,7 +355,7 @@ export function useAppData() {
     data,
     addPlot, updatePlot, deletePlot,
     addTree, updateTree, deleteTree, bulkUpdateTrees,
-    addActivity, deleteActivity,
+    addActivity, deleteActivity, updateActivity,
     addTask, updateTask, deleteTask,
     addFinance, deleteFinance,
     addBatch, addBatchStage, updateBatch, deleteBatch

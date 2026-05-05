@@ -54,24 +54,48 @@ function BulkUpdateModal({ plot, onClose, onUpdate }: {
 }) {
   const [stage, setStage] = useState<FlowerStage>(plot.trees[0]?.stage ?? "vegetative")
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-foreground">อัปเดตทั้งแปลง · {plot.name}</h3>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={18} /></button>
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
+      <div className="bg-card border border-border rounded-[2rem] p-6 w-full max-w-[95%] sm:max-w-md shadow-2xl shadow-primary/10 animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+              <RefreshCw size={20} className="text-accent" />
+            </div>
+            <div>
+              <h3 className="font-black text-lg text-foreground leading-tight">อัปเดตทั้งแปลง</h3>
+              <p className="text-xs text-muted-foreground font-medium">{plot.name} • {plot.trees.length} ต้น</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-muted rounded-full transition-colors"><X size={20} className="text-muted-foreground" /></button>
         </div>
-        <p className="text-muted-foreground text-sm mb-4">เลือกระยะดอกสำหรับทุกต้นใน {plot.name} ({plot.trees.length} ต้น)</p>
-        <select
-          value={stage}
-          onChange={e => setStage(e.target.value as FlowerStage)}
-          className="w-full bg-input border border-border rounded-lg px-3 py-3 text-foreground text-base mb-4 focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
-        </select>
-        <div className="flex gap-2">
-          <button onClick={onClose} className="flex-1 border border-border rounded-lg py-3 text-muted-foreground hover:text-foreground transition-colors">ยกเลิก</button>
-          <button onClick={() => { onUpdate(stage); onClose() }} className="flex-1 bg-primary text-primary-foreground rounded-lg py-3 font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-            <Check size={16} />อัปเดต
+        
+        <div className="space-y-4">
+          <div className="bg-muted/30 rounded-2xl p-4 border border-border/50">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">เลือกระยะที่ต้องการเปลี่ยน</label>
+            <select
+              value={stage}
+              onChange={e => setStage(e.target.value as FlowerStage)}
+              className="w-full bg-background border border-border rounded-xl px-4 py-4 text-foreground text-base font-bold focus:outline-none focus:ring-2 focus:ring-primary/50 shadow-sm transition-all"
+            >
+              {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
+            </select>
+          </div>
+          
+          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
+            <div className="shrink-0 w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-amber-700 font-bold text-sm">!</div>
+            <p className="text-xs text-amber-800 leading-relaxed font-medium">
+              การอัปเดตนี้นี้จะเปลี่ยนระยะของทุเรียน **ทุกต้น** ในแปลงนี้ให้เป็นระยะเดียวกัน
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-8">
+          <button onClick={onClose} className="flex-1 border border-border rounded-2xl py-4 text-muted-foreground font-bold hover:bg-muted transition-all">ยกเลิก</button>
+          <button 
+            onClick={() => { onUpdate(stage); onClose() }} 
+            className="flex-2 bg-primary text-primary-foreground rounded-2xl py-4 font-black text-lg shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            <Check size={20} strokeWidth={3} />อัปเดตเลย
           </button>
         </div>
       </div>
@@ -282,50 +306,41 @@ function TreeDetailView({
 
   return (
     <div className="space-y-6">
-      {/* Unified Header & Card - Transparent background to show AppShell background */}
-      <div className="-mx-5 -mt-4 px-5 pt-4 pb-8 text-white relative z-0">
-        <div className="absolute top-0 right-0 p-4 opacity-10">
-           <TreePine size={120} />
-        </div>
-        
-        {/* Nav */}
-        <div className="flex items-center justify-between gap-3 mb-6 relative z-10">
-          <button onClick={onBack} className="p-2 rounded-xl bg-black/10 backdrop-blur-md text-white hover:bg-black/20 transition-colors">
+      {/* Tree Header */}
+      <div className="flex items-start justify-between gap-3 pb-4 border-b border-border">
+        <div className="flex items-center gap-4">
+          <button onClick={onBack} className="p-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors">
             <ArrowLeft size={20} />
           </button>
-          <button onClick={() => setShowEdit(!showEdit)} className={`p-2 rounded-xl backdrop-blur-md transition-colors ${showEdit ? 'bg-white text-accent' : 'bg-black/10 text-white hover:bg-black/20'}`}>
-            <Pencil size={18} />
-          </button>
-        </div>
-
-        {/* Info */}
-        <div className="flex items-center gap-5 relative z-10">
-          <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-sm border border-white/10">
-            <TreePine size={32} className="text-white" />
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+            <TreePine size={28} className="text-primary" />
           </div>
           <div>
-            <h2 className="text-3xl font-black leading-tight drop-shadow-md">ต้น {tree.treeNumber}</h2>
-            <p className="text-white/90 text-sm font-medium drop-shadow-sm mt-0.5">{plot.name} · {tree.variety} · อายุ {tree.age} ปี</p>
+            <h2 className="text-2xl font-black text-foreground leading-tight">ต้น {tree.treeNumber}</h2>
+            <p className="text-muted-foreground text-sm font-medium mt-0.5">{plot.name} · {tree.variety} · อายุ {tree.age} ปี</p>
           </div>
         </div>
-
-        {/* Stats */}
-        {!showEdit && (
-          <div className="flex gap-3 w-full relative z-10 mt-6">
-            <div className="flex-1 bg-black/15 backdrop-blur-md border border-black/5 rounded-2xl p-3 flex items-center justify-between shadow-inner">
-              <span className="text-xs uppercase tracking-wider text-white/90 font-semibold drop-shadow-md">สุขภาพ</span>
-              <span className="font-bold text-sm text-white drop-shadow-md">{HEALTH_LABELS[tree.health]}</span>
-            </div>
-            <div className="flex-1 bg-black/15 backdrop-blur-md border border-black/5 rounded-2xl p-3 flex items-center justify-between shadow-inner">
-              <span className="text-xs uppercase tracking-wider text-white/90 font-semibold drop-shadow-md">ระยะดอก</span>
-              <span className="font-bold text-sm text-white drop-shadow-md">{tree.stage === 'vegetative' ? 'ไม่มี' : FLOWER_STAGE_LABELS[tree.stage]}</span>
-            </div>
-          </div>
-        )}
+        <button onClick={() => setShowEdit(!showEdit)} className={`p-2 rounded-xl transition-colors ${showEdit ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'}`}>
+          <Pencil size={18} />
+        </button>
       </div>
 
+      {/* Stats row */}
+      {!showEdit && (
+        <div className="flex gap-3 w-full">
+          <div className="flex-1 bg-card border border-border rounded-2xl p-3 flex items-center justify-between">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">สุขภาพ</span>
+            <span className="font-bold text-sm text-foreground">{HEALTH_LABELS[tree.health]}</span>
+          </div>
+          <div className="flex-1 bg-card border border-border rounded-2xl p-3 flex items-center justify-between">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">ระยะดอก</span>
+            <span className="font-bold text-sm text-foreground">{tree.stage === 'vegetative' ? 'ไม่มี' : FLOWER_STAGE_LABELS[tree.stage]}</span>
+          </div>
+        </div>
+      )}
+
       {showEdit ? (
-        <div className="bg-card rounded-[2rem] p-6 shadow-sm border border-border">
+        <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
           <TreeForm
             plotId={plot.id}
             tree={tree}
@@ -351,7 +366,7 @@ function TreeDetailView({
             </div>
 
             {(!tree.batches || tree.batches.length === 0) ? (
-              <div className="bg-card border border-dashed border-border rounded-[2rem] p-8 text-center">
+              <div className="bg-card border border-dashed border-border rounded-xl p-6 text-center">
                 <p className="text-muted-foreground text-sm italic">ยังไม่มีการบันทึกรุ่นดอก/ผล</p>
               </div>
             ) : (
@@ -362,13 +377,22 @@ function TreeDetailView({
                   const harvestDate = bloomDate ? new Date(bloomDate.getTime() + 120 * 86400000) : null
                   
                   return (
-                    <div key={batch.id} className="bg-card border-l-4 border-l-accent rounded-[2rem] p-6 shadow-sm border border-border relative">
+                    <div key={batch.id} className="bg-card border-l-4 border-l-accent rounded-xl p-4 shadow-sm border border-border relative">
                       {activeBatchIdForEdit === batch.id ? (
                         <div className="bg-card border border-border rounded-xl p-4 mb-4">
                           <p className="text-sm font-semibold mb-2">แก้ไขข้อมูลรุ่น</p>
-                          <div className="space-y-2">
-                            <input value={batchForm.name} onChange={e => setBatchForm({...batchForm, name: e.target.value})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm" placeholder="ชื่อรุ่น" />
-                            <input type="number" value={batchForm.fruitCount} onChange={e => setBatchForm({...batchForm, fruitCount: Number(e.target.value)})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm" placeholder="จำนวนลูก" />
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-[10px] font-bold text-muted-foreground uppercase mb-1 block">ชื่อรุ่น</label>
+                              <input value={batchForm.name} onChange={e => setBatchForm({...batchForm, name: e.target.value})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm font-bold" placeholder="เช่น รุ่นที่ 1" />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-bold text-muted-foreground uppercase mb-1 block">จำนวนผลผลิต</label>
+                              <div className="relative">
+                                <input type="number" value={batchForm.fruitCount} onChange={e => setBatchForm({...batchForm, fruitCount: Number(e.target.value)})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm font-bold pr-10" placeholder="0" />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">ลูก</span>
+                              </div>
+                            </div>
                           </div>
                           <div className="flex gap-2 mt-3">
                             <button onClick={() => setActiveBatchIdForEdit(null)} className="flex-1 text-xs py-2 border border-border rounded-lg">ยกเลิก</button>
@@ -576,41 +600,39 @@ function PlotDetailView({
   const poorCount = plot.trees.filter(t => t.health === "poor").length
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {showBulk && <BulkUpdateModal plot={plot} onClose={() => setShowBulk(false)} onUpdate={s => bulkUpdateTrees(plot.id, s)} />}
       {qrTree && <QRModal tree={qrTree} plot={plot} onClose={() => setQrTree(null)} />}
       {showAllQR && <AllQRModal plot={plot} onClose={() => setShowAllQR(false)} />}
 
-      {/* Top Green Section */}
-      <div className="-mx-4 -mt-4 px-4 pt-4 pb-4 relative z-0">
-        <div className="flex items-start gap-3 mb-4">
-          <button onClick={onBack} className="p-2 rounded-full border border-accent-foreground/30 text-accent-foreground hover:bg-accent-foreground/10 transition-colors mt-1">
-            <ArrowLeft size={18} />
-          </button>
-          <div className="flex-1">
-            <h2 className="text-2xl font-black text-accent-foreground">{plot.name}</h2>
-            <p className="text-xs text-accent-foreground/80 font-medium mt-0.5 leading-relaxed">{plot.area} ไร่{plot.notes ? ` · ${plot.notes}` : ""}</p>
-          </div>
-          <button onClick={() => setShowBulk(true)}
-            className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-secondary-foreground rounded-full text-sm font-bold hover:opacity-90 transition-opacity mt-1 shadow-sm shrink-0">
-            <RefreshCw size={14} />อัปเดตทั้งแปลง
-          </button>
+      {/* Plot Header */}
+      <div className="flex items-start gap-3 pb-4 border-b border-border">
+        <button onClick={onBack} className="p-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors mt-0.5">
+          <ArrowLeft size={18} />
+        </button>
+        <div className="flex-1">
+          <h2 className="text-2xl font-black text-foreground">{plot.name}</h2>
+          <p className="text-xs text-muted-foreground font-medium mt-0.5 leading-relaxed">{plot.area} ไร่{plot.notes ? ` · ${plot.notes}` : ""}</p>
         </div>
+        <button onClick={() => setShowBulk(true)}
+          className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-secondary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-sm shrink-0">
+          <RefreshCw size={14} />อัปเดตทั้งแปลง
+        </button>
+      </div>
 
-        {/* Summary cards inside the green background */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-card rounded-3xl p-3 text-center shadow-sm border border-border">
-            <p className="text-xl font-black text-foreground">{plot.trees.length}</p>
-            <p className="text-[10px] text-muted-foreground font-medium mt-0.5">ต้นทั้งหมด</p>
-          </div>
-          <div className="bg-emerald-50 rounded-3xl p-3 text-center shadow-sm border border-emerald-100">
-            <p className="text-xl font-black text-emerald-700">{goodCount}</p>
-            <p className="text-[10px] text-emerald-600 font-medium mt-0.5">สุขภาพดี</p>
-          </div>
-          <div className="bg-amber-50 rounded-3xl p-3 text-center shadow-sm border border-amber-100">
-            <p className="text-xl font-black text-amber-700">{fairCount + poorCount}</p>
-            <p className="text-[10px] text-amber-600 font-medium mt-0.5">ต้องดูแล</p>
-          </div>
+      {/* Summary cards */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-card rounded-2xl p-3 text-center border border-border">
+          <p className="text-xl font-black text-foreground">{plot.trees.length}</p>
+          <p className="text-[10px] text-muted-foreground font-medium mt-0.5">ต้นทั้งหมด</p>
+        </div>
+        <div className="bg-emerald-50 rounded-2xl p-3 text-center border border-emerald-100">
+          <p className="text-xl font-black text-emerald-700">{goodCount}</p>
+          <p className="text-[10px] text-emerald-600 font-medium mt-0.5">สุขภาพดี</p>
+        </div>
+        <div className="bg-amber-50 rounded-2xl p-3 text-center border border-amber-100">
+          <p className="text-xl font-black text-amber-700">{fairCount + poorCount}</p>
+          <p className="text-[10px] text-amber-600 font-medium mt-0.5">ต้องดูแล</p>
         </div>
       </div>
 
@@ -643,7 +665,7 @@ function PlotDetailView({
       {/* Tree list */}
       <div className="grid grid-cols-2 gap-2">
         {plot.trees.length === 0 ? (
-          <div className="col-span-2 bg-card border border-border rounded-xl p-8 text-center">
+          <div className="col-span-2 bg-card border border-border rounded-xl p-5 text-center">
             <TreePine size={32} className="text-muted-foreground mx-auto mb-2" />
             <p className="text-muted-foreground text-sm">ยังไม่มีต้นทุเรียนในแปลงนี้</p>
           </div>
@@ -785,7 +807,7 @@ export default function PlotManagement({
       )}
 
       {data.plots.length === 0 ? (
-        <div className="bg-card border border-border rounded-xl p-10 text-center">
+        <div className="bg-card border border-border rounded-xl p-6 text-center">
           <TreePine size={40} className="text-muted-foreground mx-auto mb-3" />
           <p className="text-muted-foreground">ยังไม่มีแปลงทุเรียน กดเพิ่มแปลงเพื่อเริ่มต้น</p>
         </div>
