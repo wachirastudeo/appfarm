@@ -3,19 +3,19 @@ import { useState, useEffect } from "react"
 import { useAppData } from "@/lib/store"
 import Dashboard from "./Dashboard"
 import PlotManagement from "./PlotManagement"
-import ActivityLog from "./ActivityLog"
-import TaskPlanner from "./TaskPlanner"
+import Operations from "./Operations"
 import Finance from "./Finance"
-import { LayoutDashboard, TreePine, ClipboardList, CalendarDays, Coins, Leaf } from "lucide-react"
+import Articles from "./Articles"
+import { LayoutDashboard, TreePine, CalendarDays, Coins, BookOpen, Leaf } from "lucide-react"
 
-type Tab = "dashboard" | "plots" | "activities" | "tasks" | "finance"
+type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles"
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "dashboard", label: "หน้าหลัก", icon: LayoutDashboard },
   { id: "plots", label: "แปลง", icon: TreePine },
-  { id: "activities", label: "กิจกรรม", icon: ClipboardList },
-  { id: "tasks", label: "งาน", icon: CalendarDays },
+  { id: "operations", label: "งาน", icon: CalendarDays },
   { id: "finance", label: "การเงิน", icon: Coins },
+  { id: "articles", label: "บทความ", icon: BookOpen },
 ]
 
 export default function AppShell() {
@@ -34,7 +34,7 @@ export default function AppShell() {
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard data={store.data} onNavigate={setActiveTab} />
+        return <Dashboard data={store.data} onNavigate={setActiveTab} updateTask={store.updateTask} deleteTask={store.deleteTask} />
       case "plots":
         return (
           <PlotManagement
@@ -53,12 +53,16 @@ export default function AppShell() {
             deleteBatch={store.deleteBatch}
           />
         )
-      case "activities":
-        return <ActivityLog data={store.data} addActivity={store.addActivity} deleteActivity={store.deleteActivity} />
-      case "tasks":
-        return <TaskPlanner data={store.data} addTask={store.addTask} updateTask={store.updateTask} deleteTask={store.deleteTask} />
+      case "operations":
+        return <Operations 
+          data={store.data} 
+          addTask={store.addTask} updateTask={store.updateTask} deleteTask={store.deleteTask} 
+          addActivity={store.addActivity} deleteActivity={store.deleteActivity} 
+        />
       case "finance":
         return <Finance data={store.data} addFinance={store.addFinance} deleteFinance={store.deleteFinance} />
+      case "articles":
+        return <Articles />
     }
   }
 
@@ -107,8 +111,8 @@ export default function AppShell() {
         </nav>
 
         {/* Main Content */}
-        <main className="flex-1 relative z-10 overflow-y-auto pb-28">
-          <div className="max-w-xl mx-auto px-5 py-2">
+        <main className="flex-1 relative z-10 overflow-y-auto pb-28 md:pb-8">
+          <div className="w-full max-w-7xl mx-auto px-5 md:px-8 py-4 md:py-6">
             {renderContent()}
           </div>
         </main>
