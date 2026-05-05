@@ -81,21 +81,30 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-2">
-        <div className="bg-card border border-border rounded-xl p-3 text-center">
+        <button
+          onClick={() => setTypeFilter(typeFilter === "income" ? "all" : "income")}
+          className={`rounded-xl p-3 text-center transition-all border-2 ${typeFilter === "income" ? "border-green-500 bg-green-50" : "bg-card border-border hover:border-green-300"}`}
+        >
           <TrendingUp size={16} className="mx-auto text-green-700 mb-1" />
           <p className="text-xs text-muted-foreground">รายรับ</p>
           <p className="text-sm font-bold text-green-700">{formatCurrency(stats.income)}</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-3 text-center">
+        </button>
+        <button
+          onClick={() => setTypeFilter(typeFilter === "expense" ? "all" : "expense")}
+          className={`rounded-xl p-3 text-center transition-all border-2 ${typeFilter === "expense" ? "border-red-500 bg-red-50" : "bg-card border-border hover:border-red-300"}`}
+        >
           <TrendingDown size={16} className="mx-auto text-red-700 mb-1" />
           <p className="text-xs text-muted-foreground">รายจ่าย</p>
           <p className="text-sm font-bold text-red-700">{formatCurrency(stats.expense)}</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-3 text-center">
+        </button>
+        <button
+          onClick={() => setTypeFilter("all")}
+          className={`rounded-xl p-3 text-center transition-all border-2 ${typeFilter === "all" ? "border-primary bg-primary/10" : "bg-card border-border hover:border-primary/50"}`}
+        >
           <Wallet size={16} className={`mx-auto mb-1 ${stats.profit >= 0 ? "text-primary" : "text-destructive"}`} />
           <p className="text-xs text-muted-foreground">กำไร</p>
           <p className={`text-sm font-bold ${stats.profit >= 0 ? "text-primary" : "text-destructive"}`}>{formatCurrency(stats.profit)}</p>
-        </div>
+        </button>
       </div>
 
       {showForm && (

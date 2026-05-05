@@ -94,6 +94,7 @@ Rapid data entry module designed for field use. Features:
 - Optimized forms with large touch targets
 - Support for logging fertilizing, spraying, irrigation activities
 - Integration with task planner for completion tracking
+- Filterable activity history by type
 
 ### 3. Task Planner (`TaskPlanner.tsx`)
 Scheduling interface for upcoming orchard tasks. Provides:
@@ -101,18 +102,35 @@ Scheduling interface for upcoming orchard tasks. Provides:
 - Integration with activity log
 - Status tracking with visual indicators
 
-### 4. Financial Records (`Finance.tsx`)
-Tracks orchard profitability through:
-- Harvest income records
-- Supply expense tracking
-- Profitability summary view
+### 3. Task Planner (`TaskPlanner.tsx`)
+Scheduling interface for upcoming orchard tasks. Provides:
+- Task creation and management
+- Integration with activity log
+- Status tracking with visual indicators
 
-### 5. Dashboard (`Dashboard.tsx`)
+### 4. Financial Management (`Finance.tsx`)
+Comprehensive financial tracking and analysis. Features:
+- Record income and expenses with categorization
+- Interactive filtering by transaction type (income/expense/all) via clickable summary cards
+- Expense breakdown pie chart by category
+- Monthly income vs. expense trend analysis
+- Profitability summary with real-time calculations
+
+### 5. Knowledge Base (`Articles.tsx`)
+Educational content repository for orchard management. Features:
+- Searchable article database on cultivation techniques, pest management, and market trends
+- Real-time article filtering by search term and category
+- Modal-based article viewing with full content display
+- Reading time estimates for each article
+- No results handling with helpful empty state
+
+### 6. Dashboard (`Dashboard.tsx`)
 Overview screen displaying:
 - Summary of trees and plots
 - Recent activities
 - Upcoming tasks
 - Financial summary
+- Weather information and relevant agriculture alerts
 
 ## Development Workflows
 
@@ -143,6 +161,18 @@ The `/components/ui` directory contains comprehensive component library:
 - **Navigation**: `breadcrumb.tsx`, `tabs.tsx`, `navigation-menu.tsx`, `menubar.tsx`
 - **Feedback**: `toast.tsx`, `alert.tsx`, `alert-dialog.tsx`, `dialog.tsx`, `popover.tsx`
 - **Visual**: `separator.tsx`, `skeleton.tsx`, `spinner.tsx`, `progress.tsx`
+
+## Interactive Features
+
+### Search & Filter
+- **Article Search**: Real-time filtering of articles by title and category in the Knowledge Base
+- **Finance Filtering**: Click summary cards to filter transactions by type (income/expense)
+- **Activity Filter**: Filter activity log by activity type
+
+### Modal Viewing
+- **Article Modal**: Full-screen modal for reading complete article content with formatted styling
+- **QR Code Modal**: Display QR codes for individual trees or batch print QR codes
+- **Bulk Update Modal**: Modal interface for updating entire plot flower stages at once
 
 ## State Management
 Currently relies on React's local state (`useState`, `useReducer`) and Context API through `store.ts` for application-wide state. For future scaling, consider:

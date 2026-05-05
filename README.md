@@ -8,7 +8,8 @@ A modern, mobile-responsive web application designed for managing durian orchard
 - **Plot & Tree Management**: Detailed tracking of durian plots and individual tree records (variety, age, coordinates).
 - **Activity Logging**: Easy-to-use interfaces for recording fieldwork like spraying, fertilizing, and watering.
 - **Task Planner**: Scheduling and tracking of agricultural tasks.
-- **Financial Tracking**: Monitoring expenses and income related to orchard operations.
+- **Financial Tracking**: Monitoring expenses and income related to orchard operations with interactive filtering by type (income/expense).
+- **Knowledge Base**: Searchable articles and educational content on durian cultivation techniques, pest management, and market trends with modal-based article viewing.
 
 ## Technology Stack
 - **Framework**: Next.js 14+ (App Router)
