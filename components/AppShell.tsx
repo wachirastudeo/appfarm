@@ -9,7 +9,7 @@ import Articles from "./Articles"
 import { LayoutDashboard, TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon } from "lucide-react"
 import Settings from "./Settings"
 
-type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles"
+type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "settings"
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "dashboard", label: "หน้าหลัก", icon: LayoutDashboard },
@@ -18,6 +18,8 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "finance", label: "การเงิน", icon: Coins },
   { id: "articles", label: "บทความ", icon: BookOpen },
 ]
+
+const MOBILE_TABS = TABS.slice(0, 4) // Show only 4 tabs on mobile
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard")
