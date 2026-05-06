@@ -22,26 +22,26 @@ export default function Operations({ data, addTask, updateTask, deleteTask, addA
   return (
     <div className="space-y-6">
       {/* Sub-Tab Switcher */}
-      <div className="flex bg-muted p-1 rounded-2xl border border-border">
+      <div className="flex bg-muted p-1 rounded-xl border border-border">
         <button
           onClick={() => setActiveTab("tasks")}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
             activeTab === "tasks"
-              ? "bg-card text-primary shadow-sm border border-border"
+              ? "bg-card text-primary shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <CalendarDays size={17} /> แผนงาน
+          <CalendarDays size={16} /> แผนงาน
         </button>
         <button
           onClick={() => setActiveTab("activities")}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
             activeTab === "activities"
-              ? "bg-card text-primary shadow-sm border border-border"
+              ? "bg-card text-primary shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <ClipboardList size={17} /> บันทึกกิจกรรม
+          <ClipboardList size={16} /> บันทึกกิจกรรม
         </button>
       </div>
 

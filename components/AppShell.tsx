@@ -6,9 +6,10 @@ import PlotManagement from "./PlotManagement"
 import Operations from "./Operations"
 import Finance from "./Finance"
 import Articles from "./Articles"
-import { LayoutDashboard, TreePine, CalendarDays, Coins, BookOpen, Leaf } from "lucide-react"
+import { LayoutDashboard, TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon } from "lucide-react"
+import Settings from "./Settings"
 
-type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles"
+type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "settings"
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "dashboard", label: "หน้าหลัก", icon: LayoutDashboard },
@@ -18,9 +19,12 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "articles", label: "บทความ", icon: BookOpen },
 ]
 
+const MOBILE_TABS = TABS.slice(0, 4) // Show only 4 tabs on mobile
+
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard")
   const [isMounted, setIsMounted] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const store = useAppData()
 
   useEffect(() => {
@@ -68,40 +72,49 @@ export default function AppShell() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Top Header Bar (compact) */}
-      <header className="relative z-20 bg-accent px-4 md:px-8 pt-3 pb-3 flex items-center justify-between shrink-0">
+      {/* Top Header Bar (Premium Gradient) */}
+      <header className="relative z-20 bg-gradient-to-r from-primary via-primary to-emerald-700 px-4 md:px-8 pt-4 pb-4 flex items-center justify-between shrink-0 shadow-lg">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/20 backdrop-blur-md rounded-xl">
-            <Leaf size={22} className="text-white" />
+          <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl shadow-inner">
+            <Leaf size={24} className="text-white drop-shadow" />
           </div>
           <div>
-            <h1 className="font-black text-white text-xl tracking-tight leading-none">สวนทุเรียน</h1>
-            <p className="text-white/80 text-base font-bold uppercase tracking-widest mt-0.5">Smart Orchard Management</p>
+            <h1 className="font-black text-white text-xl tracking-tight leading-none drop-shadow">สวนทุเรียน</h1>
+            <p className="text-white/70 text-sm font-semibold uppercase tracking-widest mt-0.5">Smart Orchard</p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-white font-black text-xl leading-none">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)} <span className="text-white/80 text-base font-bold">ต้น</span></p>
-          <p className="text-white/70 text-base font-black uppercase tracking-widest mt-1">{new Date().toLocaleDateString("th-TH", { day: "numeric", month: "short" })}</p>
+        <div className="flex items-center gap-2">
+          <div className="text-right bg-white/10 backdrop-blur-md rounded-xl px-4 py-2">
+            <p className="text-white font-black text-lg leading-none">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)} <span className="text-white/80 text-sm font-bold">ต้น</span></p>
+            <p className="text-white/60 text-sm font-semibold mt-0.5">{new Date().toLocaleDateString("th-TH", { day: "numeric", month: "short" })}</p>
+          </div>
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors"
+          >
+            <SettingsIcon size={20} className="text-white" />
+          </button>
         </div>
       </header>
 
       {/* Body: Sidebar + Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
-        <nav className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border py-6 px-4 gap-2 shrink-0">
+        <nav className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border py-6 px-3 gap-1.5 shrink-0">
+          <p className="px-4 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">เมนูหลัก</p>
           {TABS.map(tab => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3.5 px-4 py-4 rounded-2xl text-base font-black transition-all text-left ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-semibold transition-all text-left ${
                   activeTab === tab.id
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]"
-                    : "text-sidebar-foreground hover:bg-primary/10 hover:text-primary"
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "text-sidebar-foreground hover:bg-muted hover:text-primary"
                 }`}
               >
-                <Icon size={22} />
+                <Icon size={20} />
                 {tab.label}
               </button>
             )
@@ -116,8 +129,8 @@ export default function AppShell() {
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation (Floating Pill style like the design) */}
-      <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-black/90 backdrop-blur-xl px-4 py-3 rounded-full flex items-center gap-2 shadow-2xl border border-white/10 w-[90%] max-w-md">
+      {/* Mobile Bottom Navigation (Clean pill style) */}
+      <nav className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-card/95 backdrop-blur-xl px-2 py-2 rounded-2xl flex items-center gap-1 shadow-xl border border-border w-[92%] max-w-md">
         {TABS.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
@@ -125,18 +138,19 @@ export default function AppShell() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex flex-col items-center justify-center gap-1 transition-all duration-300 ${
-                isActive ? "text-accent scale-110" : "text-white/40 hover:text-white/70"
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl transition-all ${
+                isActive ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <div className={`p-2 rounded-full transition-colors ${isActive ? "bg-accent/20" : ""}`}>
-                <Icon size={20} />
-              </div>
-              <span className="text-base font-medium tracking-wide">{tab.label}</span>
+              <Icon size={20} />
+              <span className="text-xs font-semibold">{tab.label}</span>
             </button>
           )
         })}
       </nav>
+
+      {/* Settings Modal */}
+      <Settings isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   )
 }
