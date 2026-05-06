@@ -63,7 +63,7 @@ function BulkUpdateModal({ plot, onClose, onUpdate }: {
             </div>
             <div>
               <h3 className="font-black text-lg text-foreground leading-tight">อัปเดตทั้งแปลง</h3>
-              <p className="text-xs text-muted-foreground font-medium">{plot.name} • {plot.trees.length} ต้น</p>
+              <p className="text-base text-muted-foreground font-medium">{plot.name} • {plot.trees.length} ต้น</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-muted rounded-full transition-colors"><X size={20} className="text-muted-foreground" /></button>
@@ -71,7 +71,7 @@ function BulkUpdateModal({ plot, onClose, onUpdate }: {
         
         <div className="space-y-4">
           <div className="bg-muted/30 rounded-2xl p-4 border border-border/50">
-            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">เลือกระยะที่ต้องการเปลี่ยน</label>
+            <label className="text-base font-black text-muted-foreground uppercase tracking-widest mb-2 block">เลือกระยะที่ต้องการเปลี่ยน</label>
             <select
               value={stage}
               onChange={e => setStage(e.target.value as FlowerStage)}
@@ -82,8 +82,8 @@ function BulkUpdateModal({ plot, onClose, onUpdate }: {
           </div>
           
           <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
-            <div className="shrink-0 w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-amber-700 font-bold text-sm">!</div>
-            <p className="text-xs text-amber-800 leading-relaxed font-medium">
+            <div className="shrink-0 w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-amber-700 font-bold text-base">!</div>
+            <p className="text-base text-amber-800 leading-relaxed font-medium">
               การอัปเดตนี้นี้จะเปลี่ยนระยะของทุเรียน **ทุกต้น** ในแปลงนี้ให้เป็นระยะเดียวกัน
             </p>
           </div>
@@ -109,11 +109,11 @@ function QRModal({ tree, plot, onClose }: { tree: Tree; plot: Plot; onClose: () 
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-xs text-center shadow-xl" onClick={e => e.stopPropagation()}>
         <h3 className="font-semibold text-foreground mb-1">QR Code ต้นทุเรียน</h3>
-        <p className="text-muted-foreground text-sm mb-4">{plot.name} · {tree.treeNumber}</p>
+        <p className="text-muted-foreground text-base mb-4">{plot.name} · {tree.treeNumber}</p>
         <div className="bg-white p-4 rounded-xl inline-block mb-4 border border-border">
           <QRCodeSVG value={qrData} size={180} />
         </div>
-        <p className="text-xs text-muted-foreground">{tree.variety} · อายุ {tree.age} ปี</p>
+        <p className="text-base text-muted-foreground">{tree.variety} · อายุ {tree.age} ปี</p>
         <button onClick={onClose} className="mt-4 w-full border border-border rounded-lg py-2.5 text-muted-foreground hover:text-foreground transition-colors">ปิด</button>
       </div>
     </div>
@@ -169,7 +169,7 @@ function AllQRModal({ plot, onClose }: { plot: Plot; onClose: () => void }) {
           <div className="p-5 border-b border-border flex justify-between items-center bg-muted/30 rounded-t-3xl shrink-0 print-hide">
             <div>
                <h3 className="font-bold text-lg text-foreground flex items-center gap-2"><QrCode size={20} className="text-accent" /> พิมพ์ QR Code ทั้งแปลง</h3>
-               <p className="text-sm text-muted-foreground mt-0.5">{plot.name} · มีทั้งหมด {plot.trees.length} ต้น</p>
+               <p className="text-base text-muted-foreground mt-0.5">{plot.name} · มีทั้งหมด {plot.trees.length} ต้น</p>
             </div>
             <button onClick={onClose} className="p-2 bg-white rounded-full text-muted-foreground hover:text-foreground shadow-sm border border-border">
                <X size={20} />
@@ -180,12 +180,12 @@ function AllQRModal({ plot, onClose }: { plot: Plot; onClose: () => void }) {
               const qrData = JSON.stringify({ plotId: plot.id, plotName: plot.name, treeId: tree.id, treeNumber: tree.treeNumber, variety: tree.variety })
               return (
                 <div key={tree.id} className="qr-print-item p-4 flex flex-col items-center justify-center text-center">
-                  <h4 className="font-semibold text-xs text-muted-foreground mb-1">QR Code ต้นทุเรียน</h4>
-                  <p className="font-black text-2xl mb-3 text-foreground">{tree.treeNumber}</p>
+                  <h4 className="font-semibold text-base text-muted-foreground mb-1">QR Code ต้นทุเรียน</h4>
+                  <p className="font-black text-xl mb-3 text-foreground">{tree.treeNumber}</p>
                   <div className="bg-white mb-3 inline-block">
                     <QRCodeSVG value={qrData} size={120} />
                   </div>
-                  <p className="text-xs font-medium text-muted-foreground">{plot.name} · {tree.variety}</p>
+                  <p className="text-base font-medium text-muted-foreground">{plot.name} · {tree.variety}</p>
                 </div>
               )
             })}
@@ -220,43 +220,43 @@ function TreeForm({ tree, onSave, onCancel }: {
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs text-muted-foreground mb-1 block">หมายเลขต้น</label>
+          <label className="text-base text-muted-foreground mb-1 block">หมายเลขต้น</label>
           <input value={form.treeNumber} onChange={e => set("treeNumber", e.target.value)}
             className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="A-001" />
         </div>
         <div>
-          <label className="text-xs text-muted-foreground mb-1 block">อายุ (ปี)</label>
+          <label className="text-base text-muted-foreground mb-1 block">อายุ (ปี)</label>
           <input type="number" value={form.age} onChange={e => set("age", Number(e.target.value))}
             className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" min={1} />
         </div>
       </div>
       <div>
-        <label className="text-xs text-muted-foreground mb-1 block">พันธุ์</label>
+        <label className="text-base text-muted-foreground mb-1 block">พันธุ์</label>
         <select value={form.variety} onChange={e => set("variety", e.target.value)}
           className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
           {VARIETIES.map(v => <option key={v} value={v}>{v}</option>)}
         </select>
       </div>
       <div>
-        <label className="text-xs text-muted-foreground mb-1 block">ระยะปัจจุบัน</label>
+        <label className="text-base text-muted-foreground mb-1 block">ระยะปัจจุบัน</label>
         <select value={form.stage} onChange={e => set("stage", e.target.value)}
           className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
           {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
         </select>
       </div>
       <div>
-        <label className="text-xs text-muted-foreground mb-1 block">สุขภาพต้น</label>
+        <label className="text-base text-muted-foreground mb-1 block">สุขภาพต้น</label>
         <div className="flex gap-2">
           {(["good", "fair", "poor"] as Tree["health"][]).map(h => (
             <button key={h} onClick={() => set("health", h)}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium border transition-colors ${form.health === h ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
+              className={`flex-1 py-2.5 rounded-lg text-base font-medium border transition-colors ${form.health === h ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
               {HEALTH_LABELS[h]}
             </button>
           ))}
         </div>
       </div>
       <div>
-        <label className="text-xs text-muted-foreground mb-1 block">บันทึก</label>
+        <label className="text-base text-muted-foreground mb-1 block">บันทึก</label>
         <textarea value={form.notes} onChange={e => set("notes", e.target.value)} rows={2}
           className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring" placeholder="บันทึกเพิ่มเติม..." />
       </div>
@@ -316,8 +316,8 @@ function TreeDetailView({
             <TreePine size={28} className="text-primary" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-foreground leading-tight">ต้น {tree.treeNumber}</h2>
-            <p className="text-muted-foreground text-sm font-medium mt-0.5">{plot.name} · {tree.variety} · อายุ {tree.age} ปี</p>
+            <h2 className="text-xl font-black text-foreground leading-tight">ต้น {tree.treeNumber}</h2>
+            <p className="text-muted-foreground text-base font-medium mt-0.5">{plot.name} · {tree.variety} · อายุ {tree.age} ปี</p>
           </div>
         </div>
         <button onClick={() => setShowEdit(!showEdit)} className={`p-2 rounded-xl transition-colors ${showEdit ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'}`}>
@@ -329,12 +329,12 @@ function TreeDetailView({
       {!showEdit && (
         <div className="flex gap-3 w-full">
           <div className="flex-1 bg-card border border-border rounded-2xl p-3 flex items-center justify-between">
-            <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">สุขภาพ</span>
-            <span className="font-bold text-sm text-foreground">{HEALTH_LABELS[tree.health]}</span>
+            <span className="text-base uppercase tracking-wider text-muted-foreground font-semibold">สุขภาพ</span>
+            <span className="font-bold text-base text-foreground">{HEALTH_LABELS[tree.health]}</span>
           </div>
           <div className="flex-1 bg-card border border-border rounded-2xl p-3 flex items-center justify-between">
-            <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">ระยะดอก</span>
-            <span className="font-bold text-sm text-foreground">{tree.stage === 'vegetative' ? 'ไม่มี' : FLOWER_STAGE_LABELS[tree.stage]}</span>
+            <span className="text-base uppercase tracking-wider text-muted-foreground font-semibold">ระยะดอก</span>
+            <span className="font-bold text-base text-foreground">{tree.stage === 'vegetative' ? 'ไม่มี' : FLOWER_STAGE_LABELS[tree.stage]}</span>
           </div>
         </div>
       )}
@@ -359,7 +359,7 @@ function TreeDetailView({
               </h4>
               <button 
                 onClick={() => addBatch(plot.id, tree.id, `รุ่นที่ ${(tree.batches?.length || 0) + 1}`)}
-                className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:opacity-90 transition-opacity"
+                className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-xl text-base font-bold shadow-sm hover:opacity-90 transition-opacity"
               >
                 <Plus size={16} /> เพิ่มรุ่น
               </button>
@@ -367,7 +367,7 @@ function TreeDetailView({
 
             {(!tree.batches || tree.batches.length === 0) ? (
               <div className="bg-card border border-dashed border-border rounded-xl p-6 text-center">
-                <p className="text-muted-foreground text-sm italic">ยังไม่มีการบันทึกรุ่นดอก/ผล</p>
+                <p className="text-muted-foreground text-base italic">ยังไม่มีการบันทึกรุ่นดอก/ผล</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -380,23 +380,23 @@ function TreeDetailView({
                     <div key={batch.id} className="bg-card border-l-4 border-l-accent rounded-xl p-4 shadow-sm border border-border relative">
                       {activeBatchIdForEdit === batch.id ? (
                         <div className="bg-card border border-border rounded-xl p-4 mb-4">
-                          <p className="text-sm font-semibold mb-2">แก้ไขข้อมูลรุ่น</p>
+                          <p className="text-base font-semibold mb-2">แก้ไขข้อมูลรุ่น</p>
                           <div className="space-y-3">
                             <div>
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase mb-1 block">ชื่อรุ่น</label>
-                              <input value={batchForm.name} onChange={e => setBatchForm({...batchForm, name: e.target.value})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm font-bold" placeholder="เช่น รุ่นที่ 1" />
+                              <label className="text-base font-bold text-muted-foreground uppercase mb-1 block">ชื่อรุ่น</label>
+                              <input value={batchForm.name} onChange={e => setBatchForm({...batchForm, name: e.target.value})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base font-bold" placeholder="เช่น รุ่นที่ 1" />
                             </div>
                             <div>
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase mb-1 block">จำนวนผลผลิต</label>
+                              <label className="text-base font-bold text-muted-foreground uppercase mb-1 block">จำนวนผลผลิต</label>
                               <div className="relative">
-                                <input type="number" value={batchForm.fruitCount} onChange={e => setBatchForm({...batchForm, fruitCount: Number(e.target.value)})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm font-bold pr-10" placeholder="0" />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">ลูก</span>
+                                <input type="number" value={batchForm.fruitCount} onChange={e => setBatchForm({...batchForm, fruitCount: Number(e.target.value)})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base font-bold pr-10" placeholder="0" />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-base font-bold text-muted-foreground">ลูก</span>
                               </div>
                             </div>
                           </div>
                           <div className="flex gap-2 mt-3">
-                            <button onClick={() => setActiveBatchIdForEdit(null)} className="flex-1 text-xs py-2 border border-border rounded-lg">ยกเลิก</button>
-                            <button onClick={() => { updateBatch(plot.id, tree.id, batch.id, batchForm); setActiveBatchIdForEdit(null) }} className="flex-1 text-xs py-2 bg-primary text-primary-foreground rounded-lg">บันทึก</button>
+                            <button onClick={() => setActiveBatchIdForEdit(null)} className="flex-1 text-base py-2 border border-border rounded-lg">ยกเลิก</button>
+                            <button onClick={() => { updateBatch(plot.id, tree.id, batch.id, batchForm); setActiveBatchIdForEdit(null) }} className="flex-1 text-base py-2 bg-primary text-primary-foreground rounded-lg">บันทึก</button>
                           </div>
                         </div>
                       ) : (
@@ -420,21 +420,21 @@ function TreeDetailView({
 
                       <div className="flex items-center gap-3 mb-4">
                         {latestStage && (
-                          <span className={`text-xs px-3 py-1 rounded-full font-bold ${STAGE_BADGE[latestStage.stage]}`}>
+                          <span className={`text-base px-3 py-1 rounded-full font-bold ${STAGE_BADGE[latestStage.stage]}`}>
                             {FLOWER_STAGE_LABELS[latestStage.stage]}
                           </span>
                         )}
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <span className="text-base text-muted-foreground flex items-center gap-1">
                           <CalendarDays size={14} /> {latestStage ? new Date(latestStage.date).toLocaleDateString("th-TH") : '-'}
                         </span>
-                        <span className="text-xs text-accent font-bold flex items-center gap-1">
+                        <span className="text-base text-accent font-bold flex items-center gap-1">
                           <div className="w-3 h-3 rounded-full bg-accent" /> {batch.fruitCount} ลูก
                         </span>
                       </div>
 
                       {harvestDate && (
-                        <div className="flex items-center gap-2 text-destructive font-bold text-xs mb-4">
-                          <div className="w-4 h-4 rounded-full border-2 border-destructive flex items-center justify-center text-[10px]">!</div>
+                        <div className="flex items-center gap-2 text-destructive font-bold text-base mb-4">
+                          <div className="w-4 h-4 rounded-full border-2 border-destructive flex items-center justify-center text-base">!</div>
                           เก็บเกี่ยว: {harvestDate.toLocaleDateString("th-TH")}
                         </div>
                       )}
@@ -446,7 +446,7 @@ function TreeDetailView({
                             <CalendarDays size={24} />
                           </div>
                           <div>
-                            <p className="text-[10px] text-amber-800 font-bold uppercase">พยากรณ์วันเก็บเกี่ยว (120 วันหลังดอกบาน)</p>
+                            <p className="text-base text-amber-800 font-bold uppercase">พยากรณ์วันเก็บเกี่ยว (120 วันหลังดอกบาน)</p>
                             <p className="text-lg font-black text-amber-900">{harvestDate?.toLocaleDateString("th-TH", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                           </div>
                         </div>
@@ -455,18 +455,18 @@ function TreeDetailView({
                       {/* Add next stage form */}
                       {activeBatchIdForStage === batch.id ? (
                         <div className="bg-muted rounded-2xl p-4 mb-6 space-y-3">
-                          <p className="font-bold text-sm">บันทึกระยะใหม่</p>
-                          <select value={stageForm.stage} onChange={e => setStageForm({...stageForm, stage: e.target.value as FlowerStage})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent">
+                          <p className="font-bold text-base">บันทึกระยะใหม่</p>
+                          <select value={stageForm.stage} onChange={e => setStageForm({...stageForm, stage: e.target.value as FlowerStage})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-1 focus:ring-accent">
                             {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
                           </select>
-                          <input type="date" value={stageForm.date} onChange={e => setStageForm({...stageForm, date: e.target.value})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent" />
-                          <input type="text" value={stageForm.note} onChange={e => setStageForm({...stageForm, note: e.target.value})} placeholder="บันทึกเพิ่มเติม (ตัวเลือก)" className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent" />
+                          <input type="date" value={stageForm.date} onChange={e => setStageForm({...stageForm, date: e.target.value})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-1 focus:ring-accent" />
+                          <input type="text" value={stageForm.note} onChange={e => setStageForm({...stageForm, note: e.target.value})} placeholder="บันทึกเพิ่มเติม (ตัวเลือก)" className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-1 focus:ring-accent" />
                           <div className="flex gap-2 pt-2">
-                            <button onClick={() => setActiveBatchIdForStage(null)} className="flex-1 py-2 text-sm border border-border rounded-lg text-muted-foreground hover:text-foreground">ยกเลิก</button>
+                            <button onClick={() => setActiveBatchIdForStage(null)} className="flex-1 py-2 text-base border border-border rounded-lg text-muted-foreground hover:text-foreground">ยกเลิก</button>
                             <button onClick={() => {
                                addBatchStage(plot.id, tree.id, batch.id, { stage: stageForm.stage, date: new Date(stageForm.date).toISOString(), note: stageForm.note });
                                setActiveBatchIdForStage(null);
-                             }} className="flex-1 py-2 text-sm bg-primary text-primary-foreground rounded-lg font-bold shadow-md">บันทึก</button>
+                             }} className="flex-1 py-2 text-base bg-primary text-primary-foreground rounded-lg font-bold shadow-md">บันทึก</button>
                           </div>
                         </div>
                       ) : (
@@ -485,7 +485,7 @@ function TreeDetailView({
 
                       {/* Timeline History */}
                       <div className="space-y-4">
-                        <p className="text-xs font-bold text-foreground flex items-center gap-2">
+                        <p className="text-base font-bold text-foreground flex items-center gap-2">
                            <History size={14} className="text-muted-foreground" /> ประวัติระยะทั้งหมด
                         </p>
                         <div className="relative pl-6 space-y-4 border-l-2 border-l-muted ml-2">
@@ -494,27 +494,27 @@ function TreeDetailView({
                               <div className={`absolute -left-[1.65rem] top-1.5 w-3 h-3 rounded-full ${idx === 0 ? 'bg-accent' : 'bg-secondary'}`} />
                               {activeStageIdForEdit === st.id ? (
                                 <div className="bg-white border border-border rounded-2xl p-3 space-y-2">
-                                  <select value={stageForm.stage} onChange={e => setStageForm({...stageForm, stage: e.target.value as FlowerStage})} className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-xs">
+                                  <select value={stageForm.stage} onChange={e => setStageForm({...stageForm, stage: e.target.value as FlowerStage})} className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-base">
                                     {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
                                   </select>
-                                  <input type="date" value={stageForm.date} onChange={e => setStageForm({...stageForm, date: e.target.value})} className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-xs" />
-                                  <input type="text" value={stageForm.note} onChange={e => setStageForm({...stageForm, note: e.target.value})} placeholder="บันทึกเพิ่มเติม" className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-xs" />
+                                  <input type="date" value={stageForm.date} onChange={e => setStageForm({...stageForm, date: e.target.value})} className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-base" />
+                                  <input type="text" value={stageForm.note} onChange={e => setStageForm({...stageForm, note: e.target.value})} placeholder="บันทึกเพิ่มเติม" className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-base" />
                                   <div className="flex gap-2 pt-1">
-                                    <button onClick={() => setActiveStageIdForEdit(null)} className="flex-1 py-1.5 text-xs border border-border rounded-lg text-muted-foreground">ยกเลิก</button>
+                                    <button onClick={() => setActiveStageIdForEdit(null)} className="flex-1 py-1.5 text-base border border-border rounded-lg text-muted-foreground">ยกเลิก</button>
                                     <button onClick={() => {
                                        updateBatch(plot.id, tree.id, batch.id, {
                                          stages: batch.stages.map(s => s.id === st.id ? { ...s, stage: stageForm.stage, date: new Date(stageForm.date).toISOString(), note: stageForm.note } : s)
                                        });
                                        setActiveStageIdForEdit(null);
-                                     }} className="flex-1 py-1.5 text-xs bg-primary text-primary-foreground rounded-lg">บันทึก</button>
+                                     }} className="flex-1 py-1.5 text-base bg-primary text-primary-foreground rounded-lg">บันทึก</button>
                                   </div>
                                 </div>
                               ) : (
                                 <div className="bg-white/50 border border-border rounded-2xl p-3 flex items-center justify-between hover:bg-white transition-colors">
                                   <div>
-                                    <p className="text-sm font-bold text-foreground">{FLOWER_STAGE_LABELS[st.stage]}</p>
-                                    <p className="text-[10px] text-muted-foreground">{new Date(st.date).toLocaleDateString("th-TH")}</p>
-                                    {st.note && <p className="text-xs text-muted-foreground mt-1">📝 {st.note}</p>}
+                                    <p className="text-base font-bold text-foreground">{FLOWER_STAGE_LABELS[st.stage]}</p>
+                                    <p className="text-base text-muted-foreground">{new Date(st.date).toLocaleDateString("th-TH")}</p>
+                                    {st.note && <p className="text-base text-muted-foreground mt-1">📝 {st.note}</p>}
                                   </div>
                                   <div className="flex gap-1 shrink-0">
                                     <button onClick={() => {
@@ -611,11 +611,11 @@ function PlotDetailView({
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1">
-          <h2 className="text-2xl font-black text-foreground">{plot.name}</h2>
-          <p className="text-xs text-muted-foreground font-medium mt-0.5 leading-relaxed">{plot.area} ไร่{plot.notes ? ` · ${plot.notes}` : ""}</p>
+          <h2 className="text-xl font-black text-foreground">{plot.name}</h2>
+          <p className="text-base text-muted-foreground font-medium mt-0.5 leading-relaxed">{plot.area} ไร่{plot.notes ? ` · ${plot.notes}` : ""}</p>
         </div>
         <button onClick={() => setShowBulk(true)}
-          className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-secondary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-sm shrink-0">
+          className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-secondary-foreground rounded-xl text-base font-bold hover:opacity-90 transition-opacity shadow-sm shrink-0">
           <RefreshCw size={14} />อัปเดตทั้งแปลง
         </button>
       </div>
@@ -624,15 +624,15 @@ function PlotDetailView({
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-card rounded-2xl p-3 text-center border border-border">
           <p className="text-xl font-black text-foreground">{plot.trees.length}</p>
-          <p className="text-[10px] text-muted-foreground font-medium mt-0.5">ต้นทั้งหมด</p>
+          <p className="text-base text-muted-foreground font-medium mt-0.5">ต้นทั้งหมด</p>
         </div>
         <div className="bg-emerald-50 rounded-2xl p-3 text-center border border-emerald-100">
           <p className="text-xl font-black text-emerald-700">{goodCount}</p>
-          <p className="text-[10px] text-emerald-600 font-medium mt-0.5">สุขภาพดี</p>
+          <p className="text-base text-emerald-600 font-medium mt-0.5">สุขภาพดี</p>
         </div>
         <div className="bg-amber-50 rounded-2xl p-3 text-center border border-amber-100">
           <p className="text-xl font-black text-amber-700">{fairCount + poorCount}</p>
-          <p className="text-[10px] text-amber-600 font-medium mt-0.5">ต้องดูแล</p>
+          <p className="text-base text-amber-600 font-medium mt-0.5">ต้องดูแล</p>
         </div>
       </div>
 
@@ -640,7 +640,7 @@ function PlotDetailView({
       <div className="px-2 mb-2 flex gap-2">
         {addingTree ? (
           <div className="w-full bg-card border border-border rounded-xl p-4 shadow-sm">
-            <p className="text-sm font-semibold text-foreground mb-3">เพิ่มต้นทุเรียน</p>
+            <p className="text-base font-semibold text-foreground mb-3">เพิ่มต้นทุเรียน</p>
             <TreeForm
               plotId={plot.id}
               onSave={d => { addTree(plot.id, d); setAddingTree(false) }}
@@ -650,13 +650,13 @@ function PlotDetailView({
         ) : (
           <>
             <button onClick={() => setAddingTree(true)}
-              className="flex-1 bg-[#EEF5E6] text-accent font-bold rounded-2xl py-3 flex items-center justify-center gap-2 text-sm hover:opacity-90 transition-all border border-[#85C46E]/30">
+              className="flex-1 bg-[#EEF5E6] text-accent font-bold rounded-2xl py-3 flex items-center justify-center gap-2 text-base hover:opacity-90 transition-all border border-[#85C46E]/30">
               <Plus size={18} strokeWidth={2.5} /> เพิ่มต้นทุเรียน
             </button>
             <button onClick={() => setShowAllQR(true)}
               className="px-5 bg-white text-foreground rounded-2xl flex flex-col items-center justify-center border border-border shadow-sm hover:bg-muted transition-colors">
               <QrCode size={20} className="mb-1 text-accent" />
-              <span className="text-[10px] font-medium">พิมพ์ QR</span>
+              <span className="text-base font-medium">พิมพ์ QR</span>
             </button>
           </>
         )}
@@ -667,13 +667,13 @@ function PlotDetailView({
         {plot.trees.length === 0 ? (
           <div className="col-span-2 bg-card border border-border rounded-xl p-5 text-center">
             <TreePine size={32} className="text-muted-foreground mx-auto mb-2" />
-            <p className="text-muted-foreground text-sm">ยังไม่มีต้นทุเรียนในแปลงนี้</p>
+            <p className="text-muted-foreground text-base">ยังไม่มีต้นทุเรียนในแปลงนี้</p>
           </div>
         ) : plot.trees.map(tree => (
           <div key={tree.id} className={editingTree === tree.id ? "col-span-2" : ""}>
             {editingTree === tree.id ? (
               <div className="bg-card border border-border rounded-xl p-4">
-                <p className="text-sm font-semibold text-foreground mb-3">แก้ไขข้อมูลต้น {tree.treeNumber}</p>
+                <p className="text-base font-semibold text-foreground mb-3">แก้ไขข้อมูลต้น {tree.treeNumber}</p>
                 <TreeForm
                   plotId={plot.id}
                   tree={tree}
@@ -702,17 +702,17 @@ function PlotDetailView({
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col gap-0.5 mb-2">
                     <span className="font-bold text-foreground text-lg">{tree.treeNumber}</span>
-                    <span className="text-sm text-muted-foreground">{tree.variety} · {tree.age} ปี</span>
+                    <span className="text-base text-muted-foreground">{tree.variety} · {tree.age} ปี</span>
                   </div>
                   <div className="flex flex-wrap gap-1 items-center">
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${STAGE_BADGE[tree.stage] || "bg-muted text-muted-foreground"}`}>
+                    <span className={`text-base px-1.5 py-0.5 rounded-full font-bold ${STAGE_BADGE[tree.stage] || "bg-muted text-muted-foreground"}`}>
                       {FLOWER_STAGE_LABELS[tree.stage]}
                     </span>
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${HEALTH_BG[tree.health]}`}>
+                    <span className={`text-base px-1.5 py-0.5 rounded-full font-bold ${HEALTH_BG[tree.health]}`}>
                       {HEALTH_LABELS[tree.health]}
                     </span>
                   </div>
-                  {tree.notes && <p className="text-xs text-muted-foreground mt-2 italic line-clamp-2">{tree.notes}</p>}
+                  {tree.notes && <p className="text-base text-muted-foreground mt-2 italic line-clamp-2">{tree.notes}</p>}
                 </div>
               </div>
             )}
@@ -771,10 +771,10 @@ export default function PlotManagement({
         <div className="flex items-center gap-2">
           <LayoutGrid size={18} className="text-accent" />
           <h2 className="text-lg font-bold text-foreground">แปลงทุเรียน</h2>
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{data.plots.length} แปลง</span>
+          <span className="text-base bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{data.plots.length} แปลง</span>
         </div>
         <button onClick={() => setShowAddPlot(v => !v)}
-          className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+          className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-base font-semibold hover:opacity-90 transition-opacity">
           <Plus size={16} />{showAddPlot ? "ยกเลิก" : "เพิ่มแปลง"}
         </button>
       </div>
@@ -784,18 +784,18 @@ export default function PlotManagement({
           <h3 className="font-semibold text-foreground">เพิ่มแปลงใหม่</h3>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">ชื่อแปลง</label>
+              <label className="text-base text-muted-foreground mb-1 block">ชื่อแปลง</label>
               <input value={plotForm.name} onChange={e => setPlotForm(f => ({ ...f, name: e.target.value }))}
                 className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="แปลง D" />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">พื้นที่ (ไร่)</label>
+              <label className="text-base text-muted-foreground mb-1 block">พื้นที่ (ไร่)</label>
               <input type="number" value={plotForm.area} onChange={e => setPlotForm(f => ({ ...f, area: Number(e.target.value) }))}
                 className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" min={0.5} step={0.5} />
             </div>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">บันทึก</label>
+            <label className="text-base text-muted-foreground mb-1 block">บันทึก</label>
             <input value={plotForm.notes} onChange={e => setPlotForm(f => ({ ...f, notes: e.target.value }))}
               className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="บันทึกเพิ่มเติม..." />
           </div>
@@ -834,32 +834,32 @@ export default function PlotManagement({
                     </div>
                     <div>
                       <p className="font-bold text-foreground">{plot.name}</p>
-                      <p className="text-xs text-muted-foreground">{plot.area} ไร่</p>
+                      <p className="text-base text-muted-foreground">{plot.area} ไร่</p>
                     </div>
                   </div>
                   <ChevronRight size={16} className="text-muted-foreground group-hover:text-accent transition-colors mt-1" />
                 </div>
 
-                <div className="flex items-center gap-3 text-sm mb-3">
+                <div className="flex items-center gap-3 text-base mb-3">
                   <span className="font-semibold text-foreground text-xl">{plot.trees.length}</span>
-                  <span className="text-muted-foreground text-xs">ต้น</span>
+                  <span className="text-muted-foreground text-base">ต้น</span>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
                   {topStage && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STAGE_BADGE[topStage] || "bg-muted text-muted-foreground"}`}>
+                    <span className={`text-base px-2 py-0.5 rounded-full font-medium ${STAGE_BADGE[topStage] || "bg-muted text-muted-foreground"}`}>
                       {FLOWER_STAGE_LABELS[topStage]}
                     </span>
                   )}
                   {goodCount > 0 && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium">ดี {goodCount} ต้น</span>
+                    <span className="text-base px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium">ดี {goodCount} ต้น</span>
                   )}
                   {issueCount > 0 && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">ดูแล {issueCount} ต้น</span>
+                    <span className="text-base px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">ดูแล {issueCount} ต้น</span>
                   )}
                 </div>
 
-                {plot.notes && <p className="text-xs text-muted-foreground mt-2 italic truncate">{plot.notes}</p>}
+                {plot.notes && <p className="text-base text-muted-foreground mt-2 italic truncate">{plot.notes}</p>}
               </button>
             )
           })}

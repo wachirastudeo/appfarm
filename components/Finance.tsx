@@ -74,7 +74,7 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-foreground">การเงิน</h2>
-        <button onClick={() => setShowForm(v => !v)} className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+        <button onClick={() => setShowForm(v => !v)} className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-base font-semibold hover:opacity-90 transition-opacity">
           <Plus size={16} />{showForm ? "ยกเลิก" : "บันทึก"}
         </button>
       </div>
@@ -86,24 +86,24 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
           className={`rounded-xl p-3 text-center transition-all border-2 ${typeFilter === "income" ? "border-green-500 bg-green-50" : "bg-card border-border hover:border-green-300"}`}
         >
           <TrendingUp size={16} className="mx-auto text-green-700 mb-1" />
-          <p className="text-xs text-muted-foreground">รายรับ</p>
-          <p className="text-sm font-bold text-green-700">{formatCurrency(stats.income)}</p>
+          <p className="text-base text-muted-foreground">รายรับ</p>
+          <p className="text-base font-bold text-green-700">{formatCurrency(stats.income)}</p>
         </button>
         <button
           onClick={() => setTypeFilter(typeFilter === "expense" ? "all" : "expense")}
           className={`rounded-xl p-3 text-center transition-all border-2 ${typeFilter === "expense" ? "border-red-500 bg-red-50" : "bg-card border-border hover:border-red-300"}`}
         >
           <TrendingDown size={16} className="mx-auto text-red-700 mb-1" />
-          <p className="text-xs text-muted-foreground">รายจ่าย</p>
-          <p className="text-sm font-bold text-red-700">{formatCurrency(stats.expense)}</p>
+          <p className="text-base text-muted-foreground">รายจ่าย</p>
+          <p className="text-base font-bold text-red-700">{formatCurrency(stats.expense)}</p>
         </button>
         <button
           onClick={() => setTypeFilter("all")}
           className={`rounded-xl p-3 text-center transition-all border-2 ${typeFilter === "all" ? "border-primary bg-primary/10" : "bg-card border-border hover:border-primary/50"}`}
         >
           <Wallet size={16} className={`mx-auto mb-1 ${stats.profit >= 0 ? "text-primary" : "text-destructive"}`} />
-          <p className="text-xs text-muted-foreground">กำไร</p>
-          <p className={`text-sm font-bold ${stats.profit >= 0 ? "text-primary" : "text-destructive"}`}>{formatCurrency(stats.profit)}</p>
+          <p className="text-base text-muted-foreground">กำไร</p>
+          <p className={`text-base font-bold ${stats.profit >= 0 ? "text-primary" : "text-destructive"}`}>{formatCurrency(stats.profit)}</p>
         </button>
       </div>
 
@@ -115,40 +115,40 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
           </div>
           {/* Income / Expense Toggle */}
           <div className="flex rounded-lg overflow-hidden border border-border">
-            <button onClick={() => { set("type","income"); set("category","ขายผล") }} className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.type === "income" ? "bg-green-100 text-green-700" : "text-muted-foreground"}`}>
+            <button onClick={() => { set("type","income"); set("category","ขายผล") }} className={`flex-1 py-2.5 text-base font-semibold transition-colors ${form.type === "income" ? "bg-green-100 text-green-700" : "text-muted-foreground"}`}>
               รายรับ
             </button>
-            <button onClick={() => { set("type","expense"); set("category","ปุ๋ย") }} className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.type === "expense" ? "bg-red-100 text-red-700" : "text-muted-foreground"}`}>
+            <button onClick={() => { set("type","expense"); set("category","ปุ๋ย") }} className={`flex-1 py-2.5 text-base font-semibold transition-colors ${form.type === "expense" ? "bg-red-100 text-red-700" : "text-muted-foreground"}`}>
               รายจ่าย
             </button>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">วันที่</label>
+              <label className="text-base text-muted-foreground mb-1 block">วันที่</label>
               <input type="date" value={form.date} onChange={e => set("date", e.target.value)} className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">จำนวนเงิน (บาท)</label>
+              <label className="text-base text-muted-foreground mb-1 block">จำนวนเงิน (บาท)</label>
               <input type="number" value={form.amount || ""} onChange={e => set("amount", Number(e.target.value))} className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" min={0} placeholder="0" />
             </div>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">หมวดหมู่</label>
+            <label className="text-base text-muted-foreground mb-1 block">หมวดหมู่</label>
             <div className="flex flex-wrap gap-2">
               {categories.map(c => (
-                <button key={c} onClick={() => set("category", c)} className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${form.category === c ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>{c}</button>
+                <button key={c} onClick={() => set("category", c)} className={`px-3 py-1.5 rounded-lg text-base border transition-colors ${form.category === c ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>{c}</button>
               ))}
             </div>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">แปลง</label>
+            <label className="text-base text-muted-foreground mb-1 block">แปลง</label>
             <select value={form.plotId} onChange={e => set("plotId", e.target.value)} className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
               <option value="">– ไม่ระบุ –</option>
               {data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">รายละเอียด</label>
+            <label className="text-base text-muted-foreground mb-1 block">รายละเอียด</label>
             <textarea value={form.description} onChange={e => set("description", e.target.value)} rows={2} className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring" placeholder="รายละเอียด..." />
           </div>
           <div className="flex gap-2">
@@ -164,8 +164,8 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
           <h3 className="font-semibold text-foreground mb-3">รายรับ-รายจ่ายรายเดือน</h3>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={monthlyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-              <XAxis dataKey="month" tick={{ fill: "oklch(0.62 0.04 155)", fontSize: 11 }} />
-              <YAxis tick={{ fill: "oklch(0.62 0.04 155)", fontSize: 11 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
+              <XAxis dataKey="month" tick={{ fill: "oklch(0.62 0.04 155)", fontSize: 14 }} />
+              <YAxis tick={{ fill: "oklch(0.62 0.04 155)", fontSize: 14 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
               <Tooltip
                 contentStyle={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
                 labelStyle={{ color: "#1f2937" }}
@@ -194,8 +194,8 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
               {expenseByCategory.map((e, i) => (
                 <div key={e.name} className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  <span className="text-xs text-muted-foreground flex-1">{e.name}</span>
-                  <span className="text-xs font-medium text-foreground">{formatCurrency(e.value)}</span>
+                  <span className="text-base text-muted-foreground flex-1">{e.name}</span>
+                  <span className="text-base font-medium text-foreground">{formatCurrency(e.value)}</span>
                 </div>
               ))}
             </div>
@@ -206,7 +206,7 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
       {/* Filter + List */}
       <div className="flex gap-2">
         {(["all","income","expense"] as (FinanceType | "all")[]).map(t => (
-          <button key={t} onClick={() => setTypeFilter(t)} className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${typeFilter === t ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
+          <button key={t} onClick={() => setTypeFilter(t)} className={`px-3 py-1.5 rounded-full text-base border transition-colors ${typeFilter === t ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
             {t === "all" ? "ทั้งหมด" : t === "income" ? "รายรับ" : "รายจ่าย"}
           </button>
         ))}
@@ -224,11 +224,11 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
               {f.type === "income" ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">{f.description}</p>
-              <p className="text-xs text-muted-foreground">{f.category} · {plotName(f.plotId)} · {formatDate(f.date)}</p>
+              <p className="text-base font-semibold text-foreground">{f.description}</p>
+              <p className="text-base text-muted-foreground">{f.category} · {plotName(f.plotId)} · {formatDate(f.date)}</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`font-bold text-sm ${f.type === "income" ? "text-green-700" : "text-red-700"}`}>
+              <span className={`font-bold text-base ${f.type === "income" ? "text-green-700" : "text-red-700"}`}>
                 {f.type === "income" ? "+" : "-"}{formatCurrency(f.amount)}
               </span>
               <button onClick={() => deleteFinance(f.id)} className="p-1.5 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all">

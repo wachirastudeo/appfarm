@@ -81,7 +81,7 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-foreground">บันทึกกิจกรรม</h2>
-        <button onClick={() => { if(showForm) handleCancel(); else setShowForm(true); }} className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+        <button onClick={() => { if(showForm) handleCancel(); else setShowForm(true); }} className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-base font-semibold hover:opacity-90 transition-opacity">
           <Plus size={16} />{showForm ? "ยกเลิก" : "บันทึก"}
         </button>
       </div>
@@ -91,18 +91,18 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
           <h3 className="font-bold text-foreground text-base">{editingId ? "แก้ไขบันทึกกิจกรรม" : "บันทึกกิจกรรมใหม่"}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">วันที่</label>
+              <label className="text-base font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">วันที่</label>
               <input type="date" value={form.date} onChange={e => set("date", e.target.value)} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
             </div>
             <div>
-              <label className="text-xs font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">แปลง</label>
+              <label className="text-base font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">แปลง</label>
               <select value={form.plotId} onChange={e => set("plotId", e.target.value)} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all">
                 {data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">ประเภทกิจกรรม</label>
+            <label className="text-base font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">ประเภทกิจกรรม</label>
             <select 
               value={form.activityType} 
               onChange={e => set("activityType", e.target.value)} 
@@ -114,11 +114,11 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
             </select>
           </div>
           <div>
-            <label className="text-xs font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">รายละเอียด</label>
+            <label className="text-base font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">รายละเอียด</label>
             <textarea value={form.description} onChange={e => set("description", e.target.value)} rows={2} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" placeholder="บันทึกรายละเอียดกิจกรรม..." />
           </div>
           <div>
-            <label className="text-xs font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">ค่าใช้จ่าย (บาท)</label>
+            <label className="text-base font-bold text-muted-foreground mb-1.5 block uppercase tracking-wider">ค่าใช้จ่าย (บาท)</label>
             <input type="number" value={form.cost} onChange={e => set("cost", Number(e.target.value))} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" min={0} />
           </div>
           <div className="flex gap-3 pt-2">
@@ -130,9 +130,9 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
 
       {/* Filter Chips */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        <button onClick={() => setFilter("all")} className={`shrink-0 px-3 py-1.5 rounded-full text-sm border transition-colors ${filter === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>ทั้งหมด</button>
+        <button onClick={() => setFilter("all")} className={`shrink-0 px-3 py-1.5 rounded-full text-base border transition-colors ${filter === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>ทั้งหมด</button>
         {(Object.keys(ACTIVITY_LABELS) as ActivityType[]).map(t => (
-          <button key={t} onClick={() => setFilter(t)} className={`shrink-0 px-3 py-1.5 rounded-full text-sm border transition-colors ${filter === t ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>{ACTIVITY_LABELS[t]}</button>
+          <button key={t} onClick={() => setFilter(t)} className={`shrink-0 px-3 py-1.5 rounded-full text-base border transition-colors ${filter === t ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>{ACTIVITY_LABELS[t]}</button>
         ))}
       </div>
 
@@ -152,17 +152,17 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[15px] font-bold text-foreground">{ACTIVITY_LABELS[a.activityType]}</span>
-                  <span className="text-xs text-muted-foreground/60">•</span>
-                  <span className="text-sm font-medium text-primary">{plotName(a.plotId)}</span>
+                  <span className="text-base font-bold text-foreground">{ACTIVITY_LABELS[a.activityType]}</span>
+                  <span className="text-base text-muted-foreground/60">•</span>
+                  <span className="text-base font-medium text-primary">{plotName(a.plotId)}</span>
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-2">{a.description}</p>
+                <p className="text-base text-muted-foreground leading-relaxed mb-2">{a.description}</p>
                 <div className="flex items-center gap-4">
-                  <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                  <span className="text-base font-medium text-muted-foreground flex items-center gap-1">
                     <Clock size={12} /> {formatDate(a.date)}
                   </span>
                   {a.cost > 0 && (
-                    <span className="text-xs font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded-md">
+                    <span className="text-base font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded-md">
                       ฿{a.cost.toLocaleString()}
                     </span>
                   )}

@@ -25,7 +25,7 @@ export default function Operations({ data, addTask, updateTask, deleteTask, addA
       <div className="flex bg-muted p-1 rounded-2xl border border-border">
         <button
           onClick={() => setActiveTab("tasks")}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
             activeTab === "tasks"
               ? "bg-card text-primary shadow-sm border border-border"
               : "text-muted-foreground hover:text-foreground"
@@ -35,7 +35,7 @@ export default function Operations({ data, addTask, updateTask, deleteTask, addA
         </button>
         <button
           onClick={() => setActiveTab("activities")}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
             activeTab === "activities"
               ? "bg-card text-primary shadow-sm border border-border"
               : "text-muted-foreground hover:text-foreground"

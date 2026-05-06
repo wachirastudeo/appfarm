@@ -75,33 +75,33 @@ export default function AppShell() {
             <Leaf size={22} className="text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-white text-lg tracking-tight">สวนทุเรียน</h1>
-            <p className="text-white/70 text-[10px] font-medium uppercase tracking-wider">Smart Orchard Management</p>
+            <h1 className="font-black text-white text-xl tracking-tight leading-none">สวนทุเรียน</h1>
+            <p className="text-white/80 text-base font-bold uppercase tracking-widest mt-0.5">Smart Orchard Management</p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-white font-bold text-lg">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)} <span className="text-white/70 text-xs font-normal">ต้น</span></p>
-          <p className="text-white/60 text-[10px] uppercase tracking-widest">{new Date().toLocaleDateString("th-TH", { day: "numeric", month: "short" })}</p>
+          <p className="text-white font-black text-xl leading-none">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)} <span className="text-white/80 text-base font-bold">ต้น</span></p>
+          <p className="text-white/70 text-base font-black uppercase tracking-widest mt-1">{new Date().toLocaleDateString("th-TH", { day: "numeric", month: "short" })}</p>
         </div>
       </header>
 
       {/* Body: Sidebar + Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
-        <nav className="hidden md:flex flex-col w-56 bg-sidebar border-r border-sidebar-border py-4 px-3 gap-1 shrink-0">
+        <nav className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border py-6 px-4 gap-2 shrink-0">
           {TABS.map(tab => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all text-left ${
+                className={`flex items-center gap-3.5 px-4 py-4 rounded-2xl text-base font-black transition-all text-left ${
                   activeTab === tab.id
-                    ? "bg-primary text-primary-foreground shadow-md"
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]"
                     : "text-sidebar-foreground hover:bg-primary/10 hover:text-primary"
                 }`}
               >
-                <Icon size={18} />
+                <Icon size={22} />
                 {tab.label}
               </button>
             )
@@ -132,7 +132,7 @@ export default function AppShell() {
               <div className={`p-2 rounded-full transition-colors ${isActive ? "bg-accent/20" : ""}`}>
                 <Icon size={20} />
               </div>
-              <span className="text-[10px] font-medium tracking-wide">{tab.label}</span>
+              <span className="text-base font-medium tracking-wide">{tab.label}</span>
             </button>
           )
         })}
