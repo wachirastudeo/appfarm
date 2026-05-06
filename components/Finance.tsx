@@ -73,37 +73,37 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-foreground">การเงิน</h2>
-        <button onClick={() => setShowForm(v => !v)} className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-base font-semibold hover:opacity-90 transition-opacity">
+        <h2 className="text-xl font-bold text-foreground">การเงิน</h2>
+        <button onClick={() => setShowForm(v => !v)} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm">
           <Plus size={16} />{showForm ? "ยกเลิก" : "บันทึก"}
         </button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-3">
         <button
           onClick={() => setTypeFilter(typeFilter === "income" ? "all" : "income")}
-          className={`rounded-xl p-3 text-center transition-all border-2 ${typeFilter === "income" ? "border-green-500 bg-green-50" : "bg-card border-border hover:border-green-300"}`}
+          className={`rounded-xl p-4 text-center transition-all border ${typeFilter === "income" ? "border-emerald-500 bg-emerald-50" : "bg-card border-border hover:border-emerald-300"}`}
         >
-          <TrendingUp size={16} className="mx-auto text-green-700 mb-1" />
-          <p className="text-base text-muted-foreground">รายรับ</p>
-          <p className="text-base font-bold text-green-700">{formatCurrency(stats.income)}</p>
+          <TrendingUp size={18} className="mx-auto text-emerald-600 mb-1.5" />
+          <p className="text-xs text-muted-foreground font-medium">รายรับ</p>
+          <p className="text-sm font-bold text-emerald-600">{formatCurrency(stats.income)}</p>
         </button>
         <button
           onClick={() => setTypeFilter(typeFilter === "expense" ? "all" : "expense")}
-          className={`rounded-xl p-3 text-center transition-all border-2 ${typeFilter === "expense" ? "border-red-500 bg-red-50" : "bg-card border-border hover:border-red-300"}`}
+          className={`rounded-xl p-4 text-center transition-all border ${typeFilter === "expense" ? "border-rose-500 bg-rose-50" : "bg-card border-border hover:border-rose-300"}`}
         >
-          <TrendingDown size={16} className="mx-auto text-red-700 mb-1" />
-          <p className="text-base text-muted-foreground">รายจ่าย</p>
-          <p className="text-base font-bold text-red-700">{formatCurrency(stats.expense)}</p>
+          <TrendingDown size={18} className="mx-auto text-rose-600 mb-1.5" />
+          <p className="text-xs text-muted-foreground font-medium">รายจ่าย</p>
+          <p className="text-sm font-bold text-rose-600">{formatCurrency(stats.expense)}</p>
         </button>
         <button
           onClick={() => setTypeFilter("all")}
-          className={`rounded-xl p-3 text-center transition-all border-2 ${typeFilter === "all" ? "border-primary bg-primary/10" : "bg-card border-border hover:border-primary/50"}`}
+          className={`rounded-xl p-4 text-center transition-all border ${typeFilter === "all" ? "border-primary bg-primary/10" : "bg-card border-border hover:border-primary/50"}`}
         >
-          <Wallet size={16} className={`mx-auto mb-1 ${stats.profit >= 0 ? "text-primary" : "text-destructive"}`} />
-          <p className="text-base text-muted-foreground">กำไร</p>
-          <p className={`text-base font-bold ${stats.profit >= 0 ? "text-primary" : "text-destructive"}`}>{formatCurrency(stats.profit)}</p>
+          <Wallet size={18} className={`mx-auto mb-1.5 ${stats.profit >= 0 ? "text-primary" : "text-destructive"}`} />
+          <p className="text-xs text-muted-foreground font-medium">กำไร</p>
+          <p className={`text-sm font-bold ${stats.profit >= 0 ? "text-primary" : "text-destructive"}`}>{formatCurrency(stats.profit)}</p>
         </button>
       </div>
 

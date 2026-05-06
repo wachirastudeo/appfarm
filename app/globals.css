@@ -4,45 +4,47 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Restored Bright Nature UI - Fresh Green & Vibrant Orange */
-  --background: #f8faf5;                  /* Soft fresh background */
-  --foreground: #111811;
+  /* Modern Nature UI - Deep Forest Green & Warm Gold */
+  --background: #fafbf8;                  /* Clean warm white */
+  --foreground: #1a2e1a;                  /* Deep forest green text */
   --card: #ffffff;
-  --card-foreground: #111811;
+  --card-foreground: #1a2e1a;
   --popover: #ffffff;
-  --popover-foreground: #111811;
-  --primary: #559e45;                    /* Fresh Bright Green (Original style) */
+  --popover-foreground: #1a2e1a;
+  --primary: #2d7a3a;                    /* Rich forest green */
   --primary-foreground: #ffffff;
-  --secondary: #fbb75c;                  /* Original Vibrant Orange */
-  --secondary-foreground: #ffffff;
-  --muted: #edf3e8;
-  --muted-foreground: #5c6b5c;
-  --accent: #559e45;                     /* Matching primary for consistency */
+  --secondary: #e8b931;                  /* Warm golden yellow */
+  --secondary-foreground: #1a2e1a;
+  --muted: #f0f4ed;                       /* Light sage */
+  --muted-foreground: #5e7a5e;
+  --accent: #2d7a3a;
   --accent-foreground: #ffffff;
-  --destructive: #ef4444;
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #e1e9d9;
+  --border: #d4e0d4;
   --input: #ffffff;
-  --ring: #559e45;
-  --chart-1: #559e45;
-  --chart-2: #fbb75c;
-  --chart-3: #111811;
-  --radius: 0px;
-  --sidebar: #f8faf5;
-  --sidebar-foreground: #111811;
-  --sidebar-primary: #559e45;
+  --ring: #2d7a3a;
+  --chart-1: #2d7a3a;
+  --chart-2: #e8b931;
+  --chart-3: #1a2e1a;
+  --chart-4: #7cb87c;
+  --chart-5: #f0c849;
+  --radius: 0.75rem;
+  --sidebar: #f5f8f3;
+  --sidebar-foreground: #1a2e1a;
+  --sidebar-primary: #2d7a3a;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #edf3e8;
-  --sidebar-accent-foreground: #111811;
-  --sidebar-border: #e1e9d9;
-  --sidebar-ring: #559e45;
+  --sidebar-accent: #e8f0e6;
+  --sidebar-accent-foreground: #1a2e1a;
+  --sidebar-border: #d4e0d4;
+  --sidebar-ring: #2d7a3a;
 
   /* Design Tokens */
-  --brand-green: #559e45;
-  --brand-orange: #fbb75c;
-  --status-good: #559e45;
-  --status-warn: #fbb75c;
-  --status-danger: #ef4444;
+  --brand-green: #2d7a3a;
+  --brand-gold: #e8b931;
+  --status-good: #2d7a3a;
+  --status-warn: #e8b931;
+  --status-danger: #dc2626;
 }
 
 @theme inline {
@@ -90,10 +92,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
