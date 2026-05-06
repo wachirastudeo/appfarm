@@ -6,7 +6,8 @@ import PlotManagement from "./PlotManagement"
 import Operations from "./Operations"
 import Finance from "./Finance"
 import Articles from "./Articles"
-import { LayoutDashboard, TreePine, CalendarDays, Coins, BookOpen, Leaf } from "lucide-react"
+import { LayoutDashboard, TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon } from "lucide-react"
+import Settings from "./Settings"
 
 type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles"
 
@@ -21,6 +22,7 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard")
   const [isMounted, setIsMounted] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const store = useAppData()
 
   useEffect(() => {
@@ -79,9 +81,17 @@ export default function AppShell() {
             <p className="text-white/70 text-sm font-semibold uppercase tracking-widest mt-0.5">Smart Orchard</p>
           </div>
         </div>
-        <div className="text-right bg-white/10 backdrop-blur-md rounded-xl px-4 py-2">
-          <p className="text-white font-black text-lg leading-none">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)} <span className="text-white/80 text-sm font-bold">ต้น</span></p>
-          <p className="text-white/60 text-sm font-semibold mt-0.5">{new Date().toLocaleDateString("th-TH", { day: "numeric", month: "short" })}</p>
+        <div className="flex items-center gap-2">
+          <div className="text-right bg-white/10 backdrop-blur-md rounded-xl px-4 py-2">
+            <p className="text-white font-black text-lg leading-none">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)} <span className="text-white/80 text-sm font-bold">ต้น</span></p>
+            <p className="text-white/60 text-sm font-semibold mt-0.5">{new Date().toLocaleDateString("th-TH", { day: "numeric", month: "short" })}</p>
+          </div>
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors"
+          >
+            <SettingsIcon size={20} className="text-white" />
+          </button>
         </div>
       </header>
 
@@ -136,6 +146,9 @@ export default function AppShell() {
           )
         })}
       </nav>
+
+      {/* Settings Modal */}
+      <Settings isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   )
 }
