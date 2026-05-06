@@ -12,29 +12,29 @@ The application uses **Geist** and **Geist Fallback** as the primary typeface fo
 ## Color Palette
 
 ### Light Mode (Default)
-The application uses a warm, plant-inspired color scheme designed for outdoor use.
+The application uses a "Restored Bright Nature UI" palette, focusing on fresh greens and vibrant oranges for high outdoor visibility.
 
 #### Primary Colors
-- **Background**: `#e9f0df` - Soft sage green, reduces glare in outdoor lighting
+- **Background**: `#f8faf5` - Soft fresh green background, reduces glare
 - **Text Primary**: `#111811` - Dark green-black for high contrast
 - **Text Secondary**: `#5c6b5c` - Medium muted green for helper text
 - **Cards & Surface**: `#ffffff` - Pure white for content surfaces
 
 #### Brand & Interactive Colors
-- **Brand Green (Accent)**: `#6eb85c` - Primary accent for icons, active states, and key highlights
-- **Brand Orange (Secondary)**: `#fbb75c` - Secondary action buttons and highlights
-- **Brand Black (Primary)**: `#000000` - Primary buttons and strong actions
-- **Muted**: `#e1ecd3` - Light background for disabled/secondary states
+- **Brand Green (Primary)**: `#559e45` - Primary accent for icons, active states, and buttons
+- **Brand Orange (Secondary)**: `#fbb75c` - Vibrant orange for secondary highlights
+- **Brand Black (Tertiary)**: `#111811` - Used for strong visual contrast in typography and UI elements
+- **Muted**: `#edf3e8` - Light fresh green for secondary states and backgrounds
 
 #### Status & Semantic Colors
-- **Status Good**: `#6eb85c` - Green for healthy trees, completed tasks
+- **Status Good**: `#559e45` - Green for healthy trees, completed tasks
 - **Status Warning**: `#fbb75c` - Orange for pending items or minor issues
 - **Status Danger**: `#ef4444` - Red for errors, missed schedules, or critical issues
 
 #### Border & Ring Colors
-- **Border**: `#d2e0c5` - Subtle borders matching the sage theme
+- **Border**: `#e1e9d9` - Clean borders matching the fresh theme
 - **Input**: `#ffffff` - White input backgrounds
-- **Ring**: `#6eb85c` - Focus ring color (brand green)
+- **Ring**: `#559e45` - Focus ring color (brand green)
 
 ### Dark Mode
 Dark mode inverts the color scheme while maintaining semantic meanings:
@@ -48,18 +48,18 @@ Dark mode inverts the color scheme while maintaining semantic meanings:
 All colors are defined as CSS variables in `app/globals.css` for consistent theming:
 
 ```css
---background: #e9f0df
+--background: #f8faf5
 --foreground: #111811
 --card: #ffffff
---primary: #000000
+--primary: #559e45
 --primary-foreground: #ffffff
 --secondary: #fbb75c
---secondary-foreground: #111811
---accent: #6eb85c
+--secondary-foreground: #ffffff
+--accent: #559e45
 --accent-foreground: #ffffff
 --destructive: #ef4444
---border: #d2e0c5
---ring: #6eb85c
+--border: #e1e9d9
+--ring: #559e45
 ```
 
 ## Component Guidelines
@@ -78,10 +78,11 @@ All colors are defined as CSS variables in `app/globals.css` for consistent them
 - **Disabled State**: Muted background (`#e1ecd3`) with muted text.
 
 ### Cards & Layout
-- **Cards**: White background with subtle borders and rounded corners (1.5rem radius).
-- **Spacing**: Generous padding and margins to prevent clutter and accidental taps.
-- **Border Radius**: `--radius: 1.5rem` for a friendly, modern appearance.
-- **Shadows**: Minimal, used only for depth emphasis in modals and dropdowns.
+- **Minimalist Aesthetic**: Clean, high-performance design stripped of unnecessary flourishes like faded text or large decorative elements.
+- **Sharp Edges**: No rounded corners (0px radius) for a professional, precise, and compact look.
+- **Spacing**: Compact layouts optimized for high information density while maintaining legibility.
+- **Border Radius**: `--radius: 0px` (Strictly sharp edges across all components).
+- **Shadows**: Minimal to none, relying on borders and color contrast for depth.
 
 ### Status Indicators
 - **Healthy/Success**: Brand green (`#6eb85c`)
@@ -96,12 +97,12 @@ All colors are defined as CSS variables in `app/globals.css` for consistent them
 - **Forms**: Optimized for field use with large inputs and minimal scrolling.
 
 ## Sidebar Theming
-- **Background**: `#e9f0df` - Matches main background
-- **Primary**: `#000000` - Black for active sidebar items
-- **Accent**: `#e1ecd3` - Light muted for hover states
-- **Border**: `#d2e0c5` - Subtle borders between items
+- **Background**: `#f8faf5` - Matches main background
+- **Primary**: `#559e45` - Brand green for active sidebar items
+- **Accent**: `#edf3e8` - Light fresh hover states
+- **Border**: `#e1e9d9` - Precise borders between items
 
 ## Chart & Data Visualization
-- **Chart Color 1**: `#6eb85c` - Brand green for primary data
+- **Chart Color 1**: `#559e45` - Brand green for primary data
 - **Chart Color 2**: `#fbb75c` - Brand orange for secondary data
-- **Chart Color 3**: `#000000` - Black for tertiary data
+- **Chart Color 3**: `#111811` - Dark green-black for tertiary data

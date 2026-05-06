@@ -45,29 +45,29 @@ Global stylesheet definitions.
 All styling is controlled through CSS variables defined in `app/globals.css`:
 
 **Colors:**
-- `--background`: `#e9f0df` (sage green)
+- `--background`: `#f8faf5` (fresh nature background)
 - `--foreground`: `#111811` (dark green-black)
-- `--primary`: `#000000` (black)
-- `--secondary`: `#fbb75c` (orange)
-- `--accent`: `#6eb85c` (brand green)
+- `--primary`: `#559e45` (brand green)
+- `--secondary`: `#fbb75c` (vibrant orange)
+- `--accent`: `#559e45` (brand green)
 - `--destructive`: `#ef4444` (red)
-- `--border`: `#d2e0c5` (subtle sage border)
-- `--ring`: `#6eb85c` (focus outline)
+- `--border`: `#e1e9d9` (fresh sage border)
+- `--ring`: `#559e45` (focus outline)
 
 **Sidebar Colors:**
-- `--sidebar`: Light sage green background
-- `--sidebar-primary`: Black for active states
-- `--sidebar-accent`: Muted light background
-- `--sidebar-border`: Subtle borders
+- `--sidebar`: `#f8faf5` background
+- `--sidebar-primary`: `#559e45` for active states
+- `--sidebar-accent`: `#edf3e8` light background
+- `--sidebar-border`: `#e1e9d9` borders
 
 **Chart Colors:**
-- `--chart-1`: Brand green
-- `--chart-2`: Brand orange
-- `--chart-3`: Black
+- `--chart-1`: `#559e45` (Brand green)
+- `--chart-2`: `#fbb75c` (Brand orange)
+- `--chart-3`: `#111811` (Dark green-black)
 
 **Radius:**
-- `--radius`: `1.5rem` (friendly rounded corners)
-- Calculated variants: `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-xl`
+- `--radius`: `0px` (Sharp edges for a professional, compact look)
+- No rounded variants: `--radius-sm`, `--radius-md`, etc. are now flat.
 
 ### Theme Implementation
 - Light mode is the default with warm, nature-inspired colors
@@ -98,15 +98,11 @@ Rapid data entry module designed for field use. Features:
 
 ### 3. Task Planner (`TaskPlanner.tsx`)
 Scheduling interface for upcoming orchard tasks. Provides:
-- Task creation and management
-- Integration with activity log
-- Status tracking with visual indicators
-
-### 3. Task Planner (`TaskPlanner.tsx`)
-Scheduling interface for upcoming orchard tasks. Provides:
-- Task creation and management
-- Integration with activity log
-- Status tracking with visual indicators
+- Interactive calendar with visual task indicators
+- **Date Synchronization**: Task list automatically updates based on selected calendar date
+- Task creation with automatic calendar focus on the new task's date
+- Status tracking with visual indicators (pending/done/cancelled)
+- Integrated task editing and deletion
 
 ### 4. Financial Management (`Finance.tsx`)
 Comprehensive financial tracking and analysis. Features:
