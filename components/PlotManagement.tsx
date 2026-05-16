@@ -218,7 +218,7 @@ function TreeForm({ tree, onSave, onCancel }: {
   const set = (k: string, v: unknown) => setForm(f => ({ ...f, [k]: v }))
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <div>
           <label className="text-base text-muted-foreground mb-1 block">หมายเลขต้น</label>
           <input value={form.treeNumber} onChange={e => set("treeNumber", e.target.value)}
@@ -607,7 +607,7 @@ function PlotDetailView({
 
       {/* Plot Header */}
       <div className="flex items-start gap-3 pb-4 border-b border-border">
-        <button onClick={onBack} className="p-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors mt-0.5">
+        <button onClick={onBack} className="p-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors mt-0.5 md:hidden">
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1">
@@ -621,7 +621,7 @@ function PlotDetailView({
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-card rounded-2xl p-3 text-center border border-border">
           <p className="text-xl font-black text-foreground">{plot.trees.length}</p>
           <p className="text-base text-muted-foreground font-medium mt-0.5">ต้นทั้งหมด</p>
@@ -663,7 +663,7 @@ function PlotDetailView({
       </div>
 
       {/* Tree list */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {plot.trees.length === 0 ? (
           <div className="col-span-2 bg-card border border-border rounded-xl p-5 text-center">
             <TreePine size={32} className="text-muted-foreground mx-auto mb-2" />
@@ -724,16 +724,15 @@ function PlotDetailView({
   )
 }
 
-// ---- Plot List View ----
-export default function PlotManagement({ 
-  data, addPlot, updatePlot, deletePlot, addTree, updateTree, deleteTree, bulkUpdateTrees, 
-  addActivity, addBatch, addBatchStage, updateBatch, deleteBatch 
+// ---- Main Component ----
+export default function PlotManagement({
+  data, addPlot, updatePlot, deletePlot,
+  addTree, updateTree, deleteTree, bulkUpdateTrees,
+  addActivity, addBatch, addBatchStage, updateBatch, deleteBatch
 }: Props) {
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null)
   const [showAddPlot, setShowAddPlot] = useState(false)
   const [plotForm, setPlotForm] = useState({ name: "", area: 1, notes: "" })
-
-  const selectedPlot = data.plots.find(p => p.id === selectedPlotId)
 
   const handleAddPlot = () => {
     if (!plotForm.name) return
@@ -742,129 +741,131 @@ export default function PlotManagement({
     setShowAddPlot(false)
   }
 
-  // If a plot is selected, show detail view
-  if (selectedPlot) {
-    return (
-      <PlotDetailView
-        plot={selectedPlot}
-        activities={data.activities}
-        onBack={() => setSelectedPlotId(null)}
-        addTree={addTree}
-        updateTree={updateTree}
-        deleteTree={deleteTree}
-        bulkUpdateTrees={bulkUpdateTrees}
-        updatePlot={updatePlot}
-        deletePlot={(id) => { deletePlot(id); setSelectedPlotId(null) }}
-        addActivity={addActivity}
-        addBatch={addBatch}
-        addBatchStage={addBatchStage}
-        updateBatch={updateBatch}
-        deleteBatch={deleteBatch}
-      />
-    )
-  }
+  const selectedPlot = data.plots.find(p => p.id === selectedPlotId)
 
-  // Plot list
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <LayoutGrid size={18} className="text-accent" />
-          <h2 className="text-lg font-bold text-foreground">แปลงทุเรียน</h2>
-          <span className="text-base bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{data.plots.length} แปลง</span>
+    <div className="flex flex-col md:flex-row gap-6 items-start min-h-[600px]">
+      {/* Left Column: Plot List (Sticky on desktop) */}
+      <div className={`w-full md:w-80 lg:w-96 shrink-0 space-y-4 md:sticky md:top-4 ${selectedPlotId ? 'hidden md:block' : 'block'}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <LayoutGrid size={18} className="text-accent" />
+            <h2 className="text-lg font-bold text-foreground">แปลงทุเรียน</h2>
+            <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{data.plots.length}</span>
+          </div>
+          <button onClick={() => setShowAddPlot(v => !v)}
+            className="flex items-center gap-2 bg-secondary text-secondary-foreground px-3 py-1.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+            {showAddPlot ? <X size={14} /> : <Plus size={14} />}
+            {showAddPlot ? "ยกเลิก" : "เพิ่มแปลง"}
+          </button>
         </div>
-        <button onClick={() => setShowAddPlot(v => !v)}
-          className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg text-base font-semibold hover:opacity-90 transition-opacity">
-          <Plus size={16} />{showAddPlot ? "ยกเลิก" : "เพิ่มแปลง"}
-        </button>
+
+        {showAddPlot && (
+          <div className="bg-card border border-border rounded-xl p-4 space-y-3 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+            <h3 className="font-semibold text-foreground text-sm">เพิ่มแปลงใหม่</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">ชื่อแปลง</label>
+                <input value={plotForm.name} onChange={e => setPlotForm(f => ({ ...f, name: e.target.value }))}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="เช่น แปลง A" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">พื้นที่ (ไร่)</label>
+                <input type="number" value={plotForm.area} onChange={e => setPlotForm(f => ({ ...f, area: Number(e.target.value) }))}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" min={0.5} step={0.5} />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">บันทึก</label>
+              <input value={plotForm.notes} onChange={e => setPlotForm(f => ({ ...f, notes: e.target.value }))}
+                className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="บันทึกเพิ่มเติม..." />
+            </div>
+            <button onClick={handleAddPlot} className="w-full bg-primary text-primary-foreground rounded-lg py-2 font-bold text-sm shadow-md hover:opacity-90 active:scale-95 transition-all">บันทึกแปลงใหม่</button>
+          </div>
+        )}
+
+        {data.plots.length === 0 ? (
+          <div className="bg-card border border-border rounded-xl p-6 text-center">
+            <TreePine size={40} className="text-muted-foreground mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">ยังไม่มีแปลงทุเรียน กดเพิ่มแปลงเพื่อเริ่มต้น</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3">
+            {data.plots.map(plot => {
+              const goodCount = plot.trees.filter(t => t.health === "good").length
+              const issueCount = plot.trees.filter(t => t.health !== "good").length
+              const isActive = selectedPlotId === plot.id
+
+              return (
+                <button
+                  key={plot.id}
+                  onClick={() => setSelectedPlotId(plot.id)}
+                  className={`bg-card border rounded-2xl p-4 text-left transition-all group relative overflow-hidden ${
+                    isActive 
+                      ? "border-primary ring-1 ring-primary shadow-lg shadow-primary/10" 
+                      : "border-border hover:border-accent/50 hover:shadow-md"
+                  }`}
+                >
+                  {isActive && <div className="absolute top-0 left-0 w-1.5 h-full bg-primary" />}
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isActive ? 'bg-primary text-primary-foreground' : 'bg-accent/10 text-accent'}`}>
+                        <TreePine size={20} />
+                      </div>
+                      <div>
+                        <p className={`font-black text-base leading-tight ${isActive ? 'text-primary' : 'text-foreground'}`}>{plot.name}</p>
+                        <p className="text-sm text-muted-foreground font-medium">{plot.area} ไร่ · {plot.trees.length} ต้น</p>
+                      </div>
+                    </div>
+                    {!isActive && <ChevronRight size={14} className="text-muted-foreground group-hover:text-accent transition-colors mt-1" />}
+                  </div>
+
+                  <div className="flex items-center gap-1.5 mt-2 overflow-x-auto scrollbar-hide">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-100/50">ดี {goodCount}</span>
+                    {issueCount > 0 && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-bold border border-amber-100/50">ดูแล {issueCount}</span>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
-      {showAddPlot && (
-        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-          <h3 className="font-semibold text-foreground">เพิ่มแปลงใหม่</h3>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-base text-muted-foreground mb-1 block">ชื่อแปลง</label>
-              <input value={plotForm.name} onChange={e => setPlotForm(f => ({ ...f, name: e.target.value }))}
-                className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="แปลง D" />
+      {/* Right Column: Plot Detail or Tree Detail */}
+      <div className={`flex-1 w-full min-w-0 ${selectedPlotId ? 'block' : 'hidden md:block'}`}>
+        {selectedPlot ? (
+          <div className="bg-card border border-border rounded-[2.5rem] p-6 md:p-8 shadow-sm">
+            <PlotDetailView
+              plot={selectedPlot}
+              activities={data.activities}
+              onBack={() => setSelectedPlotId(null)}
+              addTree={addTree}
+              updateTree={updateTree}
+              deleteTree={deleteTree}
+              bulkUpdateTrees={bulkUpdateTrees}
+              updatePlot={updatePlot}
+              deletePlot={(id) => { deletePlot(id); setSelectedPlotId(null) }}
+              addActivity={addActivity}
+              addBatch={addBatch}
+              addBatchStage={addBatchStage}
+              updateBatch={updateBatch}
+              deleteBatch={deleteBatch}
+            />
+          </div>
+        ) : (
+          <div className="h-full min-h-[500px] flex flex-col items-center justify-center bg-muted/20 border-2 border-dashed border-border rounded-[2.5rem] p-12 text-center">
+            <div className="w-20 h-20 rounded-3xl bg-muted flex items-center justify-center mb-6">
+              <TreePine size={40} className="text-muted-foreground/40" />
             </div>
-            <div>
-              <label className="text-base text-muted-foreground mb-1 block">พื้นที่ (ไร่)</label>
-              <input type="number" value={plotForm.area} onChange={e => setPlotForm(f => ({ ...f, area: Number(e.target.value) }))}
-                className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" min={0.5} step={0.5} />
-            </div>
+            <h3 className="text-xl font-black text-foreground">เลือกแปลงเพื่อดูข้อมูล</h3>
+            <p className="text-base text-muted-foreground font-medium max-w-xs mx-auto mt-2">
+              เลือกแปลงจากรายการด้านซ้ายเพื่อจัดการต้นทุเรียน กิจกรรม และพยากรณ์วันเก็บเกี่ยว
+            </p>
           </div>
-          <div>
-            <label className="text-base text-muted-foreground mb-1 block">บันทึก</label>
-            <input value={plotForm.notes} onChange={e => setPlotForm(f => ({ ...f, notes: e.target.value }))}
-              className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="บันทึกเพิ่มเติม..." />
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => setShowAddPlot(false)} className="flex-1 border border-border rounded-lg py-2.5 text-muted-foreground">ยกเลิก</button>
-            <button onClick={handleAddPlot} className="flex-1 bg-secondary text-secondary-foreground rounded-lg py-2.5 font-semibold hover:opacity-90">เพิ่มแปลง</button>
-          </div>
-        </div>
-      )}
-
-      {data.plots.length === 0 ? (
-        <div className="bg-card border border-border rounded-xl p-6 text-center">
-          <TreePine size={40} className="text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground">ยังไม่มีแปลงทุเรียน กดเพิ่มแปลงเพื่อเริ่มต้น</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-3">
-          {data.plots.map(plot => {
-            const goodCount = plot.trees.filter(t => t.health === "good").length
-            const issueCount = plot.trees.filter(t => t.health !== "good").length
-            // most common stage
-            const stageCounts: Record<string, number> = {}
-            plot.trees.forEach(t => { stageCounts[t.stage] = (stageCounts[t.stage] || 0) + 1 })
-            const topStage = Object.entries(stageCounts).sort((a, b) => b[1] - a[1])[0]?.[0] as FlowerStage | undefined
-
-            return (
-              <button
-                key={plot.id}
-                onClick={() => setSelectedPlotId(plot.id)}
-                className="bg-card border border-border rounded-xl p-5 text-left hover:border-accent/50 hover:shadow-md transition-all group"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
-                      <TreePine size={18} className="text-accent" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-foreground">{plot.name}</p>
-                      <p className="text-base text-muted-foreground">{plot.area} ไร่</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={16} className="text-muted-foreground group-hover:text-accent transition-colors mt-1" />
-                </div>
-
-                <div className="flex items-center gap-3 text-base mb-3">
-                  <span className="font-semibold text-foreground text-xl">{plot.trees.length}</span>
-                  <span className="text-muted-foreground text-base">ต้น</span>
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  {topStage && (
-                    <span className={`text-base px-2 py-0.5 rounded-full font-medium ${STAGE_BADGE[topStage] || "bg-muted text-muted-foreground"}`}>
-                      {FLOWER_STAGE_LABELS[topStage]}
-                    </span>
-                  )}
-                  {goodCount > 0 && (
-                    <span className="text-base px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium">ดี {goodCount} ต้น</span>
-                  )}
-                  {issueCount > 0 && (
-                    <span className="text-base px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">ดูแล {issueCount} ต้น</span>
-                  )}
-                </div>
-
-                {plot.notes && <p className="text-base text-muted-foreground mt-2 italic truncate">{plot.notes}</p>}
-              </button>
-            )
-          })}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

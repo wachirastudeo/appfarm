@@ -4,46 +4,50 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Modern Nature UI - Deep Forest Green & Warm Gold */
-  --background: #fafbf8;                  /* Clean warm white */
-  --foreground: #1a2e1a;                  /* Deep forest green text */
+  /* Modern Orchard UI */
+  --background: #edf3ee;
+  --foreground: #102c1d;
   --card: #ffffff;
-  --card-foreground: #1a2e1a;
+  --card-foreground: #102c1d;
   --popover: #ffffff;
-  --popover-foreground: #1a2e1a;
-  --primary: #2d7a3a;                    /* Rich forest green */
+  --popover-foreground: #102c1d;
+  --primary: #1f5a35;
   --primary-foreground: #ffffff;
-  --secondary: #e8b931;                  /* Warm golden yellow */
-  --secondary-foreground: #1a2e1a;
-  --muted: #f0f4ed;                       /* Light sage */
-  --muted-foreground: #5e7a5e;
-  --accent: #2d7a3a;
-  --accent-foreground: #ffffff;
+  --secondary: #54745f;
+  --secondary-foreground: #ffffff;
+  --muted: #dff0e4;
+  --muted-foreground: #557162;
+  --accent: #dff0e4;
+  --accent-foreground: #174629;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #d4e0d4;
+  --border: #c9dacd;
   --input: #ffffff;
-  --ring: #2d7a3a;
-  --chart-1: #2d7a3a;
-  --chart-2: #e8b931;
-  --chart-3: #1a2e1a;
-  --chart-4: #7cb87c;
-  --chart-5: #f0c849;
+  --ring: #1f5a35;
+  --chart-1: #1f5a35;
+  --chart-2: #174629;
+  --chart-3: #0f3b25;
+  --chart-4: #7fb58d;
+  --chart-5: #eab308;
   --radius: 0.75rem;
-  --sidebar: #f5f8f3;
-  --sidebar-foreground: #1a2e1a;
-  --sidebar-primary: #2d7a3a;
+  --sidebar: #0f3b25;
+  --sidebar-foreground: #eaf6ed;
+  --sidebar-primary: #dff0e4;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e8f0e6;
-  --sidebar-accent-foreground: #1a2e1a;
-  --sidebar-border: #d4e0d4;
-  --sidebar-ring: #2d7a3a;
+  --sidebar-accent: #174629;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(223, 240, 228, 0.14);
+  --sidebar-ring: #dff0e4;
 
   /* Design Tokens */
-  --brand-green: #2d7a3a;
-  --brand-gold: #e8b931;
-  --status-good: #2d7a3a;
-  --status-warn: #e8b931;
+  --brand-green: #1f5a35;
+  --brand-deep: #0f3b25;
+  --brand-hover: #174629;
+  --brand-highlight: #dff0e4;
+  --brand-bg: #edf3ee;
+  --brand-muted: #54745f;
+  --status-good: #1f5a35;
+  --status-warn: #f59e0b;
   --status-danger: #dc2626;
 }
 
@@ -109,6 +113,9 @@
 @layer base {
   body {
     @apply bg-background text-foreground;
+    background:
+      radial-gradient(circle at top left, rgba(223, 240, 228, 0.95), transparent 34rem),
+      linear-gradient(180deg, #edf3ee 0%, #f7faf7 52%, #edf3ee 100%);
   }
 
   html {
@@ -133,6 +140,18 @@
 }
 
 @layer utilities {
+  .orchard-card {
+    @apply bg-card border border-border shadow-sm;
+    box-shadow: 0 12px 34px rgba(15, 59, 37, 0.08);
+  }
+  .orchard-card-hover {
+    @apply transition-all duration-300;
+  }
+  .orchard-card-hover:hover {
+    border-color: rgba(31, 90, 53, 0.35);
+    box-shadow: 0 18px 42px rgba(15, 59, 37, 0.14);
+    transform: translateY(-2px);
+  }
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;

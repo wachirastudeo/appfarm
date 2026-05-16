@@ -5,7 +5,8 @@ A modern, mobile-responsive web application designed for managing durian orchard
 
 ## Features
 - **Dashboard**: High-level overview of orchard status, upcoming tasks, and recent activities.
-- **Plot & Tree Management**: Detailed tracking of durian plots and individual tree records (variety, age, coordinates).
+- **Plot & Tree Management**: Advanced dual-pane management for plots and individual trees. Features a side-by-side split-view on desktop for efficient navigation and a mobile-optimized list-to-detail flow.
+- **Tree Lifecycle Tracking**: Detailed records for individual trees including variety, age, health status, and fruit batch tracking with harvest predictions.
 - **Activity Logging**: Easy-to-use interfaces for recording fieldwork like spraying, fertilizing, and watering.
 - **Task Planner**: Scheduling and tracking of agricultural tasks.
 - **Financial Tracking**: Monitoring expenses and income related to orchard operations with interactive filtering by type (income/expense).

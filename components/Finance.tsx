@@ -182,14 +182,12 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
         <div className="bg-card border border-border rounded-xl p-4">
           <h3 className="font-semibold text-foreground mb-3">สัดส่วนรายจ่าย</h3>
           <div className="flex gap-4 items-center">
-            <ResponsiveContainer width={120} height={120}>
-              <PieChart>
-                <Pie data={expenseByCategory} cx="50%" cy="50%" innerRadius={28} outerRadius={50} paddingAngle={3} dataKey="value">
-                  {expenseByCategory.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-                </Pie>
-                <Tooltip contentStyle={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }} formatter={(v: number) => formatCurrency(v)} />
-              </PieChart>
-            </ResponsiveContainer>
+            <PieChart width={120} height={120}>
+              <Pie data={expenseByCategory} cx="50%" cy="50%" innerRadius={28} outerRadius={50} paddingAngle={3} dataKey="value">
+                {expenseByCategory.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+              </Pie>
+              <Tooltip contentStyle={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }} formatter={(v: number) => formatCurrency(v)} />
+            </PieChart>
             <div className="flex-1 space-y-1.5">
               {expenseByCategory.map((e, i) => (
                 <div key={e.name} className="flex items-center gap-2">

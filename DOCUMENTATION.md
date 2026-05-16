@@ -45,29 +45,31 @@ Global stylesheet definitions.
 All styling is controlled through CSS variables defined in `app/globals.css`:
 
 **Colors:**
-- `--background`: `#f8faf5` (fresh nature background)
-- `--foreground`: `#111811` (dark green-black)
-- `--primary`: `#559e45` (brand green)
-- `--secondary`: `#fbb75c` (vibrant orange)
-- `--accent`: `#559e45` (brand green)
-- `--destructive`: `#ef4444` (red)
-- `--border`: `#e1e9d9` (fresh sage border)
-- `--ring`: `#559e45` (focus outline)
+- `--background`: `#fafbf8` (clean warm white)
+- `--foreground`: `#1a2e1a` (deep forest green)
+- `--primary`: `#1a3320` (deep forest green)
+- `--secondary`: `#4c6a54` (muted forest green)
+- `--accent`: `#1a3320` (deep forest green)
+- `--destructive`: `#dc2626` (red)
+- `--border`: `#d4e0d4` (subtle border)
+- `--ring`: `#1a3320` (focus outline)
 
 **Sidebar Colors:**
-- `--sidebar`: `#f8faf5` background
-- `--sidebar-primary`: `#559e45` for active states
-- `--sidebar-accent`: `#edf3e8` light background
-- `--sidebar-border`: `#e1e9d9` borders
+- `--sidebar`: `#f5f8f3` background
+- `--sidebar-primary`: `#1a3320` for active states
+- `--sidebar-accent`: `#e8f0e6` light background
+- `--sidebar-border`: `#d4e0d4` borders
 
 **Chart Colors:**
-- `--chart-1`: `#559e45` (Brand green)
-- `--chart-2`: `#fbb75c` (Brand orange)
-- `--chart-3`: `#111811` (Dark green-black)
+- `--chart-1`: `#1a3320` (Deep green)
+- `--chart-2`: `#4c6a54` (Muted green)
+- `--chart-3`: `#1a2e1a` (Dark green-black)
+- `--chart-4`: `#7cb87c` (Light green)
+- `--chart-5`: `#eab308` (Amber/Yellow)
 
 **Radius:**
-- `--radius`: `0px` (Sharp edges for a professional, compact look)
-- No rounded variants: `--radius-sm`, `--radius-md`, etc. are now flat.
+- `--radius`: `0.75rem` (12px base radius for a modern, friendly feel)
+- **Premium Radius**: `2.5rem` used for large detail containers in Plot Management.
 
 ### Theme Implementation
 - Light mode is the default with warm, nature-inspired colors
@@ -84,10 +86,12 @@ All styling is controlled through CSS variables defined in `app/globals.css`:
 ## Core Modules
 
 ### 1. Plot & Tree Management (`PlotManagement.tsx`)
-Handles creation and tracking of orchard plots. Includes:
-- Bulk management capabilities
-- Individual tree tracking (variety, health status, coordinates)
-- Status indicators using semantic colors (green/orange/red)
+Handles creation and tracking of orchard plots. Features:
+- **Split-View Desktop Layout**: 2-column interface with a sticky plot list on the left and a detailed view on the right.
+- **Mobile Optimized**: Seamless 1-column list-to-detail flow with responsive visibility logic.
+- **Tree Lifecycle**: Tracking of flower stages (vegetative to harvest) with batch-level fruit counting.
+- **Harvest Prediction**: Automatic calculation of harvest dates based on bloom data (120-day cycle).
+- **QR Code Integration**: Support for individual and batch QR code generation for field tracking.
 
 ### 2. Activity Logging (`ActivityLog.tsx`)
 Rapid data entry module designed for field use. Features:
