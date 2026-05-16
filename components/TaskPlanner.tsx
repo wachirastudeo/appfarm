@@ -12,9 +12,9 @@ interface Props {
 }
 
 const PRIORITY_COLORS = {
-  high: "border-l-red-500 bg-card",
-  medium: "border-l-amber-500 bg-card",
-  low: "border-l-emerald-600 bg-card",
+  high: "border-l-red-500 bg-white",
+  medium: "border-l-amber-500 bg-white",
+  low: "border-l-emerald-600 bg-white",
 }
 const PRIORITY_LABELS = { high: "ด่วน", medium: "ปกติ", low: "ต่ำ" }
 const STATUS_LABELS: Record<TaskStatus, string> = { pending: "รอดำเนินการ", done: "เสร็จแล้ว", cancelled: "ยกเลิก" }
@@ -97,7 +97,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
         <h2 className="text-xl font-bold text-foreground">แผนการทำงาน</h2>
         <button 
           onClick={() => { setForm(f => ({ ...f, date: selectedDate })); setShowForm(v => !v) }} 
-          className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#0F5A34] transition-opacity shadow-[0_10px_24px_rgba(20,107,62,0.10)]"
         >
           <Plus size={16} />{showForm ? "ยกเลิก" : "เพิ่มงาน"}
         </button>
@@ -109,7 +109,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
           <button 
             key={s} 
             onClick={() => setStatusFilter(s)} 
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${statusFilter === s ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"}`}
+            className={`px-3 py-1.5 rounded-xl text-sm font-black border transition-all ${statusFilter === s ? "bg-primary text-primary-foreground border-primary shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "border-[#B9DCC8] bg-white text-[#146B3E] hover:border-primary/50"}`}
           >
             {s === "all" ? "ทั้งหมด" : STATUS_LABELS[s]}
           </button>
@@ -121,53 +121,53 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
         <div className="lg:col-span-2 lg:sticky lg:top-6">
         {/* Add Form (Optional Visibility) */}
         {showForm && (
-          <div className="bg-muted/50 rounded-xl p-4 space-y-3 border border-border mb-4">
+          <div className="bg-[#E7F3EC] rounded-xl p-4 space-y-3 border border-[#B9DCC8] mb-4">
             <h3 className="font-semibold text-foreground text-sm">เพิ่มงานใหม่</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-muted-foreground mb-1 block">วันที่</label>
-                <input type="date" value={form.date} onChange={e => set("date", e.target.value)} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                <label className="text-xs font-semibold text-[#527060] mb-1 block">วันที่</label>
+                <input type="date" value={form.date} onChange={e => set("date", e.target.value)} className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-muted-foreground mb-1 block">แปลง</label>
-                <select value={form.plotId} onChange={e => set("plotId", e.target.value)} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+                <label className="text-xs font-semibold text-[#527060] mb-1 block">แปลง</label>
+                <select value={form.plotId} onChange={e => set("plotId", e.target.value)} className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
                   {data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </div>
             </div>
             <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">ชื่องาน</label>
-              <input value={form.title} onChange={e => set("title", e.target.value)} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="ชื่อแผนงาน..." />
+              <label className="text-xs font-semibold text-[#527060] mb-1 block">ชื่องาน</label>
+              <input value={form.title} onChange={e => set("title", e.target.value)} className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="ชื่อแผนงาน..." />
             </div>
             <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">รายละเอียด</label>
-              <textarea value={form.description} onChange={e => set("description", e.target.value)} rows={2} className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="รายละเอียดเพิ่มเติม..." />
+              <label className="text-xs font-semibold text-[#527060] mb-1 block">รายละเอียด</label>
+              <textarea value={form.description} onChange={e => set("description", e.target.value)} rows={2} className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="รายละเอียดเพิ่มเติม..." />
             </div>
             <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">ความสำคัญ</label>
+              <label className="text-xs font-semibold text-[#527060] mb-1 block">ความสำคัญ</label>
               <div className="flex gap-2">
                 {(["high","medium","low"] as Task["priority"][]).map(p => (
-                  <button key={p} onClick={() => set("priority", p)} className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${form.priority === p ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border text-muted-foreground hover:border-primary/50"}`}>
+                  <button key={p} onClick={() => set("priority", p)} className={`flex-1 py-2 rounded-xl text-sm font-black border transition-all ${form.priority === p ? "bg-primary text-primary-foreground border-primary" : "bg-background border-[#B9DCC8] text-[#527060] hover:border-primary/50"}`}>
                     {PRIORITY_LABELS[p]}
                   </button>
                 ))}
               </div>
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={() => setShowForm(false)} className="flex-1 border border-border rounded-lg py-2 text-sm text-muted-foreground font-medium hover:bg-muted/50">ยกเลิก</button>
-              <button onClick={handleAdd} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 text-sm font-semibold hover:opacity-90">บันทึก</button>
+              <button onClick={() => setShowForm(false)} className="flex-1 border border-[#B9DCC8] rounded-lg py-2 text-sm text-[#527060] font-medium hover:bg-[#E7F3EC]">ยกเลิก</button>
+              <button onClick={handleAdd} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 text-sm font-semibold hover:bg-[#0F5A34]">บันทึก</button>
             </div>
           </div>
         )}
 
-        <div className="bg-card rounded-xl p-4 border border-border">
+        <div className="bg-white rounded-xl p-4 border border-[#B9DCC8]">
           <div className="flex items-center justify-between mb-4">
-            <button onClick={prevMonth} className="p-2 text-muted-foreground hover:text-primary hover:bg-muted rounded-lg transition-all"><ChevronLeft size={18} /></button>
+            <button onClick={prevMonth} className="p-2 text-[#527060] hover:text-primary hover:bg-[#E7F3EC] rounded-lg transition-all"><ChevronLeft size={18} /></button>
             <span className="font-bold text-foreground">{MONTHS_TH[calMonth]} {calYear + 543}</span>
-            <button onClick={nextMonth} className="p-2 text-muted-foreground hover:text-primary hover:bg-muted rounded-lg transition-all"><ChevronRight size={18} /></button>
+            <button onClick={nextMonth} className="p-2 text-[#527060] hover:text-primary hover:bg-[#E7F3EC] rounded-lg transition-all"><ChevronRight size={18} /></button>
           </div>
           <div className="grid grid-cols-7 gap-1 mb-2">
-            {DAYS_TH.map(d => <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1">{d}</div>)}
+            {DAYS_TH.map(d => <div key={d} className="text-center text-xs font-medium text-[#527060] py-1">{d}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-1">
             {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
@@ -181,7 +181,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
                 <button 
                   key={day} 
                   onClick={() => setSelectedDate(dateStr)} 
-                  className={`relative aspect-square flex flex-col items-center justify-center rounded-lg text-sm font-medium transition-all ${isSelected ? "bg-primary text-primary-foreground shadow-md" : isToday ? "bg-primary/10 text-primary font-bold ring-1 ring-primary" : hasTasks ? "text-foreground bg-muted hover:bg-muted/80" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                  className={`relative aspect-square flex flex-col items-center justify-center rounded-lg text-sm font-medium transition-all ${isSelected ? "bg-primary text-primary-foreground shadow-md" : isToday ? "bg-primary/10 text-primary font-bold ring-1 ring-primary" : hasTasks ? "text-foreground bg-[#E7F3EC] hover:bg-[#D8EEE2]" : "text-[#527060] hover:bg-[#E7F3EC] hover:text-foreground"}`}
                 >
                   {day}
                   {hasTasks && <span className={`absolute bottom-0.5 w-1 h-1 rounded-full ${isSelected ? "bg-primary-foreground" : "bg-primary"}`} />}
@@ -200,19 +200,19 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
             <h3 className="font-semibold text-foreground flex items-center gap-2">
               <CalendarDays size={16} className="text-primary" /> 
               งานวันที่ {new Date(selectedDate).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}
-              <span className="text-xs text-muted-foreground font-normal">({allFilteredTasks.length} รายการ)</span>
+              <span className="text-xs text-[#527060] font-normal">({allFilteredTasks.length} รายการ)</span>
             </h3>
           </div>
           
           {pendingTasks.length === 0 ? (
-            <div className="bg-card border border-dashed border-border rounded-xl p-6 text-center">
-              <CalendarDays size={24} className="text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-muted-foreground text-sm">ไม่มีงานที่รอดำเนินการ</p>
+            <div className="bg-white border-2 border-dashed border-[#B9DCC8] rounded-2xl p-6 text-center">
+              <CalendarDays size={24} className="text-[#527060] mx-auto mb-2" />
+              <p className="text-[#527060] text-sm">ไม่มีงานที่รอดำเนินการ</p>
             </div>
           ) : (
             <div className="space-y-2">
               {pendingTasks.map(t => (
-                <TaskCard key={t.id} task={t} plotName={plotName(t.plotId)} updateTask={updateTask} deleteTask={deleteTask} />
+                <TaskCard key={t.id} task={t} plotName={plotName(t.plotId)} plots={data.plots} updateTask={updateTask} deleteTask={deleteTask} />
               ))}
             </div>
           )}
@@ -221,13 +221,13 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
         {/* Completed/Cancelled Section */}
         {completedTasks.length > 0 && (
           <div className="space-y-3 pt-2">
-            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+            <h3 className="text-sm font-medium text-[#527060] flex items-center gap-2">
               <Check size={14} /> งานที่เสร็จแล้ว
-              <span className="bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded-full">{completedTasks.length}</span>
+              <span className="bg-[#E7F3EC] text-[#527060] text-xs px-2 py-0.5 rounded-full">{completedTasks.length}</span>
             </h3>
             <div className="space-y-2">
               {completedTasks.map(t => (
-                <TaskCard key={t.id} task={t} plotName={plotName(t.plotId)} updateTask={updateTask} deleteTask={deleteTask} />
+                <TaskCard key={t.id} task={t} plotName={plotName(t.plotId)} plots={data.plots} updateTask={updateTask} deleteTask={deleteTask} />
               ))}
             </div>
           </div>
@@ -238,55 +238,109 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
   )
 }
 
-export function TaskCard({ task, plotName, updateTask, deleteTask }: { task: Task; plotName: string; updateTask: (id: string, c: Partial<Task>) => void; deleteTask: (id: string) => void }) {
+export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask }: {
+  task: Task
+  plotName: string
+  plots?: { id: string; name: string }[]
+  updateTask: (id: string, c: Partial<Task>) => void
+  deleteTask: (id: string) => void
+}) {
   const [isEditing, setIsEditing] = useState(false)
-  const [editForm, setEditForm] = useState({ title: task.title, description: task.description })
+  const [editForm, setEditForm] = useState({
+    date: task.date.split("T")[0],
+    plotId: task.plotId,
+    title: task.title,
+    description: task.description,
+    priority: task.priority,
+  })
 
-  const priorityDot = { high: "bg-rose-500", medium: "bg-amber-400", low: "bg-emerald-400" }
+  const priorityDot = { high: "bg-rose-500", medium: "bg-amber-400", low: "bg-emerald-500" }
   const priorityBorder = { high: "border-l-rose-500", medium: "border-l-amber-400", low: "border-l-emerald-400" }
   const isDone = task.status === "done"
   const isCancelled = task.status === "cancelled"
 
   const handleSaveEdit = () => {
-    updateTask(task.id, editForm)
+    updateTask(task.id, { ...editForm, date: new Date(editForm.date).toISOString() })
     setIsEditing(false)
   }
 
   if (isEditing) {
     return (
-      <div className="bg-card border border-primary/30 rounded-xl p-3 space-y-2">
+      <div className="bg-[#E7F3EC] rounded-xl p-4 space-y-3 border border-[#B9DCC8]">
+        <h3 className="font-semibold text-foreground text-sm">แก้ไขงาน</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-semibold text-[#527060] mb-1 block">วันที่</label>
+            <input
+              type="date"
+              value={editForm.date}
+              onChange={e => setEditForm({ ...editForm, date: e.target.value })}
+              className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-[#527060] mb-1 block">แปลง</label>
+            <select
+              value={editForm.plotId}
+              onChange={e => setEditForm({ ...editForm, plotId: e.target.value })}
+              className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              {plots.length > 0 ? plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>) : <option value={task.plotId}>{plotName}</option>}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-[#527060] mb-1 block">ชื่องาน</label>
         <input 
           value={editForm.title} 
           onChange={e => setEditForm({ ...editForm, title: e.target.value })}
-          className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
           placeholder="ชื่อแผนงาน..."
         />
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-[#527060] mb-1 block">รายละเอียด</label>
         <textarea 
           value={editForm.description} 
           onChange={e => setEditForm({ ...editForm, description: e.target.value })}
-          className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-[#527060] resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
           placeholder="รายละเอียด..."
           rows={2}
         />
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-[#527060] mb-1 block">ความสำคัญ</label>
+          <div className="flex gap-2">
+            {(["high","medium","low"] as Task["priority"][]).map(p => (
+              <button
+                key={p}
+                onClick={() => setEditForm({ ...editForm, priority: p })}
+                className={`flex-1 py-2 rounded-xl text-sm font-black border transition-all ${editForm.priority === p ? "bg-primary text-primary-foreground border-primary" : "bg-background border-[#B9DCC8] text-[#527060] hover:border-primary/50"}`}
+              >
+                {PRIORITY_LABELS[p]}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="flex gap-2">
-          <button onClick={() => setIsEditing(false)} className="flex-1 py-1.5 text-sm font-medium border border-border rounded-lg hover:bg-muted/50">ยกเลิก</button>
-          <button onClick={handleSaveEdit} className="flex-1 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90">บันทึก</button>
+          <button onClick={() => setIsEditing(false)} className="flex-1 border border-[#B9DCC8] rounded-lg py-2 text-sm text-[#527060] font-medium hover:bg-[#E7F3EC]">ยกเลิก</button>
+          <button onClick={handleSaveEdit} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 text-sm font-semibold hover:bg-[#0F5A34]">บันทึก</button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={`bg-card rounded-xl border border-border border-l-4 p-3 transition-all hover:shadow-sm ${isDone || isCancelled ? "border-l-muted-foreground/30 opacity-60" : priorityBorder[task.priority]}`}>
+    <div className={`bg-white rounded-2xl border border-[#B9DCC8] border-l-4 p-3 transition-all hover:shadow-[0_10px_24px_rgba(20,107,62,0.10)] ${isDone || isCancelled ? "border-l-[#B9DCC8] opacity-80" : priorityBorder[task.priority]}`}>
       <div className="flex items-start gap-3">
-        <span className={`mt-1.5 shrink-0 block w-2 h-2 rounded-full ${isDone ? "bg-emerald-400" : isCancelled ? "bg-muted-foreground/30" : priorityDot[task.priority]}`} />
+        <span className={`mt-1.5 shrink-0 block w-2.5 h-2.5 rounded-full ${isDone ? "bg-emerald-500" : isCancelled ? "bg-[#B9DCC8]" : priorityDot[task.priority]}`} />
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium text-foreground ${isDone || isCancelled ? "line-through text-muted-foreground" : ""}`}>
+          <p className={`text-sm font-medium text-foreground ${isDone || isCancelled ? "line-through text-[#527060]" : ""}`}>
             {task.title}
           </p>
-          <p className="text-xs text-muted-foreground mt-0.5">{plotName} · {new Date(task.date).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}</p>
+          <p className="text-xs text-[#527060] mt-0.5">{plotName} · {new Date(task.date).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}</p>
           {task.description && (
-            <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-1">{task.description}</p>
+            <p className="text-xs text-[#527060] mt-1 line-clamp-1">{task.description}</p>
           )}
         </div>
         <div className="shrink-0 flex items-center gap-1">
@@ -294,26 +348,26 @@ export function TaskCard({ task, plotName, updateTask, deleteTask }: { task: Tas
             <>
               <button
                 onClick={() => updateTask(task.id, { status: "done" })}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:opacity-90 transition-opacity"
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-[#0F5A34] transition-opacity"
               >
                 <Check size={12} /> เสร็จ
               </button>
               <button
                 onClick={() => setIsEditing(true)}
-                className="p-1.5 text-muted-foreground hover:text-primary rounded-lg hover:bg-muted transition-colors"
+                className="p-1.5 text-[#527060] hover:text-primary rounded-lg hover:bg-[#E7F3EC] transition-colors"
               >
                 <Pencil size={14} />
               </button>
             </>
           ) : (
             <>
-              <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium ${isDone ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+              <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium ${isDone ? "bg-emerald-100 text-emerald-700" : "bg-[#E7F3EC] text-[#527060]"}`}>
                 {isDone ? <Check size={12} /> : <X size={12} />}
                 {STATUS_LABELS[task.status]}
               </span>
               <button
                 onClick={() => updateTask(task.id, { status: "pending" })}
-                className="p-1.5 text-muted-foreground hover:text-primary rounded-lg hover:bg-muted transition-colors"
+                className="p-1.5 text-[#527060] hover:text-primary rounded-lg hover:bg-[#E7F3EC] transition-colors"
               >
                 <RotateCcw size={14} />
               </button>
@@ -321,7 +375,7 @@ export function TaskCard({ task, plotName, updateTask, deleteTask }: { task: Tas
           )}
           <button
             onClick={() => deleteTask(task.id)}
-            className="p-1.5 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+            className="p-1.5 text-[#527060]/50 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
           >
             <Trash2 size={14} />
           </button>

@@ -10,10 +10,15 @@ export const metadata: Metadata = {
   title: 'สวนทุเรียน – ระบบจัดการสวน',
   description: 'ระบบบริหารจัดการสวนทุเรียนอัจฉริยะ Mobile-First & Field-Ready',
   generator: 'v0.app',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#1a3329',
+  themeColor: '#146B3E',
   width: 'device-width',
   initialScale: 1,
   userScalable: false,

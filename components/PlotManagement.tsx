@@ -7,10 +7,11 @@ import {
 } from "@/lib/store"
 import {
   Plus, Pencil, Trash2, QrCode, RefreshCw, X, Check,
-  TreePine, ChevronRight, ArrowLeft, LayoutGrid,
-  Droplets, Sprout, Zap, History, Info, CalendarDays, Printer
+  ChevronRight, ArrowLeft,
+  History, CalendarDays, Printer
 } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
+import DurianIcon from "./DurianIcon"
 
 type AppDataReturn = ReturnType<typeof useAppData>
 
@@ -58,8 +59,8 @@ function BulkUpdateModal({ plot, onClose, onUpdate }: {
       <div className="bg-card border border-border rounded-[2rem] p-6 w-full max-w-[95%] sm:max-w-md shadow-2xl shadow-primary/10 animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-              <RefreshCw size={20} className="text-accent" />
+            <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] flex items-center justify-center">
+              <RefreshCw size={20} className="text-[#146B3E]" />
             </div>
             <div>
               <h3 className="font-black text-lg text-foreground leading-tight">อัปเดตทั้งแปลง</h3>
@@ -168,7 +169,7 @@ function AllQRModal({ plot, onClose }: { plot: Plot; onClose: () => void }) {
         <div className="bg-card border border-border rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
           <div className="p-5 border-b border-border flex justify-between items-center bg-muted/30 rounded-t-3xl shrink-0 print-hide">
             <div>
-               <h3 className="font-bold text-lg text-foreground flex items-center gap-2"><QrCode size={20} className="text-accent" /> พิมพ์ QR Code ทั้งแปลง</h3>
+               <h3 className="font-bold text-lg text-foreground flex items-center gap-2"><QrCode size={20} className="text-[#146B3E]" /> พิมพ์ QR Code ทั้งแปลง</h3>
                <p className="text-base text-muted-foreground mt-0.5">{plot.name} · มีทั้งหมด {plot.trees.length} ต้น</p>
             </div>
             <button onClick={onClose} className="p-2 bg-white rounded-full text-muted-foreground hover:text-foreground shadow-sm border border-border">
@@ -313,7 +314,7 @@ function TreeDetailView({
             <ArrowLeft size={20} />
           </button>
           <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-            <TreePine size={28} className="text-primary" />
+            <DurianIcon className="h-7 w-7 text-primary" />
           </div>
           <div>
             <h2 className="text-xl font-black text-foreground leading-tight">ต้น {tree.treeNumber}</h2>
@@ -403,7 +404,7 @@ function TreeDetailView({
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-2">
                             <h5 className="font-bold text-foreground">{batch.name}</h5>
-                            <button onClick={() => { setBatchForm({name: batch.name, fruitCount: batch.fruitCount}); setActiveBatchIdForEdit(batch.id) }} className="text-muted-foreground p-1 hover:text-accent"><Pencil size={12} /></button>
+                            <button onClick={() => { setBatchForm({name: batch.name, fruitCount: batch.fruitCount}); setActiveBatchIdForEdit(batch.id) }} className="text-muted-foreground p-1 hover:text-[#146B3E]"><Pencil size={12} /></button>
                           </div>
                           <div className="flex items-center gap-2">
                              <button onClick={() => deleteBatch(plot.id, tree.id, batch.id)} className="p-2 bg-muted rounded-xl text-muted-foreground hover:text-destructive">
@@ -427,8 +428,8 @@ function TreeDetailView({
                         <span className="text-base text-muted-foreground flex items-center gap-1">
                           <CalendarDays size={14} /> {latestStage ? new Date(latestStage.date).toLocaleDateString("th-TH") : '-'}
                         </span>
-                        <span className="text-base text-accent font-bold flex items-center gap-1">
-                          <div className="w-3 h-3 rounded-full bg-accent" /> {batch.fruitCount} ลูก
+                        <span className="text-base text-[#146B3E] font-bold flex items-center gap-1">
+                          <div className="w-3 h-3 rounded-full bg-[#146B3E]" /> {batch.fruitCount} ลูก
                         </span>
                       </div>
 
@@ -477,7 +478,7 @@ function TreeDetailView({
                             setStageForm({ stage: nextStage, date: new Date().toISOString().split('T')[0], note: '' })
                             setActiveBatchIdForStage(batch.id)
                           }}
-                          className="w-full border-2 border-dashed border-accent/30 rounded-2xl py-3 text-accent font-bold flex items-center justify-center gap-2 hover:bg-accent/5 transition-colors mb-6"
+                          className="w-full border-2 border-dashed border-[#146B3E]/35 rounded-2xl py-3 text-[#146B3E] font-bold flex items-center justify-center gap-2 hover:bg-[#E7F3EC]/70 transition-colors mb-6"
                         >
                           <Plus size={18} /> บันทึกระยะถัดไป
                         </button>
@@ -491,7 +492,7 @@ function TreeDetailView({
                         <div className="relative pl-6 space-y-4 border-l-2 border-l-muted ml-2">
                           {batch.stages.map((st, idx) => (
                             <div key={st.id} className="relative">
-                              <div className={`absolute -left-[1.65rem] top-1.5 w-3 h-3 rounded-full ${idx === 0 ? 'bg-accent' : 'bg-secondary'}`} />
+                              <div className={`absolute -left-[1.65rem] top-1.5 w-3 h-3 rounded-full ${idx === 0 ? 'bg-[#146B3E]' : 'bg-secondary'}`} />
                               {activeStageIdForEdit === st.id ? (
                                 <div className="bg-white border border-border rounded-2xl p-3 space-y-2">
                                   <select value={stageForm.stage} onChange={e => setStageForm({...stageForm, stage: e.target.value as FlowerStage})} className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-base">
@@ -575,6 +576,8 @@ function PlotDetailView({
   const [qrTree, setQrTree] = useState<Tree | null>(null)
   const [showBulk, setShowBulk] = useState(false)
   const [showAllQR, setShowAllQR] = useState(false)
+  const [editingPlot, setEditingPlot] = useState(false)
+  const [plotForm, setPlotForm] = useState({ name: plot.name, area: plot.area, notes: plot.notes ?? "" })
 
   const selectedTree = plot.trees.find(t => t.id === selectedTreeId)
 
@@ -610,14 +613,59 @@ function PlotDetailView({
         <button onClick={onBack} className="p-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors mt-0.5 md:hidden">
           <ArrowLeft size={18} />
         </button>
-        <div className="flex-1">
-          <h2 className="text-xl font-black text-foreground">{plot.name}</h2>
-          <p className="text-base text-muted-foreground font-medium mt-0.5 leading-relaxed">{plot.area} ไร่{plot.notes ? ` · ${plot.notes}` : ""}</p>
-        </div>
-        <button onClick={() => setShowBulk(true)}
-          className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-secondary-foreground rounded-xl text-base font-bold hover:opacity-90 transition-opacity shadow-sm shrink-0">
-          <RefreshCw size={14} />อัปเดตทั้งแปลง
-        </button>
+        {editingPlot ? (
+          <div className="flex-1 space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                value={plotForm.name}
+                onChange={e => setPlotForm(f => ({ ...f, name: e.target.value }))}
+                className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
+                placeholder="ชื่อแปลง"
+              />
+              <input
+                type="number"
+                value={plotForm.area}
+                onChange={e => setPlotForm(f => ({ ...f, area: Number(e.target.value) }))}
+                className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
+                min={0.5}
+                step={0.5}
+                placeholder="พื้นที่ (ไร่)"
+              />
+            </div>
+            <input
+              value={plotForm.notes}
+              onChange={e => setPlotForm(f => ({ ...f, notes: e.target.value }))}
+              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              placeholder="บันทึกเพิ่มเติม"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setEditingPlot(false)} className="flex-1 border border-border rounded-xl py-2.5 text-muted-foreground font-bold hover:bg-muted/50">ยกเลิก</button>
+              <button
+                onClick={() => {
+                  updatePlot(plot.id, plotForm)
+                  setEditingPlot(false)
+                }}
+                className="flex-1 bg-primary text-primary-foreground rounded-xl py-2.5 font-bold hover:opacity-90"
+              >
+                บันทึก
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex-1">
+              <h2 className="text-xl font-black text-foreground">{plot.name}</h2>
+              <p className="text-base text-muted-foreground font-medium mt-0.5 leading-relaxed">{plot.area} ไร่{plot.notes ? ` · ${plot.notes}` : ""}</p>
+            </div>
+            <button onClick={() => { setPlotForm({ name: plot.name, area: plot.area, notes: plot.notes ?? "" }); setEditingPlot(true) }} className="p-3 bg-muted text-primary rounded-2xl hover:bg-primary/10 transition-colors shrink-0">
+              <Pencil size={18} />
+            </button>
+            <button onClick={() => setShowBulk(true)}
+              className="flex items-center gap-2 px-5 py-3 bg-[#146B3E] text-white rounded-2xl text-base font-black hover:bg-[#0F5A34] transition-all shadow-[0_10px_22px_rgba(47,170,98,0.32)] active:scale-95 shrink-0 ring-1 ring-white/30">
+              <RefreshCw size={18} strokeWidth={2.8} />อัปเดตทั้งแปลง
+            </button>
+          </>
+        )}
       </div>
 
       {/* Summary cards */}
@@ -650,12 +698,12 @@ function PlotDetailView({
         ) : (
           <>
             <button onClick={() => setAddingTree(true)}
-              className="flex-1 bg-[#EEF5E6] text-accent font-bold rounded-2xl py-3 flex items-center justify-center gap-2 text-base hover:opacity-90 transition-all border border-[#85C46E]/30">
+              className="flex-1 bg-[#E7F3EC] text-[#146B3E] font-black rounded-2xl py-3 flex items-center justify-center gap-2 text-base hover:bg-[#D8EEE2] transition-all border border-[#146B3E]/25 shadow-sm">
               <Plus size={18} strokeWidth={2.5} /> เพิ่มต้นทุเรียน
             </button>
             <button onClick={() => setShowAllQR(true)}
               className="px-5 bg-white text-foreground rounded-2xl flex flex-col items-center justify-center border border-border shadow-sm hover:bg-muted transition-colors">
-              <QrCode size={20} className="mb-1 text-accent" />
+              <QrCode size={20} className="mb-1 text-[#146B3E]" />
               <span className="text-base font-medium">พิมพ์ QR</span>
             </button>
           </>
@@ -666,7 +714,7 @@ function PlotDetailView({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {plot.trees.length === 0 ? (
           <div className="col-span-2 bg-card border border-border rounded-xl p-5 text-center">
-            <TreePine size={32} className="text-muted-foreground mx-auto mb-2" />
+            <DurianIcon className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
             <p className="text-muted-foreground text-base">ยังไม่มีต้นทุเรียนในแปลงนี้</p>
           </div>
         ) : plot.trees.map(tree => (
@@ -682,16 +730,16 @@ function PlotDetailView({
                 />
               </div>
             ) : (
-              <div onClick={() => setSelectedTreeId(tree.id)} className="bg-card border border-border rounded-xl p-3 flex flex-col gap-2 group hover:border-accent/50 hover:shadow-md cursor-pointer transition-all h-full relative">
+              <div onClick={() => setSelectedTreeId(tree.id)} className="bg-card border border-[#B9DCC8] rounded-xl p-3 flex flex-col gap-2 group hover:border-[#146B3E]/55 hover:shadow-md cursor-pointer transition-all h-full relative">
                 <div className="flex items-start justify-between">
-                  <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                    <TreePine size={16} className="text-accent" />
+                  <div className="w-9 h-9 rounded-lg bg-[#E7F3EC] flex items-center justify-center shrink-0">
+                    <DurianIcon className="h-4 w-4 text-[#146B3E]" />
                   </div>
                   <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                    <button onClick={() => setQrTree(tree)} className="p-1.5 text-muted-foreground hover:text-accent rounded-md hover:bg-muted transition-colors" title="QR Code">
+                    <button onClick={() => setQrTree(tree)} className="p-1.5 text-[#527060] hover:text-[#146B3E] rounded-md hover:bg-[#E7F3EC] transition-colors" title="QR Code">
                       <QrCode size={15} />
                     </button>
-                    <button onClick={() => setEditingTree(tree.id)} className="p-1.5 text-muted-foreground hover:text-accent rounded-md hover:bg-muted transition-colors" title="แก้ไข">
+                    <button onClick={() => setEditingTree(tree.id)} className="p-1.5 text-[#527060] hover:text-[#146B3E] rounded-md hover:bg-[#E7F3EC] transition-colors" title="แก้ไข">
                       <Pencil size={15} />
                     </button>
                     <button onClick={() => deleteTree(plot.id, tree.id)} className="p-1.5 text-muted-foreground hover:text-destructive rounded-md hover:bg-muted transition-colors" title="ลบ">
@@ -746,18 +794,25 @@ export default function PlotManagement({
   return (
     <div className="flex flex-col md:flex-row gap-6 items-start min-h-[600px]">
       {/* Left Column: Plot List (Sticky on desktop) */}
-      <div className={`w-full md:w-80 lg:w-96 shrink-0 space-y-4 md:sticky md:top-4 ${selectedPlotId ? 'hidden md:block' : 'block'}`}>
-        <div className="flex items-center justify-between">
+      <div className={`w-full md:w-56 lg:w-64 shrink-0 space-y-3 md:sticky md:top-4 ${selectedPlotId ? 'hidden md:block' : 'block'}`}>
+        <div className="relative overflow-hidden rounded-[1.35rem] bg-[#146B3E] p-3 text-white shadow-[0_18px_42px_rgba(15,59,37,0.2)]">
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(223,240,228,0.18),transparent_44%),radial-gradient(circle_at_85%_16%,rgba(255,255,255,0.18),transparent_11rem)]" />
+          <div className="relative flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <LayoutGrid size={18} className="text-accent" />
-            <h2 className="text-lg font-bold text-foreground">แปลงทุเรียน</h2>
-            <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{data.plots.length}</span>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/12 ring-1 ring-white/15">
+              <DurianIcon className="h-4 w-4 text-[#E7F3EC]" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black leading-tight text-white">แปลงทุเรียน</h2>
+              <p className="text-[11px] font-semibold text-white/58">{data.plots.length} แปลงในสวน</p>
+            </div>
           </div>
           <button onClick={() => setShowAddPlot(v => !v)}
-            className="flex items-center gap-2 bg-secondary text-secondary-foreground px-3 py-1.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+            className="flex items-center gap-1 bg-[#E7F3EC] text-[#146B3E] px-2 py-1.5 rounded-xl text-[11px] font-black hover:bg-white transition-colors shadow-sm">
             {showAddPlot ? <X size={14} /> : <Plus size={14} />}
             {showAddPlot ? "ยกเลิก" : "เพิ่มแปลง"}
           </button>
+          </div>
         </div>
 
         {showAddPlot && (
@@ -786,44 +841,50 @@ export default function PlotManagement({
 
         {data.plots.length === 0 ? (
           <div className="bg-card border border-border rounded-xl p-6 text-center">
-            <TreePine size={40} className="text-muted-foreground mx-auto mb-3" />
+            <DurianIcon className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">ยังไม่มีแปลงทุเรียน กดเพิ่มแปลงเพื่อเริ่มต้น</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-4">
             {data.plots.map(plot => {
               const goodCount = plot.trees.filter(t => t.health === "good").length
               const issueCount = plot.trees.filter(t => t.health !== "good").length
               const isActive = selectedPlotId === plot.id
+              const careTone = issueCount > 0 ? "from-amber-50 to-white" : "from-[#E7F3EC] to-white"
 
               return (
                 <button
                   key={plot.id}
                   onClick={() => setSelectedPlotId(plot.id)}
-                  className={`bg-card border rounded-2xl p-4 text-left transition-all group relative overflow-hidden ${
+                  className={`min-h-[5.75rem] bg-card rounded-[1.35rem] p-3 text-left transition-all group relative overflow-hidden ${
                     isActive 
-                      ? "border-primary ring-1 ring-primary shadow-lg shadow-primary/10" 
-                      : "border-border hover:border-accent/50 hover:shadow-md"
+                      ? "border border-[#146B3E] ring-1 ring-[#146B3E] shadow-[0_18px_42px_rgba(15,59,37,0.18)]"
+                      : "border border-[#B9DCC8]/45 hover:border-[#146B3E]/45 hover:shadow-[0_18px_38px_rgba(15,59,37,0.14)]"
                   }`}
                 >
-                  {isActive && <div className="absolute top-0 left-0 w-1.5 h-full bg-primary" />}
-                  <div className="flex items-start justify-between mb-2">
+                  <div className={`absolute inset-0 bg-gradient-to-br ${careTone} opacity-70`} />
+                  <div className="absolute -right-8 -top-10 h-24 w-24 rounded-full bg-[#146B3E]/10" />
+                  <div className="absolute bottom-0 left-0 h-1 w-full bg-[#E7F3EC]" />
+                  <div className={`absolute bottom-0 left-0 h-1 rounded-r-full ${isActive ? "w-full bg-[#146B3E]" : "w-1/2 bg-[#146B3E]/40 group-hover:w-3/4"} transition-all`} />
+                  <div className="relative flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isActive ? 'bg-primary text-primary-foreground' : 'bg-accent/10 text-accent'}`}>
-                        <TreePine size={20} />
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors shadow-inner ${isActive ? 'bg-[#146B3E] text-white' : 'bg-[#E7F3EC] text-[#146B3E]'}`}>
+                        <DurianIcon className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className={`font-black text-base leading-tight ${isActive ? 'text-primary' : 'text-foreground'}`}>{plot.name}</p>
-                        <p className="text-sm text-muted-foreground font-medium">{plot.area} ไร่ · {plot.trees.length} ต้น</p>
+                        <p className={`font-black text-base leading-tight ${isActive ? 'text-[#146B3E]' : 'text-[#143422]'}`}>{plot.name}</p>
+                        <p className="mt-0.5 text-[11px] text-[#527060] font-bold">{plot.area} ไร่ · {plot.trees.length} ต้น</p>
                       </div>
                     </div>
-                    {!isActive && <ChevronRight size={14} className="text-muted-foreground group-hover:text-accent transition-colors mt-1" />}
+                    <div className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full ${isActive ? "bg-[#146B3E] text-white" : "bg-white/80 text-[#527060] group-hover:bg-[#146B3E] group-hover:text-white"} shadow-sm transition-colors`}>
+                      <ChevronRight size={14} />
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 mt-2 overflow-x-auto scrollbar-hide">
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-100/50">ดี {goodCount}</span>
+                  <div className="relative flex items-center gap-2 mt-2 overflow-x-auto scrollbar-hide">
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black border border-emerald-200/70 shadow-sm">ดี {goodCount}</span>
                     {issueCount > 0 && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-bold border border-amber-100/50">ดูแล {issueCount}</span>
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-black border border-amber-200/70 shadow-sm">ดูแล {issueCount}</span>
                     )}
                   </div>
                 </button>
@@ -857,7 +918,7 @@ export default function PlotManagement({
         ) : (
           <div className="h-full min-h-[500px] flex flex-col items-center justify-center bg-muted/20 border-2 border-dashed border-border rounded-[2.5rem] p-12 text-center">
             <div className="w-20 h-20 rounded-3xl bg-muted flex items-center justify-center mb-6">
-              <TreePine size={40} className="text-muted-foreground/40" />
+              <DurianIcon className="h-10 w-10 text-muted-foreground/40" />
             </div>
             <h3 className="text-xl font-black text-foreground">เลือกแปลงเพื่อดูข้อมูล</h3>
             <p className="text-base text-muted-foreground font-medium max-w-xs mx-auto mt-2">

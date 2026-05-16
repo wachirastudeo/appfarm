@@ -2,11 +2,12 @@
 import { useMemo, useState, useEffect } from "react"
 import { AppData, Task } from "@/lib/store"
 import { 
-  Thermometer, Droplets, Wind, TrendingUp, TrendingDown, Trees, ListTodo, Coins, Sun, CloudSun, BookOpen, Clock,
+  Droplets, Wind, TrendingUp, TrendingDown, ListTodo, Sun, CloudSun, BookOpen,
   Sprout, Zap, Scissors, PackageSearch, ClipboardList, MoreHorizontal, Plus, X, Check, MapPin
 } from "lucide-react"
 import Image from "next/image"
 import { TaskCard } from "./TaskPlanner"
+import DurianIcon from "./DurianIcon"
 
 interface Props {
   data: AppData
@@ -26,7 +27,7 @@ function StatCard({ icon: Icon, label, value, sub, color = "text-primary", bgCol
       onClick={onClick}
       className={`orchard-card rounded-xl p-4 flex gap-3 items-center overflow-hidden relative ${onClick ? 'orchard-card-hover cursor-pointer' : ''}`}
     >
-      <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#dff0e4]/55" />
+      <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#E7F3EC]/55" />
       <div className={`relative p-3 rounded-xl ${bgColor} ring-1 ring-black/5`}><Icon size={22} className={color} /></div>
       <div className="min-w-0">
         <p className="text-muted-foreground text-sm font-medium truncate">{label}</p>
@@ -153,12 +154,8 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
           priority
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,59,37,0.86),rgba(15,59,37,0.46)_48%,rgba(15,59,37,0.12)),linear-gradient(0deg,rgba(0,0,0,0.52),transparent_55%)]" />
-        <div className="absolute right-4 top-4 hidden sm:flex items-center gap-2 rounded-full bg-[#dff0e4]/92 px-3 py-1.5 text-[#0f3b25] shadow-lg">
-          <Sprout size={15} />
-          <span className="text-xs font-bold">Smart Farm View</span>
-        </div>
         <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-8">
-          <p className="text-[#dff0e4] text-sm font-semibold mb-1 uppercase tracking-wider">{new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long" })}</p>
+          <p className="text-[#E7F3EC] text-sm font-semibold mb-1 uppercase tracking-wider">{new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long" })}</p>
           <div className="flex items-center gap-2 mb-3">
             <h1 className="text-white text-2xl lg:text-3xl font-black drop-shadow-lg leading-tight">สวัสดีคุณชาวสวน</h1>
             {onOpenSettings && (
@@ -195,7 +192,7 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
                 <span className="text-white/80 text-xs font-medium truncate max-w-[120px]">{farmLocation.label}</span>
               </div>
             )}
-            <div className="flex items-center gap-1.5 bg-[#dff0e4]/24 border border-[#dff0e4]/42 backdrop-blur-sm rounded-full px-3 py-1.5 group-hover/weather:bg-[#dff0e4]/34 transition-colors">
+            <div className="flex items-center gap-1.5 bg-[#E7F3EC]/24 border border-[#E7F3EC]/42 backdrop-blur-sm rounded-full px-3 py-1.5 group-hover/weather:bg-[#E7F3EC]/34 transition-colors">
               <Wind size={13} className="text-cyan-300" />
               <span className="text-white text-xs font-semibold">Windy ↗</span>
             </div>
@@ -210,7 +207,7 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
       <div className="flex flex-col gap-5">
         {/* Stats Grid — order-2 on mobile, order-1 on desktop */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 order-2 lg:order-1">
-          <StatCard onClick={() => onNavigate?.("plots")} icon={Trees} label="ต้นทั้งหมด" value={`${totalTrees} ต้น`} color="text-primary" bgColor="bg-primary/10" />
+          <StatCard onClick={() => onNavigate?.("plots")} icon={DurianIcon} label="ต้นทั้งหมด" value={`${totalTrees} ต้น`} color="text-primary" bgColor="bg-primary/10" />
           <StatCard onClick={() => onNavigate?.("operations")} icon={ListTodo} label="งานต้องทำ" value={`${pendingTasks} งาน`} color="text-amber-600" bgColor="bg-amber-100" />
           <StatCard onClick={() => onNavigate?.("finance")} icon={TrendingUp} label="รายรับเดือนนี้" value={`฿${thisMonthIncome.toLocaleString()}`} color="text-emerald-600" bgColor="bg-emerald-100" />
           <StatCard onClick={() => onNavigate?.("finance")} icon={TrendingDown} label="รายจ่ายเดือนนี้" value={`฿${thisMonthExpense.toLocaleString()}`} color="text-rose-600" bgColor="bg-rose-100" />
@@ -226,7 +223,7 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
                 <button
                   onClick={() => setShowAddTask(v => !v)}
                   className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-semibold transition-all ${
-                    showAddTask ? "bg-amber-100 text-amber-700" : "bg-[#dff0e4] text-[#1f5a35] hover:bg-[#cfe8d6]"
+                    showAddTask ? "bg-amber-100 text-amber-700" : "bg-[#E7F3EC] text-[#146B3E] hover:bg-[#D8EEE2]"
                   }`}
                 >
                   {showAddTask ? <X size={14} /> : <Plus size={14} />}
@@ -284,7 +281,7 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
             {upcomingTasks.length > 0 ? (
               <div className="space-y-2">
                 {upcomingTasks.map(t => (
-                  <TaskCard key={t.id} task={t} plotName={plotName(t.plotId)} updateTask={updateTask} deleteTask={deleteTask} />
+                  <TaskCard key={t.id} task={t} plotName={plotName(t.plotId)} plots={data.plots} updateTask={updateTask} deleteTask={deleteTask} />
                 ))}
               </div>
             ) : (
@@ -301,15 +298,27 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
             onClick={() => onNavigate?.("operations")}
           >
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-foreground flex items-center gap-2"><span className="rounded-lg bg-[#dff0e4] p-1.5"><ClipboardList size={18} className="text-primary" /></span>กิจกรรมล่าสุด</h3>
-              <span className="text-sm text-primary font-medium">ดูทั้งหมด</span>
+              <h3 className="font-bold text-foreground flex items-center gap-2"><span className="rounded-lg bg-[#E7F3EC] p-1.5"><ClipboardList size={18} className="text-primary" /></span>บันทึกสวน</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    localStorage.setItem("open_activity_form", "1")
+                    onNavigate?.("operations")
+                  }}
+                  className="flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-sm font-bold text-primary-foreground hover:opacity-90"
+                >
+                  <Plus size={14} /> บันทึก
+                </button>
+                <span className="text-sm text-primary font-medium">ดูทั้งหมด</span>
+              </div>
             </div>
             {recentActivities.length > 0 ? (
               <div className="space-y-1">
                 {recentActivities.map(a => {
                   const Icon = ACTIVITY_ICONS[a.activityType] || ACTIVITY_ICONS.other
                   return (
-                    <div key={a.id} className="flex items-center gap-3 py-2.5 border-b border-border/50 last:border-0 hover:bg-[#dff0e4]/45 px-2 rounded-lg transition-colors">
+                    <div key={a.id} className="flex items-center gap-3 py-2.5 border-b border-border/50 last:border-0 hover:bg-[#E7F3EC]/45 px-2 rounded-lg transition-colors">
                       <div className={`p-2 rounded-lg bg-muted ${ACTIVITY_COLORS[a.activityType] || 'text-muted-foreground'}`}>
                         <Icon size={18} />
                       </div>
@@ -324,7 +333,7 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
               </div>
             ) : (
               <div className="py-8 text-center">
-                <p className="text-sm text-muted-foreground">ไม่มีกิจกรรมล่าสุด</p>
+                <p className="text-sm text-muted-foreground">ไม่มีบันทึกสวน</p>
               </div>
             )}
           </div>
@@ -336,15 +345,27 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
           onClick={() => onNavigate?.("operations")}
         >
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-foreground flex items-center gap-2"><span className="rounded-lg bg-[#dff0e4] p-1.5"><ClipboardList size={18} className="text-primary" /></span>กิจกรรมล่าสุด</h3>
-            <span className="text-sm text-primary font-medium">ดูทั้งหมด</span>
+            <h3 className="font-bold text-foreground flex items-center gap-2"><span className="rounded-lg bg-[#E7F3EC] p-1.5"><ClipboardList size={18} className="text-primary" /></span>บันทึกสวน</h3>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  localStorage.setItem("open_activity_form", "1")
+                  onNavigate?.("operations")
+                }}
+                className="flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-sm font-bold text-primary-foreground hover:opacity-90"
+              >
+                <Plus size={14} /> บันทึก
+              </button>
+              <span className="text-sm text-primary font-medium">ดูทั้งหมด</span>
+            </div>
           </div>
           {recentActivities.length > 0 ? (
             <div className="space-y-1">
               {recentActivities.map(a => {
                 const Icon = ACTIVITY_ICONS[a.activityType] || ACTIVITY_ICONS.other
                 return (
-                  <div key={a.id} className="flex items-center gap-3 py-2.5 border-b border-border/50 last:border-0 hover:bg-[#dff0e4]/45 px-2 rounded-lg transition-colors">
+                  <div key={a.id} className="flex items-center gap-3 py-2.5 border-b border-border/50 last:border-0 hover:bg-[#E7F3EC]/45 px-2 rounded-lg transition-colors">
                     <div className={`p-2 rounded-lg bg-muted ${ACTIVITY_COLORS[a.activityType] || 'text-muted-foreground'}`}>
                       <Icon size={18} />
                     </div>
@@ -359,7 +380,7 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
             </div>
           ) : (
             <div className="py-8 text-center">
-              <p className="text-sm text-muted-foreground">ไม่มีกิจกรรมล่าสุด</p>
+              <p className="text-sm text-muted-foreground">ไม่มีบันทึกสวน</p>
             </div>
           )}
         </div>
@@ -367,11 +388,11 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
 
       {/* Recommended Articles */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between rounded-2xl bg-[#0f3b25] px-4 py-3 text-white shadow-[0_12px_30px_rgba(15,59,37,0.16)]">
+        <div className="flex items-center justify-between rounded-2xl bg-[#146B3E] px-4 py-3 text-white shadow-[0_12px_30px_rgba(15,59,37,0.16)]">
           <h3 className="font-bold flex items-center gap-2">
-            <span className="rounded-lg bg-white/12 p-1.5"><BookOpen size={18} className="text-[#dff0e4]" /></span> บทความแนะนำ
+            <span className="rounded-lg bg-white/12 p-1.5"><BookOpen size={18} className="text-[#E7F3EC]" /></span> บทความแนะนำ
           </h3>
-          <button onClick={() => onNavigate?.("articles")} className="text-sm text-[#dff0e4] font-medium hover:text-white">ดูทั้งหมด</button>
+          <button onClick={() => onNavigate?.("articles")} className="text-sm text-[#E7F3EC] font-medium hover:text-white">ดูทั้งหมด</button>
         </div>
         
         {/* Horizontal scroll on mobile, 3-col grid on desktop */}
@@ -388,7 +409,7 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <div className="absolute top-2 left-2 bg-[#dff0e4]/95 backdrop-blur-sm rounded-full px-2.5 py-0.5 shadow-sm">
+                <div className="absolute top-2 left-2 bg-[#E7F3EC]/95 backdrop-blur-sm rounded-full px-2.5 py-0.5 shadow-sm">
                   <span className="text-xs text-primary font-semibold">{article.category}</span>
                 </div>
               </div>

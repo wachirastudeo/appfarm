@@ -6,15 +6,16 @@ import PlotManagement from "./PlotManagement"
 import Operations from "./Operations"
 import Finance from "./Finance"
 import Articles from "./Articles"
-import { LayoutDashboard, TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, Sparkles } from "lucide-react"
+import { LayoutDashboard, TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle } from "lucide-react"
 import Settings from "./Settings"
 import AuthModal from "./AuthModal"
 import ProfileModal from "./ProfileModal"
+import DurianIcon from "./DurianIcon"
 
 type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "settings"
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: "dashboard", label: "หน้าหลัก", icon: LayoutDashboard },
+  { id: "dashboard", label: "หน้าหลัก", icon: DurianIcon },
   { id: "plots", label: "แปลง", icon: TreePine },
   { id: "operations", label: "งาน", icon: CalendarDays },
   { id: "finance", label: "การเงิน", icon: Coins },
@@ -32,6 +33,14 @@ export default function AppShell() {
   const [user, setUser] = useState<{ name: string; email: string; avatar?: string; provider: string } | null>(null)
   const [farmLocation, setFarmLocation] = useState<{ lat: number; lon: number; label: string } | null>(null)
   const store = useAppData()
+  const todayTaskCount = store.data.tasks.filter(task => {
+    if (task.status !== "pending") return false
+    const taskDate = new Date(task.date)
+    const today = new Date()
+    return taskDate.getFullYear() === today.getFullYear()
+      && taskDate.getMonth() === today.getMonth()
+      && taskDate.getDate() === today.getDate()
+  }).length
 
   const readFarmLocation = () => {
     const saved = localStorage.getItem("farm_location")
@@ -112,7 +121,7 @@ export default function AppShell() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top Header Bar */}
-      <header className="relative z-20 bg-[#1f5a35] px-4 md:px-8 pt-4 pb-4 flex items-center justify-between shrink-0 shadow-[0_12px_36px_rgba(15,59,37,0.22)] overflow-hidden">
+      <header className="relative z-20 bg-[#146B3E] px-4 md:px-8 pt-4 pb-4 flex items-center justify-between shrink-0 shadow-[0_12px_36px_rgba(15,59,37,0.22)] overflow-hidden">
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.16),transparent_38%),radial-gradient(circle_at_78%_18%,rgba(223,240,228,0.28),transparent_20rem)]" />
         <button
           onClick={() => setActiveTab("dashboard")}
@@ -127,12 +136,18 @@ export default function AppShell() {
           </div>
         </button>
         <div className="relative flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1.5 bg-white/12 backdrop-blur-md rounded-xl px-3 py-2 ring-1 ring-white/15">
-            <Sparkles size={14} className="text-[#dff0e4]" />
-            <span className="text-white/75 text-xs font-medium">พร้อมดูแลสวน</span>
-          </div>
+          <button
+            onClick={() => setActiveTab("operations")}
+            className="relative flex items-center gap-1.5 rounded-xl bg-white/12 px-3 py-2 text-white/78 ring-1 ring-white/15 transition-colors hover:bg-white/22"
+            title={todayTaskCount > 0 ? `วันนี้มีงาน ${todayTaskCount} งาน` : "วันนี้ไม่มีงาน"}
+          >
+            <AlertTriangle size={14} />
+            <span className="font-bold text-sm leading-none">{todayTaskCount}</span>
+            <span className="hidden sm:inline text-xs font-medium opacity-80">งานวันนี้</span>
+            {todayTaskCount > 0 && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600 ring-2 ring-white" />}
+          </button>
           <div className="flex items-center gap-1.5 bg-white/12 backdrop-blur-md rounded-xl px-3 py-2 ring-1 ring-white/15">
-            <TreePine size={14} className="text-[#dff0e4]" />
+            <DurianIcon className="h-4 w-4 text-[#E7F3EC]" />
             <span className="text-white font-bold text-sm leading-none">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)}</span>
             <span className="text-white/60 text-xs font-medium">ต้น</span>
           </div>
@@ -163,28 +178,26 @@ export default function AppShell() {
       {/* Body: Sidebar + Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
-        <nav className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border py-6 px-3 gap-1.5 shrink-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.04)]">
-          <div className="mx-2 mb-5 rounded-2xl bg-white/8 p-4 ring-1 ring-white/10">
-            <p className="text-xs font-bold text-[#dff0e4] uppercase tracking-wider">Orchard Control</p>
-            <p className="mt-1 text-sm text-white/62 leading-snug">จัดการสวน งาน และการเงินในที่เดียว</p>
-          </div>
-          <p className="px-4 text-xs font-bold text-white/45 uppercase tracking-wider mb-2">เมนูหลัก</p>
+        <nav className="hidden md:flex flex-col w-72 bg-[#146B3E] border-r border-white/20 py-5 px-4 gap-2 shrink-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.16),14px_0_36px_rgba(47,170,98,0.18)] relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.28),transparent_14rem),linear-gradient(180deg,rgba(255,255,255,0.12),rgba(22,138,75,0.16)_48%,rgba(22,138,75,0.24))]" />
+          <p className="relative px-3 pt-2 text-xs font-black text-white/72 uppercase tracking-wider mb-1">เมนูหลัก</p>
           {TABS.map(tab => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-base font-semibold transition-all text-left ${
+                className={`relative group flex items-center gap-3 px-4 py-3.5 rounded-2xl text-base font-black transition-all text-left ${
                   activeTab === tab.id
-                    ? "bg-[#dff0e4] text-[#0f3b25] shadow-md"
-                    : "text-white/78 hover:bg-[#174629] hover:text-white"
+                    ? "bg-white text-[#146B3E] shadow-[0_16px_30px_rgba(20,52,34,0.18)]"
+                    : "text-white/92 hover:bg-white/18 hover:text-white"
                 }`}
               >
-                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${activeTab === tab.id ? "bg-white/70" : "bg-white/8 group-hover:bg-white/12"}`}>
-                  <Icon size={18} />
+                <span className={`flex h-10 w-10 items-center justify-center rounded-2xl transition-colors ${activeTab === tab.id ? "bg-[#E7F3EC] text-[#146B3E]" : "bg-white/18 text-white group-hover:bg-white/26"}`}>
+                  <Icon size={20} strokeWidth={2.4} />
                 </span>
-                {tab.label}
+                <span className="flex-1">{tab.label}</span>
+                {activeTab === tab.id && <span className="h-2 w-2 rounded-full bg-[#146B3E]" />}
               </button>
             )
           })}
@@ -199,7 +212,7 @@ export default function AppShell() {
       </div>
 
       {/* Mobile Bottom Navigation (Clean pill style) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0f3b25]/96 backdrop-blur-xl px-2 py-2 flex items-center gap-1 w-full border-t border-white/10 safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#146B3E]/96 backdrop-blur-xl px-2 py-2 flex items-center gap-1 w-full border-t border-white/10 safe-area-bottom">
         {TABS.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
@@ -208,7 +221,7 @@ export default function AppShell() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl transition-all ${
-                isActive ? "bg-[#dff0e4] text-[#0f3b25] shadow-sm" : "text-white/58 hover:bg-[#174629] hover:text-white"
+                isActive ? "bg-white text-[#146B3E] shadow-sm" : "text-white/72 hover:bg-white/16 hover:text-white"
               }`}
             >
               <Icon size={20} />

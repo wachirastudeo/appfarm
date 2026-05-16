@@ -5,48 +5,48 @@
 
 :root {
   /* Modern Orchard UI */
-  --background: #edf3ee;
-  --foreground: #102c1d;
+  --background: #F2F8F4;
+  --foreground: #143422;
   --card: #ffffff;
-  --card-foreground: #102c1d;
+  --card-foreground: #143422;
   --popover: #ffffff;
-  --popover-foreground: #102c1d;
-  --primary: #1f5a35;
+  --popover-foreground: #143422;
+  --primary: #146B3E;
   --primary-foreground: #ffffff;
   --secondary: #54745f;
   --secondary-foreground: #ffffff;
-  --muted: #dff0e4;
-  --muted-foreground: #557162;
-  --accent: #dff0e4;
-  --accent-foreground: #174629;
+  --muted: #E7F3EC;
+  --muted-foreground: #527060;
+  --accent: #E7F3EC;
+  --accent-foreground: #0F5A34;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --border: #c9dacd;
   --input: #ffffff;
-  --ring: #1f5a35;
-  --chart-1: #1f5a35;
-  --chart-2: #174629;
-  --chart-3: #0f3b25;
+  --ring: #146B3E;
+  --chart-1: #146B3E;
+  --chart-2: #0F5A34;
+  --chart-3: #146B3E;
   --chart-4: #7fb58d;
   --chart-5: #eab308;
   --radius: 0.75rem;
-  --sidebar: #0f3b25;
+  --sidebar: #146B3E;
   --sidebar-foreground: #eaf6ed;
-  --sidebar-primary: #dff0e4;
+  --sidebar-primary: #E7F3EC;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #174629;
+  --sidebar-accent: #0F5A34;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(223, 240, 228, 0.14);
-  --sidebar-ring: #dff0e4;
+  --sidebar-ring: #E7F3EC;
 
   /* Design Tokens */
-  --brand-green: #1f5a35;
-  --brand-deep: #0f3b25;
-  --brand-hover: #174629;
-  --brand-highlight: #dff0e4;
-  --brand-bg: #edf3ee;
+  --brand-green: #146B3E;
+  --brand-deep: #146B3E;
+  --brand-hover: #0F5A34;
+  --brand-highlight: #E7F3EC;
+  --brand-bg: #F2F8F4;
   --brand-muted: #54745f;
-  --status-good: #1f5a35;
+  --status-good: #146B3E;
   --status-warn: #f59e0b;
   --status-danger: #dc2626;
 }
@@ -115,7 +115,7 @@
     @apply bg-background text-foreground;
     background:
       radial-gradient(circle at top left, rgba(223, 240, 228, 0.95), transparent 34rem),
-      linear-gradient(180deg, #edf3ee 0%, #f7faf7 52%, #edf3ee 100%);
+      linear-gradient(180deg, #F2F8F4 0%, #f7faf7 52%, #F2F8F4 100%);
   }
 
   html {
