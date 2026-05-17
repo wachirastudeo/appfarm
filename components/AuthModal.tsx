@@ -1,14 +1,17 @@
 "use client"
 import { useState } from "react"
-import { X, Mail, Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react"
+import type { AppUser } from "@/lib/store"
+import { X, Mail, Eye, EyeOff, AlertCircle, ShieldCheck, Sparkles } from "lucide-react"
 
 interface Props {
   isOpen: boolean
   onClose: () => void
-  onLoginSuccess: (user: { name: string; email: string; avatar?: string; provider: string }) => void
+  onLoginSuccess: (user: AppUser) => void
+  authenticateUser: (email: string, password: string) => Promise<AppUser | null>
+  addUser: (user: Omit<AppUser, "id" | "createdAt" | "passwordHash" | "password"> & { password: string }) => Promise<AppUser | null>
 }
 
-export default function AuthModal({ isOpen, onClose, onLoginSuccess }: Props) {
+export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticateUser, addUser }: Props) {
   const [mode, setMode] = useState<"choose" | "email">("choose")
   const [isSignUp, setIsSignUp] = useState(false)
   const [email, setEmail] = useState("")
@@ -25,9 +28,14 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: Props) {
     setError("")
     setTimeout(() => {
       onLoginSuccess({
+        id: `social-${provider}`,
         name: provider === "google" ? "ชาวสวน Google" : "ชาวสวน LINE",
         email: `demo@${provider}.com`,
+        passwordHash: "",
+        role: "user",
+        status: "active",
         provider,
+        createdAt: new Date().toISOString(),
       })
       setLoading(null)
       onClose()
@@ -40,8 +48,17 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: Props) {
     if (!email || !password) { setError("กรุณากรอกอีเมลและรหัสผ่าน"); return }
     if (isSignUp && !name) { setError("กรุณากรอกชื่อของคุณ"); return }
     setLoading("email")
-    setTimeout(() => {
-      onLoginSuccess({ name: name || email.split("@")[0], email, provider: "email" })
+    setTimeout(async () => {
+      const user = isSignUp
+        ? addUser({ name, email, password, role: "user", status: "active", provider: "email" })
+        : authenticateUser(email, password)
+      const result = await user
+      if (!result) {
+        setError(isSignUp ? "อีเมลนี้มีผู้ใช้งานแล้ว" : "อีเมลหรือรหัสผ่านไม่ถูกต้อง")
+        setLoading(null)
+        return
+      }
+      onLoginSuccess(result)
       setLoading(null)
       onClose()
     }, 1000)
@@ -51,35 +68,52 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: Props) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Card */}
-      <div className="relative w-full max-w-[380px] bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative grid w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-2xl ring-1 ring-emerald-950/10 md:grid-cols-[1.05fr_0.95fr]">
+        <div className="relative hidden min-h-[560px] overflow-hidden bg-[#0B3B25] p-8 text-white md:block">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(93,209,132,0.38),transparent_18rem),linear-gradient(145deg,rgba(255,255,255,0.14),transparent_42%)]" />
+          <div className="relative flex h-full flex-col justify-between">
+            <div>
+              <div className="mb-10 inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-2 text-sm font-bold ring-1 ring-white/20">
+                <Sparkles size={16} />
+                Smart Orchard OS
+              </div>
+              <h2 className="max-w-sm text-4xl font-black leading-tight">จัดการสวนทุเรียนแบบทีมเดียวจบ</h2>
+              <p className="mt-4 max-w-sm text-sm font-semibold leading-6 text-white/72">
+                เข้าสู่ระบบเพื่อดูข้อมูลสวน บทความ งานประจำวัน และหลังบ้านสำหรับผู้ดูแล
+              </p>
+            </div>
+            <div className="grid gap-3">
+              {[
+                "Admin: admin@appfarm.test / admin1234",
+                "User: user@appfarm.test / user1234",
+              ].map(item => (
+                <div key={item} className="flex items-center gap-3 rounded-2xl bg-white/12 p-4 ring-1 ring-white/14">
+                  <ShieldCheck size={18} className="text-emerald-200" />
+                  <span className="text-sm font-bold">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-        {/* Top accent line */}
-        <div className="h-0.5 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-400" />
-
-        {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-gray-500 shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-700"
         >
           <X size={16} />
         </button>
 
-        <div className="px-8 pt-8 pb-8">
-          {/* Brand */}
+        <div className="px-6 py-8 sm:px-8 md:py-10">
           <div className="mb-7">
             <div className="flex items-center gap-2.5 mb-1">
-              <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center">
-                <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
-                  <path d="M12 2C8 2 5 7 5 12c0 3 2 6 4 7.5C10.5 21 11 19 12 19s1.5 2 3 .5C17 18 19 15 19 12c0-5-3-10-7-10z" fill="white"/>
-                </svg>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 shadow-lg shadow-emerald-600/25">
+                <ShieldCheck size={18} className="text-white" />
               </div>
-              <span className="text-sm font-bold text-gray-900 tracking-tight">Smart Orchard</span>
+              <span className="text-sm font-bold tracking-tight text-gray-900">Smart Orchard</span>
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mt-3">
+            <h2 className="mt-5 text-2xl font-black text-gray-950">
               {mode === "email"
                 ? (isSignUp ? "สร้างบัญชีใหม่" : "เข้าสู่ระบบ")
                 : "ยินดีต้อนรับ"}

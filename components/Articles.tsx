@@ -1,61 +1,22 @@
 "use client"
 import { useState, useMemo } from "react"
-import { BookOpen, Search, X, ArrowRight, Share2, Bookmark, ArrowLeft } from "lucide-react"
+import type { Article } from "@/lib/store"
+import { Search, X, ArrowRight, Share2, Bookmark, ArrowLeft } from "lucide-react"
 
-const ARTICLES = [
-  { 
-    id: 1, 
-    title: "เทคนิคการให้น้ำทุเรียนช่วงเตรียมทำใบ", 
-    category: "การดูแลรักษา", 
-    image: "/images/articles/article_watering_1778037948644.png",
-    content: "ระยะเตรียมทำใบเป็นช่วงสำคัญที่ต้องเพิ่มการให้น้ำให้สม่ำเสมอ เพื่อให้ใบออกสวยงามและสม่ำเสมอ การให้น้ำแบบเคาะหรือหยดน้ำ 2-3 ครั้งต่อสัปดาห์จะช่วยให้พืชมีความชื้นเพียงพอ\n\nการให้น้ำในช่วงนี้ควรเน้นที่ความชื้นของดินเป็นหลัก ไม่ควรปล่อยให้ดินแห้งแตกระแหง เพราะจะทำให้การแตกใบอ่อนไม่สม่ำเสมอ นอกจากนี้ควรมีการเสริมปุ๋ยทางใบร่วมด้วยเพื่อให้ใบมีความสมบูรณ์สูงสุด" 
-  },
-  { 
-    id: 2, 
-    title: "รับมือโรคไฟทอปธอร่า หน้าฝนนี้ต้องรอด", 
-    category: "โรคและแมลง", 
-    image: "/images/articles/article_disease_1778037967060.png",
-    content: "โรคไฟทอปธอร่าเป็นโรคร้ายแรงที่อาจทำให้สูญเสียผลผลิตได้ 50-80% วิธีป้องกันคือการใช้ปุ๋ยสมดุล เพิ่มการระบายอากาศ และใช้สารเคมีป้องกันอย่างถูกต้อง\n\nหัวใจสำคัญคือการจัดการน้ำในสวนไม่ให้ท่วมขัง และการตรวจสอบแผลตามลำต้นอย่างสม่ำเสมอ หากพบแผลควรทำการถากเนื้อไม้ที่เสียออกและทาด้วยสารป้องกันเชื้อราทันที" 
-  },
-  { 
-    id: 3, 
-    title: "แนวโน้มราคาทุเรียนส่งออก ปี 2026", 
-    category: "การตลาด", 
-    image: "/images/articles/article_market_1778038017547.png",
-    content: "ราคาทุเรียนปี 2026 คาดว่าจะสูงขึ้นจากปีที่แล้ว เนื่องจากอุปสงค์จากตลาดเอเชียและจีนที่เพิ่มขึ้น ราคาประมาณ 100-150 บาทต่อกิโลกรัมสำหรับคุณภาพเกรด A\n\nเกษตรกรควรเน้นการทำทุเรียนคุณภาพพรีเมียมและมีการรับรองมาตรฐาน GAP เพื่อให้ได้ราคาสูงสุดและเป็นที่ต้องการของตลาดส่งออก" 
-  },
-  { 
-    id: 4, 
-    title: "วิธีสังเกตดอกทุเรียนระยะไข่ปลา", 
-    category: "การสังเกต", 
-    image: "/images/articles/article_flowering_1778039300000_1778039688657.png",
-    content: "ระยะไข่ปลาเป็นช่วงที่ดอกเข้าชิดกันเหมือนไข่ปลา ลักษณะเพศเริ่มแตกต่างชัดเจน ควรเน้นการให้น้ำและปุ๋ยให้สม่ำเสมอในช่วงนี้\n\nระวังอย่าให้น้ำมากเกินไปเพราะอาจทำให้ดอกหลุดร่วงได้ ควรให้น้ำในปริมาณที่พอเหมาะเพื่อให้ดอกพัฒนาไปสู่ระยะมะเขือพวงได้อย่างสมบูรณ์" 
-  },
-  { 
-    id: 5, 
-    title: "ปุ๋ยสูตรไหนเหมาะกับระยะขยายขนาดผล", 
-    category: "การให้ปุ๋ย", 
-    image: "/images/articles/article_fertilizer_1778039300000_1778039705364.png",
-    content: "ในระยะขยายขนาดผล ควรใช้ปุ๋ยที่มีแคลเซียมและโพแทสเซียมสูง เช่น NPK 5:10:20 หรือสูตรเฉพาะสำหรับผลไม้ให้ 2-3 ครั้งต่อเดือน\n\nการใส่ปุ๋ยในช่วงนี้จะช่วยให้เนื้อทุเรียนมีคุณภาพดี รสชาติหวาน และมีน้ำหนักผลที่ได้มาตรฐาน" 
-  },
-  { 
-    id: 6, 
-    title: "การตัดแต่งกิ่งเตรียมพร้อมสำหรับฤดูกาลใหม่", 
-    category: "การดูแลรักษา", 
-    image: "/images/articles/article_pruning_1778039300000_1778039722927.png",
-    content: "การตัดแต่งกิ่งช่วยกระตุ้นการออกใบและดอกใหม่ ตัดกิ่งที่อ่อนแอหรือเก่า และปล่อยให้พืชมีรูปทรงสวยงาม ลักษณะปิรามิด\n\nการตัดแต่งกิ่งที่ถูกต้องจะช่วยให้แสงแดดส่องถึงโคนต้น ลดการสะสมของโรคและแมลง และช่วยให้พืชใช้สารอาหารได้อย่างมีประสิทธิภาพ" 
-  }
-]
+interface Props {
+  articles: Article[]
+}
 
-export default function Articles() {
+export default function Articles({ articles }: Props) {
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedArticle, setSelectedArticle] = useState<typeof ARTICLES[0] | null>(null)
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
   const [activeCategory, setActiveCategory] = useState("ทั้งหมด")
 
-  const categories = ["ทั้งหมด", ...Array.from(new Set(ARTICLES.map(a => a.category)))]
+  const publishedArticles = useMemo(() => articles.filter(a => a.status === "published"), [articles])
+  const categories = ["ทั้งหมด", ...Array.from(new Set(publishedArticles.map(a => a.category)))]
 
   const filteredArticles = useMemo(() => {
-    let result = ARTICLES
+    let result = publishedArticles
     if (activeCategory !== "ทั้งหมด") {
       result = result.filter(a => a.category === activeCategory)
     }
@@ -67,7 +28,7 @@ export default function Articles() {
       )
     }
     return result
-  }, [searchTerm, activeCategory])
+  }, [searchTerm, activeCategory, publishedArticles])
 
   // Full Blog View
   if (selectedArticle) {

@@ -1,8 +1,12 @@
 import type { SVGProps } from "react"
 
-export default function DurianIcon(props: SVGProps<SVGSVGElement>) {
+interface DurianIconProps extends SVGProps<SVGSVGElement> {
+  size?: number | string
+}
+
+export default function DurianIcon({ size = 24, width, height, ...props }: DurianIconProps) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width={width ?? size} height={height ?? size} {...props}>
       <path
         d="M12 6c3.2 0 5.6 2.4 5.6 5.9 0 3.8-2.6 6.9-5.6 6.9s-5.6-3.1-5.6-6.9C6.4 8.4 8.8 6 12 6Z"
         fill="currentColor"

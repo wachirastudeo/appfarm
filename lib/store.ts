@@ -124,12 +124,67 @@ export interface FinanceRecord {
   plotId?: string
 }
 
+export type UserRole = "admin" | "user"
+export type UserStatus = "active" | "disabled"
+
+export interface AppUser {
+  id: string
+  name: string
+  email: string
+  passwordHash: string
+  password?: string
+  role: UserRole
+  status: UserStatus
+  provider: string
+  avatar?: string
+  createdAt: string
+}
+
+export interface Article {
+  id: string
+  title: string
+  category: string
+  image: string
+  content: string
+  status: "published" | "draft"
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SiteSettings {
+  siteName: string
+  tagline: string
+  logoUrl: string
+}
+
+export type NewUserInput = Omit<AppUser, "id" | "createdAt" | "passwordHash" | "password"> & { password: string }
+
 export interface AppData {
   plots: Plot[]
   activities: Activity[]
   tasks: Task[]
   finance: FinanceRecord[]
+  users: AppUser[]
+  articles: Article[]
+  siteSettings: SiteSettings
 }
+
+const seedArticles: Article[] = [
+  { id: "art1", title: "เทคนิคการให้น้ำทุเรียนช่วงเตรียมทำใบ", category: "การดูแลรักษา", image: "/images/articles/article_watering_1778037948644.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "ระยะเตรียมทำใบเป็นช่วงสำคัญที่ต้องเพิ่มการให้น้ำให้สม่ำเสมอ เพื่อให้ใบออกสวยงามและสม่ำเสมอ การให้น้ำแบบเคาะหรือหยดน้ำ 2-3 ครั้งต่อสัปดาห์จะช่วยให้พืชมีความชื้นเพียงพอ\n\nการให้น้ำในช่วงนี้ควรเน้นที่ความชื้นของดินเป็นหลัก ไม่ควรปล่อยให้ดินแห้งแตกระแหง เพราะจะทำให้การแตกใบอ่อนไม่สม่ำเสมอ นอกจากนี้ควรมีการเสริมปุ๋ยทางใบร่วมด้วยเพื่อให้ใบมีความสมบูรณ์สูงสุด" },
+  { id: "art2", title: "รับมือโรคไฟทอปธอร่า หน้าฝนนี้ต้องรอด", category: "โรคและแมลง", image: "/images/articles/article_disease_1778037967060.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "โรคไฟทอปธอร่าเป็นโรคร้ายแรงที่อาจทำให้สูญเสียผลผลิตได้ 50-80% วิธีป้องกันคือการใช้ปุ๋ยสมดุล เพิ่มการระบายอากาศ และใช้สารเคมีป้องกันอย่างถูกต้อง\n\nหัวใจสำคัญคือการจัดการน้ำในสวนไม่ให้ท่วมขัง และการตรวจสอบแผลตามลำต้นอย่างสม่ำเสมอ หากพบแผลควรทำการถากเนื้อไม้ที่เสียออกและทาด้วยสารป้องกันเชื้อราทันที" },
+  { id: "art3", title: "แนวโน้มราคาทุเรียนส่งออก ปี 2026", category: "การตลาด", image: "/images/articles/article_market_1778038017547.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "ราคาทุเรียนปี 2026 คาดว่าจะสูงขึ้นจากปีที่แล้ว เนื่องจากอุปสงค์จากตลาดเอเชียและจีนที่เพิ่มขึ้น ราคาประมาณ 100-150 บาทต่อกิโลกรัมสำหรับคุณภาพเกรด A\n\nเกษตรกรควรเน้นการทำทุเรียนคุณภาพพรีเมียมและมีการรับรองมาตรฐาน GAP เพื่อให้ได้ราคาสูงสุดและเป็นที่ต้องการของตลาดส่งออก" },
+  { id: "art4", title: "วิธีสังเกตดอกทุเรียนระยะไข่ปลา", category: "การสังเกต", image: "/images/articles/article_flowering_1778039300000_1778039688657.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "ระยะไข่ปลาเป็นช่วงที่ดอกเข้าชิดกันเหมือนไข่ปลา ลักษณะเพศเริ่มแตกต่างชัดเจน ควรเน้นการให้น้ำและปุ๋ยให้สม่ำเสมอในช่วงนี้\n\nระวังอย่าให้น้ำมากเกินไปเพราะอาจทำให้ดอกหลุดร่วงได้ ควรให้น้ำในปริมาณที่พอเหมาะเพื่อให้ดอกพัฒนาไปสู่ระยะมะเขือพวงได้อย่างสมบูรณ์" },
+  { id: "art5", title: "ปุ๋ยสูตรไหนเหมาะกับระยะขยายขนาดผล", category: "การให้ปุ๋ย", image: "/images/articles/article_fertilizer_1778039300000_1778039705364.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "ในระยะขยายขนาดผล ควรใช้ปุ๋ยที่มีแคลเซียมและโพแทสเซียมสูง เช่น NPK 5:10:20 หรือสูตรเฉพาะสำหรับผลไม้ให้ 2-3 ครั้งต่อเดือน\n\nการใส่ปุ๋ยในช่วงนี้จะช่วยให้เนื้อทุเรียนมีคุณภาพดี รสชาติหวาน และมีน้ำหนักผลที่ได้มาตรฐาน" },
+  { id: "art6", title: "การตัดแต่งกิ่งเตรียมพร้อมสำหรับฤดูกาลใหม่", category: "การดูแลรักษา", image: "/images/articles/article_pruning_1778039300000_1778039722927.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "การตัดแต่งกิ่งช่วยกระตุ้นการออกใบและดอกใหม่ ตัดกิ่งที่อ่อนแอหรือเก่า และปล่อยให้พืชมีรูปทรงสวยงาม ลักษณะปิรามิด\n\nการตัดแต่งกิ่งที่ถูกต้องจะช่วยให้แสงแดดส่องถึงโคนต้น ลดการสะสมของโรคและแมลง และช่วยให้พืชใช้สารอาหารได้อย่างมีประสิทธิภาพ" },
+]
+
+const seedUsers: AppUser[] = [
+  { id: "u-admin", name: "ผู้ดูแลสวน", email: "admin@appfarm.test", passwordHash: "d03892df293536e063da4ff9ccaf520c93544aadc598b6c50e9cafef7bb96ad3", role: "admin", status: "active", provider: "email", createdAt: new Date().toISOString() },
+  { id: "u-user", name: "เกษตรกรตัวอย่าง", email: "user@appfarm.test", passwordHash: "21af8c1d848d7360fb404f70735b7aede4c00cff95394a7254cb9620bafa41d4", role: "user", status: "active", provider: "email", createdAt: new Date().toISOString() },
+  { id: "u-staff", name: "ทีมงานแปลง A", email: "staff@appfarm.test", passwordHash: "612fb42e87fc09a29f793bc7d6f9868ee4ed6790960cc84ce2bfa27f1f71c0cd", role: "user", status: "active", provider: "email", createdAt: new Date().toISOString() },
+]
+
+const LEGACY_SEED_PASSWORD_HASHES: Record<string, string> = Object.fromEntries(seedUsers.map(user => [user.email, user.passwordHash]))
 
 // ---- Seed Data ----
 const SEED: AppData = {
@@ -186,10 +241,41 @@ const SEED: AppData = {
     { id: "f4", date: new Date(Date.now()-1*86400000).toISOString(), type: "expense", category: "ยา", amount: 1800, description: "ซื้อสารเคมีกำจัดแมลง", plotId: "p2" },
     { id: "f5", date: new Date().toISOString(), type: "income", category: "ขายผล", amount: 28000, description: "ขายทุเรียนชะนี 200 กก.", plotId: "p2" },
   ],
+  users: seedUsers,
+  articles: seedArticles,
+  siteSettings: {
+    siteName: "สวนทุเรียน",
+    tagline: "Smart Orchard",
+    logoUrl: "",
+  },
 }
 
 // ---- Hook ----
 const STORAGE_KEY = "durian_orchard_data"
+
+async function hashPassword(email: string, password: string) {
+  const payload = `${email.trim().toLowerCase()}:${password}`
+  if (typeof crypto === "undefined" || !crypto.subtle) {
+    return payload
+  }
+  const bytes = new TextEncoder().encode(payload)
+  const digest = await crypto.subtle.digest("SHA-256", bytes)
+  return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, "0")).join("")
+}
+
+function withoutPlainPasswords(users: AppUser[]) {
+  return users.map(({ password: _password, ...user }) => ({
+    ...user,
+    passwordHash: user.passwordHash || LEGACY_SEED_PASSWORD_HASHES[user.email.toLowerCase()] || "",
+  }))
+}
+
+function migrateArticleImagesToAvif(articles: Article[]) {
+  return articles.map(article => ({
+    ...article,
+    image: article.image.replace(/^\/images\/articles\/(.+)\.png$/, "/images/articles/$1.avif"),
+  }))
+}
 
 export function useAppData() {
   const [data, setData] = useState<AppData>(() => {
@@ -204,7 +290,12 @@ export function useAppData() {
           if (!t.batches) t.batches = []
         })
       })
-      return parsed
+      return {
+        ...parsed,
+        users: parsed.users?.length ? withoutPlainPasswords(parsed.users) : seedUsers,
+        articles: parsed.articles?.length ? migrateArticleImagesToAvif(parsed.articles) : seedArticles,
+        siteSettings: parsed.siteSettings ?? SEED.siteSettings,
+      }
     } catch { return SEED }
   })
 
@@ -292,6 +383,55 @@ export function useAppData() {
     updateData(d => ({ ...d, finance: d.finance.filter(f => f.id !== id) }))
   }, [updateData])
 
+  // Users
+  const authenticateUser = useCallback(async (email: string, password: string) => {
+    const normalized = email.trim().toLowerCase()
+    const passwordHash = await hashPassword(normalized, password)
+    return data.users.find(u => u.email.toLowerCase() === normalized && u.passwordHash === passwordHash && u.status === "active") ?? null
+  }, [data.users])
+
+  const addUser = useCallback(async (user: NewUserInput) => {
+    const normalized = user.email.trim().toLowerCase()
+    const exists = data.users.some(u => u.email.toLowerCase() === normalized)
+    if (exists) return null
+    const { password, ...safeUser } = user
+    const newUser: AppUser = {
+      ...safeUser,
+      email: normalized,
+      passwordHash: await hashPassword(normalized, password),
+      id: `u${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    }
+    updateData(d => ({ ...d, users: [newUser, ...d.users] }))
+    return newUser
+  }, [data.users, updateData])
+
+  const updateUser = useCallback((id: string, changes: Partial<AppUser>) => {
+    updateData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, ...changes } : u) }))
+  }, [updateData])
+
+  const deleteUser = useCallback((id: string) => {
+    updateData(d => ({ ...d, users: d.users.filter(u => u.id !== id) }))
+  }, [updateData])
+
+  // Articles
+  const addArticle = useCallback((article: Omit<Article, "id" | "createdAt" | "updatedAt">) => {
+    const now = new Date().toISOString()
+    updateData(d => ({ ...d, articles: [{ ...article, id: `art${Date.now()}`, createdAt: now, updatedAt: now }, ...d.articles] }))
+  }, [updateData])
+
+  const updateArticle = useCallback((id: string, changes: Partial<Article>) => {
+    updateData(d => ({ ...d, articles: d.articles.map(a => a.id === id ? { ...a, ...changes, updatedAt: new Date().toISOString() } : a) }))
+  }, [updateData])
+
+  const deleteArticle = useCallback((id: string) => {
+    updateData(d => ({ ...d, articles: d.articles.filter(a => a.id !== id) }))
+  }, [updateData])
+
+  const updateSiteSettings = useCallback((changes: Partial<SiteSettings>) => {
+    updateData(d => ({ ...d, siteSettings: { ...d.siteSettings, ...changes } }))
+  }, [updateData])
+
   // Batches
   const addBatch = useCallback((plotId: string, treeId: string, batchName: string) => {
     const newBatch: FlowerBatch = {
@@ -358,6 +498,9 @@ export function useAppData() {
     addActivity, deleteActivity, updateActivity,
     addTask, updateTask, deleteTask,
     addFinance, deleteFinance,
-    addBatch, addBatchStage, updateBatch, deleteBatch
+    addBatch, addBatchStage, updateBatch, deleteBatch,
+    authenticateUser, addUser, updateUser, deleteUser,
+    addArticle, updateArticle, deleteArticle,
+    updateSiteSettings,
   }
 }

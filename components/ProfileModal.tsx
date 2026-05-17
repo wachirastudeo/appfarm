@@ -1,18 +1,12 @@
 "use client"
 import { useState } from "react"
-import { X, User, Mail, LogOut, ChevronRight, Shield, Bell, Leaf, Camera } from "lucide-react"
-
-interface UserProfile {
-  name: string
-  email: string
-  avatar?: string
-  provider: string
-}
+import type { AppUser } from "@/lib/store"
+import { X, User, LogOut, ChevronRight, Shield, Bell, Leaf, Camera } from "lucide-react"
 
 interface Props {
   isOpen: boolean
   onClose: () => void
-  user: UserProfile | null
+  user: AppUser | null
   onLogout: () => void
   onLogin: () => void
 }
@@ -95,6 +89,11 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout, onLogin 
                 <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${PROVIDER_COLOR[user.provider] ?? "bg-muted text-muted-foreground"}`}>
                   เข้าสู่ระบบด้วย {PROVIDER_LABEL[user.provider] ?? user.provider}
                 </span>
+                {user.role === "admin" && (
+                  <span className="ml-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                    Admin
+                  </span>
+                )}
               </div>
             </div>
 

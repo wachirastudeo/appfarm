@@ -47,18 +47,12 @@ const WEATHER_CODE_MAP: Record<number, string> = {
   95: "พายุฝนฟ้าคะนอง", 96: "พายุกับลูกเห็บ", 99: "พายุรุนแรง",
 }
 
-const ARTICLES = [
-  { id: 1, title: "เทคนิคการให้น้ำทุเรียนช่วงเตรียมทำใบ", category: "การดูแลรักษา", image: "/images/articles/article_watering_1778037948644.png" },
-  { id: 2, title: "รับมือโรคไฟทอปธอร่า หน้าฝนนี้ต้องรอด", category: "โรคและแมลง", image: "/images/articles/article_disease_1778037967060.png" },
-  { id: 3, title: "แนวโน้มราคาทุเรียนส่งออก ปี 2026", category: "การตลาด", image: "/images/articles/article_market_1778038017547.png" }
-]
-
-
 const ACTIVITY_ICONS: any = { fertilize: Sprout, spray: Zap, water: Droplets, prune: Scissors, harvest: PackageSearch, inspect: ClipboardList, other: MoreHorizontal }
 const ACTIVITY_COLORS: any = { fertilize: "text-green-500", spray: "text-yellow-500", water: "text-blue-500", prune: "text-orange-500", harvest: "text-primary", inspect: "text-purple-500", other: "text-muted-foreground" }
 
 export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask, deleteTask, addTask, farmLocation }: Props) {
-  const [weather, setWeather] = useState({ temp: "–", humidity: "–", wind: "–", condition: "กำลังโหลด..." })
+  const [weather, setWeather] = useState<{ temp: string | number; humidity: string | number; wind: string | number; condition: string }>({ temp: "–", humidity: "–", wind: "–", condition: "กำลังโหลด..." })
+  const recommendedArticles = useMemo(() => data.articles.filter(article => article.status === "published").slice(0, 3), [data.articles])
 
   // Memoize loc so the object reference only changes when lat/lon actually change
   const loc = useMemo(
@@ -146,7 +140,7 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
       {/* Hero Banner with Image */}
       <div className="relative rounded-2xl overflow-hidden shadow-[0_22px_55px_rgba(15,59,37,0.22)] ring-1 ring-white/70">
         <Image
-          src="/images/durian-banner.png"
+          src="/images/durian-banner.avif"
           alt="สวนทุเรียน"
           width={1200}
           height={400}
@@ -397,9 +391,10 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
         
         {/* Horizontal scroll on mobile, 3-col grid on desktop */}
         <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0">
-          {ARTICLES.map(article => (
+          {recommendedArticles.map(article => (
             <div
               key={article.id}
+              onClick={() => onNavigate?.("articles")}
               className="flex-shrink-0 w-[260px] snap-start lg:w-auto orchard-card orchard-card-hover rounded-xl overflow-hidden cursor-pointer group"
             >
               <div className="relative h-32 lg:h-36 overflow-hidden">

@@ -6,13 +6,15 @@ import PlotManagement from "./PlotManagement"
 import Operations from "./Operations"
 import Finance from "./Finance"
 import Articles from "./Articles"
-import { LayoutDashboard, TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle } from "lucide-react"
+import AdminPanel from "./AdminPanel"
+import type { AppUser } from "@/lib/store"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck } from "lucide-react"
 import Settings from "./Settings"
 import AuthModal from "./AuthModal"
 import ProfileModal from "./ProfileModal"
 import DurianIcon from "./DurianIcon"
 
-type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "settings"
+type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin"
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "dashboard", label: "หน้าหลัก", icon: DurianIcon },
@@ -30,7 +32,7 @@ export default function AppShell() {
   const [showSettings, setShowSettings] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
-  const [user, setUser] = useState<{ name: string; email: string; avatar?: string; provider: string } | null>(null)
+  const [user, setUser] = useState<AppUser | null>(null)
   const [farmLocation, setFarmLocation] = useState<{ lat: number; lon: number; label: string } | null>(null)
   const store = useAppData()
   const todayTaskCount = store.data.tasks.filter(task => {
@@ -73,11 +75,32 @@ export default function AppShell() {
   useEffect(() => {
     setIsMounted(true)
     readFarmLocation()
+    const savedUserId = localStorage.getItem("durian_current_user")
+    if (savedUserId) {
+      const savedUser = store.data.users.find(u => u.id === savedUserId && u.status === "active")
+      if (savedUser) setUser(savedUser)
+    }
 
     const onLocationChange = () => readFarmLocation()
     window.addEventListener("farm_location_changed", onLocationChange)
     return () => window.removeEventListener("farm_location_changed", onLocationChange)
-  }, [])
+  }, [store.data.users])
+
+  const handleLoginSuccess = (nextUser: AppUser) => {
+    setUser(nextUser)
+    localStorage.setItem("durian_current_user", nextUser.id)
+    setShowAuth(false)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("durian_current_user")
+    setUser(null)
+    if (activeTab === "admin") setActiveTab("dashboard")
+  }
+
+  const visibleTabs = user?.role === "admin"
+    ? [...TABS, { id: "admin" as const, label: "Admin", icon: ShieldCheck }]
+    : TABS
 
   if (!isMounted) {
     return <div className="min-h-screen bg-background flex flex-col relative" />
@@ -114,9 +137,30 @@ export default function AppShell() {
       case "finance":
         return <Finance data={store.data} addFinance={store.addFinance} deleteFinance={store.deleteFinance} />
       case "articles":
-        return <Articles />
+        return <Articles articles={store.data.articles} />
+      case "admin":
+        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} />
+        return (
+          <AdminPanel
+            users={store.data.users}
+            articles={store.data.articles}
+            siteSettings={store.data.siteSettings}
+            currentUser={user}
+            addUser={store.addUser}
+            updateUser={store.updateUser}
+            deleteUser={store.deleteUser}
+            addArticle={store.addArticle}
+            updateArticle={store.updateArticle}
+            deleteArticle={store.deleteArticle}
+            updateSiteSettings={store.updateSiteSettings}
+          />
+        )
     }
   }
+
+  const siteName = store.data.siteSettings.siteName || "สวนทุเรียน"
+  const tagline = store.data.siteSettings.tagline || "Smart Orchard"
+  const logoUrl = store.data.siteSettings.logoUrl
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -128,11 +172,15 @@ export default function AppShell() {
           className="relative flex items-center gap-3 hover:opacity-90 transition-opacity active:scale-95"
         >
           <div className="p-2.5 bg-white/18 backdrop-blur-md rounded-xl shadow-inner ring-1 ring-white/20">
-            <Leaf size={24} className="text-white drop-shadow" />
+            {logoUrl ? (
+              <img src={logoUrl} alt={siteName} className="h-6 w-6 rounded-lg object-cover" />
+            ) : (
+              <Leaf size={24} className="text-white drop-shadow" />
+            )}
           </div>
           <div className="text-left">
-            <h1 className="font-black text-white text-xl tracking-tight leading-none drop-shadow">สวนทุเรียน</h1>
-            <p className="text-white/70 text-sm font-semibold uppercase tracking-widest mt-0.5">Smart Orchard</p>
+            <h1 className="font-black text-white text-xl tracking-tight leading-none drop-shadow">{siteName}</h1>
+            <p className="text-white/70 text-sm font-semibold uppercase tracking-widest mt-0.5">{tagline}</p>
           </div>
         </button>
         <div className="relative flex items-center gap-2">
@@ -181,7 +229,7 @@ export default function AppShell() {
         <nav className="hidden md:flex flex-col w-72 bg-[#146B3E] border-r border-white/20 py-5 px-4 gap-2 shrink-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.16),14px_0_36px_rgba(47,170,98,0.18)] relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.28),transparent_14rem),linear-gradient(180deg,rgba(255,255,255,0.12),rgba(22,138,75,0.16)_48%,rgba(22,138,75,0.24))]" />
           <p className="relative px-3 pt-2 text-xs font-black text-white/72 uppercase tracking-wider mb-1">เมนูหลัก</p>
-          {TABS.map(tab => {
+          {visibleTabs.map(tab => {
             const Icon = tab.icon
             return (
               <button
@@ -213,7 +261,7 @@ export default function AppShell() {
 
       {/* Mobile Bottom Navigation (Clean pill style) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#146B3E]/96 backdrop-blur-xl px-2 py-2 flex items-center gap-1 w-full border-t border-white/10 safe-area-bottom">
-        {TABS.map(tab => {
+        {visibleTabs.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
           return (
@@ -238,7 +286,9 @@ export default function AppShell() {
       <AuthModal
         isOpen={showAuth}
         onClose={() => setShowAuth(false)}
-        onLoginSuccess={(u) => { setUser(u); setShowAuth(false) }}
+        onLoginSuccess={handleLoginSuccess}
+        authenticateUser={store.authenticateUser}
+        addUser={store.addUser}
       />
 
       {/* Profile Modal */}
@@ -246,7 +296,7 @@ export default function AppShell() {
         isOpen={showProfile}
         onClose={() => setShowProfile(false)}
         user={user}
-        onLogout={() => setUser(null)}
+        onLogout={handleLogout}
         onLogin={() => { setShowProfile(false); setShowAuth(true) }}
       />
     </div>
