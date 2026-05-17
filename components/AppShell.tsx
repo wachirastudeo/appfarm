@@ -7,8 +7,8 @@ import Operations from "./Operations"
 import Finance from "./Finance"
 import Articles from "./Articles"
 import AdminPanel from "./AdminPanel"
-import type { AppUser } from "@/lib/store"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck } from "lucide-react"
+import type { AppUser, Article } from "@/lib/store"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, Lock, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react"
 import Settings from "./Settings"
 import AuthModal from "./AuthModal"
 import ProfileModal from "./ProfileModal"
@@ -25,6 +25,117 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 ]
 
 const MOBILE_TABS = TABS.slice(0, 4) // Show only 4 tabs on mobile
+
+function GuestHome({
+  articles,
+  siteName,
+  tagline,
+  onLogin,
+  onReadArticles,
+}: {
+  articles: Article[]
+  siteName: string
+  tagline: string
+  onLogin: () => void
+  onReadArticles: () => void
+}) {
+  const publishedArticles = articles.filter(article => article.status === "published")
+  const featuredArticles = publishedArticles.slice(0, 6)
+
+  return (
+    <div className="space-y-5 pb-10">
+      <section className="relative overflow-hidden rounded-2xl bg-[#0F3B25] shadow-[0_24px_60px_rgba(15,59,37,0.22)] ring-1 ring-white/70">
+        <img
+          src="/images/durian-banner.avif"
+          alt="สวนทุเรียน"
+          className="absolute inset-0 h-full w-full object-cover opacity-55"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,59,37,0.96),rgba(15,59,37,0.76)_52%,rgba(15,59,37,0.38)),linear-gradient(0deg,rgba(0,0,0,0.48),transparent_58%)]" />
+        <div className="relative grid min-h-[520px] gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-end lg:px-9 lg:py-9">
+          <div className="flex max-w-2xl flex-col justify-end">
+            <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-white/14 px-3 py-1.5 text-sm font-black text-[#E7F3EC] ring-1 ring-white/20">
+              <Sparkles size={16} />
+              {tagline}
+            </div>
+            <h1 className="text-3xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">
+              {siteName} สำหรับจัดการสวนทุเรียนและอ่านความรู้ก่อนเริ่มใช้งาน
+            </h1>
+            <p className="mt-4 max-w-xl text-base font-semibold leading-7 text-white/78">
+              อ่านบทความได้ทันที ส่วนเมนูจัดการแปลง งาน การเงิน และหลังบ้าน ต้องสมัครหรือเข้าสู่ระบบก่อนเพื่อเก็บข้อมูลสวนของคุณ
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={onLogin}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-base font-black text-[#146B3E] shadow-lg shadow-black/10 transition-transform active:scale-[0.98]"
+              >
+                สมัคร / เข้าสู่ระบบ
+                <ArrowRight size={18} />
+              </button>
+              <button
+                onClick={onReadArticles}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/14 px-5 py-3 text-base font-black text-white ring-1 ring-white/22 transition-colors hover:bg-white/22"
+              >
+                อ่านบทความฟรี
+                <BookOpen size={18} />
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-3 self-end">
+            <div className="rounded-2xl bg-white/92 p-4 shadow-xl ring-1 ring-white/80 backdrop-blur-md">
+              <div className="mb-3 flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E7F3EC] text-[#146B3E]">
+                  <Lock size={22} />
+                </span>
+                <div>
+                  <h2 className="text-lg font-black text-[#143422]">ต้อง login ก่อนใช้งานระบบสวน</h2>
+                  <p className="text-sm font-semibold text-[#527060]">ข้อมูลส่วนตัวและข้อมูลสวนจะแสดงหลังเข้าสู่ระบบ</p>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                {["จัดการแปลงและต้นทุเรียน", "วางแผนงานและบันทึกกิจกรรม", "ดูรายรับรายจ่ายและหลังบ้าน"].map(item => (
+                  <div key={item} className="flex items-center gap-2 rounded-xl bg-[#F2F8F4] px-3 py-2 text-sm font-bold text-[#143422]">
+                    <CheckCircle2 size={16} className="text-[#146B3E]" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-border sm:p-5">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-foreground">บทความแนะนำ อ่านได้ฟรี</h2>
+            <p className="text-sm font-bold text-muted-foreground">เริ่มจากความรู้เรื่องน้ำ โรค ปุ๋ย ดอก และตลาดทุเรียน</p>
+          </div>
+          <button onClick={onReadArticles} className="inline-flex items-center gap-2 text-sm font-black text-primary hover:underline">
+            ดูบทความทั้งหมด <ArrowRight size={16} />
+          </button>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {featuredArticles.map(article => (
+            <button
+              key={article.id}
+              onClick={onReadArticles}
+              className="group overflow-hidden rounded-xl border border-border bg-card text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              <div className="h-36 overflow-hidden">
+                <img src={article.image} alt={article.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              </div>
+              <div className="p-3">
+                <span className="text-xs font-black text-primary">{article.category}</span>
+                <h3 className="mt-1 line-clamp-2 text-base font-black leading-snug text-foreground">{article.title}</h3>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard")
@@ -95,18 +206,44 @@ export default function AppShell() {
   const handleLogout = () => {
     localStorage.removeItem("durian_current_user")
     setUser(null)
-    if (activeTab === "admin") setActiveTab("dashboard")
+    if (!["dashboard", "articles"].includes(activeTab)) setActiveTab("dashboard")
   }
 
   const visibleTabs = user?.role === "admin"
     ? [...TABS, { id: "admin" as const, label: "Admin", icon: ShieldCheck }]
-    : TABS
+    : user
+      ? TABS
+      : TABS.filter(tab => tab.id === "dashboard" || tab.id === "articles")
 
   if (!isMounted) {
     return <div className="min-h-screen bg-background flex flex-col relative" />
   }
 
   const renderContent = () => {
+    if (!user && activeTab === "dashboard") {
+      return (
+        <GuestHome
+          articles={store.data.articles}
+          siteName={siteName}
+          tagline={tagline}
+          onLogin={() => setShowAuth(true)}
+          onReadArticles={() => setActiveTab("articles")}
+        />
+      )
+    }
+
+    if (!user && activeTab !== "articles") {
+      return (
+        <GuestHome
+          articles={store.data.articles}
+          siteName={siteName}
+          tagline={tagline}
+          onLogin={() => setShowAuth(true)}
+          onReadArticles={() => setActiveTab("articles")}
+        />
+      )
+    }
+
     switch (activeTab) {
       case "dashboard":
         return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} />
@@ -184,24 +321,29 @@ export default function AppShell() {
           </div>
         </button>
         <div className="relative flex shrink-0 items-center gap-1 sm:gap-2">
-          <button
-            onClick={() => setActiveTab("operations")}
-            className="relative flex items-center gap-1.5 rounded-xl bg-white/12 px-2 sm:px-3 py-2 text-white/78 ring-1 ring-white/15 transition-colors hover:bg-white/22"
-            title={todayTaskCount > 0 ? `วันนี้มีงาน ${todayTaskCount} งาน` : "วันนี้ไม่มีงาน"}
-          >
-            <AlertTriangle size={14} />
-            <span className="font-bold text-sm leading-none">{todayTaskCount}</span>
-            <span className="hidden sm:inline text-xs font-medium opacity-80">งานวันนี้</span>
-            {todayTaskCount > 0 && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600 ring-2 ring-white" />}
-          </button>
-          <div className="hidden min-[390px]:flex items-center gap-1.5 bg-white/12 backdrop-blur-md rounded-xl px-3 py-2 ring-1 ring-white/15">
-            <DurianIcon className="h-4 w-4 text-[#E7F3EC]" />
-            <span className="text-white font-bold text-sm leading-none">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)}</span>
-            <span className="text-white/60 text-xs font-medium">ต้น</span>
-          </div>
+          {user && (
+            <>
+              <button
+                onClick={() => setActiveTab("operations")}
+                className="relative flex items-center gap-1.5 rounded-xl bg-white/12 px-2 sm:px-3 py-2 text-white/78 ring-1 ring-white/15 transition-colors hover:bg-white/22"
+                title={todayTaskCount > 0 ? `วันนี้มีงาน ${todayTaskCount} งาน` : "วันนี้ไม่มีงาน"}
+              >
+                <AlertTriangle size={14} />
+                <span className="font-bold text-sm leading-none">{todayTaskCount}</span>
+                <span className="hidden sm:inline text-xs font-medium opacity-80">งานวันนี้</span>
+                {todayTaskCount > 0 && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600 ring-2 ring-white" />}
+              </button>
+              <div className="hidden min-[390px]:flex items-center gap-1.5 bg-white/12 backdrop-blur-md rounded-xl px-3 py-2 ring-1 ring-white/15">
+                <DurianIcon className="h-4 w-4 text-[#E7F3EC]" />
+                <span className="text-white font-bold text-sm leading-none">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)}</span>
+                <span className="text-white/60 text-xs font-medium">ต้น</span>
+              </div>
+            </>
+          )}
           {/* Profile / Login button */}
           <button
             onClick={() => user ? setShowProfile(true) : setShowAuth(true)}
+            aria-label={user ? "เปิดโปรไฟล์" : "เข้าสู่ระบบ"}
             className="p-2 bg-white/12 hover:bg-white/22 backdrop-blur-md rounded-xl transition-colors ring-1 ring-white/15"
           >
             {user ? (
@@ -214,12 +356,15 @@ export default function AppShell() {
               <User size={20} className="text-white" />
             )}
           </button>
-          <button
-            onClick={() => setShowSettings(true)}
-            className="p-2.5 bg-white/12 hover:bg-white/22 backdrop-blur-md rounded-xl transition-colors ring-1 ring-white/15"
-          >
-            <SettingsIcon size={20} className="text-white" />
-          </button>
+          {user && (
+            <button
+              onClick={() => setShowSettings(true)}
+              aria-label="ตั้งค่า"
+              className="p-2.5 bg-white/12 hover:bg-white/22 backdrop-blur-md rounded-xl transition-colors ring-1 ring-white/15"
+            >
+              <SettingsIcon size={20} className="text-white" />
+            </button>
+          )}
         </div>
       </header>
 
