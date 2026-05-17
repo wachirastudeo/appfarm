@@ -122,10 +122,10 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
 
   return (
     <div className="space-y-5">
-      <div className="relative overflow-hidden rounded-[1.75rem] bg-[#146B3E] p-5 text-white shadow-[0_18px_42px_rgba(20,107,62,0.2)]">
+      <div className="relative overflow-hidden rounded-[1.75rem] bg-[#146B3E] p-4 sm:p-5 text-white shadow-[0_18px_42px_rgba(20,107,62,0.2)]">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.22),transparent_16rem)]" />
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-bold text-white/70">Orchard Finance</p>
             <h2 className="text-2xl font-black leading-tight">การเงินสวน</h2>
             <p className="mt-1 text-sm font-medium text-white/70">ติดตามรายรับ รายจ่าย กำไร และต้นทุนแยกตามแปลง</p>
@@ -143,44 +143,14 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
           { label: "กำไรสุทธิ", value: stats.profit, icon: Wallet, tone: stats.profit >= 0 ? "text-[#146B3E] bg-[#E7F3EC] border-[#B9DCC8]" : "text-rose-700 bg-rose-50 border-rose-100" },
           { label: "Margin", value: `${stats.margin}%`, icon: ReceiptText, tone: "text-slate-700 bg-white border-[#B9DCC8]" },
         ].map(item => (
-          <div key={item.label} className={`rounded-2xl border p-4 shadow-[0_12px_30px_rgba(20,107,62,0.10)] ${item.tone}`}>
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white">
+          <div key={item.label} className={`min-w-0 rounded-2xl border p-3 sm:p-4 shadow-[0_12px_30px_rgba(20,107,62,0.10)] ${item.tone}`}>
+            <div className="mb-2 sm:mb-3 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white">
               <item.icon size={20} />
             </div>
             <p className="text-sm font-bold opacity-90">{item.label}</p>
-            <p className="mt-1 text-xl font-black">{typeof item.value === "number" ? formatCurrency(item.value) : item.value}</p>
+            <p className="mt-1 truncate text-base sm:text-xl font-black">{typeof item.value === "number" ? formatCurrency(item.value) : item.value}</p>
           </div>
         ))}
-      </div>
-
-      <div className="rounded-2xl border border-[#B9DCC8] bg-white p-4 shadow-[0_12px_30px_rgba(20,107,62,0.10)]">
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.4fr_.8fr_.8fr_.8fr]">
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#527060]" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="ค้นหารายการ หมวดหมู่ หรือแปลง..." className="w-full rounded-xl border border-[#B9DCC8] bg-[#F7FBF8] py-2.5 pl-9 pr-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40" />
-          </div>
-          <select value={rangeFilter} onChange={e => setRangeFilter(e.target.value as typeof rangeFilter)} className="rounded-xl border border-[#B9DCC8] bg-[#F7FBF8] px-3 py-2.5 text-sm font-bold outline-none">
-            <option value="thisMonth">เดือนนี้</option>
-            <option value="3m">3 เดือน</option>
-            <option value="6m">6 เดือน</option>
-            <option value="all">ทั้งหมด</option>
-          </select>
-          <select value={plotFilter} onChange={e => setPlotFilter(e.target.value)} className="rounded-xl border border-[#B9DCC8] bg-[#F7FBF8] px-3 py-2.5 text-sm font-bold outline-none">
-            <option value="all">ทุกแปลง</option>
-            {data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value as FinanceCategory | "all")} className="rounded-xl border border-[#B9DCC8] bg-[#F7FBF8] px-3 py-2.5 text-sm font-bold outline-none">
-            <option value="all">ทุกหมวด</option>
-            {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {(["all","income","expense"] as (FinanceType | "all")[]).map(t => (
-            <button key={t} onClick={() => setTypeFilter(t)} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-bold transition-colors ${typeFilter === t ? "border-primary bg-primary text-primary-foreground" : "border-[#B9DCC8] text-[#527060] hover:text-foreground"}`}>
-              <Filter size={13} />{t === "all" ? "ทั้งหมด" : t === "income" ? "รายรับ" : "รายจ่าย"}
-            </button>
-          ))}
-        </div>
       </div>
 
       {showForm && (
@@ -221,13 +191,43 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
         </div>
       )}
 
+      <div className="rounded-2xl border border-[#B9DCC8] bg-white p-3 sm:p-4 shadow-[0_12px_30px_rgba(20,107,62,0.10)]">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.4fr_.8fr_.8fr_.8fr]">
+          <div className="relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#527060]" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="ค้นหารายการ หมวดหมู่ หรือแปลง..." className="w-full rounded-xl border border-[#B9DCC8] bg-[#F7FBF8] py-2.5 pl-9 pr-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/40" />
+          </div>
+          <select value={rangeFilter} onChange={e => setRangeFilter(e.target.value as typeof rangeFilter)} className="rounded-xl border border-[#B9DCC8] bg-[#F7FBF8] px-3 py-2.5 text-sm font-bold outline-none">
+            <option value="thisMonth">เดือนนี้</option>
+            <option value="3m">3 เดือน</option>
+            <option value="6m">6 เดือน</option>
+            <option value="all">ทั้งหมด</option>
+          </select>
+          <select value={plotFilter} onChange={e => setPlotFilter(e.target.value)} className="rounded-xl border border-[#B9DCC8] bg-[#F7FBF8] px-3 py-2.5 text-sm font-bold outline-none">
+            <option value="all">ทุกแปลง</option>
+            {data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value as FinanceCategory | "all")} className="rounded-xl border border-[#B9DCC8] bg-[#F7FBF8] px-3 py-2.5 text-sm font-bold outline-none">
+            <option value="all">ทุกหมวด</option>
+            {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-wrap">
+          {(["all","income","expense"] as (FinanceType | "all")[]).map(t => (
+            <button key={t} onClick={() => setTypeFilter(t)} className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-bold transition-colors ${typeFilter === t ? "border-primary bg-primary text-primary-foreground" : "border-[#B9DCC8] text-[#527060] hover:text-foreground"}`}>
+              <Filter size={13} />{t === "all" ? "ทั้งหมด" : t === "income" ? "รายรับ" : "รายจ่าย"}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
-        <div className="xl:col-span-3 rounded-2xl border border-[#B9DCC8] bg-white p-4 shadow-[0_12px_30px_rgba(20,107,62,0.10)]">
+        <div className="min-w-0 xl:col-span-3 rounded-2xl border border-[#B9DCC8] bg-white p-3 sm:p-4 shadow-[0_12px_30px_rgba(20,107,62,0.10)]">
           <div className="mb-3 flex items-center gap-2">
             <CalendarDays size={18} className="text-primary" />
             <h3 className="font-black text-foreground">รายรับ-รายจ่ายรายเดือน</h3>
           </div>
-          <ResponsiveContainer width="100%" height={230}>
+          <ResponsiveContainer width="100%" height={220}>
             <BarChart data={monthlyData} margin={{ top: 10, right: 8, left: -18, bottom: 0 }}>
               <CartesianGrid vertical={false} stroke="#E7F3EC" />
               <XAxis dataKey="month" tick={{ fill: "#527060", fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -239,13 +239,13 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
           </ResponsiveContainer>
         </div>
 
-        <div className="xl:col-span-2 rounded-2xl border border-[#B9DCC8] bg-white p-4 shadow-[0_12px_30px_rgba(20,107,62,0.10)]">
+        <div className="min-w-0 xl:col-span-2 rounded-2xl border border-[#B9DCC8] bg-white p-3 sm:p-4 shadow-[0_12px_30px_rgba(20,107,62,0.10)]">
           <div className="mb-3 flex items-center gap-2">
             <Tags size={18} className="text-primary" />
             <h3 className="font-black text-foreground">สัดส่วนรายจ่าย</h3>
           </div>
           {expenseByCategory.length > 0 ? (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3 min-[430px]:flex-row min-[430px]:items-center">
               <PieChart width={130} height={130}>
                 <Pie data={expenseByCategory} cx="50%" cy="50%" innerRadius={34} outerRadius={56} paddingAngle={3} dataKey="value">
                   {expenseByCategory.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
@@ -267,7 +267,7 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
-        <div className="xl:col-span-2 rounded-2xl border border-[#B9DCC8] bg-white p-4 shadow-[0_12px_30px_rgba(20,107,62,0.10)]">
+        <div className="min-w-0 xl:col-span-2 rounded-2xl border border-[#B9DCC8] bg-white p-3 sm:p-4 shadow-[0_12px_30px_rgba(20,107,62,0.10)]">
           <div className="mb-3 flex items-center gap-2">
             <Layers size={18} className="text-primary" />
             <h3 className="font-black text-foreground">กำไรแยกตามแปลง</h3>
@@ -287,7 +287,7 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
           </div>
         </div>
 
-        <div className="xl:col-span-3 rounded-2xl border border-[#B9DCC8] bg-white p-4 shadow-[0_12px_30px_rgba(20,107,62,0.10)]">
+        <div className="min-w-0 xl:col-span-3 rounded-2xl border border-[#B9DCC8] bg-white p-3 sm:p-4 shadow-[0_12px_30px_rgba(20,107,62,0.10)]">
           <h3 className="mb-3 font-black text-foreground">แนวโน้มกำไร</h3>
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -18, bottom: 0 }}>
@@ -313,7 +313,7 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
               <p className="text-[#527060]">ยังไม่มีรายการ</p>
             </div>
           ) : filtered.map(f => (
-            <div key={f.id} className="flex items-center gap-3 p-4 transition-colors hover:bg-[#E7F3EC]/65">
+            <div key={f.id} className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 transition-colors hover:bg-[#E7F3EC]/65">
               <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${f.type === "income" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
                 {f.type === "income" ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
               </div>
@@ -321,7 +321,7 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
                 <p className="truncate text-sm font-black text-foreground">{f.description}</p>
                 <p className="text-xs font-medium text-[#527060]">{f.category} · {plotName(f.plotId)} · {formatDate(f.date)}{f.simulated ? " · จำลอง" : ""}</p>
               </div>
-              <span className={`text-sm font-black ${f.type === "income" ? "text-emerald-700" : "text-rose-700"}`}>
+              <span className={`shrink-0 text-sm font-black ${f.type === "income" ? "text-emerald-700" : "text-rose-700"}`}>
                 {f.type === "income" ? "+" : "-"}{formatCurrency(f.amount)}
               </span>
               {!f.simulated && (

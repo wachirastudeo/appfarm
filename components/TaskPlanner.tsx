@@ -93,7 +93,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-bold text-foreground">แผนการทำงาน</h2>
         <button 
           onClick={() => { setForm(f => ({ ...f, date: selectedDate })); setShowForm(v => !v) }} 
@@ -104,12 +104,12 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
       </div>
 
       {/* Status Filter */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-wrap">
         {(["all","pending","done","cancelled"] as (TaskStatus | "all")[]).map(s => (
           <button 
             key={s} 
             onClick={() => setStatusFilter(s)} 
-            className={`px-3 py-1.5 rounded-xl text-sm font-black border transition-all ${statusFilter === s ? "bg-primary text-primary-foreground border-primary shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "border-[#B9DCC8] bg-white text-[#146B3E] hover:border-primary/50"}`}
+            className={`shrink-0 px-3 py-1.5 rounded-xl text-sm font-black border transition-all ${statusFilter === s ? "bg-primary text-primary-foreground border-primary shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "border-[#B9DCC8] bg-white text-[#146B3E] hover:border-primary/50"}`}
           >
             {s === "all" ? "ทั้งหมด" : STATUS_LABELS[s]}
           </button>
@@ -160,7 +160,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
           </div>
         )}
 
-        <div className="bg-white rounded-xl p-4 border border-[#B9DCC8]">
+        <div className="bg-white rounded-xl p-3 sm:p-4 border border-[#B9DCC8]">
           <div className="flex items-center justify-between mb-4">
             <button onClick={prevMonth} className="p-2 text-[#527060] hover:text-primary hover:bg-[#E7F3EC] rounded-lg transition-all"><ChevronLeft size={18} /></button>
             <span className="font-bold text-foreground">{MONTHS_TH[calMonth]} {calYear + 543}</span>
@@ -193,11 +193,11 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
         </div>
 
         {/* Task Lists — right side on desktop */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="min-w-0 lg:col-span-3 space-y-6">
         {/* Pending Tasks Section */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-foreground flex items-center gap-2">
+            <h3 className="font-semibold text-foreground flex flex-wrap items-center gap-2">
               <CalendarDays size={16} className="text-primary" /> 
               งานวันที่ {new Date(selectedDate).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}
               <span className="text-xs text-[#527060] font-normal">({allFilteredTasks.length} รายการ)</span>
@@ -332,18 +332,20 @@ export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask }:
 
   return (
     <div className={`bg-white rounded-2xl border border-[#B9DCC8] border-l-4 p-3 transition-all hover:shadow-[0_10px_24px_rgba(20,107,62,0.10)] ${isDone || isCancelled ? "border-l-[#B9DCC8] opacity-80" : priorityBorder[task.priority]}`}>
-      <div className="flex items-start gap-3">
-        <span className={`mt-1.5 shrink-0 block w-2.5 h-2.5 rounded-full ${isDone ? "bg-emerald-500" : isCancelled ? "bg-[#B9DCC8]" : priorityDot[task.priority]}`} />
-        <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium text-foreground ${isDone || isCancelled ? "line-through text-[#527060]" : ""}`}>
-            {task.title}
-          </p>
-          <p className="text-xs text-[#527060] mt-0.5">{plotName} · {new Date(task.date).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}</p>
-          {task.description && (
-            <p className="text-xs text-[#527060] mt-1 line-clamp-1">{task.description}</p>
-          )}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className={`mt-1.5 shrink-0 block w-2.5 h-2.5 rounded-full ${isDone ? "bg-emerald-500" : isCancelled ? "bg-[#B9DCC8]" : priorityDot[task.priority]}`} />
+          <div className="min-w-0">
+            <p className={`text-sm font-medium text-foreground ${isDone || isCancelled ? "line-through text-[#527060]" : ""}`}>
+              {task.title}
+            </p>
+            <p className="text-xs text-[#527060] mt-0.5">{plotName} · {new Date(task.date).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}</p>
+            {task.description && (
+              <p className="text-xs text-[#527060] mt-1 line-clamp-1">{task.description}</p>
+            )}
+          </div>
         </div>
-        <div className="shrink-0 flex items-center gap-1">
+        <div className="flex items-center justify-end gap-1">
           {task.status === "pending" ? (
             <>
               <button

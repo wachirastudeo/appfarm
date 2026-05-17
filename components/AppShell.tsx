@@ -165,28 +165,28 @@ export default function AppShell() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top Header Bar */}
-      <header className="relative z-20 bg-[#146B3E] px-4 md:px-8 pt-4 pb-4 flex items-center justify-between shrink-0 shadow-[0_12px_36px_rgba(15,59,37,0.22)] overflow-hidden">
+      <header className="relative z-20 bg-[#146B3E] px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 shadow-[0_12px_36px_rgba(15,59,37,0.22)] overflow-hidden">
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.16),transparent_38%),radial-gradient(circle_at_78%_18%,rgba(223,240,228,0.28),transparent_20rem)]" />
         <button
           onClick={() => setActiveTab("dashboard")}
-          className="relative flex items-center gap-3 hover:opacity-90 transition-opacity active:scale-95"
+          className="relative flex min-w-0 items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity active:scale-95"
         >
-          <div className="p-2.5 bg-white/18 backdrop-blur-md rounded-xl shadow-inner ring-1 ring-white/20">
+          <div className="shrink-0 p-2 sm:p-2.5 bg-white/18 backdrop-blur-md rounded-xl shadow-inner ring-1 ring-white/20">
             {logoUrl ? (
-              <img src={logoUrl} alt={siteName} className="h-6 w-6 rounded-lg object-cover" />
+              <img src={logoUrl} alt={siteName} className="h-5 w-5 sm:h-6 sm:w-6 rounded-lg object-cover" />
             ) : (
-              <Leaf size={24} className="text-white drop-shadow" />
+              <Leaf size={22} className="text-white drop-shadow" />
             )}
           </div>
-          <div className="text-left">
-            <h1 className="font-black text-white text-xl tracking-tight leading-none drop-shadow">{siteName}</h1>
-            <p className="text-white/70 text-sm font-semibold uppercase tracking-widest mt-0.5">{tagline}</p>
+          <div className="min-w-0 text-left">
+            <h1 className="truncate font-black text-white text-base sm:text-xl tracking-tight leading-none drop-shadow">{siteName}</h1>
+            <p className="truncate text-white/70 text-[10px] sm:text-sm font-semibold uppercase tracking-wider sm:tracking-widest mt-0.5">{tagline}</p>
           </div>
         </button>
-        <div className="relative flex items-center gap-2">
+        <div className="relative flex shrink-0 items-center gap-1 sm:gap-2">
           <button
             onClick={() => setActiveTab("operations")}
-            className="relative flex items-center gap-1.5 rounded-xl bg-white/12 px-3 py-2 text-white/78 ring-1 ring-white/15 transition-colors hover:bg-white/22"
+            className="relative flex items-center gap-1.5 rounded-xl bg-white/12 px-2 sm:px-3 py-2 text-white/78 ring-1 ring-white/15 transition-colors hover:bg-white/22"
             title={todayTaskCount > 0 ? `วันนี้มีงาน ${todayTaskCount} งาน` : "วันนี้ไม่มีงาน"}
           >
             <AlertTriangle size={14} />
@@ -194,7 +194,7 @@ export default function AppShell() {
             <span className="hidden sm:inline text-xs font-medium opacity-80">งานวันนี้</span>
             {todayTaskCount > 0 && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600 ring-2 ring-white" />}
           </button>
-          <div className="flex items-center gap-1.5 bg-white/12 backdrop-blur-md rounded-xl px-3 py-2 ring-1 ring-white/15">
+          <div className="hidden min-[390px]:flex items-center gap-1.5 bg-white/12 backdrop-blur-md rounded-xl px-3 py-2 ring-1 ring-white/15">
             <DurianIcon className="h-4 w-4 text-[#E7F3EC]" />
             <span className="text-white font-bold text-sm leading-none">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)}</span>
             <span className="text-white/60 text-xs font-medium">ต้น</span>
@@ -226,7 +226,7 @@ export default function AppShell() {
       {/* Body: Sidebar + Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
-        <nav className="hidden md:flex flex-col w-72 bg-[#146B3E] border-r border-white/20 py-5 px-4 gap-2 shrink-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.16),14px_0_36px_rgba(47,170,98,0.18)] relative overflow-hidden">
+        <nav className="hidden lg:flex flex-col w-72 bg-[#146B3E] border-r border-white/20 py-5 px-4 gap-2 shrink-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.16),14px_0_36px_rgba(47,170,98,0.18)] relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.28),transparent_14rem),linear-gradient(180deg,rgba(255,255,255,0.12),rgba(22,138,75,0.16)_48%,rgba(22,138,75,0.24))]" />
           <p className="relative px-3 pt-2 text-xs font-black text-white/72 uppercase tracking-wider mb-1">เมนูหลัก</p>
           {visibleTabs.map(tab => {
@@ -252,15 +252,15 @@ export default function AppShell() {
         </nav>
 
         {/* Main Content — full width, no extra card */}
-        <main className="flex-1 overflow-y-auto pb-28 md:pb-6 bg-transparent">
-          <div className="w-full max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
+        <main className="flex-1 overflow-y-auto pb-28 lg:pb-6 bg-transparent">
+          <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-6">
             {renderContent()}
           </div>
         </main>
       </div>
 
       {/* Mobile Bottom Navigation (Clean pill style) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#146B3E]/96 backdrop-blur-xl px-2 py-2 flex items-center gap-1 w-full border-t border-white/10 safe-area-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#146B3E]/96 backdrop-blur-xl px-2 py-2 flex items-center gap-1 w-full overflow-x-auto border-t border-white/10 safe-area-bottom scrollbar-hide">
         {visibleTabs.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
@@ -268,7 +268,7 @@ export default function AppShell() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl transition-all ${
+              className={`min-w-[4.25rem] flex-1 flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl transition-all ${
                 isActive ? "bg-white text-[#146B3E] shadow-sm" : "text-white/72 hover:bg-white/16 hover:text-white"
               }`}
             >

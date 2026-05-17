@@ -2,8 +2,9 @@
 import { useMemo, useState, useEffect } from "react"
 import { AppData, Task } from "@/lib/store"
 import { 
-  Droplets, Wind, TrendingUp, TrendingDown, ListTodo, Sun, CloudSun, BookOpen,
-  Sprout, Zap, Scissors, PackageSearch, ClipboardList, MoreHorizontal, Plus, X, Check, MapPin
+  Droplets, Wind, TrendingUp, TrendingDown, ListTodo, Sun, CloudSun, CloudRain, BookOpen,
+  Sprout, Zap, Scissors, PackageSearch, ClipboardList, MoreHorizontal, Plus, X, Check, MapPin,
+  AlertTriangle
 } from "lucide-react"
 import Image from "next/image"
 import { TaskCard } from "./TaskPlanner"
@@ -46,12 +47,19 @@ const WEATHER_CODE_MAP: Record<number, string> = {
   80: "ฝนตกสลับ", 81: "ฝนตกสลับปานกลาง", 82: "ฝนตกสลับหนัก",
   95: "พายุฝนฟ้าคะนอง", 96: "พายุกับลูกเห็บ", 99: "พายุรุนแรง",
 }
+type ForecastAlert = {
+  label: string
+  detail: string
+  level: "clear" | "rain" | "storm"
+  items: string[]
+}
 
 const ACTIVITY_ICONS: any = { fertilize: Sprout, spray: Zap, water: Droplets, prune: Scissors, harvest: PackageSearch, inspect: ClipboardList, other: MoreHorizontal }
 const ACTIVITY_COLORS: any = { fertilize: "text-green-500", spray: "text-yellow-500", water: "text-blue-500", prune: "text-orange-500", harvest: "text-primary", inspect: "text-purple-500", other: "text-muted-foreground" }
 
 export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask, deleteTask, addTask, farmLocation }: Props) {
   const [weather, setWeather] = useState<{ temp: string | number; humidity: string | number; wind: string | number; condition: string }>({ temp: "–", humidity: "–", wind: "–", condition: "กำลังโหลด..." })
+  const [forecastAlert, setForecastAlert] = useState<ForecastAlert | null>(null)
   const recommendedArticles = useMemo(() => data.articles.filter(article => article.status === "published").slice(0, 3), [data.articles])
 
   // Memoize loc so the object reference only changes when lat/lon actually change
@@ -63,21 +71,45 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
   // Use farmLocation as the dependency — ensures re-fetch whenever the user picks a new place
   useEffect(() => {
     setWeather({ temp: "–", humidity: "–", wind: "–", condition: "กำลังโหลด..." })
+    setForecastAlert(null)
     fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}` +
-      `&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&wind_speed_unit=kmh`
+      `&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code` +
+      `&daily=weather_code,precipitation_probability_max,wind_speed_10m_max&forecast_days=3&wind_speed_unit=kmh`
     )
       .then(r => r.json())
       .then(d => {
         const c = d.current
+        const dates: string[] = d.daily?.time?.slice(1, 3) ?? []
+        const codes: number[] = d.daily?.weather_code?.slice(1, 3) ?? []
+        const rain: number[] = d.daily?.precipitation_probability_max?.slice(1, 3) ?? []
+        const wind: number[] = d.daily?.wind_speed_10m_max?.slice(1, 3) ?? []
+        const maxRain = Math.max(0, ...rain.map(Number))
+        const maxWind = Math.max(0, ...wind.map(Number))
+        const hasStorm = codes.some(code => code >= 95) || maxWind >= 45
+        const hasHeavyRain = maxRain >= 70 || codes.some(code => [63, 65, 80, 81, 82].includes(code))
+        const items = dates.map((date, i) => {
+          const day = new Date(date).toLocaleDateString("th-TH", { weekday: "short" })
+          return `${day} ฝน ${rain[i] ?? 0}%`
+        })
+
         setWeather({
           temp: Math.round(c.temperature_2m),
           humidity: Math.round(c.relative_humidity_2m),
           wind: Math.round(c.wind_speed_10m),
           condition: WEATHER_CODE_MAP[c.weather_code] ?? `รหัส ${c.weather_code}`,
         })
+        setForecastAlert({
+          label: hasStorm ? "เตือนพายุ 2 วัน" : hasHeavyRain ? `ฝนสูง ${maxRain}%` : `ฝน ${maxRain}% ใน 2 วัน`,
+          detail: items.join(" · ") || "พยากรณ์ฝน 2 วันข้างหน้า",
+          level: hasStorm ? "storm" : hasHeavyRain ? "rain" : "clear",
+          items,
+        })
       })
-      .catch(() => setWeather(w => ({ ...w, condition: "ไม่สามารถโหลดได้" })))
+      .catch(() => {
+        setWeather(w => ({ ...w, condition: "ไม่สามารถโหลดได้" }))
+        setForecastAlert(null)
+      })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [farmLocation])
   const totalTrees = useMemo(() => data.plots.reduce((s, p) => s + p.trees.length, 0), [data])
@@ -148,10 +180,31 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
           priority
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,59,37,0.86),rgba(15,59,37,0.46)_48%,rgba(15,59,37,0.12)),linear-gradient(0deg,rgba(0,0,0,0.52),transparent_55%)]" />
-        <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-8">
+        {forecastAlert && (
+          <div className="absolute right-3 top-3 sm:right-4">
+            <div
+              className={`flex items-start gap-2 rounded-2xl px-3 py-2 text-xs font-black backdrop-blur-md ring-1 ${
+                forecastAlert.level === "storm"
+                  ? "bg-rose-500/88 text-white ring-rose-200/40"
+                  : forecastAlert.level === "rain"
+                    ? "bg-amber-400/30 text-amber-50 ring-amber-200/45"
+                    : "bg-white/14 text-white ring-white/18"
+              }`}
+              title={forecastAlert.detail}
+            >
+              <span className="mt-0.5 shrink-0">
+                {forecastAlert.level === "storm" ? <AlertTriangle size={13} /> : forecastAlert.level === "rain" ? <CloudRain size={13} /> : <CloudSun size={13} />}
+              </span>
+              <span className="grid gap-0.5 text-right leading-tight">
+                {forecastAlert.items.slice(0, 2).map(item => <span key={item}>{item}</span>)}
+              </span>
+            </div>
+          </div>
+        )}
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 lg:p-8">
           <p className="text-[#E7F3EC] text-sm font-semibold mb-1 uppercase tracking-wider">{new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long" })}</p>
           <div className="flex items-center gap-2 mb-3">
-            <h1 className="text-white text-2xl lg:text-3xl font-black drop-shadow-lg leading-tight">สวัสดีคุณชาวสวน</h1>
+            <h1 className="text-white text-xl sm:text-2xl lg:text-3xl font-black drop-shadow-lg leading-tight">สวัสดีคุณชาวสวน</h1>
             {onOpenSettings && (
               <button
                 onClick={onOpenSettings}
@@ -162,35 +215,43 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
               </button>
             )}
           </div>
-          <a
-            href={`https://www.windy.com/${loc.lat}/${loc.lon}?${loc.lat},${loc.lon},10`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-wrap gap-2 group/weather"
-          >
-            <div className="flex items-center gap-1.5 bg-white/18 backdrop-blur-sm rounded-full px-3 py-1.5 ring-1 ring-white/16 group-hover/weather:bg-white/28 transition-colors">
+          <div className="flex flex-wrap gap-2">
+            <div className="flex items-center gap-1.5 bg-white/18 backdrop-blur-sm rounded-full px-3 py-1.5 ring-1 ring-white/16">
               <Sun size={14} className="text-yellow-400" />
               <span className="text-white text-sm font-medium">{weather.temp}°C</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-white/18 backdrop-blur-sm rounded-full px-3 py-1.5 ring-1 ring-white/16 group-hover/weather:bg-white/28 transition-colors">
+            <div className="flex items-center gap-1.5 bg-white/18 backdrop-blur-sm rounded-full px-3 py-1.5 ring-1 ring-white/16">
               <Droplets size={14} className="text-blue-300" />
               <span className="text-white text-sm font-medium">{weather.humidity}%</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-white/18 backdrop-blur-sm rounded-full px-3 py-1.5 ring-1 ring-white/16 group-hover/weather:bg-white/28 transition-colors">
+            <div className="flex items-center gap-1.5 bg-white/18 backdrop-blur-sm rounded-full px-3 py-1.5 ring-1 ring-white/16">
               <CloudSun size={14} className="text-white/80" />
               <span className="text-white text-sm font-medium">{weather.condition}</span>
             </div>
-            {farmLocation?.label && (
-              <div className="flex items-center gap-1.5 bg-white/12 backdrop-blur-sm rounded-full px-3 py-1.5 ring-1 ring-white/12 group-hover/weather:bg-white/22 transition-colors">
+            {farmLocation?.label ? (
+              <div className="flex items-center gap-1.5 bg-white/12 backdrop-blur-sm rounded-full px-3 py-1.5 ring-1 ring-white/12">
                 <Wind size={13} className="text-white/60" />
                 <span className="text-white/80 text-xs font-medium truncate max-w-[120px]">{farmLocation.label}</span>
               </div>
-            )}
-            <div className="flex items-center gap-1.5 bg-[#E7F3EC]/24 border border-[#E7F3EC]/42 backdrop-blur-sm rounded-full px-3 py-1.5 group-hover/weather:bg-[#E7F3EC]/34 transition-colors">
+            ) : onOpenSettings ? (
+              <button
+                onClick={onOpenSettings}
+                className="flex items-center gap-1.5 rounded-full border border-amber-200/50 bg-amber-300/18 px-3 py-1.5 text-xs font-black text-amber-50 backdrop-blur-sm transition-colors hover:bg-amber-300/28"
+              >
+                <MapPin size={13} />
+                ยังไม่ได้ตั้งสถานที่สวน
+              </button>
+            ) : null}
+            <a
+              href={`https://www.windy.com/${loc.lat}/${loc.lon}?${loc.lat},${loc.lon},10`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 bg-[#E7F3EC]/24 border border-[#E7F3EC]/42 backdrop-blur-sm rounded-full px-3 py-1.5 hover:bg-[#E7F3EC]/34 transition-colors"
+            >
               <Wind size={13} className="text-cyan-300" />
               <span className="text-white text-xs font-semibold">Windy ↗</span>
-            </div>
-          </a>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -210,8 +271,8 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
         {/* Tasks (mobile: order-1 / desktop: order-2 inside 2-col grid with Activities) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start order-1 lg:order-2">
           {/* Tasks card — always visible */}
-          <div className="orchard-card rounded-xl p-4">
-            <div className="flex items-center justify-between mb-3">
+          <div className="orchard-card rounded-xl p-3 sm:p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h3 className="font-bold text-foreground flex items-center gap-2"><span className="rounded-lg bg-amber-100 p-1.5"><ListTodo size={18} className="text-amber-600" /></span>งานที่ต้องทำ</h3>
               <div className="flex items-center gap-2">
                 <button
@@ -238,24 +299,24 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
                   placeholder="ชื่องาน..."
                   className="w-full bg-white border border-border rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-400/50"
                 />
-                <div className="flex gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
                   <input
                     type="date"
                     value={quickForm.date}
                     onChange={e => setQuickForm(f => ({ ...f, date: e.target.value }))}
-                    className="flex-1 bg-white border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+                    className="min-w-0 bg-white border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
                   />
                   <select
                     value={quickForm.plotId}
                     onChange={e => setQuickForm(f => ({ ...f, plotId: e.target.value }))}
-                    className="flex-1 bg-white border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+                    className="min-w-0 bg-white border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
                   >
                     {data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                   <select
                     value={quickForm.priority}
                     onChange={e => setQuickForm(f => ({ ...f, priority: e.target.value as Task["priority"] }))}
-                    className="bg-white border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+                    className="min-w-0 bg-white border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
                   >
                     <option value="high">สำคัญมาก</option>
                     <option value="medium">ปานกลาง</option>
@@ -335,10 +396,10 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
 
         {/* Activities — mobile only (order-3, after Stats) */}
         <div
-          className="lg:hidden orchard-card orchard-card-hover rounded-xl p-4 cursor-pointer order-3"
+          className="lg:hidden orchard-card orchard-card-hover rounded-xl p-3 sm:p-4 cursor-pointer order-3"
           onClick={() => onNavigate?.("operations")}
         >
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <h3 className="font-bold text-foreground flex items-center gap-2"><span className="rounded-lg bg-[#E7F3EC] p-1.5"><ClipboardList size={18} className="text-primary" /></span>บันทึกสวน</h3>
             <div className="flex items-center gap-2">
               <button

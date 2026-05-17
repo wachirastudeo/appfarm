@@ -67,10 +67,10 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
   const reset = () => { setMode("choose"); setError(""); setEmail(""); setPassword(""); setName("") }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative grid w-full max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-2xl ring-1 ring-emerald-950/10 md:grid-cols-[1.05fr_0.95fr]">
+      <div className="relative grid w-full max-w-4xl max-h-[92dvh] overflow-y-auto rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-2xl ring-1 ring-emerald-950/10 md:grid-cols-[1.05fr_0.95fr]">
         <div className="relative hidden min-h-[560px] overflow-hidden bg-[#0B3B25] p-8 text-white md:block">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(93,209,132,0.38),transparent_18rem),linear-gradient(145deg,rgba(255,255,255,0.14),transparent_42%)]" />
           <div className="relative flex h-full flex-col justify-between">
@@ -105,7 +105,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
           <X size={16} />
         </button>
 
-        <div className="px-6 py-8 sm:px-8 md:py-10">
+        <div className="px-5 py-7 sm:px-8 md:py-10">
           <div className="mb-7">
             <div className="flex items-center gap-2.5 mb-1">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 shadow-lg shadow-emerald-600/25">
