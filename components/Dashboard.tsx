@@ -13,6 +13,7 @@ import DurianIcon from "./DurianIcon"
 interface Props {
   data: AppData
   onNavigate?: (tab: "dashboard" | "plots" | "operations" | "finance" | "articles") => void
+  onOpenArticle?: (articleId: string) => void
   onOpenSettings?: () => void
   updateTask: (id: string, updates: Partial<Task>) => void
   deleteTask: (id: string) => void
@@ -57,7 +58,7 @@ type ForecastAlert = {
 const ACTIVITY_ICONS: any = { fertilize: Sprout, spray: Zap, water: Droplets, prune: Scissors, harvest: PackageSearch, inspect: ClipboardList, other: MoreHorizontal }
 const ACTIVITY_COLORS: any = { fertilize: "text-green-500", spray: "text-yellow-500", water: "text-blue-500", prune: "text-orange-500", harvest: "text-primary", inspect: "text-purple-500", other: "text-muted-foreground" }
 
-export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask, deleteTask, addTask, farmLocation }: Props) {
+export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSettings, updateTask, deleteTask, addTask, farmLocation }: Props) {
   const [weather, setWeather] = useState<{ temp: string | number; humidity: string | number; wind: string | number; condition: string }>({ temp: "–", humidity: "–", wind: "–", condition: "กำลังโหลด..." })
   const [forecastAlert, setForecastAlert] = useState<ForecastAlert | null>(null)
   const recommendedArticles = useMemo(() => data.articles.filter(article => article.status === "published").slice(0, 3), [data.articles])
@@ -455,7 +456,7 @@ export default function Dashboard({ data, onNavigate, onOpenSettings, updateTask
           {recommendedArticles.map(article => (
             <div
               key={article.id}
-              onClick={() => onNavigate?.("articles")}
+              onClick={() => onOpenArticle?.(article.id) ?? onNavigate?.("articles")}
               className="flex-shrink-0 w-[260px] snap-start lg:w-auto orchard-card orchard-card-hover rounded-xl overflow-hidden cursor-pointer group"
             >
               <div className="relative h-32 lg:h-36 overflow-hidden">

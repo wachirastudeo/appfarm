@@ -146,7 +146,22 @@ export interface Article {
   category: string
   image: string
   content: string
+  affiliateTitle?: string
+  affiliateUrl?: string
   status: "published" | "draft"
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Product {
+  id: string
+  name: string
+  category: string
+  image: string
+  priceLabel: string
+  description: string
+  affiliateUrl: string
+  status: "active" | "draft"
   createdAt: string
   updatedAt: string
 }
@@ -166,6 +181,7 @@ export interface AppData {
   finance: FinanceRecord[]
   users: AppUser[]
   articles: Article[]
+  products: Product[]
   siteSettings: SiteSettings
 }
 
@@ -176,12 +192,52 @@ const seedArticles: Article[] = [
   { id: "art4", title: "วิธีสังเกตดอกทุเรียนระยะไข่ปลา", category: "การสังเกต", image: "/images/articles/article_flowering_1778039300000_1778039688657.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "ระยะไข่ปลาเป็นช่วงที่ดอกเข้าชิดกันเหมือนไข่ปลา ลักษณะเพศเริ่มแตกต่างชัดเจน ควรเน้นการให้น้ำและปุ๋ยให้สม่ำเสมอในช่วงนี้\n\nระวังอย่าให้น้ำมากเกินไปเพราะอาจทำให้ดอกหลุดร่วงได้ ควรให้น้ำในปริมาณที่พอเหมาะเพื่อให้ดอกพัฒนาไปสู่ระยะมะเขือพวงได้อย่างสมบูรณ์" },
   { id: "art5", title: "ปุ๋ยสูตรไหนเหมาะกับระยะขยายขนาดผล", category: "การให้ปุ๋ย", image: "/images/articles/article_fertilizer_1778039300000_1778039705364.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "ในระยะขยายขนาดผล ควรใช้ปุ๋ยที่มีแคลเซียมและโพแทสเซียมสูง เช่น NPK 5:10:20 หรือสูตรเฉพาะสำหรับผลไม้ให้ 2-3 ครั้งต่อเดือน\n\nการใส่ปุ๋ยในช่วงนี้จะช่วยให้เนื้อทุเรียนมีคุณภาพดี รสชาติหวาน และมีน้ำหนักผลที่ได้มาตรฐาน" },
   { id: "art6", title: "การตัดแต่งกิ่งเตรียมพร้อมสำหรับฤดูกาลใหม่", category: "การดูแลรักษา", image: "/images/articles/article_pruning_1778039300000_1778039722927.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "การตัดแต่งกิ่งช่วยกระตุ้นการออกใบและดอกใหม่ ตัดกิ่งที่อ่อนแอหรือเก่า และปล่อยให้พืชมีรูปทรงสวยงาม ลักษณะปิรามิด\n\nการตัดแต่งกิ่งที่ถูกต้องจะช่วยให้แสงแดดส่องถึงโคนต้น ลดการสะสมของโรคและแมลง และช่วยให้พืชใช้สารอาหารได้อย่างมีประสิทธิภาพ" },
+  { id: "art7", title: "เลือกใช้สารเคมีในสวนทุเรียนอย่างปลอดภัย", category: "สารเคมี", image: "/images/articles/article_disease_1778037967060.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "การเลือกใช้สารเคมีควรเริ่มจากการสำรวจอาการจริงในสวนก่อนเสมอ แยกให้ชัดว่าเป็นโรค แมลง หรือภาวะขาดธาตุอาหาร เพื่อเลือกกลุ่มสารให้ตรงปัญหาและลดการใช้เกินจำเป็น\n\nอ่านฉลาก อัตราผสม ระยะปลอดภัยก่อนเก็บเกี่ยว และอุปกรณ์ป้องกันทุกครั้ง ควรสลับกลุ่มสารตามคำแนะนำบนฉลากเพื่อลดการดื้อยา และหลีกเลี่ยงการพ่นช่วงลมแรงหรือก่อนฝนตก", affiliateTitle: "เพิ่มชื่อสารเคมีที่แนะนำ", affiliateUrl: "" },
 ]
 
 const seedUsers: AppUser[] = [
   { id: "u-admin", name: "ผู้ดูแลสวน", email: "admin@appfarm.test", passwordHash: "d03892df293536e063da4ff9ccaf520c93544aadc598b6c50e9cafef7bb96ad3", role: "admin", status: "active", provider: "email", createdAt: new Date().toISOString() },
   { id: "u-user", name: "เกษตรกรตัวอย่าง", email: "user@appfarm.test", passwordHash: "21af8c1d848d7360fb404f70735b7aede4c00cff95394a7254cb9620bafa41d4", role: "user", status: "active", provider: "email", createdAt: new Date().toISOString() },
   { id: "u-staff", name: "ทีมงานแปลง A", email: "staff@appfarm.test", passwordHash: "612fb42e87fc09a29f793bc7d6f9868ee4ed6790960cc84ce2bfa27f1f71c0cd", role: "user", status: "active", provider: "email", createdAt: new Date().toISOString() },
+]
+
+const seedProducts: Product[] = [
+  {
+    id: "prod1",
+    name: "สารป้องกันเชื้อราในสวนทุเรียน",
+    category: "สารเคมี",
+    image: "/images/articles/article_disease_1778037967060.avif",
+    priceLabel: "ดูราคาล่าสุด",
+    description: "เหมาะสำหรับใส่ลิงก์ affiliate กลุ่มป้องกันโรคพืช",
+    affiliateUrl: "",
+    status: "active",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "prod2",
+    name: "ปุ๋ยระยะขยายผล",
+    category: "ปุ๋ย",
+    image: "/images/articles/article_fertilizer_1778039300000_1778039705364.avif",
+    priceLabel: "ดูรายละเอียด",
+    description: "รายการแนะนำสำหรับบทความปุ๋ยและการบำรุงผล",
+    affiliateUrl: "",
+    status: "active",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "prod3",
+    name: "อุปกรณ์พ่นยา",
+    category: "อุปกรณ์",
+    image: "/images/articles/article_pruning_1778039300000_1778039722927.avif",
+    priceLabel: "เช็กราคา",
+    description: "ใช้เป็นช่องวางรายการกลุ่มเครื่องมือและอุปกรณ์สวน",
+    affiliateUrl: "",
+    status: "active",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
 ]
 
 const LEGACY_SEED_PASSWORD_HASHES: Record<string, string> = Object.fromEntries(seedUsers.map(user => [user.email, user.passwordHash]))
@@ -243,6 +299,7 @@ const SEED: AppData = {
   ],
   users: seedUsers,
   articles: seedArticles,
+  products: seedProducts,
   siteSettings: {
     siteName: "สวนทุเรียน",
     tagline: "Smart Orchard",
@@ -271,10 +328,15 @@ function withoutPlainPasswords(users: AppUser[]) {
 }
 
 function migrateArticleImagesToAvif(articles: Article[]) {
-  return articles.map(article => ({
+  const migrated = articles.map(article => ({
     ...article,
     image: article.image.replace(/^\/images\/articles\/(.+)\.png$/, "/images/articles/$1.avif"),
   }))
+  const existingIds = new Set(migrated.map(article => article.id))
+  return [
+    ...migrated,
+    ...seedArticles.filter(article => !existingIds.has(article.id)),
+  ]
 }
 
 export function useAppData() {
@@ -294,6 +356,7 @@ export function useAppData() {
         ...parsed,
         users: parsed.users?.length ? withoutPlainPasswords(parsed.users) : seedUsers,
         articles: parsed.articles?.length ? migrateArticleImagesToAvif(parsed.articles) : seedArticles,
+        products: parsed.products?.length ? parsed.products : seedProducts,
         siteSettings: parsed.siteSettings ?? SEED.siteSettings,
       }
     } catch { return SEED }
@@ -428,6 +491,20 @@ export function useAppData() {
     updateData(d => ({ ...d, articles: d.articles.filter(a => a.id !== id) }))
   }, [updateData])
 
+  // Products
+  const addProduct = useCallback((product: Omit<Product, "id" | "createdAt" | "updatedAt">) => {
+    const now = new Date().toISOString()
+    updateData(d => ({ ...d, products: [{ ...product, id: `prod${Date.now()}`, createdAt: now, updatedAt: now }, ...d.products] }))
+  }, [updateData])
+
+  const updateProduct = useCallback((id: string, changes: Partial<Product>) => {
+    updateData(d => ({ ...d, products: d.products.map(p => p.id === id ? { ...p, ...changes, updatedAt: new Date().toISOString() } : p) }))
+  }, [updateData])
+
+  const deleteProduct = useCallback((id: string) => {
+    updateData(d => ({ ...d, products: d.products.filter(p => p.id !== id) }))
+  }, [updateData])
+
   const updateSiteSettings = useCallback((changes: Partial<SiteSettings>) => {
     updateData(d => ({ ...d, siteSettings: { ...d.siteSettings, ...changes } }))
   }, [updateData])
@@ -501,6 +578,7 @@ export function useAppData() {
     addBatch, addBatchStage, updateBatch, deleteBatch,
     authenticateUser, addUser, updateUser, deleteUser,
     addArticle, updateArticle, deleteArticle,
+    addProduct, updateProduct, deleteProduct,
     updateSiteSettings,
   }
 }

@@ -1,19 +1,37 @@
 "use client"
-import { useState, useMemo } from "react"
-import type { Article } from "@/lib/store"
-import { Search, X, ArrowRight, Share2, Bookmark, ArrowLeft } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import type { Article, Product } from "@/lib/store"
+import { Search, X, ArrowRight, Share2, Bookmark, ArrowLeft, ExternalLink } from "lucide-react"
+import Products from "./Products"
 
 interface Props {
   articles: Article[]
+  products: Product[]
+  initialArticleId?: string | null
+  initialView?: "articles" | "products"
 }
 
-export default function Articles({ articles }: Props) {
+export default function Articles({ articles, products, initialArticleId, initialView = "articles" }: Props) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
   const [activeCategory, setActiveCategory] = useState("ทั้งหมด")
+  const [activeView, setActiveView] = useState<"articles" | "products">(initialView)
 
   const publishedArticles = useMemo(() => articles.filter(a => a.status === "published"), [articles])
   const categories = ["ทั้งหมด", ...Array.from(new Set(publishedArticles.map(a => a.category)))]
+
+  useEffect(() => {
+    if (!initialArticleId) return
+    const article = publishedArticles.find(a => a.id === initialArticleId)
+    if (article) {
+      setActiveView("articles")
+      setSelectedArticle(article)
+    }
+  }, [initialArticleId, publishedArticles])
+
+  useEffect(() => {
+    setActiveView(initialView)
+  }, [initialView])
 
   const filteredArticles = useMemo(() => {
     let result = publishedArticles
@@ -68,6 +86,23 @@ export default function Articles({ articles }: Props) {
              <div className="text-base lg:text-lg leading-relaxed text-foreground/80 whitespace-pre-wrap">
                 {selectedArticle.content}
              </div>
+             {selectedArticle.affiliateUrl && (
+              <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
+                <p className="text-sm font-black text-primary">ปุ๋ยและยาแนะนำ</p>
+                <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-base font-black text-foreground">{selectedArticle.affiliateTitle || "ดูปุ๋ยและยาแนะนำ"}</p>
+                  <a
+                    href={selectedArticle.affiliateUrl}
+                    target="_blank"
+                    rel="nofollow sponsored noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-black text-primary-foreground hover:opacity-90"
+                  >
+                    ดูรายละเอียด
+                    <ExternalLink size={16} />
+                  </a>
+                </div>
+              </div>
+             )}
           </div>
         </div>
       </div>
@@ -82,6 +117,7 @@ export default function Articles({ articles }: Props) {
           <h2 className="text-2xl font-black text-foreground">คลังความรู้</h2>
           <p className="text-base text-muted-foreground font-bold">สาระน่ารู้เพื่อสวนของคุณ</p>
         </div>
+        {activeView === "articles" && (
         <div className="relative w-full md:max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={24} />
           <input 
@@ -97,7 +133,32 @@ export default function Articles({ articles }: Props) {
             </button>
           )}
         </div>
+        )}
       </div>
+
+      <div className="flex w-full gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm sm:w-fit">
+        <button
+          onClick={() => setActiveView("articles")}
+          className={`flex-1 rounded-xl px-4 py-2 text-sm font-black transition-colors sm:flex-none ${
+            activeView === "articles" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
+        >
+          บทความ
+        </button>
+        <button
+          onClick={() => setActiveView("products")}
+          className={`flex-1 rounded-xl px-4 py-2 text-sm font-black transition-colors sm:flex-none ${
+            activeView === "products" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
+        >
+          ปุ๋ยและยา
+        </button>
+      </div>
+
+      {activeView === "products" && <Products products={products} compact />}
+
+      {activeView === "articles" && (
+      <>
 
       {/* Categories Chips */}
       <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
@@ -143,6 +204,8 @@ export default function Articles({ articles }: Props) {
           </div>
         ))}
       </div>
+      </>
+      )}
     </div>
   )
 }

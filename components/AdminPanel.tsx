@@ -1,11 +1,12 @@
 "use client"
 import { useState } from "react"
-import type { AppUser, Article, NewUserInput, SiteSettings } from "@/lib/store"
-import { BookOpen, Edit3, Image, Plus, Save, Settings, Shield, Trash2, Upload, Users } from "lucide-react"
+import type { AppUser, Article, NewUserInput, Product, SiteSettings } from "@/lib/store"
+import { BookOpen, Edit3, Image, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users } from "lucide-react"
 
 interface Props {
   users: AppUser[]
   articles: Article[]
+  products: Product[]
   siteSettings: SiteSettings
   currentUser: AppUser
   addUser: (user: NewUserInput) => Promise<AppUser | null>
@@ -14,6 +15,9 @@ interface Props {
   addArticle: (article: Omit<Article, "id" | "createdAt" | "updatedAt">) => void
   updateArticle: (id: string, changes: Partial<Article>) => void
   deleteArticle: (id: string) => void
+  addProduct: (product: Omit<Product, "id" | "createdAt" | "updatedAt">) => void
+  updateProduct: (id: string, changes: Partial<Product>) => void
+  deleteProduct: (id: string) => void
   updateSiteSettings: (changes: Partial<SiteSettings>) => void
 }
 
@@ -22,12 +26,25 @@ const emptyArticle = {
   category: "การดูแลรักษา",
   image: "/images/articles/article_watering_1778037948644.avif",
   content: "",
+  affiliateTitle: "",
+  affiliateUrl: "",
   status: "published" as const,
+}
+
+const emptyProduct = {
+  name: "",
+  category: "สารเคมี",
+  image: "/images/articles/article_disease_1778037967060.avif",
+    priceLabel: "ดูรายละเอียด",
+  description: "",
+  affiliateUrl: "",
+  status: "active" as const,
 }
 
 export default function AdminPanel({
   users,
   articles,
+  products,
   siteSettings,
   currentUser,
   addUser,
@@ -36,12 +53,17 @@ export default function AdminPanel({
   addArticle,
   updateArticle,
   deleteArticle,
+  addProduct,
+  updateProduct,
+  deleteProduct,
   updateSiteSettings,
 }: Props) {
-  const [activeSection, setActiveSection] = useState<"site" | "articles" | "users">("site")
+  const [activeSection, setActiveSection] = useState<"site" | "articles" | "products" | "users">("site")
   const [settingsDraft, setSettingsDraft] = useState(siteSettings)
   const [articleDraft, setArticleDraft] = useState<Omit<Article, "id" | "createdAt" | "updatedAt">>(emptyArticle)
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null)
+  const [productDraft, setProductDraft] = useState<Omit<Product, "id" | "createdAt" | "updatedAt">>(emptyProduct)
+  const [editingProductId, setEditingProductId] = useState<string | null>(null)
   const [userDraft, setUserDraft] = useState({ name: "", email: "", password: "", role: "user" as AppUser["role"] })
   const [message, setMessage] = useState("")
 
@@ -87,7 +109,37 @@ export default function AdminPanel({
       category: article.category,
       image: article.image,
       content: article.content,
+      affiliateTitle: article.affiliateTitle ?? "",
+      affiliateUrl: article.affiliateUrl ?? "",
       status: article.status,
+    })
+  }
+
+  const saveProduct = () => {
+    if (!productDraft.name.trim() || !productDraft.affiliateUrl.trim()) {
+      setMessage("กรุณากรอกชื่อปุ๋ย/ยาและ Affiliate link")
+      return
+    }
+    if (editingProductId) {
+      updateProduct(editingProductId, productDraft)
+      setEditingProductId(null)
+    } else {
+      addProduct(productDraft)
+    }
+    setProductDraft(emptyProduct)
+    setMessage("บันทึกปุ๋ยและยาแล้ว")
+  }
+
+  const editProduct = (product: Product) => {
+    setEditingProductId(product.id)
+    setProductDraft({
+      name: product.name,
+      category: product.category,
+      image: product.image,
+      priceLabel: product.priceLabel,
+      description: product.description,
+      affiliateUrl: product.affiliateUrl,
+      status: product.status,
     })
   }
 
@@ -123,6 +175,7 @@ export default function AdminPanel({
         {[
           { id: "site" as const, label: "พื้นฐานเว็บ", icon: Settings },
           { id: "articles" as const, label: "บทความ", icon: BookOpen },
+          { id: "products" as const, label: "ปุ๋ยและยา", icon: ShoppingBag },
           { id: "users" as const, label: "User", icon: Users },
         ].map(section => {
           const Icon = section.icon
@@ -212,6 +265,8 @@ export default function AdminPanel({
           <div className="space-y-3">
             <AdminInput label="หัวข้อ" value={articleDraft.title} onChange={title => setArticleDraft(v => ({ ...v, title }))} />
             <AdminInput label="หมวดหมู่" value={articleDraft.category} onChange={category => setArticleDraft(v => ({ ...v, category }))} />
+            <AdminInput label="ชื่อปุ๋ย/ยาแนะนำ" value={articleDraft.affiliateTitle ?? ""} onChange={affiliateTitle => setArticleDraft(v => ({ ...v, affiliateTitle }))} placeholder="เช่น สารป้องกันเชื้อรา..." />
+            <AdminInput label="Affiliate link" value={articleDraft.affiliateUrl ?? ""} onChange={affiliateUrl => setArticleDraft(v => ({ ...v, affiliateUrl }))} placeholder="https://..." />
             <label className="block space-y-1.5">
               <span className="text-xs font-black text-muted-foreground">รูปภาพบทความ</span>
               <div className="flex items-center gap-3">
@@ -247,10 +302,71 @@ export default function AdminPanel({
                 <img src={article.image} alt={article.title} className="h-16 w-20 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-black">{article.title}</p>
-                  <p className="text-xs font-semibold text-muted-foreground">{article.category} · {article.status === "published" ? "เผยแพร่" : "ฉบับร่าง"}</p>
+                  <p className="text-xs font-semibold text-muted-foreground">
+                    {article.category} · {article.status === "published" ? "เผยแพร่" : "ฉบับร่าง"}
+                    {article.affiliateUrl ? " · มี affiliate" : ""}
+                  </p>
                 </div>
                 <button onClick={() => editArticle(article)} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16} /></button>
                 <button onClick={() => deleteArticle(article.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16} /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      )}
+
+      {activeSection === "products" && (
+      <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <ShoppingBag className="text-primary" size={20} />
+          <h3 className="text-lg font-black">จัดการปุ๋ยและยา</h3>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="space-y-3">
+            <AdminInput label="ชื่อปุ๋ย/ยา" value={productDraft.name} onChange={name => setProductDraft(v => ({ ...v, name }))} />
+            <AdminInput label="หมวดหมู่" value={productDraft.category} onChange={category => setProductDraft(v => ({ ...v, category }))} />
+            <AdminInput label="ข้อความราคา/ปุ่ม" value={productDraft.priceLabel} onChange={priceLabel => setProductDraft(v => ({ ...v, priceLabel }))} />
+            <AdminInput label="Affiliate link" value={productDraft.affiliateUrl} onChange={affiliateUrl => setProductDraft(v => ({ ...v, affiliateUrl }))} placeholder="https://..." />
+            <label className="block space-y-1.5">
+              <span className="text-xs font-black text-muted-foreground">รูปปุ๋ย/ยา</span>
+              <div className="flex items-center gap-3">
+                <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 px-4 py-3 text-sm font-black text-primary transition-colors hover:bg-primary/10">
+                  <Upload size={16} />
+                  อัปโหลดรูปปุ๋ย/ยา
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => uploadImage(e.target.files?.[0], image => setProductDraft(v => ({ ...v, image })), "รูปปุ๋ย/ยา")}
+                  />
+                </label>
+                {productDraft.image && (
+                  <img src={productDraft.image} alt="Product preview" className="h-12 w-16 rounded-lg object-cover ring-1 ring-border" />
+                )}
+              </div>
+            </label>
+            <label className="block text-xs font-black text-muted-foreground">รายละเอียดสั้น</label>
+            <textarea value={productDraft.description} onChange={e => setProductDraft(v => ({ ...v, description: e.target.value }))} className="min-h-24 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
+            <select value={productDraft.status} onChange={e => setProductDraft(v => ({ ...v, status: e.target.value as Product["status"] }))} className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-bold outline-none">
+              <option value="active">แสดงหน้าแรก</option>
+              <option value="draft">ซ่อน</option>
+            </select>
+            <button onClick={saveProduct} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground">
+              {editingProductId ? <Save size={16} /> : <Plus size={16} />}
+              {editingProductId ? "บันทึกการแก้ไข" : "เพิ่มปุ๋ย/ยา"}
+            </button>
+          </div>
+          <div className="space-y-2">
+            {products.map(product => (
+              <div key={product.id} className="flex gap-3 rounded-xl border border-border p-3">
+                <img src={product.image} alt={product.name} className="h-16 w-20 rounded-lg object-cover" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-black">{product.name}</p>
+                  <p className="text-xs font-semibold text-muted-foreground">{product.category} · {product.status === "active" ? "แสดง" : "ซ่อน"}</p>
+                </div>
+                <button onClick={() => editProduct(product)} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16} /></button>
+                <button onClick={() => deleteProduct(product.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16} /></button>
               </div>
             ))}
           </div>

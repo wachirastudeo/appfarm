@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useRef, useState, useEffect } from "react"
 import { useAppData } from "@/lib/store"
 import Dashboard from "./Dashboard"
 import PlotManagement from "./PlotManagement"
@@ -7,8 +7,8 @@ import Operations from "./Operations"
 import Finance from "./Finance"
 import Articles from "./Articles"
 import AdminPanel from "./AdminPanel"
-import type { AppUser, Article } from "@/lib/store"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, Lock, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react"
+import type { AppUser, Article, Product } from "@/lib/store"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, Lock, ArrowRight, Sparkles, CheckCircle2, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react"
 import Settings from "./Settings"
 import AuthModal from "./AuthModal"
 import ProfileModal from "./ProfileModal"
@@ -28,32 +28,84 @@ const MOBILE_TABS = TABS.slice(0, 4) // Show only 4 tabs on mobile
 
 function GuestHome({
   articles,
+  products,
   siteName,
   tagline,
   onLogin,
   onReadArticles,
+  onOpenProducts,
 }: {
   articles: Article[]
+  products: Product[]
   siteName: string
   tagline: string
   onLogin: () => void
-  onReadArticles: () => void
+  onReadArticles: (articleId?: string) => void
+  onOpenProducts: () => void
 }) {
   const publishedArticles = articles.filter(article => article.status === "published")
   const featuredArticles = publishedArticles.slice(0, 6)
+  const activeProducts = products.filter(product => product.status === "active")
+  const carouselProducts = activeProducts.length > 0 ? [...activeProducts, ...activeProducts] : []
+  const productDrag = useRef({ active: false, startX: 0, scrollLeft: 0 })
+
+  const productTrack = () => document.getElementById("home-product-carousel")
+
+  const normalizeProductScroll = (track: HTMLElement) => {
+    const half = track.scrollWidth / 2
+    if (half <= 0) return
+    if (track.scrollLeft >= half) track.scrollLeft -= half
+    if (track.scrollLeft <= 0) track.scrollLeft += half
+  }
+
+  const scrollProducts = (direction: "left" | "right") => {
+    const track = productTrack()
+    if (!track) return
+    normalizeProductScroll(track)
+    track.scrollBy({ left: direction === "right" ? 300 : -300, behavior: "smooth" })
+  }
+
+  const startProductDrag = (clientX: number) => {
+    const track = productTrack()
+    if (!track) return
+    productDrag.current = { active: true, startX: clientX, scrollLeft: track.scrollLeft }
+  }
+
+  const moveProductDrag = (clientX: number) => {
+    if (!productDrag.current.active) return
+    const track = productTrack()
+    if (!track) return
+    track.scrollLeft = productDrag.current.scrollLeft - (clientX - productDrag.current.startX)
+    normalizeProductScroll(track)
+  }
+
+  const stopProductDrag = () => {
+    productDrag.current.active = false
+  }
+
+  useEffect(() => {
+    if (activeProducts.length <= 1) return
+    const interval = window.setInterval(() => {
+      const track = productTrack()
+      if (!track) return
+      normalizeProductScroll(track)
+      track.scrollBy({ left: 300, behavior: "smooth" })
+    }, 3600)
+    return () => window.clearInterval(interval)
+  }, [activeProducts.length])
 
   return (
     <div className="space-y-5 pb-10">
-      <section className="relative overflow-hidden rounded-2xl bg-[#0F3B25] shadow-[0_24px_60px_rgba(15,59,37,0.22)] ring-1 ring-white/70">
+      <section className="relative overflow-hidden rounded-2xl bg-[#163424] shadow-[0_24px_60px_rgba(15,59,37,0.22)] ring-1 ring-white/70">
         <img
           src="/images/durian-banner.avif"
           alt="สวนทุเรียน"
-          className="absolute inset-0 h-full w-full object-cover opacity-55"
+          className="absolute inset-0 h-full w-full object-cover opacity-95 saturate-125 contrast-110"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,59,37,0.96),rgba(15,59,37,0.76)_52%,rgba(15,59,37,0.38)),linear-gradient(0deg,rgba(0,0,0,0.48),transparent_58%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,43,26,0.82),rgba(17,64,37,0.48)_46%,rgba(17,64,37,0.12)_78%,rgba(20,52,34,0.06)),linear-gradient(0deg,rgba(0,0,0,0.42),rgba(0,0,0,0.08)_52%,rgba(255,255,255,0.08))]" />
         <div className="relative grid min-h-[520px] gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-end lg:px-9 lg:py-9">
           <div className="flex max-w-2xl flex-col justify-end">
-            <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-white/14 px-3 py-1.5 text-sm font-black text-[#E7F3EC] ring-1 ring-white/20">
+            <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-white/86 px-3 py-1.5 text-sm font-black text-[#146B3E] shadow-sm ring-1 ring-white/70 backdrop-blur-md">
               <Sparkles size={16} />
               {tagline}
             </div>
@@ -66,7 +118,7 @@ function GuestHome({
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <button
                 onClick={onLogin}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-base font-black text-[#146B3E] shadow-lg shadow-black/10 transition-transform active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-base font-black text-[#146B3E] shadow-lg shadow-black/10 transition-transform hover:bg-[#E7F3EC] active:scale-[0.98]"
               >
                 สมัคร / เข้าสู่ระบบ
                 <ArrowRight size={18} />
@@ -82,9 +134,9 @@ function GuestHome({
           </div>
 
           <div className="grid gap-3 self-end">
-            <div className="rounded-2xl bg-white/92 p-4 shadow-xl ring-1 ring-white/80 backdrop-blur-md">
+            <div className="rounded-2xl bg-white/90 p-4 shadow-xl ring-1 ring-white/70 backdrop-blur-md">
               <div className="mb-3 flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E7F3EC] text-[#146B3E]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E7F3EC] text-[#146B3E]">
                   <Lock size={22} />
                 </span>
                 <div>
@@ -105,6 +157,72 @@ function GuestHome({
         </div>
       </section>
 
+      {activeProducts.length > 0 && (
+        <section className="overflow-hidden rounded-2xl border border-border bg-card py-4 shadow-sm">
+          <div className="mb-3 flex items-center justify-between gap-3 px-3 sm:px-4">
+            <div>
+              <h2 className="text-xl font-black text-foreground">ปุ๋ยและยาแนะนำ</h2>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button onClick={onOpenProducts} className="hidden rounded-full border border-border bg-background px-3 py-1.5 text-xs font-black text-primary transition-colors hover:bg-primary hover:text-primary-foreground sm:inline-flex">
+                ดูทั้งหมด
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollProducts("left")}
+                aria-label="เลื่อนปุ๋ยและยาซ้าย"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollProducts("right")}
+                aria-label="เลื่อนปุ๋ยและยาขวา"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform hover:scale-105 active:scale-95"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+          <div className="product-carousel-mask">
+            <div
+              id="home-product-carousel"
+              className="product-carousel-track flex w-full cursor-grab select-none gap-3 overflow-x-auto px-3 active:cursor-grabbing sm:px-4 scrollbar-hide"
+              onMouseDown={event => startProductDrag(event.clientX)}
+              onMouseMove={event => moveProductDrag(event.clientX)}
+              onMouseUp={stopProductDrag}
+              onMouseLeave={stopProductDrag}
+              onTouchStart={event => startProductDrag(event.touches[0]?.clientX ?? 0)}
+              onTouchMove={event => moveProductDrag(event.touches[0]?.clientX ?? 0)}
+              onTouchEnd={stopProductDrag}
+              onScroll={event => normalizeProductScroll(event.currentTarget)}
+            >
+              {carouselProducts.map((product, index) => (
+                <button
+                  key={`${product.id}-${index}`}
+                  type="button"
+                  onClick={onOpenProducts}
+                  className="group w-[190px] shrink-0 overflow-hidden rounded-xl border border-border bg-white text-left shadow-sm transition-transform hover:-translate-y-0.5 sm:w-[220px]"
+                >
+                  <div className="h-24 overflow-hidden sm:h-28">
+                    <img src={product.image} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </div>
+                  <div className="p-3">
+                    <span className="text-xs font-black text-primary">{product.category}</span>
+                    <h3 className="mt-1 line-clamp-2 text-sm font-black leading-snug text-foreground">{product.name}</h3>
+                    <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1.5 text-xs font-black text-primary-foreground">
+                      ดูสินค้า
+                      <ExternalLink size={12} />
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-border sm:p-5">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -119,7 +237,7 @@ function GuestHome({
           {featuredArticles.map(article => (
             <button
               key={article.id}
-              onClick={onReadArticles}
+              onClick={() => onReadArticles(article.id)}
               className="group overflow-hidden rounded-xl border border-border bg-card text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
             >
               <div className="h-36 overflow-hidden">
@@ -143,6 +261,8 @@ export default function AppShell() {
   const [showSettings, setShowSettings] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null)
+  const [articleView, setArticleView] = useState<"articles" | "products">("articles")
   const [user, setUser] = useState<AppUser | null>(null)
   const [farmLocation, setFarmLocation] = useState<{ lat: number; lon: number; label: string } | null>(null)
   const store = useAppData()
@@ -209,6 +329,18 @@ export default function AppShell() {
     if (!["dashboard", "articles"].includes(activeTab)) setActiveTab("dashboard")
   }
 
+  const openArticles = (articleId?: string) => {
+    setArticleView("articles")
+    setSelectedArticleId(articleId ?? null)
+    setActiveTab("articles")
+  }
+
+  const openProducts = () => {
+    setSelectedArticleId(null)
+    setArticleView("products")
+    setActiveTab("articles")
+  }
+
   const visibleTabs = user?.role === "admin"
     ? [...TABS, { id: "admin" as const, label: "Admin", icon: ShieldCheck }]
     : user
@@ -224,10 +356,12 @@ export default function AppShell() {
       return (
         <GuestHome
           articles={store.data.articles}
+          products={store.data.products}
           siteName={siteName}
           tagline={tagline}
           onLogin={() => setShowAuth(true)}
-          onReadArticles={() => setActiveTab("articles")}
+          onReadArticles={openArticles}
+          onOpenProducts={openProducts}
         />
       )
     }
@@ -236,17 +370,19 @@ export default function AppShell() {
       return (
         <GuestHome
           articles={store.data.articles}
+          products={store.data.products}
           siteName={siteName}
           tagline={tagline}
           onLogin={() => setShowAuth(true)}
-          onReadArticles={() => setActiveTab("articles")}
+          onReadArticles={openArticles}
+          onOpenProducts={openProducts}
         />
       )
     }
 
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} />
+        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} />
       case "plots":
         return (
           <PlotManagement
@@ -274,13 +410,14 @@ export default function AppShell() {
       case "finance":
         return <Finance data={store.data} addFinance={store.addFinance} deleteFinance={store.deleteFinance} />
       case "articles":
-        return <Articles articles={store.data.articles} />
+        return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} />
       case "admin":
-        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} />
+        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} />
         return (
           <AdminPanel
             users={store.data.users}
             articles={store.data.articles}
+            products={store.data.products}
             siteSettings={store.data.siteSettings}
             currentUser={user}
             addUser={store.addUser}
@@ -289,6 +426,9 @@ export default function AppShell() {
             addArticle={store.addArticle}
             updateArticle={store.updateArticle}
             deleteArticle={store.deleteArticle}
+            addProduct={store.addProduct}
+            updateProduct={store.updateProduct}
+            deleteProduct={store.deleteProduct}
             updateSiteSettings={store.updateSiteSettings}
           />
         )

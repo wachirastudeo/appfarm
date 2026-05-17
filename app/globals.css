@@ -162,4 +162,11 @@
   .safe-area-bottom {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
+  .product-carousel-mask {
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .product-carousel-track {
+    scroll-behavior: smooth;
+  }
 }
