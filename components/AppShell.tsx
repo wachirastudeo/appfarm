@@ -16,6 +16,11 @@ import DurianIcon from "./DurianIcon"
 
 type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin"
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>
+}
+
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "dashboard", label: "หน้าหลัก", icon: DurianIcon },
   { id: "plots", label: "แปลง", icon: TreePine },
@@ -322,6 +327,7 @@ export default function AppShell() {
   const [articleView, setArticleView] = useState<"articles" | "products">("articles")
   const [user, setUser] = useState<AppUser | null>(null)
   const [farmLocation, setFarmLocation] = useState<{ lat: number; lon: number; label: string } | null>(null)
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const store = useAppData()
   const todayTaskCount = store.data.tasks.filter(task => {
     if (task.status !== "pending") return false
@@ -373,6 +379,16 @@ export default function AppShell() {
     window.addEventListener("farm_location_changed", onLocationChange)
     return () => window.removeEventListener("farm_location_changed", onLocationChange)
   }, [store.data.users])
+
+  useEffect(() => {
+    const onBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault()
+      setInstallPrompt(event as BeforeInstallPromptEvent)
+    }
+
+    window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt)
+    return () => window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt)
+  }, [])
 
   const handleLoginSuccess = (nextUser: AppUser) => {
     setUser(nextUser)
@@ -623,7 +639,14 @@ export default function AppShell() {
       </nav>
 
       {/* Settings Modal */}
-      <Settings isOpen={showSettings} onClose={handleCloseSettings} />
+      <Settings
+        isOpen={showSettings}
+        onClose={handleCloseSettings}
+        siteSettings={store.data.siteSettings}
+        updateSiteSettings={store.updateSiteSettings}
+        installPrompt={installPrompt}
+        onInstallPromptUsed={() => setInstallPrompt(null)}
+      />
 
       {/* Auth / Login Modal */}
       <AuthModal

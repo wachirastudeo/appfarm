@@ -1,21 +1,47 @@
 "use client"
-import { useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Settings as SettingsIcon, Download, Upload, Trash2, Moon, Sun, Info, ChevronRight, Smartphone, Bell, Shield, X, ImageIcon, MapPin, CheckCircle2 } from "lucide-react"
+import type { SiteSettings } from "@/lib/store"
 
 const STORAGE_KEY = "durian_orchard_data"
 const APP_VERSION = "1.0.0"
+const THEME_KEY = "durian_theme"
+const NOTIFICATION_KEY = "durian_notifications_enabled"
 
 interface Props {
   isOpen: boolean
   onClose: () => void
+  siteSettings: SiteSettings
+  updateSiteSettings: (changes: Partial<SiteSettings>) => void
+  installPrompt: BeforeInstallPromptEvent | null
+  onInstallPromptUsed: () => void
 }
 
-export default function Settings({ isOpen, onClose }: Props) {
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>
+}
+
+export default function Settings({
+  isOpen,
+  onClose,
+  siteSettings,
+  updateSiteSettings,
+  installPrompt,
+  onInstallPromptUsed,
+}: Props) {
   const [showConfirmReset, setShowConfirmReset] = useState(false)
-  const [theme, setTheme] = useState<"light" | "dark">("light")
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "light"
+    return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light"
+  })
   const [farmName, setFarmName] = useState(() => {
     if (typeof window === "undefined") return "สวนทุเรียน"
-    return localStorage.getItem("farm_name") || "สวนทุเรียน"
+    return localStorage.getItem("farm_name") || siteSettings.siteName || "สวนทุเรียน"
+  })
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    if (typeof window === "undefined") return false
+    return localStorage.getItem(NOTIFICATION_KEY) === "true"
   })
   const [isEditingName, setIsEditingName] = useState(false)
   const [coverImage, setCoverImage] = useState<string | null>(() => {
@@ -34,6 +60,15 @@ export default function Settings({ isOpen, onClose }: Props) {
   const [placeSearch, setPlaceSearch] = useState("")
   const [searchResults, setSearchResults] = useState<{ display_name: string; lat: string; lon: string }[]>([])
   const [searching, setSearching] = useState(false)
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark")
+    localStorage.setItem(THEME_KEY, theme)
+  }, [theme])
+
+  useEffect(() => {
+    if (!isEditingName) setFarmName(siteSettings.siteName || localStorage.getItem("farm_name") || "สวนทุเรียน")
+  }, [isEditingName, siteSettings.siteName])
 
   const handleExportData = () => {
     try {
@@ -89,7 +124,10 @@ export default function Settings({ isOpen, onClose }: Props) {
   }
 
   const handleSaveFarmName = () => {
-    localStorage.setItem("farm_name", farmName)
+    const nextName = farmName.trim() || "สวนทุเรียน"
+    setFarmName(nextName)
+    localStorage.setItem("farm_name", nextName)
+    updateSiteSettings({ siteName: nextName })
     setIsEditingName(false)
   }
 
@@ -156,6 +194,57 @@ export default function Settings({ isOpen, onClose }: Props) {
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light"
     setTheme(newTheme)
+  }
+
+  const handleToggleNotifications = async () => {
+    if (!("Notification" in window)) {
+      alert("เบราว์เซอร์นี้ยังไม่รองรับการแจ้งเตือน")
+      return
+    }
+
+    if (notificationsEnabled) {
+      localStorage.setItem(NOTIFICATION_KEY, "false")
+      setNotificationsEnabled(false)
+      return
+    }
+
+    const permission = Notification.permission === "granted"
+      ? "granted"
+      : await Notification.requestPermission()
+
+    if (permission !== "granted") {
+      localStorage.setItem(NOTIFICATION_KEY, "false")
+      setNotificationsEnabled(false)
+      alert("ยังไม่ได้รับอนุญาตให้แจ้งเตือน")
+      return
+    }
+
+    localStorage.setItem(NOTIFICATION_KEY, "true")
+    setNotificationsEnabled(true)
+    new Notification("เปิดการแจ้งเตือนแล้ว", {
+      body: "แอปจะแจ้งเตือนงานสวนเมื่อเบราว์เซอร์รองรับ",
+      icon: "/icon.svg",
+    })
+  }
+
+  const handleInstallApp = async () => {
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent)
+    if (installPrompt) {
+      await installPrompt.prompt()
+      await installPrompt.userChoice
+      onInstallPromptUsed()
+      return
+    }
+
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      alert("ติดตั้งแอปไว้แล้ว")
+      return
+    }
+
+    alert(isIos
+      ? "บน iPhone/iPad ให้กดปุ่ม Share แล้วเลือก Add to Home Screen"
+      : "หากเบราว์เซอร์รองรับ ให้ใช้เมนู Install app หรือ Add to Home screen"
+    )
   }
 
   if (!isOpen) return null
@@ -349,28 +438,30 @@ export default function Settings({ isOpen, onClose }: Props) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-lg">เร็วๆ นี้</span>
+              <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded-lg">ใช้งานอยู่</span>
               <ChevronRight size={16} className="text-muted-foreground" />
             </div>
           </button>
           
-          <button className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+          <button onClick={handleToggleNotifications} className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <Bell size={18} className="text-blue-600" />
               </div>
               <div className="text-left">
                 <p className="text-sm font-semibold text-foreground">การแจ้งเตือน</p>
-                <p className="text-xs text-muted-foreground">แจ้งเตือนงานและกิจกรรม</p>
+                <p className="text-xs text-muted-foreground">{notificationsEnabled ? "เปิดแจ้งเตือนงานและกิจกรรม" : "ปิดการแจ้งเตือน"}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-lg">เร็วๆ นี้</span>
+              <span className={`text-xs px-2 py-1 rounded-lg ${notificationsEnabled ? "text-primary bg-primary/10" : "text-muted-foreground bg-muted"}`}>
+                {notificationsEnabled ? "เปิด" : "ปิด"}
+              </span>
               <ChevronRight size={16} className="text-muted-foreground" />
             </div>
           </button>
 
-          <button className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors rounded-b-xl">
+          <button onClick={handleInstallApp} className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors rounded-b-xl">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-purple-100 rounded-lg">
                 <Smartphone size={18} className="text-purple-600" />

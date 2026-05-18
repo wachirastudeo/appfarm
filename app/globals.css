@@ -51,6 +51,36 @@
   --status-danger: #dc2626;
 }
 
+.dark {
+  --background: #0F1F17;
+  --foreground: #EAF6ED;
+  --card: #14291E;
+  --card-foreground: #EAF6ED;
+  --popover: #14291E;
+  --popover-foreground: #EAF6ED;
+  --primary: #72C08A;
+  --primary-foreground: #0B1B12;
+  --secondary: #375B43;
+  --secondary-foreground: #EAF6ED;
+  --muted: #1D3A29;
+  --muted-foreground: #B8D1C0;
+  --accent: #1D3A29;
+  --accent-foreground: #EAF6ED;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #31533D;
+  --input: #14291E;
+  --ring: #72C08A;
+  --sidebar: #102619;
+  --sidebar-foreground: #EAF6ED;
+  --sidebar-primary: #72C08A;
+  --sidebar-primary-foreground: #0B1B12;
+  --sidebar-accent: #1D3A29;
+  --sidebar-accent-foreground: #EAF6ED;
+  --sidebar-border: rgba(234, 246, 237, 0.14);
+  --sidebar-ring: #72C08A;
+}
+
 @theme inline {
   --font-sans: var(--font-thai), var(--font-inter), system-ui, sans-serif;
   --font-mono: 'Geist Mono', monospace;
@@ -116,6 +146,12 @@
     background:
       radial-gradient(circle at top left, rgba(223, 240, 228, 0.95), transparent 34rem),
       linear-gradient(180deg, #F2F8F4 0%, #f7faf7 52%, #F2F8F4 100%);
+  }
+
+  .dark body {
+    background:
+      radial-gradient(circle at top left, rgba(29, 58, 41, 0.9), transparent 34rem),
+      linear-gradient(180deg, #0F1F17 0%, #102619 52%, #0F1F17 100%);
   }
 
   html {

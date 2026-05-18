@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: 'สวนทุเรียน – ระบบจัดการสวน',
   description: 'ระบบบริหารจัดการสวนทุเรียนอัจฉริยะ Mobile-First & Field-Ready',
   generator: 'v0.app',
+  manifest: '/manifest.webmanifest',
   icons: {
     icon: '/icon.svg',
     shortcut: '/icon.svg',

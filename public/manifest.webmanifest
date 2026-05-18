@@ -1,0 +1,23 @@
+{
+  "name": "สวนทุเรียน",
+  "short_name": "สวนทุเรียน",
+  "description": "ระบบบริหารจัดการสวนทุเรียน",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F2F8F4",
+  "theme_color": "#146B3E",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
