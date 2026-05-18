@@ -385,7 +385,7 @@ export function useAppData() {
 
   // Trees
   const addTree = useCallback((plotId: string, tree: Omit<Tree, "id" | "lastUpdated" | "batches">) => {
-    const newTree: Tree = { ...tree, id: `t${Date.now()}`, batches: [], lastUpdated: new Date().toISOString() }
+    const newTree: Tree = { ...tree, id: `t${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, batches: [], lastUpdated: new Date().toISOString() }
     updateData(d => ({ ...d, plots: d.plots.map(p => p.id === plotId ? { ...p, trees: [...p.trees, newTree] } : p) }))
   }, [updateData])
 

@@ -49,6 +49,27 @@ const STAGE_BADGE: Record<string, string> = {
   dormant: "bg-muted text-muted-foreground",
 }
 
+function getNextTreeNumber(trees: Tree[], offset = 0) {
+  const parsed = trees
+    .map(tree => {
+      const match = tree.treeNumber.match(/^(.*?)(\d+)$/)
+      return match ? { prefix: match[1], number: Number(match[2]), width: match[2].length } : null
+    })
+    .filter((item): item is { prefix: string; number: number; width: number } => Boolean(item))
+    .sort((a, b) => b.number - a.number)[0]
+
+  if (!parsed) return `T-${String(offset + 1).padStart(3, "0")}`
+  const nextNumber = parsed.number + offset + 1
+  return `${parsed.prefix}${String(nextNumber).padStart(parsed.width, "0")}`
+}
+
+function getTreeNumberFromBase(base: string, offset: number) {
+  if (offset === 0) return base
+  const match = base.match(/^(.*?)(\d+)$/)
+  if (!match) return `${base}-${offset + 1}`
+  return `${match[1]}${String(Number(match[2]) + offset).padStart(match[2].length, "0")}`
+}
+
 // ---- Modals ----
 function BulkUpdateModal({ plot, onClose, onUpdate }: {
   plot: Plot; onClose: () => void; onUpdate: (stage: FlowerStage) => void
@@ -202,11 +223,14 @@ function AllQRModal({ plot, onClose }: { plot: Plot; onClose: () => void }) {
   )
 }
 
-function TreeForm({ tree, onSave, onCancel }: {
+function TreeForm({ tree, existingTrees = [], onSave, onSaveMany, onCancel }: {
   plotId: string; tree?: Tree
+  existingTrees?: Tree[]
   onSave: (data: Omit<Tree, "id" | "lastUpdated">) => void
+  onSaveMany?: (items: Omit<Tree, "id" | "lastUpdated">[]) => void
   onCancel: () => void
 }) {
+  const isAdding = !tree
   const [form, setForm] = useState({
     treeNumber: tree?.treeNumber ?? "",
     variety: (tree?.variety ?? "หมอนทอง") as DurianVariety,
@@ -216,14 +240,37 @@ function TreeForm({ tree, onSave, onCancel }: {
     notes: tree?.notes ?? "",
     batches: tree?.batches ?? [],
   })
+  const [addCount, setAddCount] = useState(1)
   const set = (k: string, v: unknown) => setForm(f => ({ ...f, [k]: v }))
+  const handleSave = () => {
+    if (!isAdding) {
+      if (form.treeNumber.trim()) onSave({ ...form, treeNumber: form.treeNumber.trim() })
+      return
+    }
+
+    const count = Math.max(1, Math.min(200, addCount))
+    const baseTree = { ...form, treeNumber: form.treeNumber.trim() }
+    const items = Array.from({ length: count }, (_, index) => ({
+      ...baseTree,
+      treeNumber: baseTree.treeNumber ? getTreeNumberFromBase(baseTree.treeNumber, index) : getNextTreeNumber(existingTrees, index),
+      batches: [],
+    }))
+
+    if (onSaveMany) {
+      onSaveMany(items)
+    } else {
+      items.forEach(onSave)
+    }
+  }
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <div>
           <label className="text-base text-muted-foreground mb-1 block">หมายเลขต้น</label>
           <input value={form.treeNumber} onChange={e => set("treeNumber", e.target.value)}
-            className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder="A-001" />
+            className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" placeholder={isAdding ? getNextTreeNumber(existingTrees) : "A-001"} />
+          {isAdding && <p className="mt-1 text-xs font-semibold text-muted-foreground">เว้นว่างเพื่อรันเลขต่ออัตโนมัติ</p>}
         </div>
         <div>
           <label className="text-base text-muted-foreground mb-1 block">อายุ (ปี)</label>
@@ -231,6 +278,19 @@ function TreeForm({ tree, onSave, onCancel }: {
             className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring" min={1} />
         </div>
       </div>
+      {isAdding && (
+        <div>
+          <label className="text-base text-muted-foreground mb-1 block">จำนวนต้นที่เพิ่ม</label>
+          <input
+            type="number"
+            value={addCount}
+            onChange={e => setAddCount(Number(e.target.value))}
+            className="w-full bg-input border border-border rounded-lg px-3 py-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            min={1}
+            max={200}
+          />
+        </div>
+      )}
       <div>
         <label className="text-base text-muted-foreground mb-1 block">พันธุ์</label>
         <select value={form.variety} onChange={e => set("variety", e.target.value)}
@@ -263,7 +323,7 @@ function TreeForm({ tree, onSave, onCancel }: {
       </div>
       <div className="flex gap-2 pt-1">
         <button onClick={onCancel} className="flex-1 border border-border rounded-lg py-2.5 text-muted-foreground hover:text-foreground transition-colors">ยกเลิก</button>
-        <button onClick={() => form.treeNumber && onSave(form)}
+        <button onClick={handleSave}
           className="flex-1 bg-primary text-primary-foreground rounded-lg py-2.5 font-semibold hover:opacity-90 transition-opacity">บันทึก</button>
       </div>
     </div>
@@ -702,7 +762,12 @@ function PlotDetailView({
             <p className="text-base font-semibold text-foreground mb-3">เพิ่มต้นทุเรียน</p>
             <TreeForm
               plotId={plot.id}
+              existingTrees={plot.trees}
               onSave={d => { addTree(plot.id, d); setAddingTree(false) }}
+              onSaveMany={items => {
+                items.forEach(item => addTree(plot.id, item))
+                setAddingTree(false)
+              }}
               onCancel={() => setAddingTree(false)}
             />
           </div>
