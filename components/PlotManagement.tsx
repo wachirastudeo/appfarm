@@ -660,6 +660,17 @@ function PlotDetailView({
             <button onClick={() => { setPlotForm({ name: plot.name, area: plot.area, notes: plot.notes ?? "" }); setEditingPlot(true) }} className="p-2.5 sm:p-3 bg-muted text-primary rounded-2xl hover:bg-primary/10 transition-colors shrink-0">
               <Pencil size={18} />
             </button>
+            <button
+              onClick={() => {
+                if (confirm(`ลบแปลง ${plot.name}? ต้นทุเรียนในแปลงนี้จะถูกลบด้วย`)) {
+                  deletePlot(plot.id)
+                }
+              }}
+              className="p-2.5 sm:p-3 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition-colors shrink-0"
+              title="ลบแปลง"
+            >
+              <Trash2 size={18} />
+            </button>
             <button onClick={() => setShowBulk(true)}
               className="flex min-h-11 flex-1 items-center justify-center gap-2 px-3 py-2.5 sm:flex-none sm:px-5 sm:py-3 bg-[#146B3E] text-white rounded-2xl text-sm sm:text-base font-black hover:bg-[#0F5A34] transition-all shadow-[0_10px_22px_rgba(47,170,98,0.32)] active:scale-95 shrink-0 ring-1 ring-white/30">
               <RefreshCw size={18} strokeWidth={2.8} />อัปเดตทั้งแปลง
@@ -795,8 +806,7 @@ export default function PlotManagement({
     <div className="flex flex-col lg:flex-row gap-6 items-start min-h-[600px]">
       {/* Left Column: Plot List (Sticky on desktop) */}
       <div className={`w-full lg:w-64 shrink-0 space-y-3 lg:sticky lg:top-4 ${selectedPlotId ? 'hidden lg:block' : 'block'}`}>
-        <div className="relative overflow-hidden rounded-[1.35rem] bg-[#146B3E] p-3 text-white shadow-[0_18px_42px_rgba(15,59,37,0.2)]">
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(223,240,228,0.18),transparent_44%),radial-gradient(circle_at_85%_16%,rgba(255,255,255,0.18),transparent_11rem)]" />
+        <div className="relative overflow-hidden rounded-2xl bg-[#146B3E] p-3 text-white shadow-sm">
           <div className="relative flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/12 ring-1 ring-white/15">
@@ -850,25 +860,19 @@ export default function PlotManagement({
               const goodCount = plot.trees.filter(t => t.health === "good").length
               const issueCount = plot.trees.filter(t => t.health !== "good").length
               const isActive = selectedPlotId === plot.id
-              const careTone = issueCount > 0 ? "from-amber-50 to-white" : "from-[#E7F3EC] to-white"
-
               return (
                 <button
                   key={plot.id}
                   onClick={() => setSelectedPlotId(plot.id)}
-                  className={`min-h-[5.75rem] bg-card rounded-[1.35rem] p-3 text-left transition-all group relative overflow-hidden ${
+                  className={`min-h-[5.75rem] rounded-2xl bg-white p-3 text-left transition-all group relative overflow-hidden ${
                     isActive 
-                      ? "border border-[#146B3E] ring-1 ring-[#146B3E] shadow-[0_18px_42px_rgba(15,59,37,0.18)]"
-                      : "border border-[#B9DCC8]/45 hover:border-[#146B3E]/45 hover:shadow-[0_18px_38px_rgba(15,59,37,0.14)]"
+                      ? "border-2 border-[#146B3E] shadow-sm"
+                      : "border border-[#DDEBE1] hover:border-[#9BC7AA] hover:shadow-sm"
                   }`}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${careTone} opacity-70`} />
-                  <div className="absolute -right-8 -top-10 h-24 w-24 rounded-full bg-[#146B3E]/10" />
-                  <div className="absolute bottom-0 left-0 h-1 w-full bg-[#E7F3EC]" />
-                  <div className={`absolute bottom-0 left-0 h-1 rounded-r-full ${isActive ? "w-full bg-[#146B3E]" : "w-1/2 bg-[#146B3E]/40 group-hover:w-3/4"} transition-all`} />
                   <div className="relative flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors shadow-inner ${isActive ? 'bg-[#146B3E] text-white' : 'bg-[#E7F3EC] text-[#146B3E]'}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isActive ? 'bg-[#146B3E] text-white' : 'bg-[#E7F3EC] text-[#146B3E]'}`}>
                         <DurianIcon className="h-5 w-5" />
                       </div>
                       <div>
@@ -876,15 +880,15 @@ export default function PlotManagement({
                         <p className="mt-0.5 text-[11px] text-[#527060] font-bold">{plot.area} ไร่ · {plot.trees.length} ต้น</p>
                       </div>
                     </div>
-                    <div className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full ${isActive ? "bg-[#146B3E] text-white" : "bg-white/80 text-[#527060] group-hover:bg-[#146B3E] group-hover:text-white"} shadow-sm transition-colors`}>
+                    <div className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full ${isActive ? "bg-[#146B3E] text-white" : "bg-[#F2F8F4] text-[#527060] group-hover:bg-[#146B3E] group-hover:text-white"} transition-colors`}>
                       <ChevronRight size={14} />
                     </div>
                   </div>
 
                   <div className="relative flex items-center gap-2 mt-2 overflow-x-auto scrollbar-hide">
-                    <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black border border-emerald-200/70 shadow-sm">ดี {goodCount}</span>
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-black border border-emerald-100">ดี {goodCount}</span>
                     {issueCount > 0 && (
-                      <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-black border border-amber-200/70 shadow-sm">ดูแล {issueCount}</span>
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 font-black border border-amber-100">ดูแล {issueCount}</span>
                     )}
                   </div>
                 </button>

@@ -13,6 +13,7 @@ import Settings from "./Settings"
 import AuthModal from "./AuthModal"
 import ProfileModal from "./ProfileModal"
 import DurianIcon from "./DurianIcon"
+import { Skeleton } from "./ui/skeleton"
 
 type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin"
 
@@ -63,7 +64,7 @@ function AppFooter() {
   ]
 
   return (
-    <footer className="sticky bottom-20 z-10 mt-4 border-t border-border/80 bg-background/95 px-2 py-1.5 text-center backdrop-blur-md lg:bottom-0">
+    <footer className="sticky bottom-20 z-10 mt-4 flex min-h-14 items-center justify-center border-t border-border/80 bg-background/95 px-2 py-2 text-center backdrop-blur-md lg:bottom-0">
       <div className="flex min-w-0 items-center justify-center gap-1.5 text-[11px] font-bold text-muted-foreground sm:gap-2 sm:text-sm">
         <span className="min-w-0 truncate">เครดิตผู้จัดทำ Wachira Studio</span>
         <a
@@ -85,6 +86,42 @@ function AppFooter() {
         ))}
       </div>
     </footer>
+  )
+}
+
+function AppShellSkeleton() {
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <header className="relative z-20 bg-white px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1]">
+        <div className="flex min-w-0 items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-xl bg-[#E7F3EC]" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32 bg-[#E7F3EC]" />
+            <Skeleton className="h-3 w-20 bg-[#E7F3EC]" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-9 w-9 rounded-xl bg-[#E7F3EC]" />
+          <Skeleton className="h-9 w-9 rounded-xl bg-[#E7F3EC]" />
+        </div>
+      </header>
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="hidden lg:flex w-56 shrink-0 flex-col gap-2 bg-[#146B3E] p-3">
+          <Skeleton className="mb-2 h-4 w-24 bg-white/20" />
+          {[1, 2, 3, 4, 5].map(item => (
+            <Skeleton key={item} className="h-14 rounded-xl bg-white/18" />
+          ))}
+        </aside>
+        <main className="flex-1 overflow-hidden p-3 sm:p-4 md:p-8">
+          <Skeleton className="h-72 rounded-2xl bg-[#E7F3EC]" />
+          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {[1, 2, 3, 4].map(item => (
+              <Skeleton key={item} className="h-24 rounded-xl bg-[#E7F3EC]" />
+            ))}
+          </div>
+        </main>
+      </div>
+    </div>
   )
 }
 
@@ -402,6 +439,23 @@ export default function AppShell() {
     if (!["dashboard", "articles"].includes(activeTab)) setActiveTab("dashboard")
   }
 
+  const handleUpdateProfile = (changes: Partial<Pick<AppUser, "name" | "avatar">>) => {
+    if (!user) return
+    const nextUser = { ...user, ...changes }
+    setUser(nextUser)
+    store.updateUser(user.id, changes)
+  }
+
+  const openProfileFarmData = () => {
+    setShowProfile(false)
+    setActiveTab("plots")
+  }
+
+  const openProfileNotifications = () => {
+    setShowProfile(false)
+    setShowSettings(true)
+  }
+
   const openArticles = (articleId?: string) => {
     setArticleView("articles")
     setSelectedArticleId(articleId ?? null)
@@ -421,7 +475,7 @@ export default function AppShell() {
       : TABS.filter(tab => tab.id === "dashboard" || tab.id === "articles")
 
   if (!isMounted) {
-    return <div className="min-h-screen bg-background flex flex-col relative" />
+    return <AppShellSkeleton />
   }
 
   const renderContent = () => {
@@ -455,7 +509,7 @@ export default function AppShell() {
 
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} />
+        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} userName={user?.name} />
       case "plots":
         return (
           <PlotManagement
@@ -485,7 +539,7 @@ export default function AppShell() {
       case "articles":
         return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} />
       case "admin":
-        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} />
+        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} userName={user?.name} />
         return (
           <AdminPanel
             users={store.data.users}
@@ -515,22 +569,21 @@ export default function AppShell() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top Header Bar */}
-      <header className="relative z-20 bg-[#146B3E] px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 shadow-[0_12px_36px_rgba(15,59,37,0.22)] overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.16),transparent_38%),radial-gradient(circle_at_78%_18%,rgba(223,240,228,0.28),transparent_20rem)]" />
+      <header className="relative z-20 bg-white px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1] shadow-[0_10px_28px_rgba(20,107,62,0.10)] overflow-hidden">
         <button
           onClick={() => setActiveTab("dashboard")}
           className="relative flex min-w-0 items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity active:scale-95"
         >
-          <div className="shrink-0 p-2 sm:p-2.5 bg-white/18 backdrop-blur-md rounded-xl shadow-inner ring-1 ring-white/20">
+          <div className="shrink-0 p-2 sm:p-2.5 bg-[#E7F3EC] rounded-xl shadow-sm ring-1 ring-[#CFE3D5]">
             {logoUrl ? (
               <img src={logoUrl} alt={siteName} className="h-5 w-5 sm:h-6 sm:w-6 rounded-lg object-cover" />
             ) : (
-              <Leaf size={22} className="text-white drop-shadow" />
+              <Leaf size={22} className="text-[#146B3E]" />
             )}
           </div>
           <div className="min-w-0 text-left">
-            <h1 className="truncate font-black text-white text-base sm:text-xl tracking-tight leading-none drop-shadow">{siteName}</h1>
-            <p className="truncate text-white/70 text-[10px] sm:text-sm font-semibold uppercase tracking-wider sm:tracking-widest mt-0.5">{tagline}</p>
+            <h1 className="truncate font-black text-[#146B3E] text-base sm:text-xl tracking-tight leading-none">{siteName}</h1>
+            <p className="truncate text-[#527060] text-[10px] sm:text-sm font-semibold uppercase tracking-wider sm:tracking-widest mt-0.5">{tagline}</p>
           </div>
         </button>
         <div className="relative flex shrink-0 items-center gap-1 sm:gap-2">
@@ -538,18 +591,18 @@ export default function AppShell() {
             <>
               <button
                 onClick={() => setActiveTab("operations")}
-                className="relative flex items-center gap-1.5 rounded-xl bg-white/12 px-2 sm:px-3 py-2 text-white/78 ring-1 ring-white/15 transition-colors hover:bg-white/22"
+                className="relative flex items-center gap-1.5 rounded-xl bg-[#E7F3EC] px-2 sm:px-3 py-2 text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#D9EEE1]"
                 title={todayTaskCount > 0 ? `วันนี้มีงาน ${todayTaskCount} งาน` : "วันนี้ไม่มีงาน"}
               >
                 <AlertTriangle size={14} />
                 <span className="font-bold text-sm leading-none">{todayTaskCount}</span>
-                <span className="hidden sm:inline text-xs font-medium opacity-80">งานวันนี้</span>
+                <span className="hidden sm:inline text-xs font-medium text-[#527060]">งานวันนี้</span>
                 {todayTaskCount > 0 && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600 ring-2 ring-white" />}
               </button>
-              <div className="hidden min-[390px]:flex items-center gap-1.5 bg-white/12 backdrop-blur-md rounded-xl px-3 py-2 ring-1 ring-white/15">
-                <DurianIcon className="h-4 w-4 text-[#E7F3EC]" />
-                <span className="text-white font-bold text-sm leading-none">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)}</span>
-                <span className="text-white/60 text-xs font-medium">ต้น</span>
+              <div className="hidden min-[390px]:flex items-center gap-1.5 bg-[#E7F3EC] rounded-xl px-3 py-2 ring-1 ring-[#CFE3D5]">
+                <DurianIcon className="h-4 w-4 text-[#146B3E]" />
+                <span className="text-[#146B3E] font-bold text-sm leading-none">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)}</span>
+                <span className="text-[#527060] text-xs font-medium">ต้น</span>
               </div>
             </>
           )}
@@ -557,12 +610,12 @@ export default function AppShell() {
           <button
             onClick={() => user ? setShowProfile(true) : setShowAuth(true)}
             aria-label={user ? "เปิดโปรไฟล์" : "เข้าสู่ระบบ"}
-            className="p-2 bg-white/12 hover:bg-white/22 backdrop-blur-md rounded-xl transition-colors ring-1 ring-white/15"
+            className="p-2 bg-[#146B3E] hover:bg-[#0F5A34] rounded-xl transition-colors shadow-sm ring-1 ring-[#146B3E]/10"
           >
             {user ? (
               user.avatar
                 ? <img src={user.avatar} alt={user.name} className="w-5 h-5 rounded-full" />
-                : <div className="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center">
+                : <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
                     <span className="text-white text-[10px] font-bold">{user.name[0]}</span>
                   </div>
             ) : (
@@ -573,7 +626,7 @@ export default function AppShell() {
             <button
               onClick={() => setShowSettings(true)}
               aria-label="ตั้งค่า"
-              className="p-2.5 bg-white/12 hover:bg-white/22 backdrop-blur-md rounded-xl transition-colors ring-1 ring-white/15"
+              className="p-2.5 bg-[#146B3E] hover:bg-[#0F5A34] rounded-xl transition-colors shadow-sm ring-1 ring-[#146B3E]/10"
             >
               <SettingsIcon size={20} className="text-white" />
             </button>
@@ -584,23 +637,23 @@ export default function AppShell() {
       {/* Body: Sidebar + Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
-        <nav className="hidden lg:flex flex-col w-72 bg-[#146B3E] border-r border-white/20 py-5 px-4 gap-2 shrink-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.16),14px_0_36px_rgba(47,170,98,0.18)] relative overflow-hidden">
+        <nav className="hidden lg:flex flex-col w-56 bg-[#146B3E] border-r border-white/20 py-4 px-3 gap-1.5 shrink-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.16),14px_0_36px_rgba(47,170,98,0.18)] relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.28),transparent_14rem),linear-gradient(180deg,rgba(255,255,255,0.12),rgba(22,138,75,0.16)_48%,rgba(22,138,75,0.24))]" />
-          <p className="relative px-3 pt-2 text-xs font-black text-white/72 uppercase tracking-wider mb-1">เมนูหลัก</p>
+          <p className="relative px-2 pt-2 text-xs font-black text-white/72 uppercase tracking-wider mb-1">เมนูหลัก</p>
           {visibleTabs.map(tab => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative group flex items-center gap-3 px-4 py-3.5 rounded-2xl text-base font-black transition-all text-left ${
+                className={`relative group flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm font-black transition-all text-left ${
                   activeTab === tab.id
                     ? "bg-white text-[#146B3E] shadow-[0_16px_30px_rgba(20,52,34,0.18)]"
                     : "text-white/92 hover:bg-white/18 hover:text-white"
                 }`}
               >
-                <span className={`flex h-10 w-10 items-center justify-center rounded-2xl transition-colors ${activeTab === tab.id ? "bg-[#E7F3EC] text-[#146B3E]" : "bg-white/18 text-white group-hover:bg-white/26"}`}>
-                  <Icon size={20} strokeWidth={2.4} />
+                <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${activeTab === tab.id ? "bg-[#E7F3EC] text-[#146B3E]" : "bg-white/18 text-white group-hover:bg-white/26"}`}>
+                  <Icon size={18} strokeWidth={2.4} />
                 </span>
                 <span className="flex-1">{tab.label}</span>
                 {activeTab === tab.id && <span className="h-2 w-2 rounded-full bg-[#146B3E]" />}
@@ -664,6 +717,9 @@ export default function AppShell() {
         user={user}
         onLogout={handleLogout}
         onLogin={() => { setShowProfile(false); setShowAuth(true) }}
+        onUpdateUser={handleUpdateProfile}
+        onOpenFarmData={openProfileFarmData}
+        onOpenNotifications={openProfileNotifications}
       />
     </div>
   )

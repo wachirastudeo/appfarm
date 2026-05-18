@@ -44,3 +44,9 @@ At the end, summarize only:
 - Run `npm run lint` after code changes when practical.
 - Do not run `npm run build` every time; run it only when the change affects routing, Next.js config, data loading, or shared components, or when the user asks.
 - If verification cannot be run, state the reason and what should be run next.
+
+## Browser testing
+- When the user asks to test in a browser, use the user's normal `Google Chrome` browser/profile unless they explicitly ask for another browser.
+- Reuse the currently open app tab when possible. Do not open a new tab, new window, or alternate browser unless the user explicitly asks or the current tab is unusable.
+- For logged-in flows, test through the real visible browser UI first. If a login method is only a demo button or not wired to real OAuth, state that clearly before using a dev email login.
+- If browser automation accidentally opens a new tab/window or triggers an app install dialog, explain it briefly and return to the existing app tab before continuing.
