@@ -71,6 +71,131 @@ function getTreeNumberFromBase(base: string, offset: number) {
 }
 
 // ---- Modals ----
+function SelectionUpdateModal({ plot, selectedIds, onClose, onUpdate }: {
+  plot: Plot; selectedIds: Set<string>; onClose: () => void; onUpdate: (changes: Partial<Tree>, batchData?: { name: string; stage: FlowerStage; date: string; note: string } | null) => void
+}) {
+  const [stage, setStage] = useState<FlowerStage>(plot.trees[0]?.stage ?? "vegetative")
+  const [health, setHealth] = useState<Tree["health"]>(plot.trees[0]?.health ?? "good")
+  const [variety, setVariety] = useState<DurianVariety>(plot.trees[0]?.variety ?? "หมอนทอง")
+  const [notes, setNotes] = useState("")
+  const [updateStage, setUpdateStage] = useState(true)
+  const [updateHealth, setUpdateHealth] = useState(false)
+  const [updateVariety, setUpdateVariety] = useState(false)
+  const [updateNotes, setUpdateNotes] = useState(false)
+  const [addBatchToo, setAddBatchToo] = useState(false)
+  const [batchName, setBatchName] = useState(`รุ่นที่ 1`)
+  const [batchDate, setBatchDate] = useState(new Date().toISOString().split('T')[0])
+  const [batchNote, setBatchNote] = useState("")
+  const count = selectedIds.size
+
+  const handleUpdate = () => {
+    const changes: Partial<Tree> = {}
+    if (updateStage) changes.stage = stage
+    if (updateHealth) changes.health = health
+    if (updateVariety) changes.variety = variety
+    if (updateNotes) changes.notes = notes
+    if (Object.keys(changes).length > 0 || addBatchToo) {
+      onUpdate(changes, addBatchToo ? { name: batchName, stage, date: batchDate, note: batchNote } : null)
+    }
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
+      <div className="bg-card border border-border rounded-[2rem] p-6 w-full max-w-[95%] sm:max-w-md shadow-2xl shadow-primary/10 animate-in zoom-in-95 duration-300 max-h-[90dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] flex items-center justify-center">
+              <RefreshCw size={20} className="text-[#146B3E]" />
+            </div>
+            <div>
+              <h3 className="font-black text-lg text-foreground leading-tight">อัปเดตต้นที่เลือก</h3>
+              <p className="text-base text-muted-foreground font-medium">{count} ต้นที่เลือก</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-muted rounded-full transition-colors"><X size={20} className="text-muted-foreground" /></button>
+        </div>
+        <div className="space-y-3">
+          {/* Stage */}
+          <div className={`rounded-2xl p-4 border transition-colors ${updateStage ? "bg-muted/30 border-border/50" : "bg-muted/10 border-border/20 opacity-60"}`}>
+            <label className="flex items-center gap-2 cursor-pointer mb-3">
+              <input type="checkbox" checked={updateStage} onChange={e => setUpdateStage(e.target.checked)} className="w-4 h-4 accent-primary" />
+              <span className="text-sm font-black text-muted-foreground uppercase tracking-widest">ระยะดอก/ผล</span>
+            </label>
+            <select value={stage} onChange={e => setStage(e.target.value as FlowerStage)} disabled={!updateStage}
+              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground text-base font-bold focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50">
+              {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
+            </select>
+          </div>
+          {/* Health */}
+          <div className={`rounded-2xl p-4 border transition-colors ${updateHealth ? "bg-muted/30 border-border/50" : "bg-muted/10 border-border/20 opacity-60"}`}>
+            <label className="flex items-center gap-2 cursor-pointer mb-3">
+              <input type="checkbox" checked={updateHealth} onChange={e => setUpdateHealth(e.target.checked)} className="w-4 h-4 accent-primary" />
+              <span className="text-sm font-black text-muted-foreground uppercase tracking-widest">สุขภาพต้น</span>
+            </label>
+            <div className="flex gap-2">
+              {(["good", "fair", "poor"] as Tree["health"][]).map(h => (
+                <button key={h} disabled={!updateHealth} onClick={() => setHealth(h)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-colors disabled:opacity-50 ${health === h && updateHealth ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}>
+                  {HEALTH_LABELS[h]}
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Variety */}
+          <div className={`rounded-2xl p-4 border transition-colors ${updateVariety ? "bg-muted/30 border-border/50" : "bg-muted/10 border-border/20 opacity-60"}`}>
+            <label className="flex items-center gap-2 cursor-pointer mb-3">
+              <input type="checkbox" checked={updateVariety} onChange={e => setUpdateVariety(e.target.checked)} className="w-4 h-4 accent-primary" />
+              <span className="text-sm font-black text-muted-foreground uppercase tracking-widest">พันธุ์</span>
+            </label>
+            <select value={variety} onChange={e => setVariety(e.target.value as DurianVariety)} disabled={!updateVariety}
+              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground text-base font-bold focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50">
+              {VARIETIES.map(v => <option key={v} value={v}>{v}</option>)}
+            </select>
+          </div>
+          {/* Notes */}
+          <div className={`rounded-2xl p-4 border transition-colors ${updateNotes ? "bg-muted/30 border-border/50" : "bg-muted/10 border-border/20 opacity-60"}`}>
+            <label className="flex items-center gap-2 cursor-pointer mb-3">
+              <input type="checkbox" checked={updateNotes} onChange={e => setUpdateNotes(e.target.checked)} className="w-4 h-4 accent-primary" />
+              <span className="text-sm font-black text-muted-foreground uppercase tracking-widest">หมายเหตุ</span>
+            </label>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} disabled={!updateNotes} rows={2}
+              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+              placeholder="บันทึกเพิ่มเติม..." />
+          </div>
+          {/* Batch */}
+          <div className={`rounded-2xl p-4 border transition-colors ${addBatchToo ? "bg-[#E7F3EC]/60 border-[#B9DCC8]" : "bg-muted/10 border-border/20 opacity-60"}`}>
+            <label className="flex items-center gap-2 cursor-pointer mb-3">
+              <input type="checkbox" checked={addBatchToo} onChange={e => setAddBatchToo(e.target.checked)} className="w-4 h-4 accent-primary" />
+              <span className="text-sm font-black text-muted-foreground uppercase tracking-widest">บันทึกรุ่นดอก/ผลด้วย</span>
+            </label>
+            {addBatchToo && (
+              <div className="space-y-2">
+                <input value={batchName} onChange={e => setBatchName(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="ชื่อรุ่น เช่น รุ่นที่ 1" />
+                <input type="date" value={batchDate} onChange={e => setBatchDate(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                <input value={batchNote} onChange={e => setBatchNote(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="บันทึกเพิ่มเติม (ไม่บังคับ)" />
+                <p className="text-xs text-muted-foreground">ระยะจะใช้ค่าเดียวกับ "ระยะดอก/ผล" ด้านบน</p>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-3 mt-6">
+          <button onClick={onClose} className="flex-1 border border-border rounded-2xl py-4 text-muted-foreground font-bold hover:bg-muted transition-all">ยกเลิก</button>
+          <button onClick={handleUpdate} disabled={!updateStage && !updateHealth && !updateVariety && !updateNotes && !addBatchToo}
+            className="flex-2 bg-primary text-primary-foreground rounded-2xl py-4 font-black text-lg shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-40">
+            <Check size={20} strokeWidth={3} />อัปเดต {count} ต้น
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function BulkUpdateModal({ plot, onClose, onUpdate }: {
   plot: Plot; onClose: () => void; onUpdate: (stage: FlowerStage) => void
 }) {
@@ -90,7 +215,7 @@ function BulkUpdateModal({ plot, onClose, onUpdate }: {
           </div>
           <button onClick={onClose} className="p-2 hover:bg-muted rounded-full transition-colors"><X size={20} className="text-muted-foreground" /></button>
         </div>
-        
+
         <div className="space-y-4">
           <div className="bg-muted/30 rounded-2xl p-4 border border-border/50">
             <label className="text-base font-black text-muted-foreground uppercase tracking-widest mb-2 block">เลือกระยะที่ต้องการเปลี่ยน</label>
@@ -102,7 +227,7 @@ function BulkUpdateModal({ plot, onClose, onUpdate }: {
               {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
             </select>
           </div>
-          
+
           <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
             <div className="shrink-0 w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-amber-700 font-bold text-base">!</div>
             <p className="text-base text-amber-800 leading-relaxed font-medium">
@@ -113,8 +238,8 @@ function BulkUpdateModal({ plot, onClose, onUpdate }: {
 
         <div className="flex gap-3 mt-8">
           <button onClick={onClose} className="flex-1 border border-border rounded-2xl py-4 text-muted-foreground font-bold hover:bg-muted transition-all">ยกเลิก</button>
-          <button 
-            onClick={() => { onUpdate(stage); onClose() }} 
+          <button
+            onClick={() => { onUpdate(stage); onClose() }}
             className="flex-2 bg-primary text-primary-foreground rounded-2xl py-4 font-black text-lg shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all active:scale-95 flex items-center justify-center gap-2"
           >
             <Check size={20} strokeWidth={3} />อัปเดตเลย
@@ -190,11 +315,11 @@ function AllQRModal({ plot, onClose }: { plot: Plot; onClose: () => void }) {
         <div className="bg-card border border-border rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
           <div className="p-5 border-b border-border flex justify-between items-center bg-muted/30 rounded-t-3xl shrink-0 print-hide">
             <div>
-               <h3 className="font-bold text-lg text-foreground flex items-center gap-2"><QrCode size={20} className="text-[#146B3E]" /> พิมพ์ QR Code ทั้งแปลง</h3>
-               <p className="text-base text-muted-foreground mt-0.5">{plot.name} · มีทั้งหมด {plot.trees.length} ต้น</p>
+              <h3 className="font-bold text-lg text-foreground flex items-center gap-2"><QrCode size={20} className="text-[#146B3E]" /> พิมพ์ QR Code ทั้งแปลง</h3>
+              <p className="text-base text-muted-foreground mt-0.5">{plot.name} · มีทั้งหมด {plot.trees.length} ต้น</p>
             </div>
             <button onClick={onClose} className="p-2 bg-white rounded-full text-muted-foreground hover:text-foreground shadow-sm border border-border">
-               <X size={20} />
+              <X size={20} />
             </button>
           </div>
           <div id="qr-print-root" className="flex-1 overflow-y-auto p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 bg-white">
@@ -214,7 +339,7 @@ function AllQRModal({ plot, onClose }: { plot: Plot; onClose: () => void }) {
           </div>
           <div className="p-5 border-t border-border bg-white rounded-b-3xl shrink-0 print-hide">
             <button onClick={() => window.print()} className="w-full bg-primary text-primary-foreground rounded-2xl py-4 font-bold text-base flex items-center justify-center gap-2 shadow-md hover:-translate-y-0.5 transition-all active:scale-95">
-               <Printer size={20} /> สั่งพิมพ์ QR Code
+              <Printer size={20} /> สั่งพิมพ์ QR Code
             </button>
           </div>
         </div>
@@ -331,9 +456,9 @@ function TreeForm({ tree, existingTrees = [], onSave, onSaveMany, onCancel }: {
 }
 
 // ---- Tree Detail View ----
-function TreeDetailView({ 
-  tree, plot, activities, onBack, updateTree, addActivity, 
-  addBatch, addBatchStage, updateBatch, deleteBatch 
+function TreeDetailView({
+  tree, plot, activities, onBack, updateTree, addActivity,
+  addBatch, addBatchStage, updateBatch, deleteBatch
 }: {
   tree: Tree; plot: Plot; activities: any[]; onBack: () => void;
   updateTree: (pId: string, tId: string, changes: Partial<Tree>) => void
@@ -348,9 +473,36 @@ function TreeDetailView({
   const [activeBatchIdForEdit, setActiveBatchIdForEdit] = useState<string | null>(null)
   const [activeStageIdForEdit, setActiveStageIdForEdit] = useState<string | null>(null)
   const [collapsedBatches, setCollapsedBatches] = useState<Record<string, boolean>>({})
-  const [stageForm, setStageForm] = useState<{stage: FlowerStage, date: string, note: string}>({ stage: 'vegetative', date: new Date().toISOString().split('T')[0], note: '' })
+  const [stageForm, setStageForm] = useState<{ stage: FlowerStage, date: string, note: string }>({ stage: 'vegetative', date: new Date().toISOString().split('T')[0], note: '' })
   const [batchForm, setBatchForm] = useState({ name: '', fruitCount: 0 })
+  const [showAddBatchForm, setShowAddBatchForm] = useState(false)
+  const [quickBatchForm, setQuickBatchForm] = useState({
+    name: `รุ่นที่ 1`,
+    stage: 'egg_fish' as FlowerStage,
+    date: new Date().toISOString().split('T')[0],
+    note: '',
+  })
   const treeActivities = activities.filter(a => a.treeId === tree.id)
+
+  const handleQuickAddBatch = () => {
+    const batchName = quickBatchForm.name.trim() || `รุ่นที่ ${(tree.batches?.length || 0) + 1}`
+    const batchId = `b${Date.now()}`
+    const stageId = `s${Date.now() + 1}`
+    const stageDate = new Date(quickBatchForm.date).toISOString()
+    const newBatch = {
+      id: batchId,
+      name: batchName,
+      fruitCount: 0,
+      bloomDate: quickBatchForm.stage === 'bloom' ? stageDate : undefined,
+      stages: [{ id: stageId, stage: quickBatchForm.stage, date: stageDate, note: quickBatchForm.note }],
+    }
+    updateTree(plot.id, tree.id, {
+      stage: quickBatchForm.stage,
+      batches: [...(tree.batches || []), newBatch],
+    })
+    setShowAddBatchForm(false)
+    setQuickBatchForm({ name: `รุ่นที่ ${(tree.batches?.length || 0) + 2}`, stage: 'egg_fish', date: new Date().toISOString().split('T')[0], note: '' })
+  }
 
   const updateStageAndLog = (stage: FlowerStage) => {
     if (tree.stage === stage) return;
@@ -412,31 +564,89 @@ function TreeDetailView({
       ) : (
         <>
 
-          {/* Batch Management (The "Form" requested) */}
+          {/* Batch Management */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
                 รุ่นดอก/ผล ({tree.batches?.length || 0})
               </h4>
-              <button 
-                onClick={() => addBatch(plot.id, tree.id, `รุ่นที่ ${(tree.batches?.length || 0) + 1}`)}
-                className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-xl text-base font-bold shadow-sm hover:opacity-90 transition-opacity"
-              >
-                <Plus size={16} /> เพิ่มรุ่น
-              </button>
+              {!showAddBatchForm && (
+                <button
+                  onClick={() => { setShowAddBatchForm(true); setQuickBatchForm(f => ({ ...f, name: `รุ่นที่ ${(tree.batches?.length || 0) + 1}` })) }}
+                  className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-xl text-base font-bold shadow-sm hover:opacity-90 transition-opacity"
+                >
+                  <Plus size={16} /> เพิ่มรุ่น
+                </button>
+              )}
             </div>
 
-            {(!tree.batches || tree.batches.length === 0) ? (
-              <div className="bg-card border border-dashed border-border rounded-xl p-6 text-center">
-                <p className="text-muted-foreground text-base italic">ยังไม่มีการบันทึกรุ่นดอก/ผล</p>
+            {/* Quick Add Batch Form */}
+            {showAddBatchForm && (
+              <div className="bg-[#E7F3EC] border border-[#B9DCC8] rounded-2xl p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                <p className="text-sm font-black text-[#146B3E] uppercase tracking-wider">บันทึกรุ่นใหม่</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-[#527060] mb-1 block">ชื่อรุ่น</label>
+                    <input
+                      value={quickBatchForm.name}
+                      onChange={e => setQuickBatchForm(f => ({ ...f, name: e.target.value }))}
+                      className="w-full bg-white border border-[#B9DCC8] rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      placeholder="เช่น รุ่นที่ 1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-[#527060] mb-1 block">วันที่บันทึก</label>
+                    <input
+                      type="date"
+                      value={quickBatchForm.date}
+                      onChange={e => setQuickBatchForm(f => ({ ...f, date: e.target.value }))}
+                      className="w-full bg-white border border-[#B9DCC8] rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-[#527060] mb-1 block">ระยะปัจจุบัน</label>
+                  <select
+                    value={quickBatchForm.stage}
+                    onChange={e => setQuickBatchForm(f => ({ ...f, stage: e.target.value as FlowerStage }))}
+                    className="w-full bg-white border border-[#B9DCC8] rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-[#527060] mb-1 block">บันทึกเพิ่มเติม (ไม่บังคับ)</label>
+                  <input
+                    value={quickBatchForm.note}
+                    onChange={e => setQuickBatchForm(f => ({ ...f, note: e.target.value }))}
+                    className="w-full bg-white border border-[#B9DCC8] rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    placeholder="เช่น ออกดอก 80%"
+                  />
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => setShowAddBatchForm(false)} className="flex-1 border border-[#B9DCC8] bg-white rounded-xl py-2.5 text-sm text-[#527060] font-bold hover:bg-muted transition-colors">ยกเลิก</button>
+                  <button onClick={handleQuickAddBatch} className="flex-1 bg-primary text-primary-foreground rounded-xl py-2.5 text-sm font-black hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                    <Plus size={15} /> บันทึกรุ่น
+                  </button>
+                </div>
               </div>
+            )}
+
+            {(!tree.batches || tree.batches.length === 0) && !showAddBatchForm ? (
+              <button
+                onClick={() => { setShowAddBatchForm(true); setQuickBatchForm(f => ({ ...f, name: 'รุ่นที่ 1' })) }}
+                className="w-full bg-card border-2 border-dashed border-[#B9DCC8] rounded-xl p-6 text-center hover:border-primary/50 hover:bg-[#E7F3EC]/40 transition-all group"
+              >
+                <Plus size={24} className="mx-auto mb-2 text-[#B9DCC8] group-hover:text-primary transition-colors" />
+                <p className="text-sm font-bold text-muted-foreground group-hover:text-primary transition-colors">แตะเพื่อบันทึกรุ่นดอก/ผลแรก</p>
+              </button>
             ) : (
               <div className="space-y-4">
                 {tree.batches.map(batch => {
                   const latestStage = batch.stages[0]
                   const bloomDate = batch.bloomDate ? new Date(batch.bloomDate) : null
                   const harvestDate = bloomDate ? new Date(bloomDate.getTime() + 120 * 86400000) : null
-                  
+
                   return (
                     <div key={batch.id} className="bg-card border-l-4 border-l-accent rounded-xl p-4 shadow-sm border border-border relative">
                       {activeBatchIdForEdit === batch.id ? (
@@ -445,12 +655,12 @@ function TreeDetailView({
                           <div className="space-y-3">
                             <div>
                               <label className="text-base font-bold text-muted-foreground uppercase mb-1 block">ชื่อรุ่น</label>
-                              <input value={batchForm.name} onChange={e => setBatchForm({...batchForm, name: e.target.value})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base font-bold" placeholder="เช่น รุ่นที่ 1" />
+                              <input value={batchForm.name} onChange={e => setBatchForm({ ...batchForm, name: e.target.value })} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base font-bold" placeholder="เช่น รุ่นที่ 1" />
                             </div>
                             <div>
                               <label className="text-base font-bold text-muted-foreground uppercase mb-1 block">จำนวนผลผลิต</label>
                               <div className="relative">
-                                <input type="number" value={batchForm.fruitCount} onChange={e => setBatchForm({...batchForm, fruitCount: Number(e.target.value)})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base font-bold pr-10" placeholder="0" />
+                                <input type="number" value={batchForm.fruitCount} onChange={e => setBatchForm({ ...batchForm, fruitCount: Number(e.target.value) })} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base font-bold pr-10" placeholder="0" />
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-base font-bold text-muted-foreground">ลูก</span>
                               </div>
                             </div>
@@ -464,137 +674,137 @@ function TreeDetailView({
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-2">
                             <h5 className="font-bold text-foreground">{batch.name}</h5>
-                            <button onClick={() => { setBatchForm({name: batch.name, fruitCount: batch.fruitCount}); setActiveBatchIdForEdit(batch.id) }} className="text-muted-foreground p-1 hover:text-[#146B3E]"><Pencil size={12} /></button>
+                            <button onClick={() => { setBatchForm({ name: batch.name, fruitCount: batch.fruitCount }); setActiveBatchIdForEdit(batch.id) }} className="text-muted-foreground p-1 hover:text-[#146B3E]"><Pencil size={12} /></button>
                           </div>
                           <div className="flex items-center gap-2">
-                             <button onClick={() => deleteBatch(plot.id, tree.id, batch.id)} className="p-2 bg-muted rounded-xl text-muted-foreground hover:text-destructive">
-                               <Trash2 size={16} />
-                             </button>
-                             <button onClick={() => setCollapsedBatches(prev => ({...prev, [batch.id]: !prev[batch.id]}))} className="p-2 bg-muted rounded-xl text-muted-foreground hover:text-foreground transition-colors">
-                               <ChevronRight size={18} className={`transition-transform duration-200 ${collapsedBatches[batch.id] ? '' : 'rotate-90'}`} />
-                             </button>
+                            <button onClick={() => deleteBatch(plot.id, tree.id, batch.id)} className="p-2 bg-muted rounded-xl text-muted-foreground hover:text-destructive">
+                              <Trash2 size={16} />
+                            </button>
+                            <button onClick={() => setCollapsedBatches(prev => ({ ...prev, [batch.id]: !prev[batch.id] }))} className="p-2 bg-muted rounded-xl text-muted-foreground hover:text-foreground transition-colors">
+                              <ChevronRight size={18} className={`transition-transform duration-200 ${collapsedBatches[batch.id] ? '' : 'rotate-90'}`} />
+                            </button>
                           </div>
                         </div>
                       )}
 
                       <div className={`transition-all duration-300 overflow-hidden ${collapsedBatches[batch.id] ? 'max-h-0 opacity-0' : 'max-h-[2000px] opacity-100'}`}>
 
-                      <div className="flex items-center gap-3 mb-4">
-                        {latestStage && (
-                          <span className={`text-base px-3 py-1 rounded-full font-bold ${STAGE_BADGE[latestStage.stage]}`}>
-                            {FLOWER_STAGE_LABELS[latestStage.stage]}
+                        <div className="flex items-center gap-3 mb-4">
+                          {latestStage && (
+                            <span className={`text-base px-3 py-1 rounded-full font-bold ${STAGE_BADGE[latestStage.stage]}`}>
+                              {FLOWER_STAGE_LABELS[latestStage.stage]}
+                            </span>
+                          )}
+                          <span className="text-base text-muted-foreground flex items-center gap-1">
+                            <CalendarDays size={14} /> {latestStage ? new Date(latestStage.date).toLocaleDateString("th-TH") : '-'}
                           </span>
+                          <span className="text-base text-[#146B3E] font-bold flex items-center gap-1">
+                            <div className="w-3 h-3 rounded-full bg-[#146B3E]" /> {batch.fruitCount} ลูก
+                          </span>
+                        </div>
+
+                        {harvestDate && (
+                          <div className="flex items-center gap-2 text-destructive font-bold text-base mb-4">
+                            <div className="w-4 h-4 rounded-full border-2 border-destructive flex items-center justify-center text-base">!</div>
+                            เก็บเกี่ยว: {harvestDate.toLocaleDateString("th-TH")}
+                          </div>
                         )}
-                        <span className="text-base text-muted-foreground flex items-center gap-1">
-                          <CalendarDays size={14} /> {latestStage ? new Date(latestStage.date).toLocaleDateString("th-TH") : '-'}
-                        </span>
-                        <span className="text-base text-[#146B3E] font-bold flex items-center gap-1">
-                          <div className="w-3 h-3 rounded-full bg-[#146B3E]" /> {batch.fruitCount} ลูก
-                        </span>
-                      </div>
 
-                      {harvestDate && (
-                        <div className="flex items-center gap-2 text-destructive font-bold text-base mb-4">
-                          <div className="w-4 h-4 rounded-full border-2 border-destructive flex items-center justify-center text-base">!</div>
-                          เก็บเกี่ยว: {harvestDate.toLocaleDateString("th-TH")}
-                        </div>
-                      )}
-
-                      {/* Prediction Box */}
-                      {bloomDate && (
-                        <div className="bg-amber-50/50 border border-amber-100 rounded-2xl p-4 flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center text-white">
-                            <CalendarDays size={24} />
-                          </div>
-                          <div>
-                            <p className="text-base text-amber-800 font-bold uppercase">พยากรณ์วันเก็บเกี่ยว (120 วันหลังดอกบาน)</p>
-                            <p className="text-lg font-black text-amber-900">{harvestDate?.toLocaleDateString("th-TH", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Add next stage form */}
-                      {activeBatchIdForStage === batch.id ? (
-                        <div className="bg-muted rounded-2xl p-4 mb-6 space-y-3">
-                          <p className="font-bold text-base">บันทึกระยะใหม่</p>
-                          <select value={stageForm.stage} onChange={e => setStageForm({...stageForm, stage: e.target.value as FlowerStage})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-1 focus:ring-accent">
-                            {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
-                          </select>
-                          <input type="date" value={stageForm.date} onChange={e => setStageForm({...stageForm, date: e.target.value})} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-1 focus:ring-accent" />
-                          <input type="text" value={stageForm.note} onChange={e => setStageForm({...stageForm, note: e.target.value})} placeholder="บันทึกเพิ่มเติม (ตัวเลือก)" className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-1 focus:ring-accent" />
-                          <div className="flex gap-2 pt-2">
-                            <button onClick={() => setActiveBatchIdForStage(null)} className="flex-1 py-2 text-base border border-border rounded-lg text-muted-foreground hover:text-foreground">ยกเลิก</button>
-                            <button onClick={() => {
-                               addBatchStage(plot.id, tree.id, batch.id, { stage: stageForm.stage, date: new Date(stageForm.date).toISOString(), note: stageForm.note });
-                               setActiveBatchIdForStage(null);
-                             }} className="flex-1 py-2 text-base bg-primary text-primary-foreground rounded-lg font-bold shadow-md">บันทึก</button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button 
-                          onClick={() => {
-                            const nextIdx = FLOWER_STAGES.indexOf(latestStage?.stage || 'vegetative') + 1
-                            const nextStage = FLOWER_STAGES[nextIdx] || 'harvest'
-                            setStageForm({ stage: nextStage, date: new Date().toISOString().split('T')[0], note: '' })
-                            setActiveBatchIdForStage(batch.id)
-                          }}
-                          className="w-full border-2 border-dashed border-[#146B3E]/35 rounded-2xl py-3 text-[#146B3E] font-bold flex items-center justify-center gap-2 hover:bg-[#E7F3EC]/70 transition-colors mb-6"
-                        >
-                          <Plus size={18} /> บันทึกระยะถัดไป
-                        </button>
-                      )}
-
-                      {/* Timeline History */}
-                      <div className="space-y-4">
-                        <p className="text-base font-bold text-foreground flex items-center gap-2">
-                           <History size={14} className="text-muted-foreground" /> ประวัติระยะทั้งหมด
-                        </p>
-                        <div className="relative pl-6 space-y-4 border-l-2 border-l-muted ml-2">
-                          {batch.stages.map((st, idx) => (
-                            <div key={st.id} className="relative">
-                              <div className={`absolute -left-[1.65rem] top-1.5 w-3 h-3 rounded-full ${idx === 0 ? 'bg-[#146B3E]' : 'bg-secondary'}`} />
-                              {activeStageIdForEdit === st.id ? (
-                                <div className="bg-white border border-border rounded-2xl p-3 space-y-2">
-                                  <select value={stageForm.stage} onChange={e => setStageForm({...stageForm, stage: e.target.value as FlowerStage})} className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-base">
-                                    {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
-                                  </select>
-                                  <input type="date" value={stageForm.date} onChange={e => setStageForm({...stageForm, date: e.target.value})} className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-base" />
-                                  <input type="text" value={stageForm.note} onChange={e => setStageForm({...stageForm, note: e.target.value})} placeholder="บันทึกเพิ่มเติม" className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-base" />
-                                  <div className="flex gap-2 pt-1">
-                                    <button onClick={() => setActiveStageIdForEdit(null)} className="flex-1 py-1.5 text-base border border-border rounded-lg text-muted-foreground">ยกเลิก</button>
-                                    <button onClick={() => {
-                                       updateBatch(plot.id, tree.id, batch.id, {
-                                         stages: batch.stages.map(s => s.id === st.id ? { ...s, stage: stageForm.stage, date: new Date(stageForm.date).toISOString(), note: stageForm.note } : s)
-                                       });
-                                       setActiveStageIdForEdit(null);
-                                     }} className="flex-1 py-1.5 text-base bg-primary text-primary-foreground rounded-lg">บันทึก</button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="bg-white/50 border border-border rounded-2xl p-3 flex items-center justify-between hover:bg-white transition-colors">
-                                  <div>
-                                    <p className="text-base font-bold text-foreground">{FLOWER_STAGE_LABELS[st.stage]}</p>
-                                    <p className="text-base text-muted-foreground">{new Date(st.date).toLocaleDateString("th-TH")}</p>
-                                    {st.note && <p className="text-base text-muted-foreground mt-1">📝 {st.note}</p>}
-                                  </div>
-                                  <div className="flex gap-1 shrink-0">
-                                    <button onClick={() => {
-                                      setStageForm({ stage: st.stage, date: st.date.split('T')[0], note: st.note || '' });
-                                      setActiveStageIdForEdit(st.id);
-                                    }} className="p-1.5 bg-muted rounded-lg text-muted-foreground hover:text-foreground"><Pencil size={14} /></button>
-                                    <button onClick={() => {
-                                      if (confirm("ลบระยะนี้?")) {
-                                        updateBatch(plot.id, tree.id, batch.id, { stages: batch.stages.filter(s => s.id !== st.id) });
-                                      }
-                                    }} className="p-1.5 bg-muted rounded-lg text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
-                                  </div>
-                                </div>
-                              )}
+                        {/* Prediction Box */}
+                        {bloomDate && (
+                          <div className="bg-amber-50/50 border border-amber-100 rounded-2xl p-4 flex items-center gap-4 mb-4">
+                            <div className="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center text-white">
+                              <CalendarDays size={24} />
                             </div>
-                          ))}
+                            <div>
+                              <p className="text-base text-amber-800 font-bold uppercase">พยากรณ์วันเก็บเกี่ยว (120 วันหลังดอกบาน)</p>
+                              <p className="text-lg font-black text-amber-900">{harvestDate?.toLocaleDateString("th-TH", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Add next stage form */}
+                        {activeBatchIdForStage === batch.id ? (
+                          <div className="bg-muted rounded-2xl p-4 mb-6 space-y-3">
+                            <p className="font-bold text-base">บันทึกระยะใหม่</p>
+                            <select value={stageForm.stage} onChange={e => setStageForm({ ...stageForm, stage: e.target.value as FlowerStage })} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-1 focus:ring-accent">
+                              {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
+                            </select>
+                            <input type="date" value={stageForm.date} onChange={e => setStageForm({ ...stageForm, date: e.target.value })} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-1 focus:ring-accent" />
+                            <input type="text" value={stageForm.note} onChange={e => setStageForm({ ...stageForm, note: e.target.value })} placeholder="บันทึกเพิ่มเติม (ตัวเลือก)" className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-1 focus:ring-accent" />
+                            <div className="flex gap-2 pt-2">
+                              <button onClick={() => setActiveBatchIdForStage(null)} className="flex-1 py-2 text-base border border-border rounded-lg text-muted-foreground hover:text-foreground">ยกเลิก</button>
+                              <button onClick={() => {
+                                addBatchStage(plot.id, tree.id, batch.id, { stage: stageForm.stage, date: new Date(stageForm.date).toISOString(), note: stageForm.note });
+                                setActiveBatchIdForStage(null);
+                              }} className="flex-1 py-2 text-base bg-primary text-primary-foreground rounded-lg font-bold shadow-md">บันทึก</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              const nextIdx = FLOWER_STAGES.indexOf(latestStage?.stage || 'vegetative') + 1
+                              const nextStage = FLOWER_STAGES[nextIdx] || 'harvest'
+                              setStageForm({ stage: nextStage, date: new Date().toISOString().split('T')[0], note: '' })
+                              setActiveBatchIdForStage(batch.id)
+                            }}
+                            className="w-full border-2 border-dashed border-[#146B3E]/35 rounded-2xl py-3 text-[#146B3E] font-bold flex items-center justify-center gap-2 hover:bg-[#E7F3EC]/70 transition-colors mb-6"
+                          >
+                            <Plus size={18} /> บันทึกระยะถัดไป
+                          </button>
+                        )}
+
+                        {/* Timeline History */}
+                        <div className="space-y-4">
+                          <p className="text-base font-bold text-foreground flex items-center gap-2">
+                            <History size={14} className="text-muted-foreground" /> ประวัติระยะทั้งหมด
+                          </p>
+                          <div className="relative pl-6 space-y-4 border-l-2 border-l-muted ml-2">
+                            {batch.stages.map((st, idx) => (
+                              <div key={st.id} className="relative">
+                                <div className={`absolute -left-[1.65rem] top-1.5 w-3 h-3 rounded-full ${idx === 0 ? 'bg-[#146B3E]' : 'bg-secondary'}`} />
+                                {activeStageIdForEdit === st.id ? (
+                                  <div className="bg-white border border-border rounded-2xl p-3 space-y-2">
+                                    <select value={stageForm.stage} onChange={e => setStageForm({ ...stageForm, stage: e.target.value as FlowerStage })} className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-base">
+                                      {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
+                                    </select>
+                                    <input type="date" value={stageForm.date} onChange={e => setStageForm({ ...stageForm, date: e.target.value })} className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-base" />
+                                    <input type="text" value={stageForm.note} onChange={e => setStageForm({ ...stageForm, note: e.target.value })} placeholder="บันทึกเพิ่มเติม" className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-base" />
+                                    <div className="flex gap-2 pt-1">
+                                      <button onClick={() => setActiveStageIdForEdit(null)} className="flex-1 py-1.5 text-base border border-border rounded-lg text-muted-foreground">ยกเลิก</button>
+                                      <button onClick={() => {
+                                        updateBatch(plot.id, tree.id, batch.id, {
+                                          stages: batch.stages.map(s => s.id === st.id ? { ...s, stage: stageForm.stage, date: new Date(stageForm.date).toISOString(), note: stageForm.note } : s)
+                                        });
+                                        setActiveStageIdForEdit(null);
+                                      }} className="flex-1 py-1.5 text-base bg-primary text-primary-foreground rounded-lg">บันทึก</button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="bg-white/50 border border-border rounded-2xl p-3 flex items-center justify-between hover:bg-white transition-colors">
+                                    <div>
+                                      <p className="text-base font-bold text-foreground">{FLOWER_STAGE_LABELS[st.stage]}</p>
+                                      <p className="text-base text-muted-foreground">{new Date(st.date).toLocaleDateString("th-TH")}</p>
+                                      {st.note && <p className="text-base text-muted-foreground mt-1">📝 {st.note}</p>}
+                                    </div>
+                                    <div className="flex gap-1 shrink-0">
+                                      <button onClick={() => {
+                                        setStageForm({ stage: st.stage, date: st.date.split('T')[0], note: st.note || '' });
+                                        setActiveStageIdForEdit(st.id);
+                                      }} className="p-1.5 bg-muted rounded-lg text-muted-foreground hover:text-foreground"><Pencil size={14} /></button>
+                                      <button onClick={() => {
+                                        if (confirm("ลบระยะนี้?")) {
+                                          updateBatch(plot.id, tree.id, batch.id, { stages: batch.stages.filter(s => s.id !== st.id) });
+                                        }
+                                      }} className="p-1.5 bg-muted rounded-lg text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
                     </div>
                   )
                 })}
@@ -603,9 +813,9 @@ function TreeDetailView({
           </div>
 
           <div className="pt-4">
-             <button onClick={onBack} className="w-full bg-primary text-primary-foreground rounded-[2rem] py-5 font-black text-lg shadow-xl shadow-primary/20 flex items-center justify-center gap-3 hover:opacity-90 transition-all">
-                <Check size={24} /> บันทึกข้อมูล
-             </button>
+            <button onClick={onBack} className="w-full bg-primary text-primary-foreground rounded-[2rem] py-5 font-black text-lg shadow-xl shadow-primary/20 flex items-center justify-center gap-3 hover:opacity-90 transition-all">
+              <Check size={24} /> บันทึกข้อมูล
+            </button>
           </div>
         </>
       )}
@@ -613,9 +823,9 @@ function TreeDetailView({
   )
 }
 
-function PlotDetailView({ 
-  plot, activities, onBack, addTree, updateTree, deleteTree, bulkUpdateTrees, updatePlot, deletePlot, 
-  addActivity, addBatch, addBatchStage, updateBatch, deleteBatch 
+function PlotDetailView({
+  plot, activities, onBack, addTree, updateTree, deleteTree, bulkUpdateTrees, updatePlot, deletePlot,
+  addActivity, addBatch, addBatchStage, updateBatch, deleteBatch
 }: {
   plot: Plot; activities: any[]; onBack: () => void
   addTree: (plotId: string, tree: Omit<Tree, "id" | "lastUpdated">) => void
@@ -638,6 +848,30 @@ function PlotDetailView({
   const [showAllQR, setShowAllQR] = useState(false)
   const [editingPlot, setEditingPlot] = useState(false)
   const [plotForm, setPlotForm] = useState({ name: plot.name, area: plot.area, notes: plot.notes ?? "" })
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [showSelectionUpdate, setShowSelectionUpdate] = useState(false)
+
+  const toggleSelectTree = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === plot.trees.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(plot.trees.map(t => t.id)))
+    }
+  }
+
+  const exitSelectMode = () => {
+    setSelectMode(false)
+    setSelectedIds(new Set())
+  }
 
   const selectedTree = plot.trees.find(t => t.id === selectedTreeId)
 
@@ -667,75 +901,93 @@ function PlotDetailView({
       {showBulk && <BulkUpdateModal plot={plot} onClose={() => setShowBulk(false)} onUpdate={s => bulkUpdateTrees(plot.id, s)} />}
       {qrTree && <QRModal tree={qrTree} plot={plot} onClose={() => setQrTree(null)} />}
       {showAllQR && <AllQRModal plot={plot} onClose={() => setShowAllQR(false)} />}
+      {showSelectionUpdate && (
+        <SelectionUpdateModal
+          plot={plot}
+          selectedIds={selectedIds}
+          onClose={() => setShowSelectionUpdate(false)}
+          onUpdate={(changes, batchData) => {
+            selectedIds.forEach(treeId => {
+              if (Object.keys(changes).length > 0) updateTree(plot.id, treeId, changes)
+              if (batchData) {
+                const tree = plot.trees.find(t => t.id === treeId)
+                if (!tree) return
+                const batchId = `b${Date.now()}-${treeId.slice(-4)}`
+                const stageId = `s${Date.now()}-${treeId.slice(-4)}`
+                const stageDate = new Date(batchData.date).toISOString()
+                const newBatch = {
+                  id: batchId,
+                  name: batchData.name,
+                  fruitCount: 0,
+                  bloomDate: batchData.stage === 'bloom' ? stageDate : undefined,
+                  stages: [{ id: stageId, stage: batchData.stage, date: stageDate, note: batchData.note }],
+                }
+                updateTree(plot.id, treeId, { batches: [...(tree.batches || []), newBatch] })
+              }
+            })
+            exitSelectMode()
+          }}
+        />
+      )}
 
       {/* Plot Header */}
-      <div className="flex flex-wrap items-start gap-2 sm:gap-3 pb-4 border-b border-border">
-        <button onClick={onBack} className="p-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors mt-0.5 lg:hidden">
-          <ArrowLeft size={18} />
-        </button>
-        {editingPlot ? (
-          <div className="flex-1 space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                value={plotForm.name}
-                onChange={e => setPlotForm(f => ({ ...f, name: e.target.value }))}
-                className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
-                placeholder="ชื่อแปลง"
-              />
-              <input
-                type="number"
-                value={plotForm.area}
-                onChange={e => setPlotForm(f => ({ ...f, area: Number(e.target.value) }))}
-                className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
-                min={0.5}
-                step={0.5}
-                placeholder="พื้นที่ (ไร่)"
-              />
+      <div className="pb-4 border-b border-border space-y-3">
+        {/* Row 1: back + title + edit/delete */}
+        <div className="flex items-start gap-2">
+          <button onClick={onBack} className="p-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors mt-0.5 lg:hidden shrink-0">
+            <ArrowLeft size={18} />
+          </button>
+          {editingPlot ? (
+            <div className="flex-1 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input value={plotForm.name} onChange={e => setPlotForm(f => ({ ...f, name: e.target.value }))} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground font-bold focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="ชื่อแปลง" />
+                <input type="number" value={plotForm.area} onChange={e => setPlotForm(f => ({ ...f, area: Number(e.target.value) }))} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground font-bold focus:outline-none focus:ring-2 focus:ring-primary/50" min={0.5} step={0.5} placeholder="พื้นที่ (ไร่)" />
+              </div>
+              <input value={plotForm.notes} onChange={e => setPlotForm(f => ({ ...f, notes: e.target.value }))} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="บันทึกเพิ่มเติม" />
+              <div className="flex gap-2">
+                <button onClick={() => setEditingPlot(false)} className="flex-1 border border-border rounded-xl py-2.5 text-muted-foreground font-bold hover:bg-muted/50">ยกเลิก</button>
+                <button onClick={() => { updatePlot(plot.id, plotForm); setEditingPlot(false) }} className="flex-1 bg-primary text-primary-foreground rounded-xl py-2.5 font-bold hover:opacity-90">บันทึก</button>
+              </div>
             </div>
-            <input
-              value={plotForm.notes}
-              onChange={e => setPlotForm(f => ({ ...f, notes: e.target.value }))}
-              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-              placeholder="บันทึกเพิ่มเติม"
-            />
-            <div className="flex gap-2">
-              <button onClick={() => setEditingPlot(false)} className="flex-1 border border-border rounded-xl py-2.5 text-muted-foreground font-bold hover:bg-muted/50">ยกเลิก</button>
-              <button
-                onClick={() => {
-                  updatePlot(plot.id, plotForm)
-                  setEditingPlot(false)
-                }}
-                className="flex-1 bg-primary text-primary-foreground rounded-xl py-2.5 font-bold hover:opacity-90"
-              >
-                บันทึก
+          ) : (
+            <>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-xl font-black text-foreground">{plot.name}</h2>
+                <p className="text-sm text-muted-foreground font-medium mt-0.5 leading-relaxed">{plot.area} ไร่{plot.notes ? ` · ${plot.notes}` : ""}</p>
+              </div>
+              <button onClick={() => { setPlotForm({ name: plot.name, area: plot.area, notes: plot.notes ?? "" }); setEditingPlot(true) }} className="p-2.5 bg-muted text-primary rounded-2xl hover:bg-primary/10 transition-colors shrink-0">
+                <Pencil size={18} />
               </button>
-            </div>
+              <button onClick={() => { if (confirm(`ลบแปลง ${plot.name}? ต้นทุเรียนในแปลงนี้จะถูกลบด้วย`)) deletePlot(plot.id) }} className="p-2.5 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition-colors shrink-0">
+                <Trash2 size={18} />
+              </button>
+            </>
+          )}
+        </div>
+        {/* Row 2: action buttons (only when not editing) */}
+        {!editingPlot && (
+          <div className="flex gap-2">
+            {selectMode ? (
+              <>
+                <button onClick={toggleSelectAll} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border-2 border-[#146B3E] text-[#146B3E] rounded-2xl text-sm font-black hover:bg-[#E7F3EC] transition-all">
+                  {selectedIds.size === plot.trees.length ? "ยกเลิกทั้งหมด" : `เลือกทั้งหมด (${plot.trees.length})`}
+                </button>
+                <button onClick={() => selectedIds.size > 0 && setShowSelectionUpdate(true)} disabled={selectedIds.size === 0} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-[#146B3E] text-white rounded-2xl text-sm font-black hover:bg-[#0F5A34] transition-all shadow-[0_8px_18px_rgba(47,170,98,0.28)] active:scale-95 disabled:opacity-40">
+                  <RefreshCw size={16} strokeWidth={2.8} />{selectedIds.size > 0 ? `อัปเดต ${selectedIds.size} ต้น` : "อัปเดตที่เลือก"}
+                </button>
+                <button onClick={exitSelectMode} className="p-2.5 bg-muted text-muted-foreground rounded-2xl hover:bg-muted/80 transition-colors shrink-0"><X size={18} /></button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => setSelectMode(true)} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-[#146B3E]/40 text-[#146B3E] rounded-2xl text-sm font-black hover:bg-[#E7F3EC] transition-all">
+                  <Check size={15} strokeWidth={3} />เลือกต้น
+                </button>
+                <button onClick={() => setShowBulk(true)} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-[#146B3E] text-white rounded-2xl text-sm font-black hover:bg-[#0F5A34] transition-all shadow-[0_8px_18px_rgba(47,170,98,0.28)] active:scale-95">
+                  <RefreshCw size={16} strokeWidth={2.8} />อัปเดตทั้งแปลง
+                </button>
+              </>
+            )}
           </div>
-        ) : (
-          <>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-xl font-black text-foreground">{plot.name}</h2>
-              <p className="text-base text-muted-foreground font-medium mt-0.5 leading-relaxed">{plot.area} ไร่{plot.notes ? ` · ${plot.notes}` : ""}</p>
-            </div>
-            <button onClick={() => { setPlotForm({ name: plot.name, area: plot.area, notes: plot.notes ?? "" }); setEditingPlot(true) }} className="p-2.5 sm:p-3 bg-muted text-primary rounded-2xl hover:bg-primary/10 transition-colors shrink-0">
-              <Pencil size={18} />
-            </button>
-            <button
-              onClick={() => {
-                if (confirm(`ลบแปลง ${plot.name}? ต้นทุเรียนในแปลงนี้จะถูกลบด้วย`)) {
-                  deletePlot(plot.id)
-                }
-              }}
-              className="p-2.5 sm:p-3 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition-colors shrink-0"
-              title="ลบแปลง"
-            >
-              <Trash2 size={18} />
-            </button>
-            <button onClick={() => setShowBulk(true)}
-              className="flex min-h-11 flex-1 items-center justify-center gap-2 px-3 py-2.5 sm:flex-none sm:px-5 sm:py-3 bg-[#146B3E] text-white rounded-2xl text-sm sm:text-base font-black hover:bg-[#0F5A34] transition-all shadow-[0_10px_22px_rgba(47,170,98,0.32)] active:scale-95 shrink-0 ring-1 ring-white/30">
-              <RefreshCw size={18} strokeWidth={2.8} />อัปเดตทั้งแปลง
-            </button>
-          </>
         )}
       </div>
 
@@ -760,25 +1012,14 @@ function PlotDetailView({
         {addingTree ? (
           <div className="w-full bg-card border border-border rounded-xl p-4 shadow-sm">
             <p className="text-base font-semibold text-foreground mb-3">เพิ่มต้นทุเรียน</p>
-            <TreeForm
-              plotId={plot.id}
-              existingTrees={plot.trees}
-              onSave={d => { addTree(plot.id, d); setAddingTree(false) }}
-              onSaveMany={items => {
-                items.forEach(item => addTree(plot.id, item))
-                setAddingTree(false)
-              }}
-              onCancel={() => setAddingTree(false)}
-            />
+            <TreeForm plotId={plot.id} existingTrees={plot.trees} onSave={d => { addTree(plot.id, d); setAddingTree(false) }} onSaveMany={items => { items.forEach(item => addTree(plot.id, item)); setAddingTree(false) }} onCancel={() => setAddingTree(false)} />
           </div>
         ) : (
           <>
-            <button onClick={() => setAddingTree(true)}
-              className="flex-1 bg-[#E7F3EC] text-[#146B3E] font-black rounded-2xl px-3 py-3 flex items-center justify-center gap-2 text-sm sm:text-base hover:bg-[#D8EEE2] transition-all border border-[#146B3E]/25 shadow-sm">
+            <button onClick={() => setAddingTree(true)} className="flex-1 bg-[#E7F3EC] text-[#146B3E] font-black rounded-2xl px-3 py-3 flex items-center justify-center gap-2 text-sm sm:text-base hover:bg-[#D8EEE2] transition-all border border-[#146B3E]/25 shadow-sm">
               <Plus size={18} strokeWidth={2.5} /> เพิ่มต้นทุเรียน
             </button>
-            <button onClick={() => setShowAllQR(true)}
-              className="min-w-20 px-3 sm:px-5 bg-white text-foreground rounded-2xl flex flex-col items-center justify-center border border-border shadow-sm hover:bg-muted transition-colors">
+            <button onClick={() => setShowAllQR(true)} className="min-w-20 px-3 sm:px-5 bg-white text-foreground rounded-2xl flex flex-col items-center justify-center border border-border shadow-sm hover:bg-muted transition-colors">
               <QrCode size={20} className="mb-1 text-[#146B3E]" />
               <span className="text-xs sm:text-base font-medium leading-none">พิมพ์ QR</span>
             </button>
@@ -798,30 +1039,30 @@ function PlotDetailView({
             {editingTree === tree.id ? (
               <div className="bg-card border border-border rounded-xl p-4">
                 <p className="text-base font-semibold text-foreground mb-3">แก้ไขข้อมูลต้น {tree.treeNumber}</p>
-                <TreeForm
-                  plotId={plot.id}
-                  tree={tree}
-                  onSave={d => { updateTree(plot.id, tree.id, d); setEditingTree(null) }}
-                  onCancel={() => setEditingTree(null)}
-                />
+                <TreeForm plotId={plot.id} tree={tree} onSave={d => { updateTree(plot.id, tree.id, d); setEditingTree(null) }} onCancel={() => setEditingTree(null)} />
               </div>
             ) : (
-              <div onClick={() => setSelectedTreeId(tree.id)} className="bg-card border border-[#B9DCC8] rounded-xl p-2.5 sm:p-3 flex flex-col gap-2 group hover:border-[#146B3E]/55 hover:shadow-md cursor-pointer transition-all h-full relative">
+              <div
+                onClick={() => selectMode ? toggleSelectTree(tree.id) : setSelectedTreeId(tree.id)}
+                className={`bg-card border rounded-xl p-2.5 sm:p-3 flex flex-col gap-2 group cursor-pointer transition-all h-full relative ${selectMode && selectedIds.has(tree.id) ? "border-[#146B3E] border-2 bg-[#E7F3EC]/40 shadow-md" : "border-[#B9DCC8] hover:border-[#146B3E]/55 hover:shadow-md"}`}
+              >
                 <div className="flex items-start justify-between">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#E7F3EC] flex items-center justify-center shrink-0">
-                    <DurianIcon className="h-4 w-4 text-[#146B3E]" />
-                  </div>
-                  <div className="flex gap-0.5 sm:gap-1" onClick={e => e.stopPropagation()}>
-                    <button onClick={() => setQrTree(tree)} className="p-1.5 text-[#527060] hover:text-[#146B3E] rounded-md hover:bg-[#E7F3EC] transition-colors" title="QR Code">
-                      <QrCode size={14} />
-                    </button>
-                    <button onClick={() => setEditingTree(tree.id)} className="p-1.5 text-[#527060] hover:text-[#146B3E] rounded-md hover:bg-[#E7F3EC] transition-colors" title="แก้ไข">
-                      <Pencil size={14} />
-                    </button>
-                    <button onClick={() => deleteTree(plot.id, tree.id)} className="p-1.5 text-muted-foreground hover:text-destructive rounded-md hover:bg-muted transition-colors" title="ลบ">
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                  {selectMode ? (
+                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0 border-2 transition-colors ${selectedIds.has(tree.id) ? "bg-[#146B3E] border-[#146B3E]" : "bg-white border-[#B9DCC8]"}`}>
+                      {selectedIds.has(tree.id) && <Check size={16} className="text-white" strokeWidth={3} />}
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#E7F3EC] flex items-center justify-center shrink-0">
+                      <DurianIcon className="h-4 w-4 text-[#146B3E]" />
+                    </div>
+                  )}
+                  {!selectMode && (
+                    <div className="flex gap-0.5 sm:gap-1" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => setQrTree(tree)} className="p-1.5 text-[#527060] hover:text-[#146B3E] rounded-md hover:bg-[#E7F3EC] transition-colors" title="QR Code"><QrCode size={14} /></button>
+                      <button onClick={() => setEditingTree(tree.id)} className="p-1.5 text-[#527060] hover:text-[#146B3E] rounded-md hover:bg-[#E7F3EC] transition-colors" title="แก้ไข"><Pencil size={14} /></button>
+                      <button onClick={() => deleteTree(plot.id, tree.id)} className="p-1.5 text-muted-foreground hover:text-destructive rounded-md hover:bg-muted transition-colors" title="ลบ"><Trash2 size={14} /></button>
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col gap-0.5 mb-2">
@@ -829,12 +1070,8 @@ function PlotDetailView({
                     <span className="text-xs sm:text-base text-muted-foreground leading-tight truncate">{tree.variety} · {tree.age} ปี</span>
                   </div>
                   <div className="flex flex-wrap gap-1 items-center">
-                    <span className={`text-[11px] sm:text-base px-1.5 py-0.5 rounded-full font-bold leading-tight ${STAGE_BADGE[tree.stage] || "bg-muted text-muted-foreground"}`}>
-                      {FLOWER_STAGE_LABELS[tree.stage]}
-                    </span>
-                    <span className={`text-[11px] sm:text-base px-1.5 py-0.5 rounded-full font-bold leading-tight ${HEALTH_BG[tree.health]}`}>
-                      {HEALTH_LABELS[tree.health]}
-                    </span>
+                    <span className={`text-[11px] sm:text-base px-1.5 py-0.5 rounded-full font-bold leading-tight ${STAGE_BADGE[tree.stage] || "bg-muted text-muted-foreground"}`}>{FLOWER_STAGE_LABELS[tree.stage]}</span>
+                    <span className={`text-[11px] sm:text-base px-1.5 py-0.5 rounded-full font-bold leading-tight ${HEALTH_BG[tree.health]}`}>{HEALTH_LABELS[tree.health]}</span>
                   </div>
                   {tree.notes && <p className="text-xs sm:text-base text-muted-foreground mt-2 italic line-clamp-2">{tree.notes}</p>}
                 </div>
@@ -842,7 +1079,6 @@ function PlotDetailView({
             )}
           </div>
         ))}
-
       </div>
     </div>
   )
@@ -873,20 +1109,20 @@ export default function PlotManagement({
       <div className={`w-full lg:w-64 shrink-0 space-y-3 lg:sticky lg:top-4 ${selectedPlotId ? 'hidden lg:block' : 'block'}`}>
         <div className="relative overflow-hidden rounded-2xl bg-[#146B3E] p-3 text-white shadow-sm">
           <div className="relative flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/12 ring-1 ring-white/15">
-              <DurianIcon className="h-4 w-4 text-[#E7F3EC]" />
+                <DurianIcon className="h-4 w-4 text-[#E7F3EC]" />
+              </div>
+              <div>
+                <h2 className="text-sm font-black leading-tight text-white">แปลงทุเรียน</h2>
+                <p className="text-[11px] font-semibold text-white/58">{data.plots.length} แปลงในสวน</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-sm font-black leading-tight text-white">แปลงทุเรียน</h2>
-              <p className="text-[11px] font-semibold text-white/58">{data.plots.length} แปลงในสวน</p>
-            </div>
-          </div>
-          <button onClick={() => setShowAddPlot(v => !v)}
-            className="flex items-center gap-1 bg-[#E7F3EC] text-[#146B3E] px-2 py-1.5 rounded-xl text-[11px] font-black hover:bg-white transition-colors shadow-sm">
-            {showAddPlot ? <X size={14} /> : <Plus size={14} />}
-            {showAddPlot ? "ยกเลิก" : "เพิ่มแปลง"}
-          </button>
+            <button onClick={() => setShowAddPlot(v => !v)}
+              className="flex items-center gap-1 bg-[#E7F3EC] text-[#146B3E] px-2 py-1.5 rounded-xl text-[11px] font-black hover:bg-white transition-colors shadow-sm">
+              {showAddPlot ? <X size={14} /> : <Plus size={14} />}
+              {showAddPlot ? "ยกเลิก" : "เพิ่มแปลง"}
+            </button>
           </div>
         </div>
 
@@ -929,11 +1165,10 @@ export default function PlotManagement({
                 <button
                   key={plot.id}
                   onClick={() => setSelectedPlotId(plot.id)}
-                  className={`min-h-[5.75rem] rounded-2xl bg-white p-3 text-left transition-all group relative overflow-hidden ${
-                    isActive 
-                      ? "border-2 border-[#146B3E] shadow-sm"
-                      : "border border-[#DDEBE1] hover:border-[#9BC7AA] hover:shadow-sm"
-                  }`}
+                  className={`min-h-[5.75rem] rounded-2xl bg-white p-3 text-left transition-all group relative overflow-hidden ${isActive
+                    ? "border-2 border-[#146B3E] shadow-sm"
+                    : "border border-[#DDEBE1] hover:border-[#9BC7AA] hover:shadow-sm"
+                    }`}
                 >
                   <div className="relative flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">

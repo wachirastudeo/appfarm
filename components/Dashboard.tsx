@@ -1,7 +1,7 @@
 "use client"
-import { useMemo, useState, useEffect } from "react"
+import { useMemo, useState, useEffect, useRef } from "react"
 import { AppData, Task } from "@/lib/store"
-import { 
+import {
   Droplets, Wind, TrendingUp, TrendingDown, ListTodo, Sun, CloudSun, CloudRain, BookOpen,
   Sprout, Zap, Scissors, PackageSearch, ClipboardList, MoreHorizontal, Plus, X, Check, MapPin,
   AlertTriangle
@@ -78,7 +78,110 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
   const [searchResults, setSearchResults] = useState<PlaceResult[]>([])
   const [pendingLocation, setPendingLocation] = useState<FarmLocation | null>(null)
   const [searchingPlace, setSearchingPlace] = useState(false)
-  const recommendedArticles = useMemo(() => data.articles.filter(article => article.status === "published").slice(0, 3), [data.articles])
+  const recommendedArticles = useMemo(() => {
+    const active = data.articles.filter(article => article.status === "published")
+    if (active.length >= 3) return active.slice(0, 3)
+    const defaultSeeds = [
+      { id: "art1", title: "เทคนิคการให้น้ำทุเรียนช่วงเตรียมทำใบ", category: "การดูแลรักษา", image: "/images/articles/article_watering_1778037948644.avif", status: "published" },
+      { id: "art2", title: "รับมือโรคไฟทอปธอร่า หน้าฝนนี้ต้องรอด", category: "โรคและแมลง", image: "/images/articles/article_disease_1778037967060.avif", status: "published" },
+      { id: "art3", title: "แนวโน้มราคาทุเรียนส่งออก ปี 2026", category: "การตลาด", image: "/images/articles/article_market_1778038017547.avif", status: "published" }
+    ]
+    const list = [...active]
+    for (const seed of defaultSeeds) {
+      if (list.length >= 3) break
+      if (!list.some(a => a.title === seed.title)) {
+        list.push(seed as any)
+      }
+    }
+    return list.slice(0, 3)
+  }, [data.articles])
+
+  const carouselArticles = useMemo(() => {
+    return [...recommendedArticles, ...recommendedArticles, ...recommendedArticles]
+  }, [recommendedArticles])
+
+  const articlesScrollRef = useRef<HTMLDivElement | null>(null)
+
+  const normalizeArticlesScroll = (track: HTMLDivElement) => {
+    if (window.innerWidth >= 1024) return
+    const singleSetWidth = track.scrollWidth / 3
+    if (singleSetWidth <= 0) return
+    if (track.scrollLeft >= singleSetWidth * 2) {
+      track.scrollLeft -= singleSetWidth
+    } else if (track.scrollLeft <= 0) {
+      track.scrollLeft += singleSetWidth
+    }
+  }
+
+  useEffect(() => {
+    if (articlesScrollRef.current && window.innerWidth < 1024) {
+      const track = articlesScrollRef.current
+      setTimeout(() => {
+        if (track) {
+          track.scrollLeft = track.scrollWidth / 3
+        }
+      }, 100)
+    }
+  }, [recommendedArticles])
+
+  const isDraggingArticles = useRef(false)
+  const articlesStartX = useRef(0)
+  const articlesScrollLeft = useRef(0)
+  const [articlesDragged, setArticlesDragged] = useState(false)
+
+  const handleArticlesMouseDown = (e: React.MouseEvent) => {
+    if (!articlesScrollRef.current) return
+    isDraggingArticles.current = true
+    articlesStartX.current = e.pageX - articlesScrollRef.current.offsetLeft
+    articlesScrollLeft.current = articlesScrollRef.current.scrollLeft
+    setArticlesDragged(false)
+  }
+
+  const handleArticlesTouchStart = (e: React.TouchEvent) => {
+    if (!articlesScrollRef.current) return
+    isDraggingArticles.current = true
+    articlesStartX.current = e.touches[0].pageX - articlesScrollRef.current.offsetLeft
+    articlesScrollLeft.current = articlesScrollRef.current.scrollLeft
+    setArticlesDragged(false)
+  }
+
+  const handleArticlesMouseLeave = () => {
+    isDraggingArticles.current = false
+  }
+
+  const handleArticlesMouseUp = () => {
+    setTimeout(() => {
+      isDraggingArticles.current = false
+    }, 50)
+  }
+
+  const handleArticlesTouchEnd = () => {
+    setTimeout(() => {
+      isDraggingArticles.current = false
+    }, 50)
+  }
+
+  const handleArticlesMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingArticles.current || !articlesScrollRef.current) return
+    e.preventDefault()
+    const x = e.pageX - articlesScrollRef.current.offsetLeft
+    const walk = (x - articlesStartX.current) * 1.5
+    if (Math.abs(x - articlesStartX.current) > 5) {
+      setArticlesDragged(true)
+    }
+    articlesScrollRef.current.scrollLeft = articlesScrollLeft.current - walk
+  }
+
+  const handleArticlesTouchMove = (e: React.TouchEvent) => {
+    if (!isDraggingArticles.current || !articlesScrollRef.current) return
+    const x = e.touches[0].pageX - articlesScrollRef.current.offsetLeft
+    const walk = (x - articlesStartX.current) * 1.5
+    if (Math.abs(x - articlesStartX.current) > 5) {
+      setArticlesDragged(true)
+    }
+    articlesScrollRef.current.scrollLeft = articlesScrollLeft.current - walk
+  }
+
   const weatherLoading = weather.condition === "กำลังโหลด..."
 
   // Memoize loc so the object reference only changes when lat/lon actually change
@@ -142,7 +245,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
         setWeather(w => ({ ...w, condition: "ไม่สามารถโหลดได้" }))
         setForecastAlert(null)
       })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [farmLocation])
   const totalTrees = useMemo(() => data.plots.reduce((s, p) => s + p.trees.length, 0), [data])
   const totalArea = useMemo(() => data.plots.reduce((s, p) => s + p.area, 0), [data])
@@ -341,13 +444,12 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <p className="text-xs font-black uppercase tracking-wider text-white/78">พยากรณ์ล่วงหน้า 5 วัน</p>
                   <span
-                    className={`rounded-full px-2 py-1 text-[10px] font-black ring-1 ${
-                      forecastAlert.level === "storm"
-                        ? "bg-rose-50 text-rose-700 ring-rose-100"
-                        : forecastAlert.level === "rain"
-                          ? "bg-amber-50 text-amber-800 ring-amber-100"
-                          : "bg-emerald-50 text-emerald-800 ring-emerald-100"
-                    }`}
+                    className={`rounded-full px-2 py-1 text-[10px] font-black ring-1 ${forecastAlert.level === "storm"
+                      ? "bg-rose-50 text-rose-700 ring-rose-100"
+                      : forecastAlert.level === "rain"
+                        ? "bg-amber-50 text-amber-800 ring-amber-100"
+                        : "bg-emerald-50 text-emerald-800 ring-emerald-100"
+                      }`}
                   >
                     {forecastAlert.label}
                   </span>
@@ -424,9 +526,8 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
                     <button
                       key={`${result.lat}-${result.lon}-${result.display_name}`}
                       onClick={() => selectPlace(result)}
-                      className={`flex w-full items-start gap-2 border-b border-border/60 px-3 py-3 text-left last:border-b-0 transition-colors ${
-                        isSelected ? "bg-[#E7F3EC] text-[#146B3E]" : "hover:bg-muted/60"
-                      }`}
+                      className={`flex w-full items-start gap-2 border-b border-border/60 px-3 py-3 text-left last:border-b-0 transition-colors ${isSelected ? "bg-[#E7F3EC] text-[#146B3E]" : "hover:bg-muted/60"
+                        }`}
                     >
                       <MapPin size={16} className="mt-0.5 shrink-0" />
                       <div className="min-w-0">
@@ -489,9 +590,8 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowAddTask(v => !v)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-semibold transition-all ${
-                    showAddTask ? "bg-amber-100 text-amber-700" : "bg-[#E7F3EC] text-[#146B3E] hover:bg-[#D8EEE2]"
-                  }`}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-semibold transition-all ${showAddTask ? "bg-amber-100 text-amber-700" : "bg-[#E7F3EC] text-[#146B3E] hover:bg-[#D8EEE2]"
+                    }`}
                 >
                   {showAddTask ? <X size={14} /> : <Plus size={14} />}
                   {showAddTask ? "ยกเลิก" : "เพิ่ม"}
@@ -577,7 +677,10 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
                 >
                   <Plus size={14} /> บันทึก
                 </button>
-                <span className="text-sm text-primary font-medium">ดูทั้งหมด</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onNavigate?.("operations") }}
+                  className="text-sm text-primary font-medium hover:underline"
+                >ดูทั้งหมด</button>
               </div>
             </div>
             {recentActivities.length > 0 ? (
@@ -624,7 +727,10 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
               >
                 <Plus size={14} /> บันทึก
               </button>
-              <span className="text-sm text-primary font-medium">ดูทั้งหมด</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); onNavigate?.("operations") }}
+                className="text-sm text-primary font-medium hover:underline"
+              >ดูทั้งหมด</button>
             </div>
           </div>
           {recentActivities.length > 0 ? (
@@ -654,23 +760,41 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       </div>
 
       {/* Recommended Articles */}
-      <div className="space-y-3">
+      <div className="space-y-3 w-full overflow-hidden">
         <div className="flex items-center justify-between rounded-2xl bg-[#146B3E] px-4 py-3 text-white shadow-[0_12px_30px_rgba(15,59,37,0.16)]">
           <h3 className="font-bold flex items-center gap-2">
             <span className="rounded-lg bg-white/12 p-1.5"><BookOpen size={18} className="text-[#E7F3EC]" /></span> บทความแนะนำ
           </h3>
           <button onClick={() => onNavigate?.("articles")} className="text-sm text-[#E7F3EC] font-medium hover:text-white">ดูทั้งหมด</button>
         </div>
-        
+
         {/* Horizontal scroll on mobile, 3-col grid on desktop */}
-        <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0">
-          {recommendedArticles.map(article => (
+        <div 
+          ref={articlesScrollRef}
+          onScroll={e => normalizeArticlesScroll(e.currentTarget)}
+          onMouseDown={handleArticlesMouseDown}
+          onMouseMove={handleArticlesMouseMove}
+          onMouseUp={handleArticlesMouseUp}
+          onMouseLeave={handleArticlesMouseLeave}
+          onTouchStart={handleArticlesTouchStart}
+          onTouchMove={handleArticlesTouchMove}
+          onTouchEnd={handleArticlesTouchEnd}
+          className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0 select-none cursor-grab active:cursor-grabbing"
+        >
+          {carouselArticles.map((article, index) => (
             <div
-              key={article.id}
-              onClick={() => onOpenArticle?.(article.id) ?? onNavigate?.("articles")}
-              className="flex-shrink-0 w-[260px] snap-start lg:w-auto orchard-card orchard-card-hover rounded-xl overflow-hidden cursor-pointer group"
+              key={`${article.id}-${index}`}
+              onClick={(e) => {
+                if (articlesDragged) {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  return
+                }
+                onOpenArticle?.(article.id) ?? onNavigate?.("articles")
+              }}
+              className={`flex-shrink-0 w-[260px] snap-start lg:w-auto orchard-card orchard-card-hover rounded-xl overflow-hidden cursor-pointer group ${index >= 3 ? 'lg:hidden' : ''}`}
             >
-              <div className="relative h-32 lg:h-36 overflow-hidden">
+              <div className="relative h-32 lg:h-36 overflow-hidden pointer-events-none">
                 <Image
                   src={article.image}
                   alt={article.title}
@@ -681,7 +805,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
                   <span className="text-xs text-primary font-semibold">{article.category}</span>
                 </div>
               </div>
-              <div className="p-3">
+              <div className="p-3 pointer-events-none">
                 <h4 className="font-semibold text-sm text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">{article.title}</h4>
               </div>
             </div>

@@ -58,32 +58,47 @@ function TikTokIcon({ className }: { className?: string }) {
 
 function AppFooter() {
   const socialLinks = [
-    { label: "Facebook", icon: FacebookIcon },
-    { label: "LINE", icon: LineIcon },
-    { label: "TikTok", icon: TikTokIcon },
+    { label: "Facebook", icon: FacebookIcon, href: "https://facebook.com" },
+    { label: "LINE", icon: LineIcon, href: "https://line.me" },
+    { label: "TikTok", icon: TikTokIcon, href: "https://tiktok.com" },
   ]
 
   return (
-    <footer className="mt-4 flex min-h-14 items-center justify-center border-t border-border/80 bg-background/95 px-2 py-2 text-center">
-      <div className="flex min-w-0 items-center justify-center gap-1.5 text-[11px] font-bold text-muted-foreground sm:gap-2 sm:text-sm">
-        <span className="min-w-0 truncate">เครดิตผู้จัดทำ Wachira Studio</span>
-        <a
-          href="mailto:wachirastudeo@gmail.com"
-          className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-2 py-1 text-primary shadow-sm ring-1 ring-border transition-colors hover:bg-[#E7F3EC] sm:gap-1.5 sm:px-2.5 sm:py-1.5"
-        >
-          <Mail size={14} />
-          <span className="hidden min-[420px]:inline">wachirastudeo@gmail.com</span>
-        </a>
-        {socialLinks.map(({ label, icon: Icon }) => (
-          <span
-            key={label}
-            title={label}
-            aria-label={label}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#146B3E] text-white shadow-sm ring-1 ring-[#146B3E]/10 sm:h-8 sm:w-8"
+    <footer className="mt-8 border-t border-[#B9DCC8]/40 bg-[#F4F9F6]/80 px-4 py-6 text-center backdrop-blur-sm sm:py-8">
+      <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4">
+        {/* Left Side: Credits */}
+        <div className="text-center md:text-left">
+          <p className="text-xs font-black text-[#146B3E] tracking-tight">
+            Wachira Studio • ระบบจัดการสวนทุเรียนอัจฉริยะ
+          </p>
+        </div>
+
+        {/* Right Side: Mail & Socials */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="mailto:wachirastudeo@gmail.com"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-xs font-extrabold text-[#146B3E] shadow-sm ring-1 ring-[#B9DCC8]/60 transition-all hover:bg-[#E7F3EC] hover:ring-[#146B3E]/30 active:scale-95"
           >
-            <Icon className="h-4 w-4" />
-          </span>
-        ))}
+            <Mail size={14} className="text-[#146B3E]" />
+            <span>wachirastudeo@gmail.com</span>
+          </a>
+          
+          <div className="flex items-center gap-2">
+            {socialLinks.map(({ label, icon: Icon, href }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={label}
+                aria-label={label}
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#146B3E] text-white shadow-sm ring-1 ring-[#146B3E]/10 transition-all hover:bg-[#0F5A34] hover:scale-105 active:scale-95"
+              >
+                <Icon className="h-4 w-4" />
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
     </footer>
   )
@@ -332,12 +347,12 @@ function GuestHome({
             ดูบทความทั้งหมด <ArrowRight size={16} />
           </button>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide sm:grid sm:grid-cols-2 lg:grid-cols-3 -mx-4 px-4 sm:mx-0 sm:px-0">
           {featuredArticles.map(article => (
             <button
               key={article.id}
               onClick={() => onReadArticles(article.id)}
-              className="group overflow-hidden rounded-xl border border-border bg-card text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              className="group shrink-0 w-[240px] sm:w-auto overflow-hidden rounded-xl border border-border bg-card text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
             >
               <div className="h-36 overflow-hidden">
                 <img src={article.image} alt={article.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
@@ -662,11 +677,11 @@ export default function AppShell() {
         </nav>
 
         {/* Main Content — full width, no extra card */}
-        <main className="flex-1 overflow-y-auto pb-28 lg:pb-0 bg-transparent">
+        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0 bg-transparent">
           <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-6">
             {renderContent()}
-            <AppFooter />
           </div>
+          <AppFooter />
         </main>
       </div>
 
