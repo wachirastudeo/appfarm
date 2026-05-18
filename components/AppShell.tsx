@@ -8,7 +8,7 @@ import Finance from "./Finance"
 import Articles from "./Articles"
 import AdminPanel from "./AdminPanel"
 import type { AppUser, Article, Product } from "@/lib/store"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, Lock, ArrowRight, Sparkles, CheckCircle2, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, Lock, ArrowRight, Sparkles, CheckCircle2, ExternalLink, ChevronLeft, ChevronRight, Mail } from "lucide-react"
 import Settings from "./Settings"
 import AuthModal from "./AuthModal"
 import ProfileModal from "./ProfileModal"
@@ -25,6 +25,63 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 ]
 
 const MOBILE_TABS = TABS.slice(0, 4) // Show only 4 tabs on mobile
+
+function FacebookIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+      <path d="M14.2 8.4V6.9c0-.7.5-1.1 1.2-1.1h1.4V3.4c-.7-.1-1.4-.2-2.1-.2-2.2 0-3.7 1.3-3.7 3.8v1.4H8.6V11H11v9.8h3.1V11h2.3l.4-2.6h-2.6Z" />
+    </svg>
+  )
+}
+
+function LineIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+      <path d="M12 3.4c-5 0-9 3.2-9 7.2 0 3.6 3.2 6.6 7.5 7.1.3.1.7.2.8.5.1.3.1.8 0 1.1l-.1.8c0 .2-.1.9.8.5.9-.4 4.7-2.8 6.5-4.8 1.2-1.3 1.7-2.6 1.7-4.1C21 6.6 17 3.4 12 3.4Zm-3.5 9.8H6.3V8.4h1.1v3.8h1.1v1Zm2 0H9.4V8.4h1.1v4.8Zm4.8 0h-1.1l-2-2.7v2.7h-1.1V8.4h1.1l2 2.7V8.4h1.1v4.8Zm3.3-3.8h-1.7v.8h1.5v1h-1.5v1h1.7v1h-2.8V8.4h2.8v1Z" />
+    </svg>
+  )
+}
+
+function TikTokIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+      <path d="M16 3.2c.3 2 1.5 3.4 3.5 3.6v3c-1.2 0-2.4-.4-3.5-1.1v5.5c0 3-2 5.2-5 5.2-2.8 0-5-2.1-5-4.9s2.2-4.9 5-4.9c.3 0 .6 0 .9.1v3.1c-.3-.1-.6-.2-.9-.2-1.1 0-2 .8-2 1.9s.9 1.9 2 1.9 2-.8 2-2.2v-11h3Z" />
+    </svg>
+  )
+}
+
+function AppFooter() {
+  const socialLinks = [
+    { label: "Facebook", icon: FacebookIcon },
+    { label: "LINE", icon: LineIcon },
+    { label: "TikTok", icon: TikTokIcon },
+  ]
+
+  return (
+    <footer className="sticky bottom-20 z-10 mt-4 border-t border-border/80 bg-background/95 px-2 py-1.5 text-center backdrop-blur-md lg:bottom-0">
+      <div className="flex min-w-0 items-center justify-center gap-1.5 text-[11px] font-bold text-muted-foreground sm:gap-2 sm:text-sm">
+        <span className="min-w-0 truncate">เครดิตผู้จัดทำ Wachira Studio</span>
+        <a
+          href="mailto:wachirastudeo@gmail.com"
+          className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-2 py-1 text-primary shadow-sm ring-1 ring-border transition-colors hover:bg-[#E7F3EC] sm:gap-1.5 sm:px-2.5 sm:py-1.5"
+        >
+          <Mail size={14} />
+          <span className="hidden min-[420px]:inline">wachirastudeo@gmail.com</span>
+        </a>
+        {socialLinks.map(({ label, icon: Icon }) => (
+          <span
+            key={label}
+            title={label}
+            aria-label={label}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#146B3E] text-white shadow-sm ring-1 ring-[#146B3E]/10 sm:h-8 sm:w-8"
+          >
+            <Icon className="h-4 w-4" />
+          </span>
+        ))}
+      </div>
+    </footer>
+  )
+}
 
 function GuestHome({
   articles,
@@ -124,7 +181,7 @@ function GuestHome({
                 <ArrowRight size={18} />
               </button>
               <button
-                onClick={onReadArticles}
+                onClick={() => onReadArticles()}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/14 px-5 py-3 text-base font-black text-white ring-1 ring-white/22 transition-colors hover:bg-white/22"
               >
                 อ่านบทความฟรี
@@ -229,7 +286,7 @@ function GuestHome({
             <h2 className="text-2xl font-black text-foreground">บทความแนะนำ อ่านได้ฟรี</h2>
             <p className="text-sm font-bold text-muted-foreground">เริ่มจากความรู้เรื่องน้ำ โรค ปุ๋ย ดอก และตลาดทุเรียน</p>
           </div>
-          <button onClick={onReadArticles} className="inline-flex items-center gap-2 text-sm font-black text-primary hover:underline">
+          <button onClick={() => onReadArticles()} className="inline-flex items-center gap-2 text-sm font-black text-primary hover:underline">
             ดูบทความทั้งหมด <ArrowRight size={16} />
           </button>
         </div>
@@ -540,6 +597,7 @@ export default function AppShell() {
         <main className="flex-1 overflow-y-auto pb-28 lg:pb-6 bg-transparent">
           <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-6">
             {renderContent()}
+            <AppFooter />
           </div>
         </main>
       </div>

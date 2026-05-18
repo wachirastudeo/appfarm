@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import type { AppUser, Article, NewUserInput, Product, SiteSettings } from "@/lib/store"
+import { appRuntimeConfig, getDataModeLabel, isSupabaseConfigured } from "@/lib/runtime-config"
 import { BookOpen, Edit3, Image, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users } from "lucide-react"
 
 interface Props {
@@ -235,6 +236,7 @@ export default function AdminPanel({
             </div>
           </div>
 
+          <div className="space-y-4">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="mb-4 flex items-center gap-2">
               <Image className="text-primary" size={20} />
@@ -251,6 +253,28 @@ export default function AdminPanel({
                 <p className="text-sm font-semibold uppercase tracking-widest text-white/70">{settingsDraft.tagline || "Smart Orchard"}</p>
               </div>
             </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <Shield className="text-primary" size={20} />
+              <h3 className="text-lg font-black">โหมดข้อมูล</h3>
+            </div>
+            <div className="grid gap-3 text-sm font-bold">
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-3 py-2">
+                <span className="text-muted-foreground">ใช้งานตอนนี้</span>
+                <span className="text-foreground">{getDataModeLabel(appRuntimeConfig.dataMode)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-3 py-2">
+                <span className="text-muted-foreground">Supabase env</span>
+                <span className={isSupabaseConfigured ? "text-primary" : "text-red-600"}>
+                  {isSupabaseConfigured ? "พร้อม" : "ยังไม่พร้อม"}
+                </span>
+              </div>
+              <p className="text-xs font-semibold leading-6 text-muted-foreground">
+                สลับโหมดด้วย `NEXT_PUBLIC_APP_DATA_MODE=local` หรือ `NEXT_PUBLIC_APP_DATA_MODE=supabase` ใน `.env.local` และบน server จริง
+              </p>
+            </div>
+          </div>
           </div>
         </section>
       )}
