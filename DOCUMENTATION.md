@@ -42,46 +42,40 @@ Global stylesheet definitions.
 ## Styling & Theme System
 
 ### CSS Variables
-All styling is controlled through CSS variables defined in `app/globals.css`:
+All styling is controlled through CSS variables defined in `app/globals.css` with adaptive next-themes mapping:
 
-**Colors:**
-- `--background`: `#fafbf8` (clean warm white)
-- `--foreground`: `#1a2e1a` (deep forest green)
-- `--primary`: `#1a3320` (deep forest green)
-- `--secondary`: `#4c6a54` (muted forest green)
-- `--accent`: `#1a3320` (deep forest green)
-- `--destructive`: `#dc2626` (red)
-- `--border`: `#d4e0d4` (subtle border)
-- `--ring`: `#1a3320` (focus outline)
+**Light Mode Colors:**
+- `--background`: `#F2F8F4` (soft outdoor glare-reducing mint white)
+- `--foreground`: `#143422` (deep forest green text)
+- `--card`: `#ffffff` (crisp white panel)
+- `--primary`: `#146B3E` (lush cultivation forest green)
+- `--secondary`: `#54745f` (subdued olive-green)
+- `--muted`: `#E7F3EC` (light sage)
+- `--border`: `#c9dacd` (subtle mint border lines)
 
-**Sidebar Colors:**
-- `--sidebar`: `#f5f8f3` background
-- `--sidebar-primary`: `#1a3320` for active states
-- `--sidebar-accent`: `#e8f0e6` light background
-- `--sidebar-border`: `#d4e0d4` borders
+**Dark Mode Colors (`.dark`):**
+- `--background`: `#0F1F17` (deep dark nature green)
+- `--foreground`: `#EAF6ED` (high-contrast off-white green text)
+- `--card`: `#14291E` (deep forest dark green cards)
+- `--primary`: `#72C08A` (mint accent highlight green)
+- `--secondary`: `#375B43` (muted night olive)
+- `--muted`: `#1D3A29` (subtle dark green highlighting)
+- `--border`: `#31533D` (dark green borders)
 
-**Chart Colors:**
-- `--chart-1`: `#1a3320` (Deep green)
-- `--chart-2`: `#4c6a54` (Muted green)
-- `--chart-3`: `#1a2e1a` (Dark green-black)
-- `--chart-4`: `#7cb87c` (Light green)
-- `--chart-5`: `#eab308` (Amber/Yellow)
+**Sidebar Theme Variables:**
+- Light: `--sidebar`: `#146B3E`, `--sidebar-foreground`: `#eaf6ed`, `--sidebar-accent`: `#0F5A34`.
+- Dark: `--sidebar`: `#102619`, `--sidebar-foreground`: `#EAF6ED`, `--sidebar-accent`: `#1D3A29`.
 
-**Radius:**
-- `--radius`: `0.75rem` (12px base radius for a modern, friendly feel)
-- **Premium Radius**: `2.5rem` used for large detail containers in Plot Management.
+### Typography & Readability Scale
+Designed specifically for agricultural operators working in unpredictable outdoor light conditions:
+- **Base Readable Scale**: Desktop starts at **20px** (`1.25rem`) base size to prevent eye fatigue.
+- **Custom font-sizes**: XS (`18px`), SM (`19px`), Base (`20px`), LG (`22px`), XL (`24px`), XXL (`28px`), 3XL (`32px`), 4XL (`36px`), 5XL (`40px`).
+- **Font Stack**: Leverages native Thai legibility optimizations combined with Geist and Inter.
 
-### Theme Implementation
-- Light mode is the default with warm, nature-inspired colors
-- Dark mode support available via next-themes
-- All colors use OKLCH color space for better color consistency
-- CSS variables are defined at `:root` level for easy customization
-
-### Tailwind CSS Integration
-- Tailwind CSS processes all component styles
-- Theme tokens are mapped to Tailwind color utilities
-- PostCSS handles CSS variable injection and processing
-- Custom utilities available: `scrollbar-hide`, `safe-area-bottom`
+### Progressive Web App (PWA) & Skeletons
+- Standard `manifest.webmanifest` assets located in `/public`.
+- Standalone PWA installation handling prompts mapped to UI modal cues.
+- Seamless CSS skeleton pulsing layouts implemented via custom Tailwind animations to buffer latency in remote field connections.
 
 ## Core Modules
 
@@ -92,6 +86,8 @@ Handles creation and tracking of orchard plots. Features:
 - **Tree Lifecycle**: Tracking of flower stages (vegetative to harvest) with batch-level fruit counting.
 - **Harvest Prediction**: Automatic calculation of harvest dates based on bloom data (120-day cycle).
 - **QR Code Integration**: Support for individual and batch QR code generation for field tracking.
+- **Plot Deletion**: Delete plots easily with custom dialog safety confirmations to avoid accidental loss.
+- **Bulk Tree Addition**: Built-in tree numbering generators enabling automated addition of sequential trees (e.g. A-001 to A-010) in a single action.
 
 ### 2. Activity Logging (`ActivityLog.tsx`)
 Rapid data entry module designed for field use. Features:
@@ -125,12 +121,20 @@ Educational content repository for orchard management. Features:
 - No results handling with helpful empty state
 
 ### 6. Dashboard (`Dashboard.tsx`)
-Overview screen displaying:
+High-visibility main dashboard screen displaying:
+- **Personalized Greetings**: Custom greetings welcoming users based on app state profile configurations.
+- **Farm Location Manager**: In-app farm coordination editor utilizing the OpenStreetMap Nominatim API for instant place lookups.
+- **5-Day Weather Forecasts**: Real-time daily weather forecasts fetching from the Open-Meteo API with loading skeletons and custom warnings.
 - Summary of trees and plots
 - Recent activities
 - Upcoming tasks
 - Financial summary
-- Weather information and relevant agriculture alerts
+
+### 7. Profile Customization (`ProfileModal.tsx`)
+Personalized user profile card allowing:
+- **Avatar Uploads**: Live local avatar selection and crop preview displaying dynamic changes immediately.
+- **Name Customization**: Easy inline name updates saving to client state immediately.
+- **Security Dashboard**: Visual readout indicating roles (admin/user) and account status logs.
 
 ## Development Workflows
 
