@@ -40,8 +40,8 @@ export default function Articles({ articles, products, initialArticleId, initial
     }
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
-      result = result.filter(article => 
-        article.title.toLowerCase().includes(term) || 
+      result = result.filter(article =>
+        article.title.toLowerCase().includes(term) ||
         article.category.toLowerCase().includes(term)
       )
     }
@@ -53,7 +53,7 @@ export default function Articles({ articles, products, initialArticleId, initial
     return (
       <div className="animate-in fade-in duration-500 pb-20">
         <div className="flex items-center justify-between gap-2 mb-6 sm:mb-8 sticky top-0 bg-background/80 backdrop-blur-md py-3 sm:py-4 z-10 border-b border-border/50">
-          <button 
+          <button
             onClick={() => setSelectedArticle(null)}
             className="flex items-center gap-2 text-base sm:text-lg font-black text-primary hover:translate-x-[-4px] transition-transform"
           >
@@ -83,10 +83,10 @@ export default function Articles({ articles, products, initialArticleId, initial
           </div>
 
           <div className="prose prose-lg max-w-none px-2 sm:px-6 lg:px-0">
-             <div className="text-base lg:text-lg leading-relaxed text-foreground/80 whitespace-pre-wrap">
-                {selectedArticle.content}
-             </div>
-             {selectedArticle.affiliateUrl && (
+            <div className="text-base lg:text-lg leading-relaxed text-foreground/80 whitespace-pre-wrap">
+              {selectedArticle.content}
+            </div>
+            {selectedArticle.affiliateUrl && (
               <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
                 <p className="text-sm font-black text-primary">ปุ๋ยและยาแนะนำ</p>
                 <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -102,7 +102,7 @@ export default function Articles({ articles, products, initialArticleId, initial
                   </a>
                 </div>
               </div>
-             )}
+            )}
           </div>
         </div>
       </div>
@@ -118,38 +118,36 @@ export default function Articles({ articles, products, initialArticleId, initial
           <p className="text-base text-muted-foreground font-bold">สาระน่ารู้เพื่อสวนของคุณ</p>
         </div>
         {activeView === "articles" && (
-        <div className="relative w-full md:max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={24} />
-          <input 
-            type="text"
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            placeholder="ค้นหาเทคนิค โรคพืช ปุ๋ย..." 
-            className="w-full bg-card border-2 border-border rounded-2xl pl-12 pr-4 py-3 sm:py-3.5 text-base sm:text-lg font-bold focus:outline-none focus:border-primary shadow-sm hover:shadow-md transition-all"
-          />
-          {searchTerm && (
-            <button onClick={() => setSearchTerm("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-              <X size={20} />
-            </button>
-          )}
-        </div>
+          <div className="relative w-full md:max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={24} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="ค้นหาเทคนิค โรคพืช ปุ๋ย..."
+              className="w-full bg-card border-2 border-border rounded-2xl pl-12 pr-4 py-3 sm:py-3.5 text-base sm:text-lg font-bold focus:outline-none focus:border-primary shadow-sm hover:shadow-md transition-all"
+            />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <X size={20} />
+              </button>
+            )}
+          </div>
         )}
       </div>
 
       <div className="flex w-full gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm sm:w-fit">
         <button
           onClick={() => setActiveView("articles")}
-          className={`flex-1 rounded-xl px-4 py-2 text-sm font-black transition-colors sm:flex-none ${
-            activeView === "articles" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          }`}
+          className={`flex-1 rounded-xl px-4 py-2 text-sm font-black transition-colors sm:flex-none ${activeView === "articles" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
         >
           บทความ
         </button>
         <button
           onClick={() => setActiveView("products")}
-          className={`flex-1 rounded-xl px-4 py-2 text-sm font-black transition-colors sm:flex-none ${
-            activeView === "products" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          }`}
+          className={`flex-1 rounded-xl px-4 py-2 text-sm font-black transition-colors sm:flex-none ${activeView === "products" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
         >
           ปุ๋ยและยา
         </button>
@@ -158,53 +156,52 @@ export default function Articles({ articles, products, initialArticleId, initial
       {activeView === "products" && <Products products={products} compact />}
 
       {activeView === "articles" && (
-      <>
+        <>
 
-      {/* Categories Chips */}
-      <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-        {categories.map(c => (
-          <button 
-            key={c} 
-            onClick={() => setActiveCategory(c)}
-            className={`shrink-0 px-4 sm:px-6 py-2 rounded-full text-sm sm:text-base font-black transition-all ${
-              activeCategory === c 
-              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
-              : "bg-card border border-border text-muted-foreground hover:border-primary/40 hover:text-primary"
-            }`}
-          >
-            {c}
-          </button>
-        ))}
-      </div>
-
-      {/* Articles Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {filteredArticles.map(article => (
-          <div 
-            key={article.id}
-            onClick={() => setSelectedArticle(article)}
-            className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-500 cursor-pointer hover:-translate-y-1 flex flex-col h-full shadow-sm"
-          >
-            <div className="relative h-48 sm:h-56 overflow-hidden">
-              <img src={article.image} alt={article.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-              <div className="absolute top-3 left-3">
-                <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-primary text-xs font-black shadow-sm">
-                  {article.category}
-                </span>
-              </div>
-            </div>
-            <div className="p-4 sm:p-5 flex flex-col flex-1">
-              <h4 className="text-lg font-black text-foreground mb-4 leading-snug group-hover:text-primary transition-colors line-clamp-2">
-                {article.title}
-              </h4>
-              <div className="mt-auto pt-4 border-t border-border/50 flex items-center text-primary text-base font-black gap-2">
-                อ่านต่อ <ArrowRight size={16} />
-              </div>
-            </div>
+          {/* Categories Chips */}
+          <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+            {categories.map(c => (
+              <button
+                key={c}
+                onClick={() => setActiveCategory(c)}
+                className={`shrink-0 px-4 sm:px-6 py-2 rounded-full text-sm sm:text-base font-black transition-all ${activeCategory === c
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                    : "bg-card border border-border text-muted-foreground hover:border-primary/40 hover:text-primary"
+                  }`}
+              >
+                {c}
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
-      </>
+
+          {/* Articles Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredArticles.map((article, index) => (
+              <div
+                key={article.id}
+                onClick={() => setSelectedArticle(article)}
+                className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-500 cursor-pointer hover:-translate-y-1 flex flex-col h-full shadow-sm"
+              >
+                <div className="relative h-48 sm:h-56 overflow-hidden">
+                  <img src={article.image} alt={article.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading={index === 0 ? "eager" : "lazy"} />
+                  <div className="absolute top-3 left-3">
+                    <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-primary text-xs font-black shadow-sm">
+                      {article.category}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-4 sm:p-5 flex flex-col flex-1">
+                  <h4 className="text-lg font-black text-foreground mb-4 leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                    {article.title}
+                  </h4>
+                  <div className="mt-auto pt-4 border-t border-border/50 flex items-center text-primary text-base font-black gap-2">
+                    อ่านต่อ <ArrowRight size={16} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

@@ -64,7 +64,7 @@ function AppFooter() {
   ]
 
   return (
-    <footer className="sticky bottom-20 z-10 mt-4 flex min-h-14 items-center justify-center border-t border-border/80 bg-background/95 px-2 py-2 text-center backdrop-blur-md lg:bottom-0">
+    <footer className="mt-4 flex min-h-14 items-center justify-center border-t border-border/80 bg-background/95 px-2 py-2 text-center">
       <div className="flex min-w-0 items-center justify-center gap-1.5 text-[11px] font-bold text-muted-foreground sm:gap-2 sm:text-sm">
         <span className="min-w-0 truncate">เครดิตผู้จัดทำ Wachira Studio</span>
         <a
@@ -529,9 +529,9 @@ export default function AppShell() {
           />
         )
       case "operations":
-        return <Operations 
-          data={store.data} 
-          addTask={store.addTask} updateTask={store.updateTask} deleteTask={store.deleteTask} 
+        return <Operations
+          data={store.data}
+          addTask={store.addTask} updateTask={store.updateTask} deleteTask={store.deleteTask}
           addActivity={store.addActivity} deleteActivity={store.deleteActivity} updateActivity={store.updateActivity}
         />
       case "finance":
@@ -567,7 +567,7 @@ export default function AppShell() {
   const logoUrl = store.data.siteSettings.logoUrl
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col">
       {/* Top Header Bar */}
       <header className="relative z-20 bg-white px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1] shadow-[0_10px_28px_rgba(20,107,62,0.10)] overflow-hidden">
         <button
@@ -616,8 +616,8 @@ export default function AppShell() {
               user.avatar
                 ? <img src={user.avatar} alt={user.name} className="w-5 h-5 rounded-full" />
                 : <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-                    <span className="text-white text-[10px] font-bold">{user.name[0]}</span>
-                  </div>
+                  <span className="text-white text-[10px] font-bold">{user.name[0]}</span>
+                </div>
             ) : (
               <User size={20} className="text-white" />
             )}
@@ -646,11 +646,10 @@ export default function AppShell() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative group flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm font-black transition-all text-left ${
-                  activeTab === tab.id
-                    ? "bg-white text-[#146B3E] shadow-[0_16px_30px_rgba(20,52,34,0.18)]"
-                    : "text-white/92 hover:bg-white/18 hover:text-white"
-                }`}
+                className={`relative group flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm font-black transition-all text-left ${activeTab === tab.id
+                  ? "bg-white text-[#146B3E] shadow-[0_16px_30px_rgba(20,52,34,0.18)]"
+                  : "text-white/92 hover:bg-white/18 hover:text-white"
+                  }`}
               >
                 <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${activeTab === tab.id ? "bg-[#E7F3EC] text-[#146B3E]" : "bg-white/18 text-white group-hover:bg-white/26"}`}>
                   <Icon size={18} strokeWidth={2.4} />
@@ -663,7 +662,7 @@ export default function AppShell() {
         </nav>
 
         {/* Main Content — full width, no extra card */}
-        <main className="flex-1 overflow-y-auto pb-28 lg:pb-6 bg-transparent">
+        <main className="flex-1 overflow-y-auto pb-28 lg:pb-0 bg-transparent">
           <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-6">
             {renderContent()}
             <AppFooter />
@@ -680,9 +679,8 @@ export default function AppShell() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`min-w-[4.25rem] flex-1 flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl transition-all ${
-                isActive ? "bg-white text-[#146B3E] shadow-sm" : "text-white/72 hover:bg-white/16 hover:text-white"
-              }`}
+              className={`min-w-[4.25rem] flex-1 flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl transition-all ${isActive ? "bg-white text-[#146B3E] shadow-sm" : "text-white/72 hover:bg-white/16 hover:text-white"
+                }`}
             >
               <Icon size={20} />
               <span className="text-xs font-semibold">{tab.label}</span>
