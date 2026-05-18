@@ -86,8 +86,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
             </div>
             <div className="grid gap-3">
               {[
-                "Admin: admin@appfarm.test / admin1234",
-                "User: user@appfarm.test / user1234",
+                "จัดการแปลงและต้นทุเรียน",
+                "ติดตามงานประจำวันและบันทึกสวน",
+                "ดูภาพรวมการเงินและบทความความรู้",
               ].map(item => (
                 <div key={item} className="flex items-center gap-3 rounded-2xl bg-white/12 p-4 ring-1 ring-white/14">
                   <ShieldCheck size={18} className="text-emerald-200" />
