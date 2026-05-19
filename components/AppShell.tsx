@@ -32,37 +32,7 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 
 const MOBILE_TABS = TABS.slice(0, 4) // Show only 4 tabs on mobile
 
-function FacebookIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
-      <path d="M14.2 8.4V6.9c0-.7.5-1.1 1.2-1.1h1.4V3.4c-.7-.1-1.4-.2-2.1-.2-2.2 0-3.7 1.3-3.7 3.8v1.4H8.6V11H11v9.8h3.1V11h2.3l.4-2.6h-2.6Z" />
-    </svg>
-  )
-}
-
-function LineIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
-      <path d="M12 3.4c-5 0-9 3.2-9 7.2 0 3.6 3.2 6.6 7.5 7.1.3.1.7.2.8.5.1.3.1.8 0 1.1l-.1.8c0 .2-.1.9.8.5.9-.4 4.7-2.8 6.5-4.8 1.2-1.3 1.7-2.6 1.7-4.1C21 6.6 17 3.4 12 3.4Zm-3.5 9.8H6.3V8.4h1.1v3.8h1.1v1Zm2 0H9.4V8.4h1.1v4.8Zm4.8 0h-1.1l-2-2.7v2.7h-1.1V8.4h1.1l2 2.7V8.4h1.1v4.8Zm3.3-3.8h-1.7v.8h1.5v1h-1.5v1h1.7v1h-2.8V8.4h2.8v1Z" />
-    </svg>
-  )
-}
-
-function TikTokIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
-      <path d="M16 3.2c.3 2 1.5 3.4 3.5 3.6v3c-1.2 0-2.4-.4-3.5-1.1v5.5c0 3-2 5.2-5 5.2-2.8 0-5-2.1-5-4.9s2.2-4.9 5-4.9c.3 0 .6 0 .9.1v3.1c-.3-.1-.6-.2-.9-.2-1.1 0-2 .8-2 1.9s.9 1.9 2 1.9 2-.8 2-2.2v-11h3Z" />
-    </svg>
-  )
-}
-
 function AppFooter() {
-  const socialLinks = [
-    { label: "Facebook", icon: FacebookIcon, href: "https://facebook.com" },
-    { label: "LINE", icon: LineIcon, href: "https://line.me" },
-    { label: "TikTok", icon: TikTokIcon, href: "https://tiktok.com" },
-  ]
-
   return (
     <footer className="mt-8 border-t border-[#B9DCC8]/40 bg-[#F4F9F6]/80 px-4 py-6 text-center backdrop-blur-sm sm:py-8">
       <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4">
@@ -73,7 +43,7 @@ function AppFooter() {
           </p>
         </div>
 
-        {/* Right Side: Mail & Socials */}
+        {/* Right Side: Contact */}
         <div className="flex flex-wrap items-center justify-center gap-3">
           <a
             href="mailto:wachirastudeo@gmail.com"
@@ -82,22 +52,6 @@ function AppFooter() {
             <Mail size={14} className="text-[#146B3E]" />
             <span>wachirastudeo@gmail.com</span>
           </a>
-          
-          <div className="flex items-center gap-2">
-            {socialLinks.map(({ label, icon: Icon, href }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={label}
-                aria-label={label}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#146B3E] text-white shadow-sm ring-1 ring-[#146B3E]/10 transition-all hover:bg-[#0F5A34] hover:scale-105 active:scale-95"
-              >
-                <Icon className="h-4 w-4" />
-              </a>
-            ))}
-          </div>
         </div>
       </div>
     </footer>
@@ -241,7 +195,7 @@ function GuestHome({
                 onClick={() => onReadArticles()}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/14 px-5 py-3 text-base font-black text-white ring-1 ring-white/22 transition-colors hover:bg-white/22"
               >
-                อ่านบทความฟรี
+                อ่านบทความ
                 <BookOpen size={18} />
               </button>
             </div>
@@ -340,7 +294,7 @@ function GuestHome({
       <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-border sm:p-5">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-black text-foreground">บทความแนะนำ อ่านได้ฟรี</h2>
+            <h2 className="text-2xl font-black text-foreground">บทความแนะนำ</h2>
             <p className="text-sm font-bold text-muted-foreground">เริ่มจากความรู้เรื่องน้ำ โรค ปุ๋ย ดอก และตลาดทุเรียน</p>
           </div>
           <button onClick={() => onReadArticles()} className="inline-flex items-center gap-2 text-sm font-black text-primary hover:underline">
@@ -721,6 +675,7 @@ export default function AppShell() {
         onLoginSuccess={handleLoginSuccess}
         authenticateUser={store.authenticateUser}
         addUser={store.addUser}
+        resetPassword={store.resetPassword}
       />
 
       {/* Profile Modal */}

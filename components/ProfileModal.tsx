@@ -196,16 +196,16 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout, onLogin,
               </div>
               <div>
                 <h2 className="text-base font-bold text-foreground">ยังไม่ได้เข้าสู่ระบบ</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">เข้าสู่ระบบเพื่อซิงค์ข้อมูลสวน</p>
+                <p className="text-xs text-muted-foreground mt-0.5">เข้าสู่ระบบเพื่อบันทึกข้อมูลในเครื่องนี้</p>
               </div>
             </div>
 
             {/* Benefits */}
             <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 space-y-2">
               {[
-                "ซิงค์ข้อมูลสวนทุกอุปกรณ์",
-                "สำรองข้อมูลอัตโนมัติ",
-                "แชร์ข้อมูลกับทีมงาน",
+                "บันทึกข้อมูลสวนในเครื่องนี้",
+                "สำรองและกู้คืนข้อมูลด้วยไฟล์ JSON",
+                "จัดการแปลง งาน และการเงินหลังเข้าสู่ระบบ",
               ].map(b => (
                 <div key={b} className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center shrink-0">

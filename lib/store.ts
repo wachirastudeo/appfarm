@@ -469,6 +469,18 @@ export function useAppData() {
     return newUser
   }, [data.users, updateData])
 
+  const resetPassword = useCallback(async (email: string, password: string) => {
+    const normalized = email.trim().toLowerCase()
+    const user = data.users.find(u => u.email.toLowerCase() === normalized && u.provider === "email")
+    if (!user) return null
+    const passwordHash = await hashPassword(normalized, password)
+    updateData(d => ({
+      ...d,
+      users: d.users.map(u => u.id === user.id ? { ...u, passwordHash } : u),
+    }))
+    return { ...user, passwordHash }
+  }, [data.users, updateData])
+
   const updateUser = useCallback((id: string, changes: Partial<AppUser>) => {
     updateData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, ...changes } : u) }))
   }, [updateData])
@@ -576,7 +588,7 @@ export function useAppData() {
     addTask, updateTask, deleteTask,
     addFinance, deleteFinance,
     addBatch, addBatchStage, updateBatch, deleteBatch,
-    authenticateUser, addUser, updateUser, deleteUser,
+    authenticateUser, addUser, resetPassword, updateUser, deleteUser,
     addArticle, updateArticle, deleteArticle,
     addProduct, updateProduct, deleteProduct,
     updateSiteSettings,

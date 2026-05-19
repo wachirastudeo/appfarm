@@ -4,6 +4,8 @@ import type { Article, Product } from "@/lib/store"
 import { Search, X, ArrowRight, Share2, Bookmark, ArrowLeft, ExternalLink } from "lucide-react"
 import Products from "./Products"
 
+const SAVED_ARTICLES_KEY = "durian_saved_articles"
+
 interface Props {
   articles: Article[]
   products: Product[]
@@ -16,6 +18,8 @@ export default function Articles({ articles, products, initialArticleId, initial
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
   const [activeCategory, setActiveCategory] = useState("ทั้งหมด")
   const [activeView, setActiveView] = useState<"articles" | "products">(initialView)
+  const [savedArticleIds, setSavedArticleIds] = useState<string[]>([])
+  const [actionMessage, setActionMessage] = useState("")
 
   const publishedArticles = useMemo(() => articles.filter(a => a.status === "published"), [articles])
   const categories = ["ทั้งหมด", ...Array.from(new Set(publishedArticles.map(a => a.category)))]
@@ -33,6 +37,17 @@ export default function Articles({ articles, products, initialArticleId, initial
     setActiveView(initialView)
   }, [initialView])
 
+  useEffect(() => {
+    const saved = localStorage.getItem(SAVED_ARTICLES_KEY)
+    if (!saved) return
+    try {
+      const parsed = JSON.parse(saved)
+      if (Array.isArray(parsed)) setSavedArticleIds(parsed.filter(id => typeof id === "string"))
+    } catch {
+      localStorage.removeItem(SAVED_ARTICLES_KEY)
+    }
+  }, [])
+
   const filteredArticles = useMemo(() => {
     let result = publishedArticles
     if (activeCategory !== "ทั้งหมด") {
@@ -48,6 +63,39 @@ export default function Articles({ articles, products, initialArticleId, initial
     return result
   }, [searchTerm, activeCategory, publishedArticles])
 
+  const showActionMessage = (message: string) => {
+    setActionMessage(message)
+    window.setTimeout(() => setActionMessage(""), 1800)
+  }
+
+  const toggleSavedArticle = (article: Article) => {
+    setSavedArticleIds(current => {
+      const isSaved = current.includes(article.id)
+      const next = isSaved ? current.filter(id => id !== article.id) : [...current, article.id]
+      localStorage.setItem(SAVED_ARTICLES_KEY, JSON.stringify(next))
+      showActionMessage(isSaved ? "นำออกจากรายการบันทึกแล้ว" : "บันทึกบทความแล้ว")
+      return next
+    })
+  }
+
+  const shareArticle = async (article: Article) => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}`
+    const text = `${article.title}\n${shareUrl}`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: article.title, text: article.title, url: shareUrl })
+        showActionMessage("แชร์บทความแล้ว")
+        return
+      }
+      await navigator.clipboard.writeText(text)
+      showActionMessage("คัดลอกลิงก์แล้ว")
+    } catch {
+      showActionMessage("แชร์ไม่สำเร็จ")
+    }
+  }
+
+  const selectedArticleSaved = selectedArticle ? savedArticleIds.includes(selectedArticle.id) : false
+
   // Full Blog View
   if (selectedArticle) {
     return (
@@ -60,10 +108,21 @@ export default function Articles({ articles, products, initialArticleId, initial
             <ArrowLeft size={22} /> ย้อนกลับ
           </button>
           <div className="flex gap-2 sm:gap-4">
-            <button className="p-2.5 sm:p-3 hover:bg-muted rounded-2xl transition-all text-muted-foreground border border-border">
-              <Bookmark size={20} />
+            {actionMessage && <span className="self-center text-xs font-bold text-primary">{actionMessage}</span>}
+            <button
+              onClick={() => toggleSavedArticle(selectedArticle)}
+              aria-label={selectedArticleSaved ? "ยกเลิกบันทึกบทความ" : "บันทึกบทความ"}
+              title={selectedArticleSaved ? "ยกเลิกบันทึกบทความ" : "บันทึกบทความ"}
+              className={`p-2.5 sm:p-3 hover:bg-muted rounded-2xl transition-all border ${selectedArticleSaved ? "border-primary/20 bg-primary/10 text-primary" : "text-muted-foreground border-border"}`}
+            >
+              <Bookmark size={20} fill={selectedArticleSaved ? "currentColor" : "none"} />
             </button>
-            <button className="p-2.5 sm:p-3 hover:bg-muted rounded-2xl transition-all text-primary border border-primary/10">
+            <button
+              onClick={() => shareArticle(selectedArticle)}
+              aria-label="แชร์บทความ"
+              title="แชร์บทความ"
+              className="p-2.5 sm:p-3 hover:bg-muted rounded-2xl transition-all text-primary border border-primary/10"
+            >
               <Share2 size={20} />
             </button>
           </div>
