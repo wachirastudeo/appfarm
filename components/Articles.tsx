@@ -163,7 +163,7 @@ export default function Articles({ articles, products, initialArticleId, initial
               {selectedArticle.title}
             </h1>
             <div className="relative h-[220px] sm:h-[280px] lg:h-[450px] rounded-2xl overflow-hidden shadow-xl border border-border">
-              <img src={selectedArticle.image} alt={selectedArticle.title} className="w-full h-full object-cover" />
+              <img src={selectedArticle.image} alt={selectedArticle.imageAlt || selectedArticle.title} className="w-full h-full object-cover" />
             </div>
           </div>
 
@@ -172,6 +172,12 @@ export default function Articles({ articles, products, initialArticleId, initial
               type="application/ld+json"
               dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd(selectedArticle)) }}
             />
+            {selectedArticle.geoSummary && (
+              <section className="mb-8 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
+                <p className="text-sm font-black text-primary">สรุปสั้น</p>
+                <p className="mt-2 text-base font-semibold leading-7 text-foreground/80">{selectedArticle.geoSummary}</p>
+              </section>
+            )}
             <div className="text-base lg:text-lg leading-relaxed text-foreground/80 whitespace-pre-wrap">
               {selectedArticle.content}
             </div>
@@ -272,7 +278,7 @@ export default function Articles({ articles, products, initialArticleId, initial
                 className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-500 cursor-pointer hover:-translate-y-1 flex flex-col h-full shadow-sm"
               >
                 <div className="relative h-48 sm:h-56 overflow-hidden">
-                  <img src={article.image} alt={article.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading={index === 0 ? "eager" : "lazy"} />
+                  <img src={article.image} alt={article.imageAlt || article.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading={index === 0 ? "eager" : "lazy"} />
                   <div className="absolute top-3 left-3">
                     <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-primary text-xs font-black shadow-sm">
                       {article.category}

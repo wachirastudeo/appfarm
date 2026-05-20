@@ -2,7 +2,7 @@
 import { useState } from "react"
 import type { AppUser, Article, NewUserInput, Product, SiteSettings } from "@/lib/store"
 import { appRuntimeConfig, getDataModeLabel, isSupabaseConfigured } from "@/lib/runtime-config"
-import { createExcerpt, createSlug, uniqueKeywords } from "@/lib/seo"
+import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "@/lib/seo"
 import { BookOpen, Edit3, Image, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users } from "lucide-react"
 
 interface Props {
@@ -27,11 +27,14 @@ const emptyArticle = {
   title: "",
   category: "การดูแลรักษา",
   image: "/images/articles/article_watering_1778037948644.avif",
+  imageAlt: "",
   content: "",
   slug: "",
   metaTitle: "",
   metaDescription: "",
   keywords: "",
+  geoSummary: "",
+  authorName: "",
   affiliateTitle: "",
   affiliateUrl: "",
   status: "published" as const,
@@ -41,6 +44,7 @@ const emptyProduct = {
   name: "",
   category: "สารเคมี",
   image: "/images/articles/article_disease_1778037967060.avif",
+  imageAlt: "",
   priceLabel: "ดูรายละเอียด",
   description: "",
   affiliateUrl: "",
@@ -48,6 +52,9 @@ const emptyProduct = {
   metaTitle: "",
   metaDescription: "",
   keywords: "",
+  geoSummary: "",
+  brandName: "",
+  sku: "",
   status: "active" as const,
 }
 
@@ -108,6 +115,9 @@ export default function AdminPanel({
       metaTitle: articleDraft.metaTitle?.trim() || articleDraft.title,
       metaDescription: articleDraft.metaDescription?.trim() || createExcerpt(articleDraft.content),
       keywords: uniqueKeywords([articleDraft.keywords, articleDraft.category, articleDraft.title, "ทุเรียน"]).join(", "),
+      geoSummary: articleDraft.geoSummary?.trim() || createGeoSummary(articleDraft.title, articleDraft.content),
+      imageAlt: articleDraft.imageAlt?.trim() || articleDraft.title,
+      authorName: articleDraft.authorName?.trim() || "ทีมสวนทุเรียน",
     }
     if (editingArticleId) {
       updateArticle(editingArticleId, nextArticle)
@@ -125,11 +135,14 @@ export default function AdminPanel({
       title: article.title,
       category: article.category,
       image: article.image,
+      imageAlt: article.imageAlt ?? "",
       content: article.content,
       slug: article.slug ?? "",
       metaTitle: article.metaTitle ?? "",
       metaDescription: article.metaDescription ?? "",
       keywords: article.keywords ?? "",
+      geoSummary: article.geoSummary ?? "",
+      authorName: article.authorName ?? "",
       affiliateTitle: article.affiliateTitle ?? "",
       affiliateUrl: article.affiliateUrl ?? "",
       status: article.status,
@@ -147,6 +160,9 @@ export default function AdminPanel({
       metaTitle: productDraft.metaTitle?.trim() || productDraft.name,
       metaDescription: productDraft.metaDescription?.trim() || createExcerpt(productDraft.description),
       keywords: uniqueKeywords([productDraft.keywords, productDraft.category, productDraft.name, "ปุ๋ยยา", "ทุเรียน"]).join(", "),
+      geoSummary: productDraft.geoSummary?.trim() || createGeoSummary(productDraft.name, productDraft.description),
+      imageAlt: productDraft.imageAlt?.trim() || productDraft.name,
+      brandName: productDraft.brandName?.trim() || "สวนทุเรียน",
     }
     if (editingProductId) {
       updateProduct(editingProductId, nextProduct)
@@ -164,6 +180,7 @@ export default function AdminPanel({
       name: product.name,
       category: product.category,
       image: product.image,
+      imageAlt: product.imageAlt ?? "",
       priceLabel: product.priceLabel,
       description: product.description,
       affiliateUrl: product.affiliateUrl,
@@ -171,6 +188,9 @@ export default function AdminPanel({
       metaTitle: product.metaTitle ?? "",
       metaDescription: product.metaDescription ?? "",
       keywords: product.keywords ?? "",
+      geoSummary: product.geoSummary ?? "",
+      brandName: product.brandName ?? "",
+      sku: product.sku ?? "",
       status: product.status,
     })
   }
@@ -321,12 +341,15 @@ export default function AdminPanel({
             <AdminInput label="หัวข้อ" value={articleDraft.title} onChange={title => setArticleDraft(v => ({ ...v, title }))} />
             <AdminInput label="หมวดหมู่" value={articleDraft.category} onChange={category => setArticleDraft(v => ({ ...v, category }))} />
             <div className="rounded-xl border border-border bg-muted/40 p-3">
-              <p className="mb-2 text-xs font-black text-muted-foreground">SEO บทความ</p>
+              <p className="mb-2 text-xs font-black text-muted-foreground">SEO / AI Search บทความ</p>
               <div className="space-y-2">
                 <AdminInput label="Slug" value={articleDraft.slug ?? ""} onChange={slug => setArticleDraft(v => ({ ...v, slug }))} placeholder="เว้นว่างเพื่อสร้างอัตโนมัติ" />
                 <AdminInput label="Meta title" value={articleDraft.metaTitle ?? ""} onChange={metaTitle => setArticleDraft(v => ({ ...v, metaTitle }))} placeholder="เว้นว่างเพื่อใช้หัวข้อ" />
-                <AdminInput label="Meta description" value={articleDraft.metaDescription ?? ""} onChange={metaDescription => setArticleDraft(v => ({ ...v, metaDescription }))} placeholder="เว้นว่างเพื่อสรุปจากเนื้อหา" />
+                <AdminTextarea label="Meta description" value={articleDraft.metaDescription ?? ""} onChange={metaDescription => setArticleDraft(v => ({ ...v, metaDescription }))} placeholder="เว้นว่างเพื่อสรุปจากเนื้อหา" rows={3} />
                 <AdminInput label="Keywords" value={articleDraft.keywords ?? ""} onChange={keywords => setArticleDraft(v => ({ ...v, keywords }))} placeholder="เช่น ปุ๋ยทุเรียน, โรคทุเรียน" />
+                <AdminInput label="Alt รูปภาพ" value={articleDraft.imageAlt ?? ""} onChange={imageAlt => setArticleDraft(v => ({ ...v, imageAlt }))} placeholder="เว้นว่างเพื่อใช้หัวข้อบทความ" />
+                <AdminInput label="ผู้เขียน/ผู้ให้คำแนะนำ" value={articleDraft.authorName ?? ""} onChange={authorName => setArticleDraft(v => ({ ...v, authorName }))} placeholder="เว้นว่างเพื่อใช้ ทีมสวนทุเรียน" />
+                <AdminTextarea label="สรุปสั้น" value={articleDraft.geoSummary ?? ""} onChange={geoSummary => setArticleDraft(v => ({ ...v, geoSummary }))} placeholder="เว้นว่างเพื่อสรุปอัตโนมัติ" rows={3} />
               </div>
             </div>
             <AdminInput label="ชื่อปุ๋ย/ยาแนะนำ" value={articleDraft.affiliateTitle ?? ""} onChange={affiliateTitle => setArticleDraft(v => ({ ...v, affiliateTitle }))} placeholder="เช่น สารป้องกันเชื้อรา..." />
@@ -393,12 +416,16 @@ export default function AdminPanel({
             <AdminInput label="ข้อความราคา/ปุ่ม" value={productDraft.priceLabel} onChange={priceLabel => setProductDraft(v => ({ ...v, priceLabel }))} />
             <AdminInput label="Affiliate link" value={productDraft.affiliateUrl} onChange={affiliateUrl => setProductDraft(v => ({ ...v, affiliateUrl }))} placeholder="https://..." />
             <div className="rounded-xl border border-border bg-muted/40 p-3">
-              <p className="mb-2 text-xs font-black text-muted-foreground">SEO ปุ๋ยและยา</p>
+              <p className="mb-2 text-xs font-black text-muted-foreground">SEO / AI Search ปุ๋ยและยา</p>
               <div className="space-y-2">
                 <AdminInput label="Slug" value={productDraft.slug ?? ""} onChange={slug => setProductDraft(v => ({ ...v, slug }))} placeholder="เว้นว่างเพื่อสร้างอัตโนมัติ" />
                 <AdminInput label="Meta title" value={productDraft.metaTitle ?? ""} onChange={metaTitle => setProductDraft(v => ({ ...v, metaTitle }))} placeholder="เว้นว่างเพื่อใช้ชื่อรายการ" />
-                <AdminInput label="Meta description" value={productDraft.metaDescription ?? ""} onChange={metaDescription => setProductDraft(v => ({ ...v, metaDescription }))} placeholder="เว้นว่างเพื่อสรุปจากรายละเอียด" />
+                <AdminTextarea label="Meta description" value={productDraft.metaDescription ?? ""} onChange={metaDescription => setProductDraft(v => ({ ...v, metaDescription }))} placeholder="เว้นว่างเพื่อสรุปจากรายละเอียด" rows={3} />
                 <AdminInput label="Keywords" value={productDraft.keywords ?? ""} onChange={keywords => setProductDraft(v => ({ ...v, keywords }))} placeholder="เช่น ปุ๋ยทุเรียน, ยาทุเรียน" />
+                <AdminInput label="Alt รูปภาพ" value={productDraft.imageAlt ?? ""} onChange={imageAlt => setProductDraft(v => ({ ...v, imageAlt }))} placeholder="เว้นว่างเพื่อใช้ชื่อรายการ" />
+                <AdminInput label="แบรนด์" value={productDraft.brandName ?? ""} onChange={brandName => setProductDraft(v => ({ ...v, brandName }))} placeholder="เว้นว่างเพื่อใช้ สวนทุเรียน" />
+                <AdminInput label="SKU/รหัสสินค้า" value={productDraft.sku ?? ""} onChange={sku => setProductDraft(v => ({ ...v, sku }))} placeholder="ถ้ามี" />
+                <AdminTextarea label="สรุปสั้น" value={productDraft.geoSummary ?? ""} onChange={geoSummary => setProductDraft(v => ({ ...v, geoSummary }))} placeholder="เว้นว่างเพื่อสรุปอัตโนมัติ" rows={3} />
               </div>
             </div>
             <label className="block space-y-1.5">
@@ -433,7 +460,7 @@ export default function AdminPanel({
           <div className="space-y-2">
             {products.map(product => (
               <div key={product.id} className="flex gap-3 rounded-xl border border-border p-3">
-                <img src={product.image} alt={product.name} className="h-16 w-20 rounded-lg object-cover" />
+                <img src={product.image} alt={product.imageAlt || product.name} className="h-16 w-20 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-black">{product.name}</p>
                   <p className="text-xs font-semibold text-muted-foreground">{product.category} · {product.status === "active" ? "แสดง" : "ซ่อน"}</p>
@@ -516,6 +543,21 @@ function AdminInput({ label, value, onChange, placeholder }: { label: string; va
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold outline-none transition-colors focus:border-primary"
+      />
+    </label>
+  )
+}
+
+function AdminTextarea({ label, value, onChange, placeholder, rows = 3 }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string; rows?: number }) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs font-black text-muted-foreground">{label}</span>
+      <textarea
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={rows}
+        className="w-full resize-y rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold leading-6 outline-none transition-colors focus:border-primary"
       />
     </label>
   )

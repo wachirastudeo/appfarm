@@ -1,20 +1,22 @@
 "use client"
-import { useRef, useState, useEffect } from "react"
+import dynamic from "next/dynamic"
+import { useCallback, useMemo, useRef, useState, useEffect } from "react"
 import { useAppData } from "@/lib/store"
-import Dashboard from "./Dashboard"
-import PlotManagement from "./PlotManagement"
-import Operations from "./Operations"
-import Finance from "./Finance"
-import Articles from "./Articles"
-import AdminPanel from "./AdminPanel"
 import type { AppUser, Article, Product } from "@/lib/store"
 import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail } from "lucide-react"
-import Settings from "./Settings"
-import AuthModal from "./AuthModal"
-import ProfileModal from "./ProfileModal"
 import DurianIcon from "./DurianIcon"
 import { Skeleton } from "./ui/skeleton"
 import AnimatedBackground from "./AnimatedBackground"
+
+const Dashboard = dynamic(() => import("./Dashboard"), { loading: () => <ContentSkeleton /> })
+const PlotManagement = dynamic(() => import("./PlotManagement"), { loading: () => <ContentSkeleton /> })
+const Operations = dynamic(() => import("./Operations"), { loading: () => <ContentSkeleton /> })
+const Finance = dynamic(() => import("./Finance"), { loading: () => <ContentSkeleton /> })
+const Articles = dynamic(() => import("./Articles"), { loading: () => <ContentSkeleton /> })
+const AdminPanel = dynamic(() => import("./AdminPanel"), { loading: () => <ContentSkeleton /> })
+const Settings = dynamic(() => import("./Settings"), { loading: () => null })
+const AuthModal = dynamic(() => import("./AuthModal"), { loading: () => null })
+const ProfileModal = dynamic(() => import("./ProfileModal"), { loading: () => null })
 
 type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin"
 
@@ -32,6 +34,19 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 ]
 
 const MOBILE_TABS = TABS.slice(0, 4) // Show only 4 tabs on mobile
+
+function ContentSkeleton() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-56 rounded-2xl bg-[#E7F3EC]" />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[1, 2, 3, 4].map(item => (
+          <Skeleton key={item} className="h-24 rounded-xl bg-[#E7F3EC]" />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function AppFooter() {
   return (
@@ -310,20 +325,27 @@ export default function AppShell() {
   const [farmLocation, setFarmLocation] = useState<{ lat: number; lon: number; label: string } | null>(null)
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const store = useAppData()
-  const todayTaskCount = store.data.tasks.filter(task => {
+  const todayTaskCount = useMemo(() => store.data.tasks.filter(task => {
     if (task.status !== "pending") return false
     const taskDate = new Date(task.date)
     const today = new Date()
     return taskDate.getFullYear() === today.getFullYear()
       && taskDate.getMonth() === today.getMonth()
       && taskDate.getDate() === today.getDate()
-  }).length
+  }).length, [store.data.tasks])
 
-  const readFarmLocation = () => {
-    const saved = localStorage.getItem("farm_location")
-    if (saved) {
-      setFarmLocation(JSON.parse(saved))
-    } else if (typeof navigator !== "undefined" && navigator.geolocation) {
+  const readFarmLocation = useCallback(() => {
+    try {
+      const saved = localStorage.getItem("farm_location")
+      if (saved) {
+        setFarmLocation(JSON.parse(saved))
+        return
+      }
+    } catch {
+      setFarmLocation(null)
+    }
+
+    if (typeof navigator !== "undefined" && navigator.geolocation) {
       // No saved location → silently try browser geolocation as fallback
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -340,7 +362,7 @@ export default function AppShell() {
         { enableHighAccuracy: false, timeout: 8000 }
       )
     }
-  }
+  }, [])
 
   const handleCloseSettings = () => {
     readFarmLocation() // re-read location when settings closes
@@ -350,15 +372,17 @@ export default function AppShell() {
   useEffect(() => {
     setIsMounted(true)
     readFarmLocation()
+    const onLocationChange = () => readFarmLocation()
+    window.addEventListener("farm_location_changed", onLocationChange)
+    return () => window.removeEventListener("farm_location_changed", onLocationChange)
+  }, [readFarmLocation])
+
+  useEffect(() => {
     const savedUserId = localStorage.getItem("durian_current_user")
     if (savedUserId) {
       const savedUser = store.data.users.find(u => u.id === savedUserId && u.status === "active")
       if (savedUser) setUser(savedUser)
     }
-
-    const onLocationChange = () => readFarmLocation()
-    window.addEventListener("farm_location_changed", onLocationChange)
-    return () => window.removeEventListener("farm_location_changed", onLocationChange)
   }, [store.data.users])
 
   useEffect(() => {
@@ -412,11 +436,11 @@ export default function AppShell() {
     setActiveTab("articles")
   }
 
-  const visibleTabs = user?.role === "admin"
+  const visibleTabs = useMemo(() => user?.role === "admin"
     ? [...TABS, { id: "admin" as const, label: "Admin", icon: ShieldCheck }]
     : user
       ? TABS
-      : TABS.filter(tab => tab.id === "dashboard" || tab.id === "articles")
+      : TABS.filter(tab => tab.id === "dashboard" || tab.id === "articles"), [user])
 
   if (!isMounted) {
     return <AppShellSkeleton />
@@ -509,6 +533,7 @@ export default function AppShell() {
   const siteName = store.data.siteSettings.siteName || "สวนทุเรียน"
   const tagline = store.data.siteSettings.tagline || "Smart Orchard"
   const logoUrl = store.data.siteSettings.logoUrl
+  const totalTrees = store.data.plots.reduce((s, p) => s + p.trees.length, 0)
 
   if (!user) {
     return (
@@ -624,7 +649,7 @@ export default function AppShell() {
               </button>
               <div className="hidden min-[390px]:flex items-center gap-1.5 bg-[#E7F3EC] rounded-xl px-3 py-2 ring-1 ring-[#CFE3D5]">
                 <DurianIcon className="h-4 w-4 text-[#146B3E]" />
-                <span className="text-[#146B3E] font-bold text-sm leading-none">{store.data.plots.reduce((s, p) => s + p.trees.length, 0)}</span>
+                <span className="text-[#146B3E] font-bold text-sm leading-none">{totalTrees}</span>
                 <span className="text-[#527060] text-xs font-medium">ต้น</span>
               </div>
             </>

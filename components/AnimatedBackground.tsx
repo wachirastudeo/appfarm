@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 interface Particle {
   id: number
@@ -13,21 +13,34 @@ interface Particle {
 
 export default function AnimatedBackground() {
   const [mounted, setMounted] = useState(false)
+  const frameRef = useRef<number | null>(null)
+  const mouseRef = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
     setMounted(true)
 
+    const setMousePosition = () => {
+      frameRef.current = null
+      document.documentElement.style.setProperty("--mouse-x", `${mouseRef.current.x}px`)
+      document.documentElement.style.setProperty("--mouse-y", `${mouseRef.current.y}px`)
+    }
+
     const handleMouseMove = (e: MouseEvent) => {
-      document.documentElement.style.setProperty("--mouse-x", `${e.clientX}px`)
-      document.documentElement.style.setProperty("--mouse-y", `${e.clientY}px`)
+      mouseRef.current = { x: e.clientX, y: e.clientY }
+      if (frameRef.current === null) {
+        frameRef.current = window.requestAnimationFrame(setMousePosition)
+      }
     }
 
     // Set initial position of mouse-glow to center
-    document.documentElement.style.setProperty("--mouse-x", `${window.innerWidth / 2}px`)
-    document.documentElement.style.setProperty("--mouse-y", `${window.innerHeight / 2}px`)
+    mouseRef.current = { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+    setMousePosition()
 
-    window.addEventListener("mousemove", handleMouseMove)
+    window.addEventListener("mousemove", handleMouseMove, { passive: true })
     return () => {
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current)
+      }
       window.removeEventListener("mousemove", handleMouseMove)
     }
   }, [])

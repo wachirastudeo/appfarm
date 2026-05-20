@@ -32,6 +32,10 @@ export function createExcerpt(value: string, maxLength = 155) {
   return `${text.slice(0, maxLength - 1).trim()}…`
 }
 
+export function createGeoSummary(title: string, body: string, maxLength = 240) {
+  return createExcerpt(`${title}: ${body}`, maxLength)
+}
+
 export function uniqueKeywords(values: Array<string | undefined>) {
   const keywords = values
     .flatMap(value => (value ?? "").split(","))
@@ -50,6 +54,7 @@ export function articleJsonLd(article: {
   title: string
   category: string
   image: string
+  imageAlt?: string
   content: string
   createdAt: string
   updatedAt: string
@@ -57,6 +62,8 @@ export function articleJsonLd(article: {
   metaDescription?: string
   slug?: string
   keywords?: string
+  geoSummary?: string
+  authorName?: string
 }) {
   const slug = article.slug || createSlug(article.title)
   return {
@@ -64,12 +71,21 @@ export function articleJsonLd(article: {
     "@type": "Article",
     headline: article.metaTitle || article.title,
     description: article.metaDescription || createExcerpt(article.content),
-    image: absoluteUrl(article.image),
+    image: {
+      "@type": "ImageObject",
+      url: absoluteUrl(article.image),
+      caption: article.imageAlt || article.title,
+    },
     datePublished: article.createdAt,
     dateModified: article.updatedAt,
     articleSection: article.category,
+    abstract: article.geoSummary || createGeoSummary(article.title, article.content),
     keywords: uniqueKeywords([article.keywords, article.category, "ทุเรียน"]).join(", "),
     mainEntityOfPage: `${SITE_URL}/?article=${encodeURIComponent(slug)}`,
+    author: {
+      "@type": "Person",
+      name: article.authorName || "ทีมสวนทุเรียน",
+    },
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
@@ -82,19 +98,33 @@ export function productJsonLd(product: {
   name: string
   category: string
   image: string
+  imageAlt?: string
   description: string
   affiliateUrl: string
   metaTitle?: string
   metaDescription?: string
   keywords?: string
+  geoSummary?: string
+  brandName?: string
+  sku?: string
 }) {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.metaTitle || product.name,
-    description: product.metaDescription || createExcerpt(product.description),
-    image: absoluteUrl(product.image),
+    description: product.metaDescription || product.geoSummary || createExcerpt(product.description),
+    image: {
+      "@type": "ImageObject",
+      url: absoluteUrl(product.image),
+      caption: product.imageAlt || product.name,
+    },
     category: product.category,
+    brand: {
+      "@type": "Brand",
+      name: product.brandName || SITE_NAME,
+    },
+    sku: product.sku || undefined,
+    disambiguatingDescription: product.geoSummary || createGeoSummary(product.name, product.description),
     keywords: uniqueKeywords([product.keywords, product.category, "ปุ๋ยยา", "ทุเรียน"]).join(", "),
     offers: product.affiliateUrl
       ? {

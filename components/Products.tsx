@@ -117,13 +117,14 @@ export default function Products({ products, compact = false }: Props) {
         {filteredProducts.map(product => (
           <div key={product.id} className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl">
             <div className="relative h-48 overflow-hidden">
-              <img src={product.image} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <img src={product.image} alt={product.imageAlt || product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
               <div className="absolute left-3 top-3 rounded-full bg-white/92 px-3 py-1 text-xs font-black text-primary shadow-sm backdrop-blur">
                 {product.category}
               </div>
             </div>
             <div className="flex min-h-48 flex-col p-4">
               <h3 className="line-clamp-2 text-lg font-black leading-snug text-foreground">{product.name}</h3>
+              {product.geoSummary && <p className="mt-2 line-clamp-2 text-sm font-bold leading-6 text-primary">{product.geoSummary}</p>}
               {product.description && <p className="mt-2 line-clamp-3 text-sm font-semibold leading-6 text-muted-foreground">{product.description}</p>}
               <div className="mt-auto pt-4">
                 {product.affiliateUrl ? (

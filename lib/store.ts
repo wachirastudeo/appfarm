@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useCallback } from "react"
-import { createExcerpt, createSlug, uniqueKeywords } from "./seo"
+import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "./seo"
 
 // ---- Types ----
 export type FlowerStage =
@@ -146,11 +146,14 @@ export interface Article {
   title: string
   category: string
   image: string
+  imageAlt?: string
   content: string
   slug?: string
   metaTitle?: string
   metaDescription?: string
   keywords?: string
+  geoSummary?: string
+  authorName?: string
   affiliateTitle?: string
   affiliateUrl?: string
   status: "published" | "draft"
@@ -163,6 +166,7 @@ export interface Product {
   name: string
   category: string
   image: string
+  imageAlt?: string
   priceLabel: string
   description: string
   affiliateUrl: string
@@ -170,6 +174,9 @@ export interface Product {
   metaTitle?: string
   metaDescription?: string
   keywords?: string
+  geoSummary?: string
+  brandName?: string
+  sku?: string
   status: "active" | "draft"
   createdAt: string
   updatedAt: string
@@ -340,20 +347,26 @@ function normalizeArticleSeo(article: Article): Article {
   return {
     ...article,
     image: article.image.replace(/^\/images\/articles\/(.+)\.png$/, "/images/articles/$1.avif"),
+    imageAlt: article.imageAlt || article.title,
     slug: article.slug || createSlug(article.title),
     metaTitle: article.metaTitle || article.title,
     metaDescription: article.metaDescription || createExcerpt(article.content),
     keywords: uniqueKeywords([article.keywords, article.category, article.title, "ทุเรียน"]).join(", "),
+    geoSummary: article.geoSummary || createGeoSummary(article.title, article.content),
+    authorName: article.authorName || "ทีมสวนทุเรียน",
   }
 }
 
 function normalizeProductSeo(product: Product): Product {
   return {
     ...product,
+    imageAlt: product.imageAlt || product.name,
     slug: product.slug || createSlug(product.name),
     metaTitle: product.metaTitle || product.name,
     metaDescription: product.metaDescription || createExcerpt(product.description),
     keywords: uniqueKeywords([product.keywords, product.category, product.name, "ปุ๋ยยา", "ทุเรียน"]).join(", "),
+    geoSummary: product.geoSummary || createGeoSummary(product.name, product.description),
+    brandName: product.brandName || "สวนทุเรียน",
   }
 }
 
