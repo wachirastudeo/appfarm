@@ -3,7 +3,7 @@ import dynamic from "next/dynamic"
 import { useCallback, useMemo, useRef, useState, useEffect } from "react"
 import { useAppData } from "@/lib/store"
 import type { AppUser, Article, Product } from "@/lib/store"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail } from "lucide-react"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind } from "lucide-react"
 import DurianIcon from "./DurianIcon"
 import { Skeleton } from "./ui/skeleton"
 import AnimatedBackground from "./AnimatedBackground"
@@ -180,36 +180,82 @@ function GuestHome({
 
   return (
     <div className="space-y-8 pb-12">
-      <section className="guest-hero relative isolate min-h-[calc(100svh-4.5rem)] overflow-hidden bg-[#0F2E1E] shadow-[0_28px_80px_rgba(15,59,37,0.18)]">
-        <img
-          src="/images/durian-banner.avif"
-          alt="สวนทุเรียน"
-          className="guest-hero-image absolute inset-0 h-full w-full object-cover object-center opacity-90 saturate-110"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,25,15,0.86),rgba(8,37,22,0.58)_46%,rgba(8,37,22,0.12)),linear-gradient(0deg,rgba(5,20,12,0.52),rgba(5,20,12,0.06)_58%)]" />
-        <div className="relative mx-auto flex min-h-[calc(100svh-4.5rem)] w-full max-w-7xl items-center px-4 py-12 sm:px-6 lg:px-8">
-          <div className="guest-hero-copy max-w-2xl">
-            <p className="mb-4 text-sm font-black uppercase tracking-[0.28em] text-white/62">{tagline}</p>
-            <h1 className="max-w-[11ch] text-[clamp(2.6rem,6vw,5.8rem)] font-black leading-[0.98] text-white drop-shadow-sm">
+      <section className="guest-hero relative isolate overflow-hidden bg-[#0B2417] px-4 py-8 sm:px-6 lg:px-8">
+        <div className="guest-hero-glow pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-[#1F6B42]/35 blur-3xl" />
+        <div className="guest-hero-glow pointer-events-none absolute -right-16 bottom-8 h-80 w-80 rounded-full bg-[#0F5A34]/40 blur-3xl" />
+        <div className="guest-hero-card relative mx-auto grid min-h-[calc(100svh-9rem)] w-full max-w-[92rem] overflow-hidden rounded-[2rem] bg-white shadow-[0_28px_70px_rgba(0,0,0,0.28)] ring-1 ring-white/10 lg:grid-cols-[1.08fr_0.92fr]">
+          <div className="guest-hero-copy relative z-10 flex flex-col justify-center px-6 py-10 sm:px-10 lg:px-12 xl:px-16">
+            <div className="mb-8 inline-flex items-center gap-2 text-sm font-black text-[#146B3E]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E7F3EC]">
+                <Leaf size={19} />
+              </span>
+              {siteName}
+            </div>
+            <p className="mb-4 flex items-center gap-3 text-sm font-black uppercase tracking-[0.22em] text-[#527060]">
+              <span className="h-px w-10 bg-[#A8C9B2]" />
+              {tagline}
+            </p>
+            <h1 className="max-w-[12ch] text-[clamp(2.6rem,4.8vw,5.2rem)] font-black leading-[1.03] text-[#146B3E] lg:max-w-none lg:whitespace-nowrap lg:text-[clamp(2.5rem,3.25vw,3.7rem)]">
               จัดการสวนทุเรียน ง่ายขึ้น
             </h1>
-            <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-white/76 sm:text-lg">
+            <p className="mt-5 max-w-lg text-base font-semibold leading-7 text-[#527060] sm:text-lg">
               วางแผนงาน บันทึกแปลง และดูภาพรวมสวนในที่เดียว
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <button
                 onClick={onLogin}
-                className="guest-hero-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-base font-black text-[#146B3E] shadow-xl shadow-black/12 transition-all hover:-translate-y-0.5 hover:bg-[#F4F9F6] active:scale-[0.98]"
+                className="guest-hero-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#146B3E] px-6 py-3 text-base font-black text-white shadow-xl shadow-[#146B3E]/20 transition-all hover:-translate-y-0.5 hover:bg-[#0F5A34] active:scale-[0.98]"
               >
+                <Sparkles size={18} className="text-[#F4D35E]" />
                 เริ่มใช้งาน
                 <ArrowRight size={18} />
               </button>
               <button
                 onClick={() => onReadArticles()}
-                className="inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-base font-black text-white/86 ring-1 ring-white/24 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/10 hover:text-white"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#C9DACD] bg-white px-6 py-3 text-base font-black text-[#143422] shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#146B3E] hover:text-[#146B3E]"
               >
+                <BookOpen size={18} />
                 อ่านบทความ
               </button>
+            </div>
+            <div className="mt-8 grid max-w-md grid-cols-2 gap-3">
+              <div className="rounded-2xl bg-[#F2F8F4] p-3 text-[#146B3E]">
+                <ClipboardCheck size={22} />
+                <p className="mt-2 text-sm font-black">งานประจำวัน</p>
+              </div>
+              <div className="rounded-2xl bg-[#F2F8F4] p-3 text-[#146B3E]">
+                <MapPinned size={22} />
+                <p className="mt-2 text-sm font-black">ข้อมูลแปลง</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative min-h-[24rem] overflow-hidden bg-[#D8EFC4] lg:min-h-full">
+            <img
+              src="/images/durian-banner.avif"
+              alt="สวนทุเรียน"
+              className="guest-hero-image absolute inset-0 h-full w-full object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.8),rgba(255,255,255,0.08)_32%,rgba(9,44,25,0.14)),linear-gradient(0deg,rgba(20,107,62,0.22),transparent_55%)]" />
+            <div className="pointer-events-none absolute inset-0">
+              <span className="guest-hero-orbit guest-hero-orbit-tree left-[10%] top-[12%]">
+                <TreePine size={58} strokeWidth={1.6} />
+              </span>
+              <span className="guest-hero-orbit guest-hero-orbit-rain right-[12%] top-[10%]">
+                <CloudRain size={54} strokeWidth={1.6} />
+              </span>
+              <span className="guest-hero-orbit guest-hero-orbit-sun right-[34%] top-[28%]">
+                <Sun size={56} strokeWidth={1.6} />
+              </span>
+              <span className="guest-hero-orbit guest-hero-orbit-wind left-[36%] bottom-[26%]">
+                <Wind size={56} strokeWidth={1.6} />
+              </span>
+              <span className="guest-hero-orbit guest-hero-orbit-water bottom-[16%] left-[18%]">
+                <Droplets size={52} strokeWidth={1.7} />
+              </span>
+              <span className="guest-hero-orbit guest-hero-orbit-soil bottom-[14%] right-[13%]">
+                <Sprout size={56} strokeWidth={1.6} />
+              </span>
             </div>
           </div>
         </div>
@@ -377,6 +423,46 @@ export default function AppShell() {
     return () => window.removeEventListener("farm_location_changed", onLocationChange)
   }, [readFarmLocation])
 
+  // Sync URL search parameters to local state on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      const tab = params.get("tab")
+      if (tab && ["dashboard", "plots", "operations", "finance", "articles", "admin"].includes(tab)) {
+        setActiveTab(tab as Tab)
+      }
+      const view = params.get("view")
+      if (view && ["articles", "products"].includes(view)) {
+        setArticleView(view as "articles" | "products")
+      }
+      const articleId = params.get("articleId")
+      if (articleId) {
+        setSelectedArticleId(articleId)
+      }
+    }
+  }, [])
+
+  // Sync local state back to URL search parameters
+  useEffect(() => {
+    if (!isMounted) return
+    const url = new URL(window.location.href)
+    url.searchParams.set("tab", activeTab)
+    
+    if (activeTab === "articles") {
+      url.searchParams.set("view", articleView)
+      if (selectedArticleId) {
+        url.searchParams.set("articleId", selectedArticleId)
+      } else {
+        url.searchParams.delete("articleId")
+      }
+    } else {
+      url.searchParams.delete("view")
+      url.searchParams.delete("articleId")
+    }
+    
+    window.history.replaceState({}, "", url.toString())
+  }, [activeTab, articleView, selectedArticleId, isMounted])
+
   useEffect(() => {
     const savedUserId = localStorage.getItem("durian_current_user")
     if (savedUserId) {
@@ -505,7 +591,7 @@ export default function AppShell() {
       case "finance":
         return <Finance data={store.data} addFinance={store.addFinance} deleteFinance={store.deleteFinance} />
       case "articles":
-        return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} />
+        return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
       case "admin":
         if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} userName={user?.name} />
         return (
@@ -585,7 +671,7 @@ export default function AppShell() {
         <main className="relative z-10">
           {activeTab === "articles" ? (
             <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 md:px-8 md:py-6">
-              <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} />
+              <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
             </div>
           ) : (
             <GuestHome

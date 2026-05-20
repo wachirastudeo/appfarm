@@ -363,6 +363,26 @@
   }
 }
 
+@keyframes hero-orbit-float {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(-5deg) scale(1);
+  }
+  50% {
+    transform: translate3d(10px, -14px, 0) rotate(5deg) scale(1.05);
+  }
+}
+
+@keyframes hero-orbit-pulse {
+  0%, 100% {
+    opacity: 0.72;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  }
+  50% {
+    opacity: 0.95;
+    box-shadow: 0 22px 60px rgba(20, 107, 62, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  }
+}
+
 .animate-float-sway {
   animation: float-sway 6s ease-in-out infinite;
 }
@@ -374,6 +394,10 @@
 .guest-hero-image {
   animation: hero-ken-burns 18s ease-in-out infinite;
   will-change: transform;
+}
+
+.guest-hero-card {
+  animation: hero-soft-pop 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .guest-hero-glow {
@@ -421,6 +445,76 @@
   animation: hero-arrow-nudge 1.6s ease-in-out infinite;
 }
 
+.guest-hero-orbit {
+  position: absolute;
+  display: inline-flex;
+  height: 5rem;
+  width: 5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.68), transparent 34%),
+    linear-gradient(145deg, rgba(224, 242, 254, 0.54), rgba(220, 252, 231, 0.24));
+  color: rgba(231, 243, 236, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  animation: hero-orbit-float 7s ease-in-out infinite, hero-orbit-pulse 7s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.guest-hero-orbit::after {
+  content: "";
+  position: absolute;
+  inset: 0.65rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .guest-hero-orbit {
+    height: 6.5rem;
+    width: 6.5rem;
+  }
+}
+
+.guest-hero-orbit-tree {
+  color: rgba(116, 205, 136, 0.95);
+  animation-duration: 8s;
+}
+
+.guest-hero-orbit-rain {
+  color: rgba(96, 165, 250, 0.95);
+  animation-delay: -1.8s;
+  animation-duration: 7.4s;
+}
+
+.guest-hero-orbit-water {
+  color: rgba(56, 189, 248, 0.95);
+  animation-delay: -3.1s;
+  animation-duration: 8.6s;
+}
+
+.guest-hero-orbit-sun {
+  color: rgba(250, 204, 21, 0.95);
+  animation-delay: -2.6s;
+  animation-duration: 7.1s;
+}
+
+.guest-hero-orbit-wind {
+  color: rgba(148, 163, 184, 0.95);
+  animation-delay: -5.1s;
+  animation-duration: 9s;
+}
+
+.guest-hero-orbit-soil {
+  color: rgba(245, 183, 76, 0.95);
+  animation-delay: -4.2s;
+  animation-duration: 7.8s;
+}
+
 @media (min-width: 1024px) and (max-height: 820px) {
   .guest-hero-stat {
     padding-top: 0.65rem;
@@ -442,9 +536,11 @@
   .guest-hero-image,
   .guest-hero-glow,
   .guest-hero-sheen,
+  .guest-hero-card,
   .guest-hero-copy,
   .guest-hero-panel,
   .guest-hero-badge,
+  .guest-hero-orbit,
   .guest-hero-cta svg,
   .guest-hero-arrow svg {
     animation: none;

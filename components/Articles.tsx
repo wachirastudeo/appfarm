@@ -12,15 +12,32 @@ interface Props {
   products: Product[]
   initialArticleId?: string | null
   initialView?: "articles" | "products"
+  onViewChange?: (view: "articles" | "products") => void
+  onArticleSelect?: (articleId: string | null) => void
 }
 
-export default function Articles({ articles, products, initialArticleId, initialView = "articles" }: Props) {
+export default function Articles({
+  articles,
+  products,
+  initialArticleId,
+  initialView = "articles",
+  onViewChange,
+  onArticleSelect,
+}: Props) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
   const [activeCategory, setActiveCategory] = useState("ทั้งหมด")
   const [activeView, setActiveView] = useState<"articles" | "products">(initialView)
   const [savedArticleIds, setSavedArticleIds] = useState<string[]>([])
   const [actionMessage, setActionMessage] = useState("")
+
+  useEffect(() => {
+    onViewChange?.(activeView)
+  }, [activeView, onViewChange])
+
+  useEffect(() => {
+    onArticleSelect?.(selectedArticle?.id ?? null)
+  }, [selectedArticle, onArticleSelect])
 
   const publishedArticles = useMemo(() => articles.filter(a => a.status === "published"), [articles])
   const categories = ["ทั้งหมด", ...Array.from(new Set(publishedArticles.map(a => a.category)))]
@@ -207,48 +224,59 @@ export default function Articles({ articles, products, initialArticleId, initial
   return (
     <div className="space-y-6 pb-12">
       {/* Sleek Compact Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 pt-2 sm:pt-4">
-        <div>
-          <h2 className="text-2xl font-black text-foreground">คลังความรู้</h2>
-          <p className="text-base text-muted-foreground font-bold">สาระน่ารู้เพื่อสวนของคุณ</p>
-        </div>
-        {activeView === "articles" && (
-          <div className="relative w-full md:max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={24} />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              placeholder="ค้นหาเทคนิค โรคพืช ปุ๋ย..."
-              className="w-full bg-card border-2 border-border rounded-2xl pl-12 pr-4 py-3 sm:py-3.5 text-base sm:text-lg font-bold focus:outline-none focus:border-primary shadow-sm hover:shadow-md transition-all"
-            />
-            {searchTerm && (
-              <button onClick={() => setSearchTerm("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                <X size={20} />
-              </button>
-            )}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2 sm:pt-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-black text-foreground">คลังความรู้</h2>
+            <p className="text-base text-muted-foreground font-bold">สาระน่ารู้เพื่อสวนของคุณ</p>
           </div>
-        )}
+          <div className="flex gap-2 rounded-2xl border border-border bg-card p-1.5 shadow-sm w-fit">
+            <button
+              onClick={() => {
+                setActiveView("articles")
+                setSearchTerm("")
+              }}
+              className={`rounded-xl px-4 py-2 text-sm font-black transition-colors ${
+                activeView === "articles"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              บทความ
+            </button>
+            <button
+              onClick={() => {
+                setActiveView("products")
+                setSearchTerm("")
+              }}
+              className={`rounded-xl px-4 py-2 text-sm font-black transition-colors ${
+                activeView === "products"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              ปุ๋ยและยา
+            </button>
+          </div>
+        </div>
+        <div className="relative w-full lg:max-w-md">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={22} />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder={activeView === "articles" ? "ค้นหาเทคนิค โรคพืช ปุ๋ย..." : "ค้นหาปุ๋ย ยา สารเคมี..."}
+            className="w-full bg-card border-2 border-border rounded-2xl pl-12 pr-10 py-2.5 text-base font-bold focus:outline-none focus:border-primary shadow-sm hover:shadow-md transition-all"
+          />
+          {searchTerm && (
+            <button onClick={() => setSearchTerm("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X size={20} />
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="flex w-full gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm sm:w-fit">
-        <button
-          onClick={() => setActiveView("articles")}
-          className={`flex-1 rounded-xl px-4 py-2 text-sm font-black transition-colors sm:flex-none ${activeView === "articles" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-        >
-          บทความ
-        </button>
-        <button
-          onClick={() => setActiveView("products")}
-          className={`flex-1 rounded-xl px-4 py-2 text-sm font-black transition-colors sm:flex-none ${activeView === "products" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-        >
-          ปุ๋ยและยา
-        </button>
-      </div>
-
-      {activeView === "products" && <Products products={products} compact />}
+      {activeView === "products" && <Products products={products} compact searchTerm={searchTerm} />}
 
       {activeView === "articles" && (
         <>
