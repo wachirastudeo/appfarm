@@ -3,7 +3,7 @@ import { useState } from "react"
 import type { AppUser, Article, NewUserInput, Product, SiteSettings } from "@/lib/store"
 import { appRuntimeConfig, getDataModeLabel, isSupabaseConfigured } from "@/lib/runtime-config"
 import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "@/lib/seo"
-import { BookOpen, Edit3, Image, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users } from "lucide-react"
+import { BookOpen, Edit3, Image, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users, MessageSquare } from "lucide-react"
 
 interface Props {
   users: AppUser[]
@@ -75,7 +75,22 @@ export default function AdminPanel({
   deleteProduct,
   updateSiteSettings,
 }: Props) {
-  const [activeSection, setActiveSection] = useState<"site" | "articles" | "products" | "users">("site")
+  const [activeSection, setActiveSection] = useState<"site" | "articles" | "products" | "users" | "feedback">("site")
+  const [feedbacks, setFeedbacks] = useState<{ id: string, name: string, contact: string, message: string, date: string }[]>(() => {
+    if (typeof window === "undefined") return []
+    try {
+      const stored = localStorage.getItem("appfarm_feedback")
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      return []
+    }
+  })
+
+  const handleDeleteFeedback = (id: string) => {
+    const updated = feedbacks.filter(f => f.id !== id)
+    setFeedbacks(updated)
+    localStorage.setItem("appfarm_feedback", JSON.stringify(updated))
+  }
   const [settingsDraft, setSettingsDraft] = useState(siteSettings)
   const [articleDraft, setArticleDraft] = useState<Omit<Article, "id" | "createdAt" | "updatedAt">>(emptyArticle)
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null)
@@ -229,6 +244,7 @@ export default function AdminPanel({
           { id: "articles" as const, label: "บทความ", icon: BookOpen },
           { id: "products" as const, label: "ปุ๋ยและยา", icon: ShoppingBag },
           { id: "users" as const, label: "User", icon: Users },
+          { id: "feedback" as const, label: "ข้อเสนอแนะ/ติดต่อ", icon: MessageSquare },
         ].map(section => {
           const Icon = section.icon
           return (
@@ -529,6 +545,60 @@ export default function AdminPanel({
           </table>
         </div>
       </section>
+      )}
+      {activeSection === "feedback" && (
+        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="text-primary" size={20} />
+              <h3 className="text-lg font-black">ข้อเสนอแนะและข้อมูลติดต่อจากผู้ใช้ ({feedbacks.length})</h3>
+            </div>
+            {feedbacks.length > 0 && (
+              <button
+                onClick={() => {
+                  if (confirm("คุณต้องการลบข้อเสนอแนะทั้งหมดหรือไม่?")) {
+                    setFeedbacks([])
+                    localStorage.setItem("appfarm_feedback", JSON.stringify([]))
+                  }
+                }}
+                className="text-xs font-bold text-destructive hover:underline"
+              >
+                ล้างทั้งหมด
+              </button>
+            )}
+          </div>
+
+          {feedbacks.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground font-semibold">
+              ยังไม่มีข้อความส่งเข้ามาจากผู้ใช้
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              {feedbacks.map(f => (
+                <div key={f.id} className="rounded-2xl border border-border bg-background p-4 relative group">
+                  <button
+                    onClick={() => handleDeleteFeedback(f.id)}
+                    className="absolute right-3 top-3 p-1.5 hover:bg-muted text-muted-foreground hover:text-destructive rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="ลบข้อเสนอแนะ"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
+                    <span className="font-black text-[#146B3E] text-base">{f.name}</span>
+                    <span className="text-xs text-muted-foreground">{new Date(f.date).toLocaleString("th-TH")}</span>
+                  </div>
+                  <div className="text-sm font-semibold text-foreground bg-muted/40 rounded-xl px-3.5 py-2.5 mb-2 leading-relaxed">
+                    {f.message}
+                  </div>
+                  <div className="text-xs font-black text-muted-foreground flex items-center gap-1.5">
+                    <span>ช่องทางติดต่อกลับ:</span>
+                    <span className="text-[#146B3E] bg-[#E7F3EC] px-2 py-0.5 rounded-md font-bold">{f.contact || "ไม่ได้ระบุ"}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       )}
     </div>
   )

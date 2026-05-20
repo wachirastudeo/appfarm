@@ -3,7 +3,7 @@ import dynamic from "next/dynamic"
 import { useCallback, useMemo, useRef, useState, useEffect } from "react"
 import { useAppData } from "@/lib/store"
 import type { AppUser, Article, Product } from "@/lib/store"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind } from "lucide-react"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, Facebook, Youtube, MessageSquare } from "lucide-react"
 import DurianIcon from "./DurianIcon"
 import { Skeleton } from "./ui/skeleton"
 import AnimatedBackground from "./AnimatedBackground"
@@ -17,6 +17,7 @@ const AdminPanel = dynamic(() => import("./AdminPanel"), { loading: () => <Conte
 const Settings = dynamic(() => import("./Settings"), { loading: () => null })
 const AuthModal = dynamic(() => import("./AuthModal"), { loading: () => null })
 const ProfileModal = dynamic(() => import("./ProfileModal"), { loading: () => null })
+const FeedbackModal = dynamic(() => import("./FeedbackModal"), { loading: () => null })
 
 type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin"
 
@@ -48,7 +49,7 @@ function ContentSkeleton() {
   )
 }
 
-function AppFooter() {
+function AppFooter({ onContactClick }: { onContactClick: () => void }) {
   return (
     <footer className="mt-8 border-t border-[#B9DCC8]/40 bg-[#F4F9F6]/80 px-4 py-6 text-center backdrop-blur-sm sm:py-8">
       <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4">
@@ -61,6 +62,50 @@ function AppFooter() {
 
         {/* Right Side: Contact */}
         <div className="flex flex-wrap items-center justify-center gap-3">
+          {/* Social Icons */}
+          <div className="flex items-center gap-2 mr-2">
+            <a
+              href="https://facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#1877F2] shadow-sm ring-1 ring-black/5 hover:bg-[#1877F2] hover:text-white transition-all active:scale-90"
+              title="Facebook"
+            >
+              <Facebook size={16} />
+            </a>
+            <a
+              href="https://youtube.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#FF0000] shadow-sm ring-1 ring-black/5 hover:bg-[#FF0000] hover:text-white transition-all active:scale-90"
+              title="YouTube"
+            >
+              <Youtube size={16} />
+            </a>
+            <a
+              href="https://line.me"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#06C755] shadow-sm ring-1 ring-black/5 hover:bg-[#06C755] hover:text-white transition-all active:scale-90"
+              title="LINE"
+            >
+              <svg viewBox="0 0 16 16" className="h-4 w-4 fill-current" width={16} height={16}>
+                <path d="M8 0c4.411 0 8 2.912 8 6.492 0 1.433-.555 2.723-1.715 3.994-1.678 1.932-5.431 4.285-6.285 4.645-.83.35-.734-.197-.696-.413l.003-.018.114-.685c.027-.204.055-.521-.026-.723-.09-.223-.444-.339-.704-.395C2.846 12.39 0 9.701 0 6.492 0 2.912 3.59 0 8 0M5.022 7.686H3.497V4.918a.156.156 0 0 0-.155-.156H2.78a.156.156 0 0 0-.156.156v3.486c0 .041.017.08.044.107v.001l.002.002.002.002a.15.15 0 0 0 .108.043h2.242c.086 0 .155-.07.155-.156v-.56a.156.156 0 0 0-.155-.157m.791-2.924a.156.156 0 0 0-.156.156v3.486c0 .086.07.155.156.155h.562c.086 0 .155-.07.155-.155V4.918a.156.156 0 0 0-.155-.156zm3.863 0a.156.156 0 0 0-.156.156v2.07L7.923 4.832l-.013-.015v-.001l-.01-.01-.003-.003-.011-.009h-.001L7.88 4.79l-.003-.002-.005-.003-.008-.005h-.002l-.003-.002-.01-.004-.004-.002-.01-.003h-.002l-.003-.001-.009-.002h-.006l-.003-.001h-.004l-.002-.001h-.574a.156.156 0 0 0-.156.155v3.486c0 .086.07.155.156.155h.56c.087 0 .157-.07.157-.155v-2.07l1.6 2.16a.2.2 0 0 0 .039.038l.001.001.01.006.004.002.008.004.007.003.005.002.01.003h.003a.2.2 0 0 0 .04.006h.56c.087 0 .157-.07.157-.155V4.918a.156.156 0 0 0-.156-.156zm3.815.717v-.56a.156.156 0 0 0-.155-.157h-2.242a.16.16 0 0 0-.108.044h-.001l-.001.002-.002.003a.16.16 0 0 0-.044.107v3.486c0 .041.017.08.044.107l.002.003.002.002a.16.16 0 0 0 .108.043h2.242c.086 0 .155-.07.155-.156v-.56a.156.156 0 0 0-.155-.157H11.81v-.589h1.525c.086 0 .155-.07.155-.156v-.56a.156.156 0 0 0-.155-.157H11.81v-.589h1.525c.086 0 .155-.07.155-.156Z"/>
+              </svg>
+            </a>
+            <a
+              href="https://tiktok.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black shadow-sm ring-1 ring-black/5 hover:bg-black hover:text-white transition-all active:scale-90"
+              title="TikTok"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" width={16} height={16}>
+                <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.72 3.01 1.83 4.09.99.96 2.33 1.52 3.73 1.63v3.45c-1.34-.05-2.65-.48-3.75-1.28a6.37 6.37 0 0 1-1.74-2.12v8.9c-.06 1.41-.49 2.83-1.33 3.96a6.83 6.83 0 0 1-5.18 2.61c-1.73.08-3.52-.39-4.93-1.42A6.9 6.9 0 0 1 1.9 14.77c-.49-2-.25-4.17.68-6.01a6.8 6.8 0 0 1 5.37-3.95v3.49c-.63.09-1.27.35-1.77.78a3.38 3.38 0 0 0-1.12 1.99 3.4 3.4 0 0 0 .54 2.76c.64.91 1.68 1.48 2.79 1.52 1.35.03 2.74-.7 3.39-1.9.22-.44.29-.93.29-1.42l.01-11.96H12.53z" />
+              </svg>
+            </a>
+          </div>
+
           <a
             href="mailto:wachirastudeo@gmail.com"
             className="inline-flex items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-xs font-extrabold text-[#146B3E] shadow-sm ring-1 ring-[#B9DCC8]/60 transition-all hover:bg-[#E7F3EC] hover:ring-[#146B3E]/30 active:scale-95"
@@ -68,6 +113,14 @@ function AppFooter() {
             <Mail size={14} className="text-[#146B3E]" />
             <span>wachirastudeo@gmail.com</span>
           </a>
+
+          <button
+            onClick={onContactClick}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#146B3E] px-3.5 py-2 text-xs font-extrabold text-white shadow-sm ring-1 ring-[#146B3E]/10 transition-all hover:bg-[#0F5A34] active:scale-95"
+          >
+            <MessageSquare size={14} className="text-white" />
+            <span>ติดต่อเพิ่มเติม / ส่งข้อมูล</span>
+          </button>
         </div>
       </div>
     </footer>
@@ -110,6 +163,19 @@ function AppShellSkeleton() {
   )
 }
 
+interface LeafParticle {
+  id: number
+  right: string
+  top: string
+  size: number
+  delay: string
+  duration: string
+  driftX: string
+  driftY: string
+  rotation: string
+  opacity: number
+}
+
 function GuestHome({
   articles,
   products,
@@ -132,6 +198,33 @@ function GuestHome({
   const activeProducts = products.filter(product => product.status === "active")
   const carouselProducts = activeProducts.length > 0 ? [...activeProducts, ...activeProducts] : []
   const productDrag = useRef({ active: false, startX: 0, scrollLeft: 0 })
+
+  const leafParticles = useMemo<LeafParticle[]>(() => {
+    const arr: LeafParticle[] = []
+    for (let i = 0; i < 6; i++) {
+      const sizeVal = Math.round(Math.random() * 6 + 10) // 10px to 16px
+      const durationVal = Math.round(Math.random() * 6 + 7) // 7s to 13s
+      const delayVal = Math.round(Math.random() * -10) // negative delay
+      const driftXVal = Math.round(Math.random() * -120 - 150) // -150px to -270px
+      const driftYVal = Math.round(Math.random() * 60 + 30) // 30px to 90px
+      const rotationVal = Math.round(Math.random() * 180 + 120) // 120deg to 300deg
+      const opacityVal = Math.random() * 0.2 + 0.12 // 0.12 to 0.32 opacity
+
+      arr.push({
+        id: i,
+        right: `${Math.random() * 50 - 5}%`,
+        top: `${Math.random() * 60}%`,
+        size: sizeVal,
+        delay: `${delayVal}s`,
+        duration: `${durationVal}s`,
+        driftX: `${driftXVal}px`,
+        driftY: `${driftYVal}px`,
+        rotation: `${rotationVal}deg`,
+        opacity: opacityVal,
+      })
+    }
+    return arr
+  }, [])
 
   const productTrack = () => document.getElementById("home-product-carousel")
 
@@ -232,29 +325,38 @@ function GuestHome({
             </div>
           </div>
 
-          <div className="relative min-h-[24rem] overflow-hidden bg-[#D8EFC4] dark:bg-[#102619] lg:min-h-full">
+          <div className="relative min-h-[14rem] sm:min-h-[18rem] lg:min-h-full overflow-hidden bg-[#D8EFC4] dark:bg-[#102619]">
             <img
               src="/images/durian-banner.avif"
               alt="สวนทุเรียน"
               className="guest-hero-image absolute inset-0 h-full w-full object-cover object-center"
             />
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.85),rgba(255,255,255,0.1)_32%,rgba(9,44,25,0.14)),linear-gradient(0deg,rgba(20,107,62,0.22),transparent_55%)] dark:bg-[linear-gradient(90deg,rgba(20,41,30,0.9),rgba(20,41,30,0.15)_32%,rgba(9,44,25,0.25)),linear-gradient(0deg,rgba(20,107,62,0.32),transparent_55%)]" />
-            <div className="pointer-events-none absolute inset-0">
-              <span className="guest-hero-orbit guest-hero-orbit-tree left-[8%] top-[12%]">
-                <TreePine size={58} strokeWidth={2.3} />
-              </span>
-              <span className="guest-hero-orbit guest-hero-orbit-rain right-[8%] top-[25%]">
-                <CloudRain size={54} strokeWidth={2.3} />
-              </span>
-              <span className="guest-hero-orbit guest-hero-orbit-wind left-[14%] top-[47%]">
-                <Wind size={56} strokeWidth={2.3} />
-              </span>
-              <span className="guest-hero-orbit guest-hero-orbit-sun right-[8%] bottom-[25%]">
-                <Sun size={56} strokeWidth={2.3} />
-              </span>
-              <span className="guest-hero-orbit guest-hero-orbit-water left-[8%] bottom-[12%]">
-                <Droplets size={52} strokeWidth={2.3} />
-              </span>
+            {/* Soft responsive overlay gradient */}
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0.4)_25%,transparent_60%),linear-gradient(0deg,rgba(20,107,62,0.15),transparent_60%)] dark:bg-[linear-gradient(180deg,#14291E_0%,rgba(20,41,30,0.6)_25%,transparent_60%),linear-gradient(0deg,rgba(20,107,62,0.2),transparent_60%)] lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.9)_0%,rgba(255,255,255,0.1)_35%,rgba(9,44,25,0.12)),linear-gradient(0deg,rgba(20,107,62,0.22),transparent_55%)] lg:dark:bg-[linear-gradient(90deg,rgba(20,41,30,0.95)_0%,rgba(20,41,30,0.15)_35%,rgba(9,44,25,0.25)),linear-gradient(0deg,rgba(20,107,62,0.32),transparent_55%)]" />
+
+            {/* Subtle drifting leaves animation */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              {leafParticles.map(p => (
+                <div
+                  key={p.id}
+                  className="absolute"
+                  style={{
+                    right: p.right,
+                    top: p.top,
+                    animation: `hero-leaf-drift ${p.duration} infinite linear`,
+                    animationDelay: p.delay,
+                    width: `${p.size}px`,
+                    height: `${p.size}px`,
+                    opacity: p.opacity,
+                    "--drift-x": p.driftX,
+                    "--drift-y": p.driftY,
+                    "--drift-rotation": p.rotation,
+                    "--leaf-opacity": p.opacity,
+                  } as React.CSSProperties}
+                >
+                  <Leaf className="text-emerald-600/40 dark:text-emerald-400/30 w-full h-full transform -rotate-12" />
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -364,6 +466,7 @@ export default function AppShell() {
   const [showSettings, setShowSettings] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null)
   const [articleView, setArticleView] = useState<"articles" | "products">("articles")
   const [user, setUser] = useState<AppUser | null>(null)
@@ -687,7 +790,7 @@ export default function AppShell() {
               onOpenProducts={openProducts}
             />
           )}
-          <AppFooter />
+          <AppFooter onContactClick={() => setShowFeedbackModal(true)} />
         </main>
 
         <AuthModal
@@ -805,7 +908,7 @@ export default function AppShell() {
           >
             {renderContent()}
           </div>
-          <AppFooter />
+          <AppFooter onContactClick={() => setShowFeedbackModal(true)} />
         </main>
       </div>
 
@@ -858,6 +961,12 @@ export default function AppShell() {
         onUpdateUser={handleUpdateProfile}
         onOpenFarmData={openProfileFarmData}
         onOpenNotifications={openProfileNotifications}
+      />
+
+      {/* Feedback / Contact Modal */}
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
       />
     </div>
   )

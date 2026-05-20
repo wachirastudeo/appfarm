@@ -477,7 +477,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
 
       {showLocationEditor && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/45 p-3 backdrop-blur-sm sm:p-4">
-          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-4 shadow-2xl sm:p-5">
+          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-4 shadow-2xl sm:p-5 max-h-[90vh] overflow-y-auto">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-lg font-black text-foreground">เปลี่ยนสถานที่สวน</h3>
