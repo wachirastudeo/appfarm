@@ -165,61 +165,96 @@ function GuestHome({
 
   return (
     <div className="space-y-5 pb-10">
-      <section className="relative overflow-hidden rounded-2xl bg-[#163424] shadow-[0_24px_60px_rgba(15,59,37,0.22)] ring-1 ring-white/70">
+      <section className="guest-hero relative isolate overflow-hidden rounded-[1.75rem] bg-[#0F2E1E] shadow-[0_28px_80px_rgba(15,59,37,0.24)] ring-1 ring-white/65 dark:ring-white/10">
         <img
           src="/images/durian-banner.avif"
           alt="สวนทุเรียน"
-          className="absolute inset-0 h-full w-full object-cover opacity-95 saturate-125 contrast-110"
+          className="guest-hero-image absolute inset-0 h-full w-full object-cover object-center opacity-95 saturate-125 contrast-110"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,43,26,0.82),rgba(17,64,37,0.48)_46%,rgba(17,64,37,0.12)_78%,rgba(20,52,34,0.06)),linear-gradient(0deg,rgba(0,0,0,0.42),rgba(0,0,0,0.08)_52%,rgba(255,255,255,0.08))]" />
-        <div className="relative grid min-h-[520px] gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-end lg:px-9 lg:py-9">
-          <div className="flex max-w-2xl flex-col justify-end">
-            <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-white/86 px-3 py-1.5 text-sm font-black text-[#146B3E] shadow-sm ring-1 ring-white/70 backdrop-blur-md">
-              <Sparkles size={16} />
-              {tagline}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_20%,rgba(255,255,255,0.22),transparent_30%),linear-gradient(110deg,rgba(5,31,18,0.92),rgba(9,55,32,0.74)_46%,rgba(17,73,43,0.22)_76%),linear-gradient(0deg,rgba(4,18,11,0.72),rgba(4,18,11,0.08)_58%)]" />
+        <div className="guest-hero-glow absolute -bottom-24 -left-20 h-56 w-56 rounded-full bg-[#F5C84B]/18 blur-3xl" />
+        <div className="guest-hero-sheen absolute inset-y-0 -left-1/3 w-1/3 rotate-12 bg-white/10 blur-2xl" />
+        <div className="relative grid min-h-[min(540px,calc(100vh-9rem))] gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.72fr)] lg:items-end lg:px-8 lg:py-7 xl:min-h-[min(560px,calc(100vh-8rem))]">
+          <div className="guest-hero-copy flex max-w-3xl flex-col justify-end">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <span className="guest-hero-badge inline-flex w-fit items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-sm font-black text-[#146B3E] shadow-sm ring-1 ring-white/70 backdrop-blur-md">
+                <Sparkles size={16} />
+                {tagline}
+              </span>
+              <span className="guest-hero-badge inline-flex w-fit items-center gap-2 rounded-full bg-[#F5C84B]/92 px-3 py-1.5 text-sm font-black text-[#3E2D08] shadow-sm backdrop-blur-md">
+                อ่านบทความฟรี
+              </span>
             </div>
-            <h1 className="text-3xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">
-              {siteName} สำหรับจัดการสวนทุเรียนและอ่านความรู้ก่อนเริ่มใช้งาน
+            <h1 className="max-w-[13ch] text-[clamp(2.25rem,4.6vw,4.35rem)] font-black leading-[1.08] text-white drop-shadow-sm sm:max-w-[14ch]">
+              จัดการสวนทุเรียนให้เป็นระบบตั้งแต่วันแรก
             </h1>
-            <p className="mt-4 max-w-xl text-base font-semibold leading-7 text-white/78">
-              อ่านบทความได้ทันที ส่วนเมนูจัดการแปลง งาน การเงิน และหลังบ้าน ต้องสมัครหรือเข้าสู่ระบบก่อนเพื่อเก็บข้อมูลสวนของคุณ
+            <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-white/82 sm:text-lg">
+              {siteName} ช่วยเก็บข้อมูลแปลง ต้นทุเรียน งานประจำวัน และการเงินไว้ในที่เดียว ก่อนเข้าสู่ระบบยังอ่านบทความความรู้ได้ทันที
             </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <button
                 onClick={onLogin}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-base font-black text-[#146B3E] shadow-lg shadow-black/10 transition-transform hover:bg-[#E7F3EC] active:scale-[0.98]"
+                className="guest-hero-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-base font-black text-[#146B3E] shadow-xl shadow-black/15 transition-all hover:-translate-y-0.5 hover:bg-[#E7F3EC] active:scale-[0.98]"
               >
                 สมัคร / เข้าสู่ระบบ
                 <ArrowRight size={18} />
               </button>
               <button
                 onClick={() => onReadArticles()}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/14 px-5 py-3 text-base font-black text-white ring-1 ring-white/22 transition-colors hover:bg-white/22"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white/14 px-5 py-3 text-base font-black text-white ring-1 ring-white/28 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/22"
               >
                 อ่านบทความ
                 <BookOpen size={18} />
               </button>
             </div>
+            <div className="mt-5 grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
+              {[
+                ["แปลง", "พร้อมบันทึก"],
+                ["งาน", "ไม่หลุดคิว"],
+                ["การเงิน", "เห็นต้นทุน"],
+              ].map(([title, detail]) => (
+                <div key={title} className="guest-hero-stat rounded-2xl bg-white/12 px-3 py-3 text-white ring-1 ring-white/18 backdrop-blur-md">
+                  <p className="text-base font-black leading-tight sm:text-lg">{title}</p>
+                  <p className="mt-1 text-xs font-bold leading-snug text-white/70 sm:text-sm">{detail}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="grid gap-3 self-end">
-            <div className="rounded-2xl bg-white/90 p-4 shadow-xl ring-1 ring-white/70 backdrop-blur-md">
-              <div className="mb-3 flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E7F3EC] text-[#146B3E]">
+          <div className="guest-hero-panel self-end rounded-[1.5rem] bg-white/92 p-4 shadow-2xl ring-1 ring-white/80 backdrop-blur-xl dark:bg-[#14291E]/88 dark:ring-white/10">
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#E7F3EC] text-[#146B3E] dark:bg-[#1D3A29] dark:text-[#72C08A]">
                   <Lock size={22} />
                 </span>
                 <div>
-                  <h2 className="text-lg font-black text-[#143422]">ต้อง login ก่อนใช้งานระบบสวน</h2>
-                  <p className="text-sm font-semibold text-[#527060]">ข้อมูลส่วนตัวและข้อมูลสวนจะแสดงหลังเข้าสู่ระบบ</p>
+                  <h2 className="text-lg font-black leading-tight text-[#143422] dark:text-[#EAF6ED]">พื้นที่สวนส่วนตัว</h2>
+                  <p className="mt-1 text-sm font-semibold leading-snug text-[#527060] dark:text-[#B8D1C0]">เข้าสู่ระบบเพื่อบันทึกและเรียกดูข้อมูลสวนของคุณ</p>
                 </div>
               </div>
-              <div className="grid gap-2">
-                {["จัดการแปลงและต้นทุเรียน", "วางแผนงานและบันทึกกิจกรรม", "ดูรายรับรายจ่ายและหลังบ้าน"].map(item => (
-                  <div key={item} className="flex items-center gap-2 rounded-xl bg-[#F2F8F4] px-3 py-2 text-sm font-bold text-[#143422]">
-                    <CheckCircle2 size={16} className="text-[#146B3E]" />
-                    {item}
-                  </div>
-                ))}
+              <span className="rounded-full bg-[#146B3E] px-3 py-1 text-xs font-black text-white dark:bg-[#72C08A] dark:text-[#0B1B12]">Private</span>
+            </div>
+            <div className="grid gap-2">
+              {["จัดการแปลงและต้นทุเรียน", "วางแผนงานและบันทึกกิจกรรม", "ดูรายรับรายจ่ายและหลังบ้าน"].map(item => (
+                <div key={item} className="flex items-center gap-2 rounded-2xl bg-[#F2F8F4] px-3 py-2 text-sm font-bold text-[#143422] dark:bg-[#1D3A29] dark:text-[#EAF6ED]">
+                  <CheckCircle2 size={16} className="shrink-0 text-[#146B3E] dark:text-[#72C08A]" />
+                  <span className="min-w-0">{item}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 rounded-2xl bg-[#143422] p-4 text-white shadow-inner dark:bg-[#0F1F17]">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-bold text-white/62">เริ่มต้นใช้งาน</p>
+                  <p className="mt-1 text-2xl font-black leading-tight">สมัครฟรี</p>
+                </div>
+                <button
+                  onClick={onLogin}
+                  className="guest-hero-arrow inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#F5C84B] text-[#143422] transition-transform hover:scale-105 active:scale-95"
+                  aria-label="สมัครหรือเข้าสู่ระบบ"
+                >
+                  <ArrowRight size={22} />
+                </button>
               </div>
             </div>
           </div>
