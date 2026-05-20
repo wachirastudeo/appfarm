@@ -14,6 +14,7 @@ import AuthModal from "./AuthModal"
 import ProfileModal from "./ProfileModal"
 import DurianIcon from "./DurianIcon"
 import { Skeleton } from "./ui/skeleton"
+import AnimatedBackground from "./AnimatedBackground"
 
 type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin"
 
@@ -536,23 +537,24 @@ export default function AppShell() {
   const logoUrl = store.data.siteSettings.logoUrl
 
   return (
-    <div className="h-screen bg-background flex flex-col">
+    <div className="h-screen bg-transparent flex flex-col relative overflow-hidden">
+      <AnimatedBackground />
       {/* Top Header Bar */}
-      <header className="relative z-20 bg-white px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1] shadow-[0_10px_28px_rgba(20,107,62,0.10)] overflow-hidden">
+      <header className="relative z-20 bg-white/75 dark:bg-[#0F1F17]/75 backdrop-blur-md px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1]/40 dark:border-[#31533D]/45 shadow-[0_8px_30px_rgba(20,107,62,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)] overflow-hidden">
         <button
           onClick={() => setActiveTab("dashboard")}
           className="relative flex min-w-0 items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity active:scale-95"
         >
-          <div className="shrink-0 p-2 sm:p-2.5 bg-[#E7F3EC] rounded-xl shadow-sm ring-1 ring-[#CFE3D5]">
+          <div className="shrink-0 p-2 sm:p-2.5 bg-[#E7F3EC] dark:bg-[#1D3A29] rounded-xl shadow-sm ring-1 ring-[#CFE3D5] dark:ring-[#31533D] animate-float-sway">
             {logoUrl ? (
               <img src={logoUrl} alt={siteName} className="h-5 w-5 sm:h-6 sm:w-6 rounded-lg object-cover" />
             ) : (
-              <Leaf size={22} className="text-[#146B3E]" />
+              <Leaf size={22} className="text-[#146B3E] dark:text-[#72C08A]" />
             )}
           </div>
           <div className="min-w-0 text-left">
-            <h1 className="truncate font-black text-[#146B3E] text-base sm:text-xl tracking-tight leading-none">{siteName}</h1>
-            <p className="truncate text-[#527060] text-[10px] sm:text-sm font-semibold uppercase tracking-wider sm:tracking-widest mt-0.5">{tagline}</p>
+            <h1 className="truncate font-black text-[#146B3E] dark:text-[#72C08A] text-base sm:text-xl tracking-tight leading-none">{siteName}</h1>
+            <p className="truncate text-[#527060] dark:text-[#B8D1C0] text-[10px] sm:text-sm font-semibold uppercase tracking-wider sm:tracking-widest mt-0.5">{tagline}</p>
           </div>
         </button>
         <div className="relative flex shrink-0 items-center gap-1 sm:gap-2">
@@ -604,11 +606,10 @@ export default function AppShell() {
       </header>
 
       {/* Body: Sidebar + Content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative z-10">
         {/* Desktop Sidebar */}
-        <nav className="hidden lg:flex flex-col w-56 bg-[#146B3E] border-r border-white/20 py-4 px-3 gap-1.5 shrink-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.16),14px_0_36px_rgba(47,170,98,0.18)] relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.28),transparent_14rem),linear-gradient(180deg,rgba(255,255,255,0.12),rgba(22,138,75,0.16)_48%,rgba(22,138,75,0.24))]" />
-          <p className="relative px-2 pt-2 text-xs font-black text-white/72 uppercase tracking-wider mb-1">เมนูหลัก</p>
+        <nav className="hidden lg:flex flex-col w-56 bg-white/40 dark:bg-black/15 backdrop-blur-md border-r border-[#DDEBE1]/40 dark:border-[#31533D]/25 py-4 px-3 gap-1.5 shrink-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.1),10px_0_30px_rgba(0,0,0,0.02)] relative overflow-hidden">
+          <p className="relative px-2 pt-2 text-xs font-black text-muted-foreground uppercase tracking-wider mb-1">เมนูหลัก</p>
           {visibleTabs.map(tab => {
             const Icon = tab.icon
             return (
@@ -616,15 +617,15 @@ export default function AppShell() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`relative group flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm font-black transition-all text-left ${activeTab === tab.id
-                  ? "bg-white text-[#146B3E] shadow-[0_16px_30px_rgba(20,52,34,0.18)]"
-                  : "text-white/92 hover:bg-white/18 hover:text-white"
+                  ? "bg-primary text-primary-foreground shadow-[0_12px_24px_rgba(20,107,62,0.12)] dark:shadow-[0_12px_24px_rgba(114,192,138,0.18)]"
+                  : "text-foreground/80 dark:text-foreground/70 hover:bg-black/5 dark:hover:bg-white/8 hover:text-primary dark:hover:text-white"
                   }`}
               >
-                <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${activeTab === tab.id ? "bg-[#E7F3EC] text-[#146B3E]" : "bg-white/18 text-white group-hover:bg-white/26"}`}>
+                <span className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${activeTab === tab.id ? "bg-primary-foreground/15 text-primary-foreground" : "bg-black/5 dark:bg-white/10 text-foreground/80 dark:text-foreground/70 group-hover:bg-primary/10 dark:group-hover:bg-white/15"}`}>
                   <Icon size={18} strokeWidth={2.4} />
                 </span>
                 <span className="flex-1">{tab.label}</span>
-                {activeTab === tab.id && <span className="h-2 w-2 rounded-full bg-[#146B3E]" />}
+                {activeTab === tab.id && <span className="h-2 w-2 rounded-full bg-primary-foreground" />}
               </button>
             )
           })}
@@ -632,7 +633,10 @@ export default function AppShell() {
 
         {/* Main Content — full width, no extra card */}
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-0 bg-transparent">
-          <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-6">
+          <div 
+            key={activeTab}
+            className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-6 animate-fade-in-up"
+          >
             {renderContent()}
           </div>
           <AppFooter />
@@ -640,7 +644,7 @@ export default function AppShell() {
       </div>
 
       {/* Mobile Bottom Navigation (Clean pill style) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#146B3E]/96 backdrop-blur-xl px-2 py-2 flex items-center gap-1 w-full overflow-x-auto border-t border-white/10 safe-area-bottom scrollbar-hide">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#0F1F17]/85 backdrop-blur-xl px-2 py-2 flex items-center gap-1 w-full overflow-x-auto border-t border-[#DDEBE1]/40 dark:border-[#31533D]/30 safe-area-bottom scrollbar-hide shadow-[0_-8px_30px_rgba(0,0,0,0.05)]">
         {visibleTabs.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
@@ -648,7 +652,7 @@ export default function AppShell() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`min-w-[4.25rem] flex-1 flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl transition-all ${isActive ? "bg-white text-[#146B3E] shadow-sm" : "text-white/72 hover:bg-white/16 hover:text-white"
+              className={`min-w-[4.25rem] flex-1 flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl transition-all ${isActive ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground/70 dark:text-foreground/60 hover:bg-black/5 dark:hover:bg-white/10"
                 }`}
             >
               <Icon size={20} />

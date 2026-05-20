@@ -49,6 +49,12 @@
   --status-good: #146B3E;
   --status-warn: #f59e0b;
   --status-danger: #dc2626;
+
+  /* Antigravity Design Tokens */
+  --grid-color: rgba(20, 107, 62, 0.10);
+  --glow-color: rgba(20, 107, 62, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(20, 107, 62, 0.12);
 }
 
 .dark {
@@ -79,6 +85,12 @@
   --sidebar-accent-foreground: #EAF6ED;
   --sidebar-border: rgba(234, 246, 237, 0.14);
   --sidebar-ring: #72C08A;
+
+  /* Antigravity Design Tokens */
+  --grid-color: rgba(114, 192, 138, 0.14);
+  --glow-color: rgba(114, 192, 138, 0.10);
+  --glass-bg: rgba(20, 41, 30, 0.65);
+  --glass-border: rgba(114, 192, 138, 0.14);
 }
 
 @theme inline {
@@ -143,15 +155,11 @@
 @layer base {
   body {
     @apply bg-background text-foreground;
-    background:
-      radial-gradient(circle at top left, rgba(223, 240, 228, 0.95), transparent 34rem),
-      linear-gradient(180deg, #F2F8F4 0%, #f7faf7 52%, #F2F8F4 100%);
+    background-color: var(--background);
   }
 
   .dark body {
-    background:
-      radial-gradient(circle at top left, rgba(29, 58, 41, 0.9), transparent 34rem),
-      linear-gradient(180deg, #0F1F17 0%, #102619 52%, #0F1F17 100%);
+    background-color: var(--background);
   }
 
   html {
@@ -177,16 +185,33 @@
 
 @layer utilities {
   .orchard-card {
-    @apply bg-card border border-border shadow-sm;
-    box-shadow: 0 12px 34px rgba(15, 59, 37, 0.08);
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 12px 34px rgba(15, 59, 37, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .dark .orchard-card {
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
   .orchard-card-hover {
     @apply transition-all duration-300;
   }
   .orchard-card-hover:hover {
-    border-color: rgba(31, 90, 53, 0.35);
-    box-shadow: 0 18px 42px rgba(15, 59, 37, 0.14);
-    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: 
+      0 20px 40px rgba(15, 59, 37, 0.06), 
+      0 0 18px rgba(20, 107, 62, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    transform: translateY(-3px) scale(1.004);
+  }
+  .dark .orchard-card-hover:hover {
+    border-color: var(--primary);
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.25), 
+      0 0 20px rgba(114, 192, 138, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
   .scrollbar-hide {
     -ms-overflow-style: none;
@@ -205,4 +230,80 @@
   .product-carousel-track {
     scroll-behavior: smooth;
   }
+}
+
+/* Animations & Sways (Root Level) */
+@keyframes float-sway {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(1deg);
+  }
+}
+
+@keyframes drift-slow {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(80px, 100px) scale(1.15);
+  }
+  66% {
+    transform: translate(-60px, 50px) scale(0.9);
+  }
+}
+
+@keyframes drift-medium {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(-100px, -80px) scale(1.2);
+  }
+}
+
+@keyframes drift-fast {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(60px, -60px) scale(1.1);
+  }
+}
+
+@keyframes particle-drift {
+  0% {
+    transform: translateY(110vh) translateX(0) scale(0.8);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--particle-opacity, 0.45);
+  }
+  90% {
+    opacity: var(--particle-opacity, 0.45);
+  }
+  100% {
+    transform: translateY(-10vh) translateX(var(--drift-x, 25px)) scale(1.25);
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-float-sway {
+  animation: float-sway 6s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
