@@ -8,7 +8,7 @@ import Finance from "./Finance"
 import Articles from "./Articles"
 import AdminPanel from "./AdminPanel"
 import type { AppUser, Article, Product } from "@/lib/store"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, Lock, ArrowRight, Sparkles, CheckCircle2, ExternalLink, ChevronLeft, ChevronRight, Mail } from "lucide-react"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail } from "lucide-react"
 import Settings from "./Settings"
 import AuthModal from "./AuthModal"
 import ProfileModal from "./ProfileModal"
@@ -113,7 +113,7 @@ function GuestHome({
   onOpenProducts: () => void
 }) {
   const publishedArticles = articles.filter(article => article.status === "published")
-  const featuredArticles = publishedArticles.slice(0, 6)
+  const featuredArticles = publishedArticles.slice(0, 9)
   const activeProducts = products.filter(product => product.status === "active")
   const carouselProducts = activeProducts.length > 0 ? [...activeProducts, ...activeProducts] : []
   const productDrag = useRef({ active: false, startX: 0, scrollLeft: 0 })
@@ -164,100 +164,68 @@ function GuestHome({
   }, [activeProducts.length])
 
   return (
-    <div className="space-y-5 pb-10">
-      <section className="guest-hero relative isolate overflow-hidden rounded-[1.75rem] bg-[#0F2E1E] shadow-[0_28px_80px_rgba(15,59,37,0.24)] ring-1 ring-white/65 dark:ring-white/10">
+    <div className="space-y-8 pb-12">
+      <section className="guest-hero relative isolate min-h-[calc(100svh-4.5rem)] overflow-hidden bg-[#0F2E1E] shadow-[0_28px_80px_rgba(15,59,37,0.18)]">
         <img
           src="/images/durian-banner.avif"
           alt="สวนทุเรียน"
-          className="guest-hero-image absolute inset-0 h-full w-full object-cover object-center opacity-95 saturate-125 contrast-110"
+          className="guest-hero-image absolute inset-0 h-full w-full object-cover object-center opacity-90 saturate-110"
         />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_20%,rgba(255,255,255,0.22),transparent_30%),linear-gradient(110deg,rgba(5,31,18,0.92),rgba(9,55,32,0.74)_46%,rgba(17,73,43,0.22)_76%),linear-gradient(0deg,rgba(4,18,11,0.72),rgba(4,18,11,0.08)_58%)]" />
-        <div className="guest-hero-glow absolute -bottom-24 -left-20 h-56 w-56 rounded-full bg-[#F5C84B]/18 blur-3xl" />
-        <div className="guest-hero-sheen absolute inset-y-0 -left-1/3 w-1/3 rotate-12 bg-white/10 blur-2xl" />
-        <div className="relative grid min-h-[min(540px,calc(100vh-9rem))] gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.72fr)] lg:items-end lg:px-8 lg:py-7 xl:min-h-[min(560px,calc(100vh-8rem))]">
-          <div className="guest-hero-copy flex max-w-3xl flex-col justify-end">
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-              <span className="guest-hero-badge inline-flex w-fit items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-sm font-black text-[#146B3E] shadow-sm ring-1 ring-white/70 backdrop-blur-md">
-                <Sparkles size={16} />
-                {tagline}
-              </span>
-              <span className="guest-hero-badge inline-flex w-fit items-center gap-2 rounded-full bg-[#F5C84B]/92 px-3 py-1.5 text-sm font-black text-[#3E2D08] shadow-sm backdrop-blur-md">
-                อ่านบทความฟรี
-              </span>
-            </div>
-            <h1 className="max-w-[13ch] text-[clamp(2.25rem,4.6vw,4.35rem)] font-black leading-[1.08] text-white drop-shadow-sm sm:max-w-[14ch]">
-              จัดการสวนทุเรียนให้เป็นระบบตั้งแต่วันแรก
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,25,15,0.86),rgba(8,37,22,0.58)_46%,rgba(8,37,22,0.12)),linear-gradient(0deg,rgba(5,20,12,0.52),rgba(5,20,12,0.06)_58%)]" />
+        <div className="relative mx-auto flex min-h-[calc(100svh-4.5rem)] w-full max-w-7xl items-center px-4 py-12 sm:px-6 lg:px-8">
+          <div className="guest-hero-copy max-w-2xl">
+            <p className="mb-4 text-sm font-black uppercase tracking-[0.28em] text-white/62">{tagline}</p>
+            <h1 className="max-w-[11ch] text-[clamp(2.6rem,6vw,5.8rem)] font-black leading-[0.98] text-white drop-shadow-sm">
+              จัดการสวนทุเรียน ง่ายขึ้น
             </h1>
-            <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-white/82 sm:text-lg">
-              {siteName} ช่วยเก็บข้อมูลแปลง ต้นทุเรียน งานประจำวัน และการเงินไว้ในที่เดียว ก่อนเข้าสู่ระบบยังอ่านบทความความรู้ได้ทันที
+            <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-white/76 sm:text-lg">
+              วางแผนงาน บันทึกแปลง และดูภาพรวมสวนในที่เดียว
             </p>
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <button
                 onClick={onLogin}
-                className="guest-hero-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-base font-black text-[#146B3E] shadow-xl shadow-black/15 transition-all hover:-translate-y-0.5 hover:bg-[#E7F3EC] active:scale-[0.98]"
+                className="guest-hero-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-base font-black text-[#146B3E] shadow-xl shadow-black/12 transition-all hover:-translate-y-0.5 hover:bg-[#F4F9F6] active:scale-[0.98]"
               >
-                สมัคร / เข้าสู่ระบบ
+                เริ่มใช้งาน
                 <ArrowRight size={18} />
               </button>
               <button
                 onClick={() => onReadArticles()}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-white/14 px-5 py-3 text-base font-black text-white ring-1 ring-white/28 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/22"
+                className="inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-base font-black text-white/86 ring-1 ring-white/24 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/10 hover:text-white"
               >
                 อ่านบทความ
-                <BookOpen size={18} />
               </button>
             </div>
-            <div className="mt-5 grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
-              {[
-                ["แปลง", "พร้อมบันทึก"],
-                ["งาน", "ไม่หลุดคิว"],
-                ["การเงิน", "เห็นต้นทุน"],
-              ].map(([title, detail]) => (
-                <div key={title} className="guest-hero-stat rounded-2xl bg-white/12 px-3 py-3 text-white ring-1 ring-white/18 backdrop-blur-md">
-                  <p className="text-base font-black leading-tight sm:text-lg">{title}</p>
-                  <p className="mt-1 text-xs font-bold leading-snug text-white/70 sm:text-sm">{detail}</p>
-                </div>
-              ))}
-            </div>
           </div>
+        </div>
+      </section>
 
-          <div className="guest-hero-panel self-end rounded-[1.5rem] bg-white/92 p-4 shadow-2xl ring-1 ring-white/80 backdrop-blur-xl dark:bg-[#14291E]/88 dark:ring-white/10">
-            <div className="mb-3 flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#E7F3EC] text-[#146B3E] dark:bg-[#1D3A29] dark:text-[#72C08A]">
-                  <Lock size={22} />
-                </span>
-                <div>
-                  <h2 className="text-lg font-black leading-tight text-[#143422] dark:text-[#EAF6ED]">พื้นที่สวนส่วนตัว</h2>
-                  <p className="mt-1 text-sm font-semibold leading-snug text-[#527060] dark:text-[#B8D1C0]">เข้าสู่ระบบเพื่อบันทึกและเรียกดูข้อมูลสวนของคุณ</p>
-                </div>
-              </div>
-              <span className="rounded-full bg-[#146B3E] px-3 py-1 text-xs font-black text-white dark:bg-[#72C08A] dark:text-[#0B1B12]">Private</span>
-            </div>
-            <div className="grid gap-2">
-              {["จัดการแปลงและต้นทุเรียน", "วางแผนงานและบันทึกกิจกรรม", "ดูรายรับรายจ่ายและหลังบ้าน"].map(item => (
-                <div key={item} className="flex items-center gap-2 rounded-2xl bg-[#F2F8F4] px-3 py-2 text-sm font-bold text-[#143422] dark:bg-[#1D3A29] dark:text-[#EAF6ED]">
-                  <CheckCircle2 size={16} className="shrink-0 text-[#146B3E] dark:text-[#72C08A]" />
-                  <span className="min-w-0">{item}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 rounded-2xl bg-[#143422] p-4 text-white shadow-inner dark:bg-[#0F1F17]">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-bold text-white/62">เริ่มต้นใช้งาน</p>
-                  <p className="mt-1 text-2xl font-black leading-tight">สมัครฟรี</p>
-                </div>
-                <button
-                  onClick={onLogin}
-                  className="guest-hero-arrow inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#F5C84B] text-[#143422] transition-transform hover:scale-105 active:scale-95"
-                  aria-label="สมัครหรือเข้าสู่ระบบ"
-                >
-                  <ArrowRight size={22} />
-                </button>
-              </div>
-            </div>
+      <section className="mx-auto max-w-7xl rounded-2xl bg-white p-4 shadow-sm ring-1 ring-border sm:p-5">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-foreground">บทความแนะนำ</h2>
+            <p className="text-sm font-bold text-muted-foreground">เริ่มจากความรู้เรื่องน้ำ โรค ปุ๋ย ดอก และตลาดทุเรียน</p>
           </div>
+          <button onClick={() => onReadArticles()} className="inline-flex items-center gap-2 text-sm font-black text-primary hover:underline">
+            ดูบทความทั้งหมด <ArrowRight size={16} />
+          </button>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+          {featuredArticles.map(article => (
+            <button
+              key={article.id}
+              onClick={() => onReadArticles(article.id)}
+              className="group shrink-0 w-[240px] sm:w-auto overflow-hidden rounded-xl border border-border bg-card text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              <div className="h-36 overflow-hidden">
+                <img src={article.image} alt={article.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              </div>
+              <div className="p-3">
+                <span className="text-xs font-black text-primary">{article.category}</span>
+                <h3 className="mt-1 line-clamp-2 text-base font-black leading-snug text-foreground">{article.title}</h3>
+              </div>
+            </button>
+          ))}
         </div>
       </section>
 
@@ -326,35 +294,6 @@ function GuestHome({
           </div>
         </section>
       )}
-
-      <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-border sm:p-5">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-black text-foreground">บทความแนะนำ</h2>
-            <p className="text-sm font-bold text-muted-foreground">เริ่มจากความรู้เรื่องน้ำ โรค ปุ๋ย ดอก และตลาดทุเรียน</p>
-          </div>
-          <button onClick={() => onReadArticles()} className="inline-flex items-center gap-2 text-sm font-black text-primary hover:underline">
-            ดูบทความทั้งหมด <ArrowRight size={16} />
-          </button>
-        </div>
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide sm:grid sm:grid-cols-2 lg:grid-cols-3 -mx-4 px-4 sm:mx-0 sm:px-0">
-          {featuredArticles.map(article => (
-            <button
-              key={article.id}
-              onClick={() => onReadArticles(article.id)}
-              className="group shrink-0 w-[240px] sm:w-auto overflow-hidden rounded-xl border border-border bg-card text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              <div className="h-36 overflow-hidden">
-                <img src={article.image} alt={article.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-              </div>
-              <div className="p-3">
-                <span className="text-xs font-black text-primary">{article.category}</span>
-                <h3 className="mt-1 line-clamp-2 text-base font-black leading-snug text-foreground">{article.title}</h3>
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
     </div>
   )
 }
@@ -570,6 +509,84 @@ export default function AppShell() {
   const siteName = store.data.siteSettings.siteName || "สวนทุเรียน"
   const tagline = store.data.siteSettings.tagline || "Smart Orchard"
   const logoUrl = store.data.siteSettings.logoUrl
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AnimatedBackground />
+        <header className="sticky top-0 z-40 border-b border-[#DDEBE1]/50 bg-white/82 px-4 py-3 shadow-[0_8px_30px_rgba(20,107,62,0.06)] backdrop-blur-xl dark:border-[#31533D]/45 dark:bg-[#0F1F17]/82">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+            <button
+              onClick={() => setActiveTab("dashboard")}
+              className="flex min-w-0 items-center gap-2.5 text-left active:scale-95"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#E7F3EC] text-[#146B3E] ring-1 ring-[#CFE3D5] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D]">
+                {logoUrl ? (
+                  <img src={logoUrl} alt={siteName} className="h-7 w-7 rounded-xl object-cover" />
+                ) : (
+                  <Leaf size={22} />
+                )}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-base font-black leading-none text-[#146B3E] dark:text-[#72C08A] sm:text-xl">{siteName}</span>
+                <span className="mt-0.5 block truncate text-[10px] font-bold uppercase tracking-widest text-[#527060] dark:text-[#B8D1C0] sm:text-xs">{tagline}</span>
+              </span>
+            </button>
+
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                onClick={() => openArticles()}
+                className="hidden rounded-2xl px-4 py-2 text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] sm:inline-flex dark:text-[#72C08A] dark:hover:bg-white/10"
+              >
+                บทความ
+              </button>
+              <button
+                onClick={openProducts}
+                className="hidden rounded-2xl px-4 py-2 text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] md:inline-flex dark:text-[#72C08A] dark:hover:bg-white/10"
+              >
+                สินค้าแนะนำ
+              </button>
+              <button
+                onClick={() => setShowAuth(true)}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl bg-[#146B3E] px-4 py-2 text-sm font-black text-white shadow-[0_12px_24px_rgba(20,107,62,0.18)] transition-all hover:bg-[#0F5A34] active:scale-[0.98]"
+              >
+                เข้าสู่ระบบ
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main className="relative z-10">
+          {activeTab === "articles" ? (
+            <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 md:px-8 md:py-6">
+              <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} />
+            </div>
+          ) : (
+            <GuestHome
+              articles={store.data.articles}
+              products={store.data.products}
+              siteName={siteName}
+              tagline={tagline}
+              onLogin={() => setShowAuth(true)}
+              onReadArticles={openArticles}
+              onOpenProducts={openProducts}
+            />
+          )}
+          <AppFooter />
+        </main>
+
+        <AuthModal
+          isOpen={showAuth}
+          onClose={() => setShowAuth(false)}
+          onLoginSuccess={handleLoginSuccess}
+          authenticateUser={store.authenticateUser}
+          addUser={store.addUser}
+          resetPassword={store.resetPassword}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="h-screen bg-transparent flex flex-col relative overflow-hidden">

@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useMemo, useState } from "react"
 import type { Article, Product } from "@/lib/store"
+import { absoluteUrl, articleJsonLd, createExcerpt, createSlug, DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, DEFAULT_TITLE, SITE_NAME, SITE_URL } from "@/lib/seo"
 import { Search, X, ArrowRight, Share2, Bookmark, ArrowLeft, ExternalLink } from "lucide-react"
 import Products from "./Products"
 
@@ -63,6 +64,31 @@ export default function Articles({ articles, products, initialArticleId, initial
     return result
   }, [searchTerm, activeCategory, publishedArticles])
 
+  useEffect(() => {
+    const title = selectedArticle?.metaTitle || selectedArticle?.title || (activeView === "products" ? `ปุ๋ยและยา | ${SITE_NAME}` : DEFAULT_TITLE)
+    const description = selectedArticle?.metaDescription || (selectedArticle ? createExcerpt(selectedArticle.content) : DEFAULT_DESCRIPTION)
+    const image = absoluteUrl(selectedArticle?.image || "/images/durian-banner.jpg")
+    const canonical = selectedArticle
+      ? `${SITE_URL}/?article=${encodeURIComponent(selectedArticle.slug || createSlug(selectedArticle.title))}`
+      : SITE_URL
+
+    document.title = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`
+    setMetaTag("description", description)
+    setMetaTag("keywords", selectedArticle?.keywords || DEFAULT_KEYWORDS.join(", "))
+    setMetaProperty("og:title", title)
+    setMetaProperty("og:description", description)
+    setMetaProperty("og:image", image)
+    setMetaProperty("og:url", canonical)
+    setCanonical(canonical)
+
+    return () => {
+      document.title = DEFAULT_TITLE
+      setMetaTag("description", DEFAULT_DESCRIPTION)
+      setMetaTag("keywords", DEFAULT_KEYWORDS.join(", "))
+      setCanonical(SITE_URL)
+    }
+  }, [activeView, selectedArticle])
+
   const showActionMessage = (message: string) => {
     setActionMessage(message)
     window.setTimeout(() => setActionMessage(""), 1800)
@@ -79,7 +105,7 @@ export default function Articles({ articles, products, initialArticleId, initial
   }
 
   const shareArticle = async (article: Article) => {
-    const shareUrl = `${window.location.origin}${window.location.pathname}`
+    const shareUrl = `${window.location.origin}${window.location.pathname}?article=${encodeURIComponent(article.slug || createSlug(article.title))}`
     const text = `${article.title}\n${shareUrl}`
     try {
       if (navigator.share) {
@@ -142,6 +168,10 @@ export default function Articles({ articles, products, initialArticleId, initial
           </div>
 
           <div className="prose prose-lg max-w-none px-2 sm:px-6 lg:px-0">
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd(selectedArticle)) }}
+            />
             <div className="text-base lg:text-lg leading-relaxed text-foreground/80 whitespace-pre-wrap">
               {selectedArticle.content}
             </div>
@@ -264,4 +294,24 @@ export default function Articles({ articles, products, initialArticleId, initial
       )}
     </div>
   )
+}
+
+function setMetaTag(name: string, content: string) {
+  const selector = `meta[name="${name}"]`
+  const tag = document.querySelector(selector) || document.head.appendChild(document.createElement("meta"))
+  tag.setAttribute("name", name)
+  tag.setAttribute("content", content)
+}
+
+function setMetaProperty(property: string, content: string) {
+  const selector = `meta[property="${property}"]`
+  const tag = document.querySelector(selector) || document.head.appendChild(document.createElement("meta"))
+  tag.setAttribute("property", property)
+  tag.setAttribute("content", content)
+}
+
+function setCanonical(href: string) {
+  const tag = document.querySelector('link[rel="canonical"]') || document.head.appendChild(document.createElement("link"))
+  tag.setAttribute("rel", "canonical")
+  tag.setAttribute("href", href)
 }

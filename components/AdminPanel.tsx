@@ -2,6 +2,7 @@
 import { useState } from "react"
 import type { AppUser, Article, NewUserInput, Product, SiteSettings } from "@/lib/store"
 import { appRuntimeConfig, getDataModeLabel, isSupabaseConfigured } from "@/lib/runtime-config"
+import { createExcerpt, createSlug, uniqueKeywords } from "@/lib/seo"
 import { BookOpen, Edit3, Image, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users } from "lucide-react"
 
 interface Props {
@@ -27,6 +28,10 @@ const emptyArticle = {
   category: "การดูแลรักษา",
   image: "/images/articles/article_watering_1778037948644.avif",
   content: "",
+  slug: "",
+  metaTitle: "",
+  metaDescription: "",
+  keywords: "",
   affiliateTitle: "",
   affiliateUrl: "",
   status: "published" as const,
@@ -36,9 +41,13 @@ const emptyProduct = {
   name: "",
   category: "สารเคมี",
   image: "/images/articles/article_disease_1778037967060.avif",
-    priceLabel: "ดูรายละเอียด",
+  priceLabel: "ดูรายละเอียด",
   description: "",
   affiliateUrl: "",
+  slug: "",
+  metaTitle: "",
+  metaDescription: "",
+  keywords: "",
   status: "active" as const,
 }
 
@@ -93,11 +102,18 @@ export default function AdminPanel({
       setMessage("กรุณากรอกหัวข้อและเนื้อหาบทความ")
       return
     }
+    const nextArticle = {
+      ...articleDraft,
+      slug: articleDraft.slug?.trim() || createSlug(articleDraft.title),
+      metaTitle: articleDraft.metaTitle?.trim() || articleDraft.title,
+      metaDescription: articleDraft.metaDescription?.trim() || createExcerpt(articleDraft.content),
+      keywords: uniqueKeywords([articleDraft.keywords, articleDraft.category, articleDraft.title, "ทุเรียน"]).join(", "),
+    }
     if (editingArticleId) {
-      updateArticle(editingArticleId, articleDraft)
+      updateArticle(editingArticleId, nextArticle)
       setEditingArticleId(null)
     } else {
-      addArticle(articleDraft)
+      addArticle(nextArticle)
     }
     setArticleDraft(emptyArticle)
     setMessage("บันทึกบทความแล้ว")
@@ -110,6 +126,10 @@ export default function AdminPanel({
       category: article.category,
       image: article.image,
       content: article.content,
+      slug: article.slug ?? "",
+      metaTitle: article.metaTitle ?? "",
+      metaDescription: article.metaDescription ?? "",
+      keywords: article.keywords ?? "",
       affiliateTitle: article.affiliateTitle ?? "",
       affiliateUrl: article.affiliateUrl ?? "",
       status: article.status,
@@ -121,11 +141,18 @@ export default function AdminPanel({
       setMessage("กรุณากรอกชื่อปุ๋ย/ยาและ Affiliate link")
       return
     }
+    const nextProduct = {
+      ...productDraft,
+      slug: productDraft.slug?.trim() || createSlug(productDraft.name),
+      metaTitle: productDraft.metaTitle?.trim() || productDraft.name,
+      metaDescription: productDraft.metaDescription?.trim() || createExcerpt(productDraft.description),
+      keywords: uniqueKeywords([productDraft.keywords, productDraft.category, productDraft.name, "ปุ๋ยยา", "ทุเรียน"]).join(", "),
+    }
     if (editingProductId) {
-      updateProduct(editingProductId, productDraft)
+      updateProduct(editingProductId, nextProduct)
       setEditingProductId(null)
     } else {
-      addProduct(productDraft)
+      addProduct(nextProduct)
     }
     setProductDraft(emptyProduct)
     setMessage("บันทึกปุ๋ยและยาแล้ว")
@@ -140,6 +167,10 @@ export default function AdminPanel({
       priceLabel: product.priceLabel,
       description: product.description,
       affiliateUrl: product.affiliateUrl,
+      slug: product.slug ?? "",
+      metaTitle: product.metaTitle ?? "",
+      metaDescription: product.metaDescription ?? "",
+      keywords: product.keywords ?? "",
       status: product.status,
     })
   }
@@ -289,6 +320,15 @@ export default function AdminPanel({
           <div className="space-y-3">
             <AdminInput label="หัวข้อ" value={articleDraft.title} onChange={title => setArticleDraft(v => ({ ...v, title }))} />
             <AdminInput label="หมวดหมู่" value={articleDraft.category} onChange={category => setArticleDraft(v => ({ ...v, category }))} />
+            <div className="rounded-xl border border-border bg-muted/40 p-3">
+              <p className="mb-2 text-xs font-black text-muted-foreground">SEO บทความ</p>
+              <div className="space-y-2">
+                <AdminInput label="Slug" value={articleDraft.slug ?? ""} onChange={slug => setArticleDraft(v => ({ ...v, slug }))} placeholder="เว้นว่างเพื่อสร้างอัตโนมัติ" />
+                <AdminInput label="Meta title" value={articleDraft.metaTitle ?? ""} onChange={metaTitle => setArticleDraft(v => ({ ...v, metaTitle }))} placeholder="เว้นว่างเพื่อใช้หัวข้อ" />
+                <AdminInput label="Meta description" value={articleDraft.metaDescription ?? ""} onChange={metaDescription => setArticleDraft(v => ({ ...v, metaDescription }))} placeholder="เว้นว่างเพื่อสรุปจากเนื้อหา" />
+                <AdminInput label="Keywords" value={articleDraft.keywords ?? ""} onChange={keywords => setArticleDraft(v => ({ ...v, keywords }))} placeholder="เช่น ปุ๋ยทุเรียน, โรคทุเรียน" />
+              </div>
+            </div>
             <AdminInput label="ชื่อปุ๋ย/ยาแนะนำ" value={articleDraft.affiliateTitle ?? ""} onChange={affiliateTitle => setArticleDraft(v => ({ ...v, affiliateTitle }))} placeholder="เช่น สารป้องกันเชื้อรา..." />
             <AdminInput label="Affiliate link" value={articleDraft.affiliateUrl ?? ""} onChange={affiliateUrl => setArticleDraft(v => ({ ...v, affiliateUrl }))} placeholder="https://..." />
             <label className="block space-y-1.5">
@@ -352,6 +392,15 @@ export default function AdminPanel({
             <AdminInput label="หมวดหมู่" value={productDraft.category} onChange={category => setProductDraft(v => ({ ...v, category }))} />
             <AdminInput label="ข้อความราคา/ปุ่ม" value={productDraft.priceLabel} onChange={priceLabel => setProductDraft(v => ({ ...v, priceLabel }))} />
             <AdminInput label="Affiliate link" value={productDraft.affiliateUrl} onChange={affiliateUrl => setProductDraft(v => ({ ...v, affiliateUrl }))} placeholder="https://..." />
+            <div className="rounded-xl border border-border bg-muted/40 p-3">
+              <p className="mb-2 text-xs font-black text-muted-foreground">SEO ปุ๋ยและยา</p>
+              <div className="space-y-2">
+                <AdminInput label="Slug" value={productDraft.slug ?? ""} onChange={slug => setProductDraft(v => ({ ...v, slug }))} placeholder="เว้นว่างเพื่อสร้างอัตโนมัติ" />
+                <AdminInput label="Meta title" value={productDraft.metaTitle ?? ""} onChange={metaTitle => setProductDraft(v => ({ ...v, metaTitle }))} placeholder="เว้นว่างเพื่อใช้ชื่อรายการ" />
+                <AdminInput label="Meta description" value={productDraft.metaDescription ?? ""} onChange={metaDescription => setProductDraft(v => ({ ...v, metaDescription }))} placeholder="เว้นว่างเพื่อสรุปจากรายละเอียด" />
+                <AdminInput label="Keywords" value={productDraft.keywords ?? ""} onChange={keywords => setProductDraft(v => ({ ...v, keywords }))} placeholder="เช่น ปุ๋ยทุเรียน, ยาทุเรียน" />
+              </div>
+            </div>
             <label className="block space-y-1.5">
               <span className="text-xs font-black text-muted-foreground">รูปปุ๋ย/ยา</span>
               <div className="flex items-center gap-3">

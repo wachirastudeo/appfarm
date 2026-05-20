@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect, useCallback } from "react"
+import { createExcerpt, createSlug, uniqueKeywords } from "./seo"
 
 // ---- Types ----
 export type FlowerStage =
@@ -146,6 +147,10 @@ export interface Article {
   category: string
   image: string
   content: string
+  slug?: string
+  metaTitle?: string
+  metaDescription?: string
+  keywords?: string
   affiliateTitle?: string
   affiliateUrl?: string
   status: "published" | "draft"
@@ -161,6 +166,10 @@ export interface Product {
   priceLabel: string
   description: string
   affiliateUrl: string
+  slug?: string
+  metaTitle?: string
+  metaDescription?: string
+  keywords?: string
   status: "active" | "draft"
   createdAt: string
   updatedAt: string
@@ -327,15 +336,33 @@ function withoutPlainPasswords(users: AppUser[]) {
   }))
 }
 
-function migrateArticleImagesToAvif(articles: Article[]) {
-  const migrated = articles.map(article => ({
+function normalizeArticleSeo(article: Article): Article {
+  return {
     ...article,
     image: article.image.replace(/^\/images\/articles\/(.+)\.png$/, "/images/articles/$1.avif"),
-  }))
+    slug: article.slug || createSlug(article.title),
+    metaTitle: article.metaTitle || article.title,
+    metaDescription: article.metaDescription || createExcerpt(article.content),
+    keywords: uniqueKeywords([article.keywords, article.category, article.title, "ทุเรียน"]).join(", "),
+  }
+}
+
+function normalizeProductSeo(product: Product): Product {
+  return {
+    ...product,
+    slug: product.slug || createSlug(product.name),
+    metaTitle: product.metaTitle || product.name,
+    metaDescription: product.metaDescription || createExcerpt(product.description),
+    keywords: uniqueKeywords([product.keywords, product.category, product.name, "ปุ๋ยยา", "ทุเรียน"]).join(", "),
+  }
+}
+
+function migrateArticleImagesToAvif(articles: Article[]) {
+  const migrated = articles.map(normalizeArticleSeo)
   const existingIds = new Set(migrated.map(article => article.id))
   return [
     ...migrated,
-    ...seedArticles.filter(article => !existingIds.has(article.id)),
+    ...seedArticles.filter(article => !existingIds.has(article.id)).map(normalizeArticleSeo),
   ]
 }
 
@@ -344,7 +371,11 @@ export function useAppData() {
     if (typeof window === "undefined") return SEED
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
-      if (!stored) return SEED
+      if (!stored) return {
+        ...SEED,
+        articles: seedArticles.map(normalizeArticleSeo),
+        products: seedProducts.map(normalizeProductSeo),
+      }
       const parsed = JSON.parse(stored) as AppData
       // Ensure all trees have a batches array to prevent crashes with old data
       parsed.plots.forEach(p => {
@@ -355,11 +386,17 @@ export function useAppData() {
       return {
         ...parsed,
         users: parsed.users?.length ? withoutPlainPasswords(parsed.users) : seedUsers,
-        articles: parsed.articles?.length ? migrateArticleImagesToAvif(parsed.articles) : seedArticles,
-        products: parsed.products?.length ? parsed.products : seedProducts,
+        articles: parsed.articles?.length ? migrateArticleImagesToAvif(parsed.articles) : seedArticles.map(normalizeArticleSeo),
+        products: parsed.products?.length ? parsed.products.map(normalizeProductSeo) : seedProducts.map(normalizeProductSeo),
         siteSettings: parsed.siteSettings ?? SEED.siteSettings,
       }
-    } catch { return SEED }
+    } catch {
+      return {
+        ...SEED,
+        articles: seedArticles.map(normalizeArticleSeo),
+        products: seedProducts.map(normalizeProductSeo),
+      }
+    }
   })
 
   useEffect(() => {
@@ -492,11 +529,12 @@ export function useAppData() {
   // Articles
   const addArticle = useCallback((article: Omit<Article, "id" | "createdAt" | "updatedAt">) => {
     const now = new Date().toISOString()
-    updateData(d => ({ ...d, articles: [{ ...article, id: `art${Date.now()}`, createdAt: now, updatedAt: now }, ...d.articles] }))
+    const nextArticle = normalizeArticleSeo({ ...article, id: `art${Date.now()}`, createdAt: now, updatedAt: now })
+    updateData(d => ({ ...d, articles: [nextArticle, ...d.articles] }))
   }, [updateData])
 
   const updateArticle = useCallback((id: string, changes: Partial<Article>) => {
-    updateData(d => ({ ...d, articles: d.articles.map(a => a.id === id ? { ...a, ...changes, updatedAt: new Date().toISOString() } : a) }))
+    updateData(d => ({ ...d, articles: d.articles.map(a => a.id === id ? normalizeArticleSeo({ ...a, ...changes, updatedAt: new Date().toISOString() }) : a) }))
   }, [updateData])
 
   const deleteArticle = useCallback((id: string) => {
@@ -506,11 +544,12 @@ export function useAppData() {
   // Products
   const addProduct = useCallback((product: Omit<Product, "id" | "createdAt" | "updatedAt">) => {
     const now = new Date().toISOString()
-    updateData(d => ({ ...d, products: [{ ...product, id: `prod${Date.now()}`, createdAt: now, updatedAt: now }, ...d.products] }))
+    const nextProduct = normalizeProductSeo({ ...product, id: `prod${Date.now()}`, createdAt: now, updatedAt: now })
+    updateData(d => ({ ...d, products: [nextProduct, ...d.products] }))
   }, [updateData])
 
   const updateProduct = useCallback((id: string, changes: Partial<Product>) => {
-    updateData(d => ({ ...d, products: d.products.map(p => p.id === id ? { ...p, ...changes, updatedAt: new Date().toISOString() } : p) }))
+    updateData(d => ({ ...d, products: d.products.map(p => p.id === id ? normalizeProductSeo({ ...p, ...changes, updatedAt: new Date().toISOString() }) : p) }))
   }, [updateData])
 
   const deleteProduct = useCallback((id: string) => {

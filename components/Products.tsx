@@ -1,6 +1,7 @@
 "use client"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { Product } from "@/lib/store"
+import { DEFAULT_KEYWORDS, productJsonLd, SITE_NAME } from "@/lib/seo"
 import { ExternalLink, Search, X } from "lucide-react"
 
 interface Props {
@@ -31,8 +32,31 @@ export default function Products({ products, compact = false }: Props) {
     return result
   }, [activeCategory, activeProducts, searchTerm])
 
+  useEffect(() => {
+    document.title = `ปุ๋ยและยาแนะนำ | ${SITE_NAME}`
+    const description = "รายการปุ๋ย ยา สารเคมี และอุปกรณ์แนะนำสำหรับสวนทุเรียน พร้อมลิงก์รายละเอียดสินค้า"
+    setMetaTag("description", description)
+    setMetaTag("keywords", DEFAULT_KEYWORDS.concat(["ปุ๋ยและยา", "สารเคมีทุเรียน"]).join(", "))
+    setMetaProperty("og:title", `ปุ๋ยและยาแนะนำ | ${SITE_NAME}`)
+    setMetaProperty("og:description", description)
+  }, [])
+
+  const productsJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: activeProducts.map((product, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: productJsonLd(product),
+    })),
+  }
+
   return (
     <div className="space-y-6 pb-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productsJsonLd) }}
+      />
       {!compact && (
       <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -130,4 +154,18 @@ export default function Products({ products, compact = false }: Props) {
       )}
     </div>
   )
+}
+
+function setMetaTag(name: string, content: string) {
+  const selector = `meta[name="${name}"]`
+  const tag = document.querySelector(selector) || document.head.appendChild(document.createElement("meta"))
+  tag.setAttribute("name", name)
+  tag.setAttribute("content", content)
+}
+
+function setMetaProperty(property: string, content: string) {
+  const selector = `meta[property="${property}"]`
+  const tag = document.querySelector(selector) || document.head.appendChild(document.createElement("meta"))
+  tag.setAttribute("property", property)
+  tag.setAttribute("content", content)
 }

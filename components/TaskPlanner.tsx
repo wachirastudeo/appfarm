@@ -1,7 +1,8 @@
 "use client"
 import { useState, useMemo, useEffect, useRef } from "react"
+import { downloadTaskCalendarFile, getGoogleCalendarUrl } from "@/lib/calendar"
 import { Task, TaskStatus, useAppData } from "@/lib/store"
-import { Plus, Check, X, Trash2, ChevronLeft, ChevronRight, CalendarDays, RotateCcw, Pencil, ChevronDown, ChevronUp } from "lucide-react"
+import { Plus, Check, X, Trash2, ChevronLeft, ChevronRight, CalendarDays, RotateCcw, Pencil, ChevronDown, ChevronUp, CalendarPlus, Download } from "lucide-react"
 
 type AppDataReturn = ReturnType<typeof useAppData>
 interface Props {
@@ -434,6 +435,7 @@ export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask }:
   const priorityBorder = { high: "border-l-rose-500", medium: "border-l-amber-400", low: "border-l-emerald-400" }
   const isDone = task.status === "done"
   const isCancelled = task.status === "cancelled"
+  const googleCalendarUrl = getGoogleCalendarUrl(task, plotName)
 
   const handleSaveEdit = () => {
     updateTask(task.id, { ...editForm, date: new Date(editForm.date).toISOString() })
@@ -521,7 +523,23 @@ export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask }:
             )}
           </div>
         </div>
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex flex-wrap items-center justify-end gap-1">
+          <a
+            href={googleCalendarUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="เพิ่มลง Google Calendar"
+            className="p-1.5 text-[#527060] hover:text-primary rounded-lg hover:bg-[#E7F3EC] transition-colors"
+          >
+            <CalendarPlus size={14} />
+          </a>
+          <button
+            onClick={() => downloadTaskCalendarFile(task, plotName)}
+            title="ดาวน์โหลดไฟล์ปฏิทินสำหรับ iPhone/Android"
+            className="p-1.5 text-[#527060] hover:text-primary rounded-lg hover:bg-[#E7F3EC] transition-colors"
+          >
+            <Download size={14} />
+          </button>
           {task.status === "pending" ? (
             <>
               <button
