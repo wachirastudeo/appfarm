@@ -40,7 +40,15 @@ export default function Articles({
   }, [selectedArticle, onArticleSelect])
 
   const publishedArticles = useMemo(() => articles.filter(a => a.status === "published"), [articles])
-  const categories = ["ทั้งหมด", ...Array.from(new Set(publishedArticles.map(a => a.category)))]
+  const activeProducts = useMemo(() => products.filter(product => product.status === "active"), [products])
+
+  const categories = useMemo(() => {
+    if (activeView === "articles") {
+      return ["ทั้งหมด", ...Array.from(new Set(publishedArticles.map(a => a.category)))]
+    } else {
+      return ["ทั้งหมด", ...Array.from(new Set(activeProducts.map(p => p.category)))]
+    }
+  }, [activeView, publishedArticles, activeProducts])
 
   useEffect(() => {
     if (!initialArticleId) return
@@ -68,7 +76,8 @@ export default function Articles({
 
   const filteredArticles = useMemo(() => {
     let result = publishedArticles
-    if (activeCategory !== "ทั้งหมด") {
+    const articleCategories = publishedArticles.map(a => a.category)
+    if (activeCategory !== "ทั้งหมด" && articleCategories.includes(activeCategory)) {
       result = result.filter(a => a.category === activeCategory)
     }
     if (searchTerm) {
@@ -222,51 +231,69 @@ export default function Articles({
   }
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* Sleek Compact Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2 sm:pt-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-black text-foreground">คลังความรู้</h2>
-            <p className="text-base text-muted-foreground font-bold">สาระน่ารู้เพื่อสวนของคุณ</p>
-          </div>
-          <div className="flex gap-2 rounded-2xl border border-border bg-card p-1.5 shadow-sm w-fit">
-            <button
-              onClick={() => {
-                setActiveView("articles")
-                setSearchTerm("")
-              }}
-              className={`rounded-xl px-4 py-2 text-sm font-black transition-colors ${
-                activeView === "articles"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              บทความ
-            </button>
-            <button
-              onClick={() => {
-                setActiveView("products")
-                setSearchTerm("")
-              }}
-              className={`rounded-xl px-4 py-2 text-sm font-black transition-colors ${
-                activeView === "products"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              ปุ๋ยและยา
-            </button>
-          </div>
+    <div className="space-y-8 pb-12">
+      {/* Sleek Premium Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pt-2 sm:pt-4">
+        <div>
+          <h2 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">คลังความรู้</h2>
+          <p className="mt-2 text-base text-muted-foreground font-semibold">สาระน่ารู้และคำแนะนำจากผู้เชี่ยวชาญเพื่อสวนทุเรียนของคุณ</p>
         </div>
-        <div className="relative w-full lg:max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={22} />
+        <div className="flex gap-1.5 rounded-2xl border border-border/80 bg-muted/40 backdrop-blur-md p-1.5 shadow-inner w-fit">
+          <button
+            onClick={() => {
+              setActiveView("articles")
+              setActiveCategory("ทั้งหมด")
+            }}
+            className={`rounded-xl px-5 py-2.5 text-sm font-black transition-all duration-300 ${
+              activeView === "articles"
+                ? "bg-background text-primary shadow-md border border-border/30 scale-100 font-extrabold"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/25"
+            }`}
+          >
+            บทความ
+          </button>
+          <button
+            onClick={() => {
+              setActiveView("products")
+              setActiveCategory("ทั้งหมด")
+            }}
+            className={`rounded-xl px-5 py-2.5 text-sm font-black transition-all duration-300 ${
+              activeView === "products"
+                ? "bg-background text-primary shadow-md border border-border/30 scale-100 font-extrabold"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/25"
+            }`}
+          >
+            ปุ๋ยและยา
+          </button>
+        </div>
+      </div>
+
+      {/* Categories Chips & Search Box Row */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide flex-1">
+          {categories.map(c => (
+            <button
+              key={c}
+              onClick={() => setActiveCategory(c)}
+              className={`shrink-0 px-5 py-2.5 rounded-2xl text-sm sm:text-base font-bold transition-all duration-300 ${
+                activeCategory === c
+                  ? "bg-gradient-to-r from-primary to-emerald-600 text-primary-foreground shadow-lg shadow-primary/20 scale-[1.03]"
+                  : "bg-card/40 backdrop-blur-sm border border-border/85 text-muted-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative w-full md:max-w-md shrink-0">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={20} />
           <input
             type="text"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            placeholder={activeView === "articles" ? "ค้นหาเทคนิค โรคพืช ปุ๋ย..." : "ค้นหาปุ๋ย ยา สารเคมี..."}
-            className="w-full bg-card border-2 border-border rounded-2xl pl-12 pr-10 py-2.5 text-base font-bold focus:outline-none focus:border-primary shadow-sm hover:shadow-md transition-all"
+            placeholder={activeView === "products" ? "ค้นหาปุ๋ย ยา สารเคมี..." : "ค้นหาเทคนิค โรคพืช ปุ๋ย..."}
+            className="w-full bg-card/50 backdrop-blur-md border-2 border-border/80 rounded-2xl pl-12 pr-10 py-3 text-base font-bold outline-none transition-all duration-300 focus:ring-4 focus:ring-primary/10 focus:border-primary hover:border-primary/45 shadow-sm hover:shadow-md"
           />
           {searchTerm && (
             <button onClick={() => setSearchTerm("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
@@ -276,55 +303,54 @@ export default function Articles({
         </div>
       </div>
 
-      {activeView === "products" && <Products products={products} compact searchTerm={searchTerm} />}
-
-      {activeView === "articles" && (
-        <>
-
-          {/* Categories Chips */}
-          <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-            {categories.map(c => (
-              <button
-                key={c}
-                onClick={() => setActiveCategory(c)}
-                className={`shrink-0 px-4 sm:px-6 py-2 rounded-full text-sm sm:text-base font-black transition-all ${activeCategory === c
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                    : "bg-card border border-border text-muted-foreground hover:border-primary/40 hover:text-primary"
-                  }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-
-          {/* Articles Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filteredArticles.map((article, index) => (
+      {activeView === "products" ? (
+        <Products
+          products={products}
+          compact
+          hideSearchFilter
+          searchTerm={searchTerm}
+          activeCategory={activeCategory}
+        />
+      ) : (
+        /* Articles Grid */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {filteredArticles.map((article, index) => {
+            const excerpt = createExcerpt(article.content, 90)
+            return (
               <div
                 key={article.id}
                 onClick={() => setSelectedArticle(article)}
-                className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-500 cursor-pointer hover:-translate-y-1 flex flex-col h-full shadow-sm"
+                className="group relative bg-card/65 backdrop-blur-md border border-border/70 rounded-3xl overflow-hidden hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)] transition-all duration-500 cursor-pointer hover:-translate-y-1.5 flex flex-col h-full shadow-sm hover:border-primary/30"
               >
-                <div className="relative h-48 sm:h-56 overflow-hidden">
-                  <img src={article.image} alt={article.imageAlt || article.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading={index === 0 ? "eager" : "lazy"} />
-                  <div className="absolute top-3 left-3">
-                    <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-primary text-xs font-black shadow-sm">
+                <div className="relative h-52 sm:h-60 overflow-hidden">
+                  <img
+                    src={article.image}
+                    alt={article.imageAlt || article.title}
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
+                    loading={index === 0 ? "eager" : "lazy"}
+                  />
+                  <div className="absolute top-4 left-4">
+                    <span className="px-3.5 py-1.5 rounded-xl bg-background/80 backdrop-blur-md border border-border/40 text-primary text-xs font-black shadow-md">
                       {article.category}
                     </span>
                   </div>
                 </div>
-                <div className="p-4 sm:p-5 flex flex-col flex-1">
-                  <h4 className="text-lg font-black text-foreground mb-4 leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                <div className="p-5 sm:p-6 flex flex-col flex-1">
+                  <h4 className="text-xl font-black text-foreground mb-2 leading-snug group-hover:text-primary transition-colors line-clamp-2">
                     {article.title}
                   </h4>
-                  <div className="mt-auto pt-4 border-t border-border/50 flex items-center text-primary text-base font-black gap-2">
-                    อ่านต่อ <ArrowRight size={16} />
+                  <p className="text-sm text-muted-foreground font-semibold line-clamp-2 mt-1 leading-relaxed">
+                    {excerpt}
+                  </p>
+                  <div className="mt-auto pt-5 border-t border-border/40 flex items-center text-primary text-base font-black gap-2">
+                    <span>อ่านต่อ</span>
+                    <ArrowRight size={18} className="transform group-hover:translate-x-1.5 transition-transform duration-300" />
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </>
+            )
+          })}
+        </div>
       )}
     </div>
   )

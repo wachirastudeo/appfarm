@@ -363,24 +363,34 @@
   }
 }
 
-@keyframes hero-orbit-float {
-  0%, 100% {
-    transform: translate3d(0, 0, 0) rotate(-5deg) scale(1);
-  }
-  50% {
-    transform: translate3d(10px, -14px, 0) rotate(5deg) scale(1.05);
-  }
+@keyframes hero-orbit-float-1 {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-4deg) scale(1); }
+  50% { transform: translate3d(6px, -14px, 0) rotate(4deg) scale(1.05); }
 }
 
-@keyframes hero-orbit-pulse {
-  0%, 100% {
-    opacity: 0.72;
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.24);
-  }
-  50% {
-    opacity: 0.95;
-    box-shadow: 0 22px 60px rgba(20, 107, 62, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.34);
-  }
+@keyframes hero-orbit-float-2 {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(4deg) scale(1.03); }
+  50% { transform: translate3d(-7px, -11px, 0) rotate(-3deg) scale(0.97); }
+}
+
+@keyframes hero-orbit-float-3 {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-3deg) scale(0.97); }
+  50% { transform: translate3d(8px, 12px, 0) rotate(5deg) scale(1.04); }
+}
+
+@keyframes hero-orbit-float-4 {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(5deg) scale(1.04); }
+  50% { transform: translate3d(-10px, 7px, 0) rotate(-4deg) scale(0.99); }
+}
+
+@keyframes hero-orbit-float-5 {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-5deg) scale(0.98); }
+  50% { transform: translate3d(8px, -8px, 0) rotate(3deg) scale(1.04); }
+}
+
+@keyframes hero-orbit-float-6 {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(3deg) scale(1.04); }
+  50% { transform: translate3d(-6px, 13px, 0) rotate(-5deg) scale(0.97); }
 }
 
 .animate-float-sway {
@@ -452,24 +462,24 @@
   width: 5rem;
   align-items: center;
   justify-content: center;
-  border-radius: 1.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background:
-    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.68), transparent 34%),
-    linear-gradient(145deg, rgba(224, 242, 254, 0.54), rgba(220, 252, 231, 0.24));
-  color: rgba(231, 243, 236, 0.88);
+  border-radius: 50%;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  animation: hero-orbit-float 7s ease-in-out infinite, hero-orbit-pulse 7s ease-in-out infinite;
   will-change: transform, opacity;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+}
+
+.guest-hero-orbit:hover {
+  transform: scale(1.15) !important;
+  z-index: 50;
+  cursor: pointer;
 }
 
 .guest-hero-orbit::after {
   content: "";
   position: absolute;
-  inset: 0.65rem;
-  border-radius: 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  inset: 0.55rem;
+  border-radius: 50%;
   pointer-events: none;
 }
 
@@ -481,38 +491,141 @@
 }
 
 .guest-hero-orbit-tree {
-  color: rgba(116, 205, 136, 0.95);
-  animation-duration: 8s;
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), transparent 45%),
+    radial-gradient(circle at center, rgba(74, 222, 128, 0.15), transparent 70%),
+    linear-gradient(135deg, rgba(16, 37, 24, 0.88), rgba(8, 20, 13, 0.94));
+  color: #4ADE80;
+  box-shadow: 
+    0 16px 36px rgba(0, 0, 0, 0.38),
+    0 4px 16px rgba(74, 222, 128, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  animation: hero-orbit-float-1 8s ease-in-out infinite;
+}
+.guest-hero-orbit-tree::after {
+  border: 1px solid rgba(74, 222, 128, 0.18);
+}
+.guest-hero-orbit-tree:hover {
+  box-shadow: 
+    0 20px 45px rgba(0, 0, 0, 0.45),
+    0 8px 30px rgba(74, 222, 128, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .guest-hero-orbit-rain {
-  color: rgba(96, 165, 250, 0.95);
-  animation-delay: -1.8s;
-  animation-duration: 7.4s;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), transparent 45%),
+    radial-gradient(circle at center, rgba(96, 165, 250, 0.15), transparent 70%),
+    linear-gradient(135deg, rgba(15, 30, 48, 0.88), rgba(7, 16, 28, 0.94));
+  color: #60A5FA;
+  box-shadow: 
+    0 16px 36px rgba(0, 0, 0, 0.38),
+    0 4px 16px rgba(96, 165, 250, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  animation: hero-orbit-float-2 7.4s ease-in-out infinite;
+}
+.guest-hero-orbit-rain::after {
+  border: 1px solid rgba(96, 165, 250, 0.18);
+}
+.guest-hero-orbit-rain:hover {
+  box-shadow: 
+    0 20px 45px rgba(0, 0, 0, 0.45),
+    0 8px 30px rgba(96, 165, 250, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .guest-hero-orbit-water {
-  color: rgba(56, 189, 248, 0.95);
-  animation-delay: -3.1s;
-  animation-duration: 8.6s;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), transparent 45%),
+    radial-gradient(circle at center, rgba(56, 189, 248, 0.15), transparent 70%),
+    linear-gradient(135deg, rgba(14, 34, 46, 0.88), rgba(6, 18, 25, 0.94));
+  color: #38BDF8;
+  box-shadow: 
+    0 16px 36px rgba(0, 0, 0, 0.38),
+    0 4px 16px rgba(56, 189, 248, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  animation: hero-orbit-float-3 8.6s ease-in-out infinite;
+}
+.guest-hero-orbit-water::after {
+  border: 1px solid rgba(56, 189, 248, 0.18);
+}
+.guest-hero-orbit-water:hover {
+  box-shadow: 
+    0 20px 45px rgba(0, 0, 0, 0.45),
+    0 8px 30px rgba(56, 189, 248, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .guest-hero-orbit-sun {
-  color: rgba(250, 204, 21, 0.95);
-  animation-delay: -2.6s;
-  animation-duration: 7.1s;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), transparent 45%),
+    radial-gradient(circle at center, rgba(251, 191, 36, 0.15), transparent 70%),
+    linear-gradient(135deg, rgba(41, 33, 17, 0.88), rgba(22, 17, 8, 0.94));
+  color: #FBBF24;
+  box-shadow: 
+    0 16px 36px rgba(0, 0, 0, 0.38),
+    0 4px 16px rgba(251, 191, 36, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  animation: hero-orbit-float-4 7.1s ease-in-out infinite;
+}
+.guest-hero-orbit-sun::after {
+  border: 1px solid rgba(251, 191, 36, 0.18);
+}
+.guest-hero-orbit-sun:hover {
+  box-shadow: 
+    0 20px 45px rgba(0, 0, 0, 0.45),
+    0 8px 30px rgba(251, 191, 36, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .guest-hero-orbit-wind {
-  color: rgba(148, 163, 184, 0.95);
-  animation-delay: -5.1s;
-  animation-duration: 9s;
+  border: 1px solid rgba(226, 232, 240, 0.35);
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), transparent 45%),
+    radial-gradient(circle at center, rgba(226, 232, 240, 0.1), transparent 70%),
+    linear-gradient(135deg, rgba(30, 35, 41, 0.88), rgba(15, 18, 22, 0.94));
+  color: #E2E8F0;
+  box-shadow: 
+    0 16px 36px rgba(0, 0, 0, 0.38),
+    0 4px 16px rgba(226, 232, 240, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  animation: hero-orbit-float-5 9s ease-in-out infinite;
+}
+.guest-hero-orbit-wind::after {
+  border: 1px solid rgba(226, 232, 240, 0.18);
+}
+.guest-hero-orbit-wind:hover {
+  box-shadow: 
+    0 20px 45px rgba(0, 0, 0, 0.45),
+    0 8px 30px rgba(226, 232, 240, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .guest-hero-orbit-soil {
-  color: rgba(245, 183, 76, 0.95);
-  animation-delay: -4.2s;
-  animation-duration: 7.8s;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), transparent 45%),
+    radial-gradient(circle at center, rgba(245, 158, 11, 0.15), transparent 70%),
+    linear-gradient(135deg, rgba(38, 28, 15, 0.88), rgba(20, 14, 7, 0.94));
+  color: #F59E0B;
+  box-shadow: 
+    0 16px 36px rgba(0, 0, 0, 0.38),
+    0 4px 16px rgba(245, 158, 11, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  animation: hero-orbit-float-6 7.8s ease-in-out infinite;
+}
+.guest-hero-orbit-soil::after {
+  border: 1px solid rgba(245, 158, 11, 0.18);
+}
+.guest-hero-orbit-soil:hover {
+  box-shadow: 
+    0 20px 45px rgba(0, 0, 0, 0.45),
+    0 8px 30px rgba(245, 158, 11, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 @media (min-width: 1024px) and (max-height: 820px) {
