@@ -3,7 +3,7 @@ import dynamic from "next/dynamic"
 import { useCallback, useMemo, useRef, useState, useEffect } from "react"
 import { useAppData } from "@/lib/store"
 import type { AppUser, Article, Product } from "@/lib/store"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, Facebook, Youtube, MessageSquare } from "lucide-react"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare } from "lucide-react"
 import DurianIcon from "./DurianIcon"
 import { Skeleton } from "./ui/skeleton"
 import AnimatedBackground from "./AnimatedBackground"
@@ -71,7 +71,9 @@ function AppFooter({ onContactClick }: { onContactClick: () => void }) {
               className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#1877F2] shadow-sm ring-1 ring-black/5 hover:bg-[#1877F2] hover:text-white transition-all active:scale-90"
               title="Facebook"
             >
-              <Facebook size={16} />
+              <svg viewBox="0 0 320 512" className="h-4 w-4 fill-current">
+                <path d="M80 299.3V512H196V299.3h86.5l18-97.8H196V166.9c0-51.7 20.3-71.5 72.7-71.5c16.3 0 29.4 .4 37 1.2V7.9C291.4 4 256.4 0 236.2 0C129.3 0 80 50.5 80 159.4v42.1H14v97.8H80z"/>
+              </svg>
             </a>
             <a
               href="https://youtube.com"
@@ -80,7 +82,9 @@ function AppFooter({ onContactClick }: { onContactClick: () => void }) {
               className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#FF0000] shadow-sm ring-1 ring-black/5 hover:bg-[#FF0000] hover:text-white transition-all active:scale-90"
               title="YouTube"
             >
-              <Youtube size={16} />
+              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
             </a>
             <a
               href="https://line.me"
@@ -89,8 +93,8 @@ function AppFooter({ onContactClick }: { onContactClick: () => void }) {
               className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#06C755] shadow-sm ring-1 ring-black/5 hover:bg-[#06C755] hover:text-white transition-all active:scale-90"
               title="LINE"
             >
-              <svg viewBox="0 0 16 16" className="h-4 w-4 fill-current" width={16} height={16}>
-                <path d="M8 0c4.411 0 8 2.912 8 6.492 0 1.433-.555 2.723-1.715 3.994-1.678 1.932-5.431 4.285-6.285 4.645-.83.35-.734-.197-.696-.413l.003-.018.114-.685c.027-.204.055-.521-.026-.723-.09-.223-.444-.339-.704-.395C2.846 12.39 0 9.701 0 6.492 0 2.912 3.59 0 8 0M5.022 7.686H3.497V4.918a.156.156 0 0 0-.155-.156H2.78a.156.156 0 0 0-.156.156v3.486c0 .041.017.08.044.107v.001l.002.002.002.002a.15.15 0 0 0 .108.043h2.242c.086 0 .155-.07.155-.156v-.56a.156.156 0 0 0-.155-.157m.791-2.924a.156.156 0 0 0-.156.156v3.486c0 .086.07.155.156.155h.562c.086 0 .155-.07.155-.155V4.918a.156.156 0 0 0-.155-.156zm3.863 0a.156.156 0 0 0-.156.156v2.07L7.923 4.832l-.013-.015v-.001l-.01-.01-.003-.003-.011-.009h-.001L7.88 4.79l-.003-.002-.005-.003-.008-.005h-.002l-.003-.002-.01-.004-.004-.002-.01-.003h-.002l-.003-.001-.009-.002h-.006l-.003-.001h-.004l-.002-.001h-.574a.156.156 0 0 0-.156.155v3.486c0 .086.07.155.156.155h.56c.087 0 .157-.07.157-.155v-2.07l1.6 2.16a.2.2 0 0 0 .039.038l.001.001.01.006.004.002.008.004.007.003.005.002.01.003h.003a.2.2 0 0 0 .04.006h.56c.087 0 .157-.07.157-.155V4.918a.156.156 0 0 0-.156-.156zm3.815.717v-.56a.156.156 0 0 0-.155-.157h-2.242a.16.16 0 0 0-.108.044h-.001l-.001.002-.002.003a.16.16 0 0 0-.044.107v3.486c0 .041.017.08.044.107l.002.003.002.002a.16.16 0 0 0 .108.043h2.242c.086 0 .155-.07.155-.156v-.56a.156.156 0 0 0-.155-.157H11.81v-.589h1.525c.086 0 .155-.07.155-.156v-.56a.156.156 0 0 0-.155-.157H11.81v-.589h1.525c.086 0 .155-.07.155-.156Z"/>
+              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
               </svg>
             </a>
             <a
@@ -100,8 +104,8 @@ function AppFooter({ onContactClick }: { onContactClick: () => void }) {
               className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black shadow-sm ring-1 ring-black/5 hover:bg-black hover:text-white transition-all active:scale-90"
               title="TikTok"
             >
-              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" width={16} height={16}>
-                <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.72 3.01 1.83 4.09.99.96 2.33 1.52 3.73 1.63v3.45c-1.34-.05-2.65-.48-3.75-1.28a6.37 6.37 0 0 1-1.74-2.12v8.9c-.06 1.41-.49 2.83-1.33 3.96a6.83 6.83 0 0 1-5.18 2.61c-1.73.08-3.52-.39-4.93-1.42A6.9 6.9 0 0 1 1.9 14.77c-.49-2-.25-4.17.68-6.01a6.8 6.8 0 0 1 5.37-3.95v3.49c-.63.09-1.27.35-1.77.78a3.38 3.38 0 0 0-1.12 1.99 3.4 3.4 0 0 0 .54 2.76c.64.91 1.68 1.48 2.79 1.52 1.35.03 2.74-.7 3.39-1.9.22-.44.29-.93.29-1.42l.01-11.96H12.53z" />
+              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
+                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
               </svg>
             </a>
           </div>
