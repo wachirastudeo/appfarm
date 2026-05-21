@@ -37,11 +37,12 @@
 ```env
 NEXT_PUBLIC_APP_DATA_MODE=supabase
 NEXT_PUBLIC_SUPABASE_URL=replace-with-project-url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=replace-with-publishable-key
 NEXT_PUBLIC_SUPABASE_ANON_KEY=replace-with-anon-key
 NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=app-images
 ```
 
-ห้ามใช้ `service_role key` ใน frontend เด็ดขาด
+แนะนำใช้ `publishable key` สำหรับ frontend ตาม Supabase รุ่นใหม่ ถ้าโปรเจกต์ยังใช้ key แบบเดิมให้ใช้ `anon public key` ได้ ห้ามใช้ `service_role key` ใน frontend เด็ดขาด
 
 โหมดข้อมูล:
 
@@ -106,19 +107,46 @@ Supabase ไม่มี LINE provider สำเร็จรูปแบบต�
 
 `API_LOGIN_SETUP_TH.md`
 
-## 6. ตาราง database ที่ควรมี
+## 6. ตาราง database ที่ใช้อยู่จริง
 
-เริ่มจากตารางหลัก:
+Project ปัจจุบัน: `hpyoyjpqitpvgckxnlww`
 
-- `profiles`
-- `plots`
-- `trees`
-- `activities`
-- `tasks`
-- `finance_records`
-- `articles`
-- `products`
-- `site_settings`
+ตารางใน `public`:
+
+- `app_data` backup/fallback JSON ทั้งก้อน
+- `profiles` ผู้ใช้ของระบบ local auth
+- `plots` แปลงสวน
+- `trees` ต้นทุเรียนในแต่ละแปลง
+- `batches` รุ่นดอก/ผลของต้น
+- `batch_stages` ประวัติ stage ของรุ่นดอก/ผล
+- `activities` บันทึกสวน/กิจกรรม
+- `tasks` งานที่ต้องทำ
+- `finance_records` รายรับรายจ่าย
+- `articles` บทความ
+- `products` ปุ๋ยยา/สินค้าแนะนำ
+- `site_settings` ตั้งค่าชื่อสวน/เว็บ
+
+ข้อมูลที่ backfill ขึ้นแล้ว:
+
+- `profiles`: 3
+- `plots`: 3
+- `trees`: 10
+- `batches`: 0
+- `batch_stages`: 0
+- `activities`: 3
+- `tasks`: 3
+- `finance_records`: 5
+- `articles`: 7
+- `products`: 3
+- `site_settings`: 1
+- `app_data`: 1
+
+Flow ปัจจุบัน:
+
+1. ถ้า `NEXT_PUBLIC_APP_DATA_MODE=supabase` แอปจะโหลดข้อมูลจากตารางจริงก่อน
+2. ถ้าตารางจริงยังไม่มีข้อมูล แอป fallback ไปอ่าน `app_data`
+3. ทุกครั้งที่ข้อมูลเปลี่ยน แอปบันทึกทั้ง `app_data` และตารางจริง
+4. บทความกับปุ๋ยยาใช้ `articles` / `products` เป็นตารางหลัก
 
 ## 7. SQL เริ่มต้น
 
@@ -126,74 +154,14 @@ Supabase ไม่มี LINE provider สำเร็จรูปแบบต�
 
 `SQL Editor` > `New query`
 
-ตัวอย่างโครงสร้างเริ่มต้น:
+ใช้ไฟล์ SQL ใน repo แทนการ copy ตัวอย่างเอง:
 
-```sql
-create table profiles (
-  id uuid primary key,
-  email text,
-  name text,
-  avatar_url text,
-  role text not null default 'user',
-  created_at timestamptz not null default now()
-);
+- `supabase/appfarm_database_schema.sql` ไฟล์ schema หลักสำหรับสร้างทุก table ของแอป
+- `supabase/setup.sql` สร้าง `app_data`
+- `supabase/articles_products.sql` สร้าง `articles` และ `products`
+- `supabase/schema.sql` สร้างตารางหลักทั้งหมด
 
-create table plots (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references profiles(id) on delete cascade,
-  name text not null,
-  area numeric,
-  notes text,
-  created_at timestamptz not null default now()
-);
-
-create table trees (
-  id uuid primary key default gen_random_uuid(),
-  plot_id uuid not null references plots(id) on delete cascade,
-  code text not null,
-  variety text,
-  age integer,
-  health text,
-  stage text,
-  notes text,
-  created_at timestamptz not null default now()
-);
-
-create table tasks (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references profiles(id) on delete cascade,
-  plot_id uuid references plots(id) on delete set null,
-  title text not null,
-  date date not null,
-  status text not null default 'pending',
-  priority text not null default 'medium',
-  created_at timestamptz not null default now()
-);
-
-create table activities (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references profiles(id) on delete cascade,
-  plot_id uuid references plots(id) on delete set null,
-  tree_id uuid references trees(id) on delete set null,
-  type text not null,
-  description text not null,
-  cost numeric default 0,
-  date date not null,
-  created_at timestamptz not null default now()
-);
-
-create table finance_records (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references profiles(id) on delete cascade,
-  plot_id uuid references plots(id) on delete set null,
-  type text not null,
-  category text not null,
-  amount numeric not null,
-  note text,
-  date date not null,
-  created_at timestamptz not null default now()
-);
-```
+หมายเหตุ: schema จริงใช้ `id text` เพื่อให้เข้ากับ id เดิมในแอป เช่น `p1`, `t1`, `tk1` ไม่ใช่ `uuid`
 
 ## 8. เปิด Row Level Security
 
@@ -208,16 +176,16 @@ alter table activities enable row level security;
 alter table finance_records enable row level security;
 ```
 
-ถ้าใช้ Supabase Auth ตรง ๆ ค่อยเพิ่ม policy ด้วย `auth.uid()`
+สถานะปัจจุบัน: ใช้ policy แบบ prototype ให้ `anon` / `authenticated` อ่านเขียนได้ เพื่อให้เว็บที่ยังใช้ local auth sync ขึ้น Supabase ได้
 
-ถ้าใช้ NextAuth ต้องออกแบบการเช็คสิทธิ์ผ่าน server route ก่อน
+ก่อน production จริงควรเปลี่ยนเป็น Supabase Auth หรือ server route แล้วค่อยล็อก policy ด้วย user/session จริง
 
 ## 9. ติดตั้ง package
 
 ใช้ npm ตามโปรเจกต์นี้:
 
 ```bash
-npm install @supabase/supabase-js
+npm install @supabase/supabase-js @supabase/ssr
 ```
 
 ## 10. ไฟล์ที่ต้องเพิ่มภายหลัง

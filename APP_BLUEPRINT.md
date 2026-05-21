@@ -55,6 +55,10 @@
 
 ## 3. ตรรกะสำคัญ (Core Business Logic)
 
+- **Supabase Database Mode**: เมื่อ `NEXT_PUBLIC_APP_DATA_MODE=supabase` แอปจะโหลด/บันทึกข้อมูลกับ Supabase Postgres tables และเก็บ `app_data` เป็น backup/fallback JSON
+- **Database Tables**: ข้อมูลหลักแยกเป็น `profiles`, `plots`, `trees`, `batches`, `batch_stages`, `activities`, `tasks`, `finance_records`, `articles`, `products`, `site_settings`
+- **Schema File**: ไฟล์สำหรับสร้าง database คือ `supabase/appfarm_database_schema.sql`
+- **Database Map**: เอกสารอ่านง่ายสำหรับ table map คือ `SUPABASE_DATABASE_MAP_TH.md`
 - **Flower Stages (ระยะดอก/ผล)**: ทุเรียนมีการเจริญเติบโตหลายระยะ (เช่น ระยะใบอ่อน, ระยะมะเขือพวง, ระยะดอกบาน, ระยะผลขยายตัว)
 - **Harvest Prediction**: วันเก็บเกี่ยวจะถูกคำนวณโดยอัตโนมัติ (ประมาณ 120 วัน หลังจากวันที่ดอกบาน)
 - **Health System**: การแบ่งระดับสุขภาพต้นไม้ (Good = เขียว, Fair = ส้ม, Poor = แดง)
@@ -82,6 +86,7 @@
 - **Icons**: Lucide React
 - **Theme**: next-themes (สลับโหมดสว่าง-มืด)
 - **PWA**: PWA Web Manifest & standalone install trigger
+- **Database**: Supabase Postgres สำหรับข้อมูลสวนจริง พร้อม `localStorage` เป็น cache/fallback
 - **Data Source**: ในส่วนพิกัดและการพยากรณ์อากาศ ดึงข้อมูลเรียลไทม์จาก OpenStreetMap API และ Open-Meteo API ผ่านฝั่งไคลเอนต์
 
 ---

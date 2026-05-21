@@ -13,7 +13,7 @@
 - Radix UI primitives, shadcn-style components in `components/ui/`.
 - next-themes for Light and Dark theme toggling.
 - Lucide React icons.
-- Local client-side persistence through `localStorage`; no backend database currently.
+- Supabase Postgres for real database persistence, with `localStorage` kept as client fallback/cache.
 
 ## Important Files
 - `app/page.tsx`: renders `AppShell`.
@@ -21,7 +21,12 @@
 - `app/globals.css`: global styles, Light/Dark theme tokens, typography readability scales.
 - `components/AppShell.tsx`: main client shell, tab navigation, settings/auth/profile modals, farm location handling.
 - `components/ProfileModal.tsx`: personalized profile card, inline name updates, avatar upload with dynamic crop previews.
-- `lib/store.ts`: app data types, seed data, localStorage persistence, CRUD functions (plot deletions, sequential bulk addition calculations).
+- `lib/store.ts`: app data types, seed data, localStorage fallback, Supabase sync, CRUD functions (plot deletions, sequential bulk addition calculations).
+- `lib/supabase/app-data.ts`: loads/saves structured Supabase tables and keeps `app_data` as backup/fallback JSON.
+- `lib/supabase/articles.ts`: Supabase CRUD helpers for `articles` and `products`.
+- `lib/supabase/client.ts`: Supabase browser client.
+- `supabase/appfarm_database_schema.sql`: main `.sql` schema file for creating all Supabase tables.
+- `SUPABASE_DATABASE_MAP_TH.md`: readable table map showing which app data lives in which Supabase table.
 - `public/manifest.webmanifest`: Progressive Web App metadata.
 - `components/ui/`: shared reusable UI primitives. Prefer these before creating new controls.
 - `public/images/`: durian article/banner assets.
@@ -46,10 +51,16 @@
 
 ## State And Persistence
 - `useAppData()` in `lib/store.ts` owns app state.
-- Storage key: `durian_orchard_data`.
+- Storage key: `durian_orchard_data` is still used as browser fallback/cache.
+- Supabase mode is controlled by `NEXT_PUBLIC_APP_DATA_MODE=supabase`.
+- Supabase project currently used: `hpyoyjpqitpvgckxnlww`.
+- Structured Supabase tables: `profiles`, `plots`, `trees`, `batches`, `batch_stages`, `activities`, `tasks`, `finance_records`, `articles`, `products`, `site_settings`.
+- `app_data` stores a full JSON backup/fallback row.
+- Backfilled counts: `profiles` 3, `plots` 3, `trees` 10, `activities` 3, `tasks` 3, `finance_records` 5, `articles` 7, `products` 3, `site_settings` 1, `app_data` 1.
 - Settings location uses `farm_location` and `farm_location_changed` alongside personalized configuration entries.
 - The app is client-heavy; many components use `"use client"`.
 - Existing stored data may be older, so keep backward-compatible guards when adding fields (e.g. `batches` or `avatar` string checks).
+- Current RLS policies are prototype `anon` / `authenticated` allow-all policies. Replace with Supabase Auth policies or server-side writes before production.
 
 ## Commands
 - Dev: `npm run dev`
@@ -65,7 +76,7 @@
 - Keep types in `lib/store.ts` aligned with CRUD functions and component props.
 - For UI changes, verify mobile and desktop behavior.
 - Support both Light and Dark mode styling perfectly across components.
-- Avoid adding backend assumptions unless requested.
+- Preserve the existing Supabase schema/table names unless a migration is intentionally planned.
 
 ## Verification
 - Run `npm run lint` for code changes when practical.

@@ -506,6 +506,11 @@ function GuestHome({
                     <h3 className="mt-2 min-h-[3.5rem] line-clamp-2 text-sm font-black leading-snug text-foreground transition-colors group-hover:text-primary">
                       {product.name}
                     </h3>
+                    {product.description && (
+                      <p className="mt-1.5 min-h-[2.5rem] line-clamp-2 text-xs font-semibold leading-relaxed text-muted-foreground">
+                        {product.description}
+                      </p>
+                    )}
                     <div className="mt-auto inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-emerald-600 px-3.5 py-2 text-xs font-extrabold text-primary-foreground shadow-sm transition-all duration-300 group-hover:shadow-md">
                       ดูสินค้า
                       <ExternalLink size={12} />

@@ -1,11 +1,13 @@
 # Durian Orchard Management App - Feature Checklist
 
-This checklist outlines the missing features and potential improvements identified during the system analysis of the client-side durian orchard management application.
+This checklist outlines the missing features and potential improvements identified during the system analysis of the durian orchard management application.
 
 ---
 
 ## 🚀 1. Data Persistence & Backend Integration
-- [ ] **Database Setup**: Migrate from `localStorage` to a centralized cloud database (e.g., Supabase or PostgreSQL) for real-time synchronization.
+- [x] **Database Setup**: Supabase Postgres tables are created and seeded/backfilled. Main schema file: `supabase/appfarm_database_schema.sql`.
+- [x] **Structured Data Sync**: Core app data syncs to `profiles`, `plots`, `trees`, `tasks`, `activities`, `finance_records`, `articles`, `products`, and `site_settings`, while `app_data` remains as JSON backup/fallback.
+- [ ] **Production RLS Hardening**: Replace prototype `anon` / `authenticated` allow-all policies with Supabase Auth policies or server-side writes before launch.
 - [ ] **Multi-User & Staff Access**: Implement role-based access control (RBAC) allowing orchard owners to assign limited view/edit permissions to field staff.
 - [ ] **Secure Authentication**: Replace the client-side bcrypt/hash simulation with real OAuth (Google) or Firebase/Supabase Auth.
 

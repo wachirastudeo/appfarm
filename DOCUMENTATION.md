@@ -10,6 +10,7 @@ The application is built using the **Next.js App Router** paradigm with **Tailwi
 - **Component Library**: Radix UI primitives with custom extensions
 - **Icons**: Lucide React
 - **Language Support**: Multi-language support with Thai as primary language
+- **Database**: Supabase Postgres with structured tables and `app_data` JSON fallback
 
 ## Directory Structure
 
@@ -28,8 +29,16 @@ Contains reusable UI elements and feature-specific components.
 
 ### `/lib`
 Utility functions, constants, and shared logic.
-- `store.ts`: Application state management
+- `store.ts`: Application state management, local fallback/cache, and Supabase sync orchestration
 - `utils.ts`: Helper functions
+- `/supabase`: Supabase client and CRUD/load-save helpers
+
+### `/supabase`
+Database SQL files for Supabase.
+- `appfarm_database_schema.sql`: Main schema file for all app tables
+- `schema.sql`: Earlier table schema reference
+- `setup.sql`: `app_data` setup reference
+- `articles_products.sql`: Articles/products setup reference
 
 ### `/hooks`
 Custom React hooks for managing complex state or side effects across multiple components.
@@ -179,7 +188,18 @@ The `/components/ui` directory contains comprehensive component library:
 - **Bulk Update Modal**: Modal interface for updating entire plot flower stages at once
 
 ## State Management
-Currently relies on React's local state (`useState`, `useReducer`) and Context API through `store.ts` for application-wide state. For future scaling, consider:
+Currently relies on React local state through `store.ts` for application-wide state, then syncs to Supabase when `NEXT_PUBLIC_APP_DATA_MODE=supabase`.
+
+Persistence layers:
+- Supabase structured tables: `profiles`, `plots`, `trees`, `batches`, `batch_stages`, `activities`, `tasks`, `finance_records`, `articles`, `products`, `site_settings`
+- Supabase fallback table: `app_data`
+- Browser fallback/cache: `localStorage` key `durian_orchard_data`
+
+Current Supabase project id: `hpyoyjpqitpvgckxnlww`
+
+Security note: current RLS policies are prototype allow-all policies for the local-auth implementation. Before production, replace them with Supabase Auth policies or server-side write routes.
+
+For future scaling, consider:
 - React Query for server state and caching
 - SWR for data fetching
 - Zustand for lightweight global state

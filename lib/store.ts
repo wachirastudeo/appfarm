@@ -1,6 +1,12 @@
 "use client"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "./seo"
+import { appRuntimeConfig, isSupabaseConfigured } from "./runtime-config"
+import { loadRemoteAppData, loadStructuredAppData, saveRemoteAppData, saveStructuredAppData } from "./supabase/app-data"
+import {
+  fetchArticles, upsertArticle, removeArticle,
+  fetchProducts, upsertProduct, removeProduct,
+} from "./supabase/articles"
 
 // ---- Types ----
 export type FlowerStage =
@@ -35,11 +41,11 @@ export const FLOWER_STAGE_LABELS: Record<FlowerStage, string> = {
 }
 
 export const FLOWER_STAGES: FlowerStage[] = [
-  "vegetative","egg_fish","nail","mouse_foot","eggplant","bracelet","white_flower","bloom","rat_tail","chicken_egg","expanding","harvest","dormant"
+  "vegetative", "egg_fish", "nail", "mouse_foot", "eggplant", "bracelet", "white_flower", "bloom", "rat_tail", "chicken_egg", "expanding", "harvest", "dormant"
 ]
 
 export type DurianVariety = "หมอนทอง" | "ชะนี" | "กันยาว" | "พวงมณี" | "ก้านยาว" | "อื่นๆ"
-export const VARIETIES: DurianVariety[] = ["หมอนทอง","ชะนี","กันยาว","พวงมณี","ก้านยาว","อื่นๆ"]
+export const VARIETIES: DurianVariety[] = ["หมอนทอง", "ชะนี", "กันยาว", "พวงมณี", "ก้านยาว", "อื่นๆ"]
 
 export interface BatchStage {
   id: string
@@ -113,7 +119,7 @@ export type FinanceType = "income" | "expense"
 export type FinanceCategory =
   | "ขายผล" | "ปุ๋ย" | "ยา" | "แรงงาน" | "น้ำ/ไฟ" | "อุปกรณ์" | "ขนส่ง" | "อื่นๆ"
 export const INCOME_CATEGORIES: FinanceCategory[] = ["ขายผล", "อื่นๆ"]
-export const EXPENSE_CATEGORIES: FinanceCategory[] = ["ปุ๋ย","ยา","แรงงาน","น้ำ/ไฟ","อุปกรณ์","ขนส่ง","อื่นๆ"]
+export const EXPENSE_CATEGORIES: FinanceCategory[] = ["ปุ๋ย", "ยา", "แรงงาน", "น้ำ/ไฟ", "อุปกรณ์", "ขนส่ง", "อื่นๆ"]
 
 export interface FinanceRecord {
   id: string
@@ -297,20 +303,20 @@ const SEED: AppData = {
     },
   ],
   activities: [
-    { id: "a1", date: new Date(Date.now()-2*86400000).toISOString(), plotId: "p1", activityType: "fertilize", description: "ใส่ปุ๋ยเคมีสูตร 13-13-21 แปลง A", cost: 1200, createdAt: new Date().toISOString() },
-    { id: "a2", date: new Date(Date.now()-1*86400000).toISOString(), plotId: "p2", activityType: "spray", description: "พ่นยากำจัดแมลง แปลง B", cost: 800, createdAt: new Date().toISOString() },
+    { id: "a1", date: new Date(Date.now() - 2 * 86400000).toISOString(), plotId: "p1", activityType: "fertilize", description: "ใส่ปุ๋ยเคมีสูตร 13-13-21 แปลง A", cost: 1200, createdAt: new Date().toISOString() },
+    { id: "a2", date: new Date(Date.now() - 1 * 86400000).toISOString(), plotId: "p2", activityType: "spray", description: "พ่นยากำจัดแมลง แปลง B", cost: 800, createdAt: new Date().toISOString() },
     { id: "a3", date: new Date().toISOString(), plotId: "p1", activityType: "water", description: "รดน้ำแปลง A ช่วงออกดอก", cost: 0, createdAt: new Date().toISOString() },
   ],
   tasks: [
-    { id: "tk1", date: new Date(Date.now()+86400000).toISOString(), plotId: "p1", title: "พ่นยาป้องกันโรค", description: "ใช้สารป้องกันโรคราน้ำค้าง", status: "pending", priority: "high" },
-    { id: "tk2", date: new Date(Date.now()+2*86400000).toISOString(), plotId: "p2", title: "ใส่ปุ๋ยรองพื้น", description: "ปุ๋ยอินทรีย์ 50 กก./ต้น", status: "pending", priority: "medium" },
-    { id: "tk3", date: new Date(Date.now()-86400000).toISOString(), plotId: "p1", title: "ตรวจดูการออกดอก", description: "นับเปอร์เซ็นต์การออกดอก", status: "done", priority: "medium" },
+    { id: "tk1", date: new Date(Date.now() + 86400000).toISOString(), plotId: "p1", title: "พ่นยาป้องกันโรค", description: "ใช้สารป้องกันโรคราน้ำค้าง", status: "pending", priority: "high" },
+    { id: "tk2", date: new Date(Date.now() + 2 * 86400000).toISOString(), plotId: "p2", title: "ใส่ปุ๋ยรองพื้น", description: "ปุ๋ยอินทรีย์ 50 กก./ต้น", status: "pending", priority: "medium" },
+    { id: "tk3", date: new Date(Date.now() - 86400000).toISOString(), plotId: "p1", title: "ตรวจดูการออกดอก", description: "นับเปอร์เซ็นต์การออกดอก", status: "done", priority: "medium" },
   ],
   finance: [
-    { id: "f1", date: new Date(Date.now()-5*86400000).toISOString(), type: "income", category: "ขายผล", amount: 45000, description: "ขายทุเรียนหมอนทอง 300 กก.", plotId: "p1" },
-    { id: "f2", date: new Date(Date.now()-3*86400000).toISOString(), type: "expense", category: "ปุ๋ย", amount: 3500, description: "ซื้อปุ๋ยเคมีและอินทรีย์", plotId: "p1" },
-    { id: "f3", date: new Date(Date.now()-2*86400000).toISOString(), type: "expense", category: "แรงงาน", amount: 2400, description: "ค่าแรงงานตัดหญ้า 2 วัน", plotId: "p2" },
-    { id: "f4", date: new Date(Date.now()-1*86400000).toISOString(), type: "expense", category: "ยา", amount: 1800, description: "ซื้อสารเคมีกำจัดแมลง", plotId: "p2" },
+    { id: "f1", date: new Date(Date.now() - 5 * 86400000).toISOString(), type: "income", category: "ขายผล", amount: 45000, description: "ขายทุเรียนหมอนทอง 300 กก.", plotId: "p1" },
+    { id: "f2", date: new Date(Date.now() - 3 * 86400000).toISOString(), type: "expense", category: "ปุ๋ย", amount: 3500, description: "ซื้อปุ๋ยเคมีและอินทรีย์", plotId: "p1" },
+    { id: "f3", date: new Date(Date.now() - 2 * 86400000).toISOString(), type: "expense", category: "แรงงาน", amount: 2400, description: "ค่าแรงงานตัดหญ้า 2 วัน", plotId: "p2" },
+    { id: "f4", date: new Date(Date.now() - 1 * 86400000).toISOString(), type: "expense", category: "ยา", amount: 1800, description: "ซื้อสารเคมีกำจัดแมลง", plotId: "p2" },
     { id: "f5", date: new Date().toISOString(), type: "income", category: "ขายผล", amount: 28000, description: "ขายทุเรียนชะนี 200 กก.", plotId: "p2" },
   ],
   users: seedUsers,
@@ -325,6 +331,7 @@ const SEED: AppData = {
 
 // ---- Hook ----
 const STORAGE_KEY = "durian_orchard_data"
+const STORAGE_WRITE_DELAY_MS = 250
 
 async function hashPassword(email: string, password: string) {
   const payload = `${email.trim().toLowerCase()}:${password}`
@@ -379,42 +386,128 @@ function migrateArticleImagesToAvif(articles: Article[]) {
   ]
 }
 
-export function useAppData() {
-  const [data, setData] = useState<AppData>(() => {
-    if (typeof window === "undefined") return SEED
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (!stored) return {
-        ...SEED,
-        articles: seedArticles.map(normalizeArticleSeo),
-        products: seedProducts.map(normalizeProductSeo),
-      }
-      const parsed = JSON.parse(stored) as AppData
-      // Ensure all trees have a batches array to prevent crashes with old data
-      parsed.plots.forEach(p => {
-        p.trees.forEach(t => {
-          if (!t.batches) t.batches = []
-        })
-      })
-      return {
-        ...parsed,
-        users: parsed.users?.length ? withoutPlainPasswords(parsed.users) : seedUsers,
-        articles: parsed.articles?.length ? migrateArticleImagesToAvif(parsed.articles) : seedArticles.map(normalizeArticleSeo),
-        products: parsed.products?.length ? parsed.products.map(normalizeProductSeo) : seedProducts.map(normalizeProductSeo),
-        siteSettings: parsed.siteSettings ?? SEED.siteSettings,
-      }
-    } catch {
-      return {
-        ...SEED,
-        articles: seedArticles.map(normalizeArticleSeo),
-        products: seedProducts.map(normalizeProductSeo),
-      }
-    }
+function normalizeAppData(data: AppData): AppData {
+  data.plots.forEach(p => {
+    p.trees.forEach(t => {
+      if (!t.batches) t.batches = []
+    })
   })
 
+  return {
+    ...data,
+    users: data.users?.length ? withoutPlainPasswords(data.users) : seedUsers,
+    articles: data.articles?.length ? migrateArticleImagesToAvif(data.articles) : seedArticles.map(normalizeArticleSeo),
+    products: data.products?.length ? data.products.map(normalizeProductSeo) : seedProducts.map(normalizeProductSeo),
+    siteSettings: data.siteSettings ?? SEED.siteSettings,
+  }
+}
+
+function getInitialAppData(): AppData {
+  if (typeof window === "undefined") return SEED
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (!stored) {
+      return normalizeAppData({
+        ...SEED,
+        articles: seedArticles.map(normalizeArticleSeo),
+        products: seedProducts.map(normalizeProductSeo),
+      })
+    }
+
+    return normalizeAppData(JSON.parse(stored) as AppData)
+  } catch {
+    return normalizeAppData({
+      ...SEED,
+      articles: seedArticles.map(normalizeArticleSeo),
+      products: seedProducts.map(normalizeProductSeo),
+    })
+  }
+}
+
+export function useAppData() {
+  const [data, setData] = useState<AppData>(getInitialAppData)
+  const [remoteReady, setRemoteReady] = useState(false)
+  const initialDataRef = useRef(data)
+  const lastRemoteJsonRef = useRef("")
+  const isSupabaseMode = appRuntimeConfig.dataMode === "supabase" && isSupabaseConfigured
+
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    const timeoutId = window.setTimeout(() => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    }, STORAGE_WRITE_DELAY_MS)
+
+    return () => window.clearTimeout(timeoutId)
   }, [data])
+
+  // Load app_data (plots/activities/tasks/finance/users/settings) + articles + products from Supabase
+  useEffect(() => {
+    if (!isSupabaseMode) {
+      setRemoteReady(false)
+      return
+    }
+
+    let active = true
+
+    Promise.all([
+      loadStructuredAppData().catch(() => null),
+      loadRemoteAppData(),
+      fetchArticles().catch(() => null),
+      fetchProducts().catch(() => null),
+    ])
+      .then(([structuredData, remoteData, remoteArticles, remoteProducts]) => {
+        if (!active) return
+
+        if (structuredData || remoteData) {
+          const sourceData = structuredData ?? remoteData!
+          const normalized = normalizeAppData({
+            ...sourceData,
+            // override with dedicated table data if available
+            articles: remoteArticles?.length ? remoteArticles : sourceData.articles,
+            products: remoteProducts?.length ? remoteProducts : sourceData.products,
+          })
+          lastRemoteJsonRef.current = JSON.stringify(normalized)
+          setData(normalized)
+
+          if (!structuredData) {
+            void saveStructuredAppData(normalized)
+          }
+        } else {
+          // First run: seed app_data and push seed articles/products to their tables
+          const initial = initialDataRef.current
+          void saveRemoteAppData(initial)
+        }
+
+        setRemoteReady(true)
+      })
+      .catch(error => {
+        console.error("Supabase data load failed", error)
+        if (active) setRemoteReady(true)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [isSupabaseMode])
+
+  // Sync non-articles/products data back to app_data blob
+  useEffect(() => {
+    if (!isSupabaseMode || !remoteReady) return
+
+    const nextJson = JSON.stringify(data)
+    if (lastRemoteJsonRef.current === nextJson) return
+
+    const timeoutId = window.setTimeout(() => {
+      saveRemoteAppData(data)
+        .then(() => {
+          lastRemoteJsonRef.current = nextJson
+        })
+        .catch(error => {
+          console.error("Supabase data save failed", error)
+        })
+    }, STORAGE_WRITE_DELAY_MS)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [data, isSupabaseMode, remoteReady])
 
   const updateData = useCallback((updater: (prev: AppData) => AppData) => {
     setData(prev => updater(prev))
@@ -544,30 +637,48 @@ export function useAppData() {
     const now = new Date().toISOString()
     const nextArticle = normalizeArticleSeo({ ...article, id: `art${Date.now()}`, createdAt: now, updatedAt: now })
     updateData(d => ({ ...d, articles: [nextArticle, ...d.articles] }))
-  }, [updateData])
+    if (isSupabaseMode) void upsertArticle(nextArticle)
+  }, [updateData, isSupabaseMode])
 
   const updateArticle = useCallback((id: string, changes: Partial<Article>) => {
-    updateData(d => ({ ...d, articles: d.articles.map(a => a.id === id ? normalizeArticleSeo({ ...a, ...changes, updatedAt: new Date().toISOString() }) : a) }))
-  }, [updateData])
+    updateData(d => {
+      const next = d.articles.map(a => a.id === id ? normalizeArticleSeo({ ...a, ...changes, updatedAt: new Date().toISOString() }) : a)
+      if (isSupabaseMode) {
+        const updated = next.find(a => a.id === id)
+        if (updated) void upsertArticle(updated)
+      }
+      return { ...d, articles: next }
+    })
+  }, [updateData, isSupabaseMode])
 
   const deleteArticle = useCallback((id: string) => {
     updateData(d => ({ ...d, articles: d.articles.filter(a => a.id !== id) }))
-  }, [updateData])
+    if (isSupabaseMode) void removeArticle(id)
+  }, [updateData, isSupabaseMode])
 
   // Products
   const addProduct = useCallback((product: Omit<Product, "id" | "createdAt" | "updatedAt">) => {
     const now = new Date().toISOString()
     const nextProduct = normalizeProductSeo({ ...product, id: `prod${Date.now()}`, createdAt: now, updatedAt: now })
     updateData(d => ({ ...d, products: [nextProduct, ...d.products] }))
-  }, [updateData])
+    if (isSupabaseMode) void upsertProduct(nextProduct)
+  }, [updateData, isSupabaseMode])
 
   const updateProduct = useCallback((id: string, changes: Partial<Product>) => {
-    updateData(d => ({ ...d, products: d.products.map(p => p.id === id ? normalizeProductSeo({ ...p, ...changes, updatedAt: new Date().toISOString() }) : p) }))
-  }, [updateData])
+    updateData(d => {
+      const next = d.products.map(p => p.id === id ? normalizeProductSeo({ ...p, ...changes, updatedAt: new Date().toISOString() }) : p)
+      if (isSupabaseMode) {
+        const updated = next.find(p => p.id === id)
+        if (updated) void upsertProduct(updated)
+      }
+      return { ...d, products: next }
+    })
+  }, [updateData, isSupabaseMode])
 
   const deleteProduct = useCallback((id: string) => {
     updateData(d => ({ ...d, products: d.products.filter(p => p.id !== id) }))
-  }, [updateData])
+    if (isSupabaseMode) void removeProduct(id)
+  }, [updateData, isSupabaseMode])
 
   const updateSiteSettings = useCallback((changes: Partial<SiteSettings>) => {
     updateData(d => ({ ...d, siteSettings: { ...d.siteSettings, ...changes } }))
@@ -594,20 +705,21 @@ export function useAppData() {
     updateData(d => ({
       ...d,
       plots: d.plots.map(p => p.id === plotId
-        ? { ...p, trees: p.trees.map(t => t.id === treeId 
-            ? { 
-                ...t, 
-                stage: stageData.stage, // Update main tree stage to latest
-                batches: t.batches.map(b => b.id === batchId 
-                  ? { 
-                      ...b, 
-                      stages: [newStage, ...b.stages],
-                      bloomDate: stageData.stage === 'bloom' ? stageData.date : b.bloomDate // 'bloom' logic
-                    } 
-                  : b) 
-              } 
-            : t) 
-          }
+        ? {
+          ...p, trees: p.trees.map(t => t.id === treeId
+            ? {
+              ...t,
+              stage: stageData.stage, // Update main tree stage to latest
+              batches: t.batches.map(b => b.id === batchId
+                ? {
+                  ...b,
+                  stages: [newStage, ...b.stages],
+                  bloomDate: stageData.stage === 'bloom' ? stageData.date : b.bloomDate // 'bloom' logic
+                }
+                : b)
+            }
+            : t)
+        }
         : p)
     }))
   }, [updateData])
@@ -616,9 +728,11 @@ export function useAppData() {
     updateData(d => ({
       ...d,
       plots: d.plots.map(p => p.id === plotId
-        ? { ...p, trees: p.trees.map(t => t.id === treeId 
-            ? { ...t, batches: t.batches.map(b => b.id === batchId ? { ...b, ...changes } : b) } 
-            : t) }
+        ? {
+          ...p, trees: p.trees.map(t => t.id === treeId
+            ? { ...t, batches: t.batches.map(b => b.id === batchId ? { ...b, ...changes } : b) }
+            : t)
+        }
         : p)
     }))
   }, [updateData])
@@ -632,7 +746,7 @@ export function useAppData() {
     }))
   }, [updateData])
 
-  return {
+  return useMemo(() => ({
     data,
     addPlot, updatePlot, deletePlot,
     addTree, updateTree, deleteTree, bulkUpdateTrees,
@@ -644,5 +758,17 @@ export function useAppData() {
     addArticle, updateArticle, deleteArticle,
     addProduct, updateProduct, deleteProduct,
     updateSiteSettings,
-  }
+  }), [
+    data,
+    addPlot, updatePlot, deletePlot,
+    addTree, updateTree, deleteTree, bulkUpdateTrees,
+    addActivity, deleteActivity, updateActivity,
+    addTask, updateTask, deleteTask,
+    addFinance, deleteFinance,
+    addBatch, addBatchStage, updateBatch, deleteBatch,
+    authenticateUser, addUser, resetPassword, updateUser, deleteUser,
+    addArticle, updateArticle, deleteArticle,
+    addProduct, updateProduct, deleteProduct,
+    updateSiteSettings,
+  ])
 }

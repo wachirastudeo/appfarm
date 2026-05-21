@@ -14,6 +14,7 @@ A modern, mobile-responsive web application designed for managing durian orchard
 - **Dark Mode Theme**: Premium Nature Dark UI optimized for low-light night conditions.
 - **Progressive Web App (PWA)**: Support for dark mode styling, standalone add-to-home-screen install prompts, and standard `manifest.webmanifest` assets for mobile packaging.
 - **Authentication & Custom Profile**: Pre-configured developer credentials and an editable profile screen supporting custom name updates and **avatar upload with live preview**.
+- **Supabase Database Mode**: Stores orchard data in Supabase Postgres tables with `app_data` JSON backup/fallback and browser `localStorage` cache.
 
 ## Technology Stack
 - **Framework**: Next.js 14+ (App Router)
@@ -22,6 +23,16 @@ A modern, mobile-responsive web application designed for managing durian orchard
 - **Styling**: Tailwind CSS v4, PostCSS
 - **Components**: Radix UI primitives, Lucide Icons
 - **Language**: TypeScript
+- **Database**: Supabase Postgres (`profiles`, `plots`, `trees`, `tasks`, `activities`, `finance_records`, `articles`, `products`, `site_settings`, `app_data`)
+
+## Database Docs
+- Human-readable table map: `SUPABASE_DATABASE_MAP_TH.md`
+- Main database schema file: `supabase/appfarm_database_schema.sql`
+- Supabase setup guide: `SUPABASE_SETUP_TH.md`
+
+Current project id: `hpyoyjpqitpvgckxnlww`
+
+Important production note: current RLS policies are prototype allow-all policies for the local-auth app. Replace them with Supabase Auth policies or server-side writes before public production use.
 
 ## Getting Started
 
@@ -49,6 +60,19 @@ npm run dev
 pnpm dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+
+### Data Mode
+Use local browser storage:
+```env
+NEXT_PUBLIC_APP_DATA_MODE=local
+```
+
+Use Supabase:
+```env
+NEXT_PUBLIC_APP_DATA_MODE=supabase
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+```
 
 ## Build for Production
 ```bash

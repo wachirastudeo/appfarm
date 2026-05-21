@@ -194,6 +194,10 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
   }
 
   const weatherLoading = weather.condition === "กำลังโหลด..."
+  const plotNameById = useMemo(
+    () => new Map(data.plots.map(plot => [plot.id, plot.name])),
+    [data.plots]
+  )
 
   // Memoize loc so the object reference only changes when lat/lon actually change
   const loc = useMemo(
@@ -258,33 +262,32 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [farmLocation])
-  const totalTrees = useMemo(() => data.plots.reduce((s, p) => s + p.trees.length, 0), [data])
-  const totalArea = useMemo(() => data.plots.reduce((s, p) => s + p.area, 0), [data])
-  const pendingTasks = useMemo(() => data.tasks.filter(t => t.status === "pending").length, [data])
-  const thisMonthIncome = useMemo(() => {
+  const totalTrees = useMemo(() => data.plots.reduce((s, p) => s + p.trees.length, 0), [data.plots])
+  const totalArea = useMemo(() => data.plots.reduce((s, p) => s + p.area, 0), [data.plots])
+  const pendingTasks = useMemo(() => data.tasks.filter(t => t.status === "pending").length, [data.tasks])
+  const monthlyTotals = useMemo(() => {
     const now = new Date()
-    return data.finance.filter(f => {
-      const d = new Date(f.date)
-      return f.type === "income" && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-    }).reduce((s, f) => s + f.amount, 0)
-  }, [data])
-  const thisMonthExpense = useMemo(() => {
-    const now = new Date()
-    return data.finance.filter(f => {
-      const d = new Date(f.date)
-      return f.type === "expense" && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-    }).reduce((s, f) => s + f.amount, 0)
-  }, [data])
-
+    return data.finance.reduce((totals, record) => {
+      const d = new Date(record.date)
+      if (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear()) {
+        return totals
+      }
+      if (record.type === "income") totals.income += record.amount
+      if (record.type === "expense") totals.expense += record.amount
+      return totals
+    }, { income: 0, expense: 0 })
+  }, [data.finance])
+  const thisMonthIncome = monthlyTotals.income
+  const thisMonthExpense = monthlyTotals.expense
   const recentActivities = useMemo(() =>
     [...data.activities].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 4),
-    [data])
+    [data.activities])
 
   const upcomingTasks = useMemo(() =>
     data.tasks.filter(t => t.status === "pending").sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(0, 3),
-    [data])
+    [data.tasks])
 
-  const plotName = (id: string) => data.plots.find(p => p.id === id)?.name ?? id
+  const plotName = (id: string) => plotNameById.get(id) ?? id
 
   const formatDate = (iso: string) => {
     const d = new Date(iso)
