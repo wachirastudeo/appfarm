@@ -21,7 +21,12 @@ export async function loadRemoteAppData() {
   return data?.data ?? null
 }
 
-export async function saveRemoteAppData(appData: AppData) {
+export async function saveRemoteAppData(appData: AppData, ownerUserId?: string | null) {
+  if (ownerUserId) {
+    await saveStructuredAppData(appData, ownerUserId)
+    return
+  }
+
   const supabase = createClient()
   const { error } = await supabase
     .from("app_data")
@@ -32,8 +37,6 @@ export async function saveRemoteAppData(appData: AppData) {
     })
 
   if (error) throw error
-
-  await saveStructuredAppData(appData)
 }
 
 function rowToUser(row: Record<string, unknown>): AppUser {
@@ -86,6 +89,7 @@ function rowToTree(row: Record<string, unknown>): Tree {
 function rowToPlot(row: Record<string, unknown>): Plot {
   return {
     id: row.id as string,
+    userId: (row.user_id as string) || undefined,
     name: row.name as string,
     area: Number(row.area ?? 0),
     notes: (row.notes as string) || "",
@@ -96,6 +100,7 @@ function rowToPlot(row: Record<string, unknown>): Plot {
 function rowToActivity(row: Record<string, unknown>): Activity {
   return {
     id: row.id as string,
+    userId: (row.user_id as string) || undefined,
     date: row.date as string,
     plotId: (row.plot_id as string) || "",
     treeId: (row.tree_id as string) || undefined,
@@ -109,6 +114,7 @@ function rowToActivity(row: Record<string, unknown>): Activity {
 function rowToTask(row: Record<string, unknown>): Task {
   return {
     id: row.id as string,
+    userId: (row.user_id as string) || undefined,
     date: row.date as string,
     plotId: (row.plot_id as string) || "",
     title: row.title as string,
@@ -121,6 +127,7 @@ function rowToTask(row: Record<string, unknown>): Task {
 function rowToFinance(row: Record<string, unknown>): FinanceRecord {
   return {
     id: row.id as string,
+    userId: (row.user_id as string) || undefined,
     date: row.date as string,
     type: row.type as FinanceRecord["type"],
     category: row.category as FinanceRecord["category"],
@@ -183,8 +190,20 @@ function rowToSettings(row: Record<string, unknown> | null): SiteSettings {
   }
 }
 
-export async function loadStructuredAppData(): Promise<AppData | null> {
+export async function loadStructuredAppData(ownerUserId?: string | null): Promise<AppData | null> {
   const supabase = createClient()
+  const plotsQuery = supabase.from("plots").select("*, trees(*, batches(*, batch_stages(*)))").order("created_at", { ascending: true })
+  const activitiesQuery = supabase.from("activities").select("*").order("created_at", { ascending: false })
+  const tasksQuery = supabase.from("tasks").select("*").order("created_at", { ascending: false })
+  const financeQuery = supabase.from("finance_records").select("*").order("created_at", { ascending: false })
+
+  if (ownerUserId) {
+    plotsQuery.eq("user_id", ownerUserId)
+    activitiesQuery.eq("user_id", ownerUserId)
+    tasksQuery.eq("user_id", ownerUserId)
+    financeQuery.eq("user_id", ownerUserId)
+  }
+
   const [
     profilesResult,
     plotsResult,
@@ -196,10 +215,10 @@ export async function loadStructuredAppData(): Promise<AppData | null> {
     settingsResult,
   ] = await Promise.all([
     supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-    supabase.from("plots").select("*, trees(*, batches(*, batch_stages(*)))").order("created_at", { ascending: true }),
-    supabase.from("activities").select("*").order("created_at", { ascending: false }),
-    supabase.from("tasks").select("*").order("created_at", { ascending: false }),
-    supabase.from("finance_records").select("*").order("created_at", { ascending: false }),
+    plotsQuery,
+    activitiesQuery,
+    tasksQuery,
+    financeQuery,
     supabase.from("articles").select("*").order("created_at", { ascending: false }),
     supabase.from("products").select("*").order("created_at", { ascending: false }),
     supabase.from("site_settings").select("*").eq("id", APP_DATA_ID).maybeSingle(),
@@ -249,6 +268,40 @@ async function deleteMissingRows(table: string, keepIds: string[]) {
   if (deleteError) throw deleteError
 }
 
+async function deleteMissingRowsByOwner(table: string, keepIds: string[], ownerUserId: string) {
+  const supabase = createClient()
+  const { data, error } = await supabase.from(table).select("id").eq("user_id", ownerUserId)
+  if (error) throw error
+
+  const keep = new Set(keepIds)
+  const staleIds = (data ?? [])
+    .map(row => row.id as string)
+    .filter(id => !keep.has(id))
+
+  if (!staleIds.length) return
+
+  const { error: deleteError } = await supabase.from(table).delete().in("id", staleIds)
+  if (deleteError) throw deleteError
+}
+
+async function deleteMissingRowsByColumn(table: string, keepIds: string[], column: string, scopeIds: string[]) {
+  if (!scopeIds.length) return
+
+  const supabase = createClient()
+  const { data, error } = await supabase.from(table).select("id").in(column, scopeIds)
+  if (error) throw error
+
+  const keep = new Set(keepIds)
+  const staleIds = (data ?? [])
+    .map(row => row.id as string)
+    .filter(id => !keep.has(id))
+
+  if (!staleIds.length) return
+
+  const { error: deleteError } = await supabase.from(table).delete().in("id", staleIds)
+  if (deleteError) throw deleteError
+}
+
 async function upsertRows(table: string, rows: Record<string, unknown>[]) {
   if (!rows.length) return
   const supabase = createClient()
@@ -256,7 +309,7 @@ async function upsertRows(table: string, rows: Record<string, unknown>[]) {
   if (error) throw error
 }
 
-export async function saveStructuredAppData(appData: AppData) {
+export async function saveStructuredAppData(appData: AppData, ownerUserId?: string | null) {
   const users = appData.users.map(user => ({
     id: user.id,
     email: user.email,
@@ -271,7 +324,7 @@ export async function saveStructuredAppData(appData: AppData) {
 
   const plots = appData.plots.map(plot => ({
     id: plot.id,
-    user_id: appData.users[0]?.id ?? null,
+    user_id: ownerUserId ?? plot.userId ?? appData.users[0]?.id ?? null,
     name: plot.name,
     area: plot.area,
     notes: plot.notes,
@@ -307,7 +360,7 @@ export async function saveStructuredAppData(appData: AppData) {
 
   const activities = appData.activities.map(activity => ({
     id: activity.id,
-    user_id: appData.users[0]?.id ?? null,
+    user_id: ownerUserId ?? activity.userId ?? appData.users[0]?.id ?? null,
     plot_id: activity.plotId || null,
     tree_id: activity.treeId ?? null,
     activity_type: activity.activityType,
@@ -319,7 +372,7 @@ export async function saveStructuredAppData(appData: AppData) {
 
   const tasks = appData.tasks.map(task => ({
     id: task.id,
-    user_id: appData.users[0]?.id ?? null,
+    user_id: ownerUserId ?? task.userId ?? appData.users[0]?.id ?? null,
     plot_id: task.plotId || null,
     title: task.title,
     description: task.description,
@@ -330,7 +383,7 @@ export async function saveStructuredAppData(appData: AppData) {
 
   const finance = appData.finance.map(record => ({
     id: record.id,
-    user_id: appData.users[0]?.id ?? null,
+    user_id: ownerUserId ?? record.userId ?? appData.users[0]?.id ?? null,
     plot_id: record.plotId ?? null,
     type: record.type,
     category: record.category,
@@ -400,6 +453,17 @@ export async function saveStructuredAppData(appData: AppData) {
     updated_at: new Date().toISOString(),
   })
   if (settingsError) throw settingsError
+
+  if (ownerUserId) {
+    await deleteMissingRowsByColumn("batch_stages", stages.map(row => row.id as string), "batch_id", batches.map(row => row.id as string))
+    await deleteMissingRowsByColumn("batches", batches.map(row => row.id as string), "tree_id", trees.map(row => row.id as string))
+    await deleteMissingRowsByColumn("trees", trees.map(row => row.id as string), "plot_id", plots.map(row => row.id as string))
+    await deleteMissingRowsByOwner("activities", activities.map(row => row.id as string), ownerUserId)
+    await deleteMissingRowsByOwner("tasks", tasks.map(row => row.id as string), ownerUserId)
+    await deleteMissingRowsByOwner("finance_records", finance.map(row => row.id as string), ownerUserId)
+    await deleteMissingRowsByOwner("plots", plots.map(row => row.id as string), ownerUserId)
+    return
+  }
 
   await deleteMissingRows("batch_stages", stages.map(row => row.id as string))
   await deleteMissingRows("batches", batches.map(row => row.id as string))

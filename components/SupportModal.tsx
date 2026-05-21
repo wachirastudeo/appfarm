@@ -12,6 +12,7 @@ interface Props {
 }
 
 const SUPPORT_EMAIL = "wachirastudeo@gmail.com"
+const SUPPORT_PHONE = "092-4151449"
 const PROMPTPAY_QR_SRC = "/images/promptpay-qr.png"
 
 export default function SupportModal({ isOpen, onClose, onOpenContact }: Props) {
@@ -65,8 +66,9 @@ export default function SupportModal({ isOpen, onClose, onOpenContact }: Props) 
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#E7F3EC] text-[#146B3E] dark:bg-[#1D3A29] dark:text-[#72C08A]">
               <HeartHandshake size={26} />
             </div>
-            <h3 className="text-xl font-black text-foreground">สนับสนุนเว็บนี้</h3>
-            <p className="mt-2 text-sm font-semibold leading-relaxed text-muted-foreground">สแกน QR พร้อมเพย์เพื่อช่วยค่าใช้งานและการพัฒนาเว็บ</p>
+            <h3 className="text-xl font-black text-foreground">
+              เลี้ยงกาแฟ <span className="align-middle text-sm font-semibold text-muted-foreground">สแกน QR พร้อมเพย์เพื่อช่วยค่าใช้งานและการพัฒนาเว็บ</span>
+            </h3>
           </div>
 
           <div className="rounded-2xl border border-[#B9DCC8]/55 bg-gradient-to-br from-[#F7FBF8] to-[#EAF5EE] p-4 dark:border-[#31533D]/45 dark:from-[#13251B] dark:to-[#102118]">
@@ -92,7 +94,7 @@ export default function SupportModal({ isOpen, onClose, onOpenContact }: Props) 
                 )}
               </div>
               <div className="space-y-3 text-sm font-semibold leading-relaxed text-muted-foreground">
-                <p className="font-black text-[#143422] dark:text-[#D3E8DA]">สแกนเพื่อสนับสนุนได้ทันที</p>
+                <p className="font-black text-[#143422] dark:text-[#D3E8DA]">สแกนเลี้ยงกาแฟได้ทันที</p>
                 <div className="space-y-2">
                   <p><span className="font-black text-[#146B3E] dark:text-[#72C08A]">ค่าโฮสต์</span> ช่วยให้เว็บออนไลน์ได้ต่อเนื่อง</p>
                   <p><span className="font-black text-[#146B3E] dark:text-[#72C08A]">ฟีเจอร์ใหม่</span> ช่วยต่อยอดเครื่องมือที่เกษตรกรใช้งานจริง</p>
@@ -106,9 +108,9 @@ export default function SupportModal({ isOpen, onClose, onOpenContact }: Props) 
           <div className="mt-4 rounded-2xl border border-[#B9DCC8]/55 bg-gradient-to-br from-[#F7FBF8] to-[#EAF5EE] p-4 dark:border-[#31533D]/45 dark:from-[#13251B] dark:to-[#102118]">
             <p className="text-xs font-black uppercase tracking-wider text-[#527060] dark:text-[#B8D1C0]">ช่องทางติดต่อสนับสนุนและลงโฆษณา</p>
             <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="inline-flex items-center gap-2 text-sm font-black text-[#143422] dark:text-[#D3E8DA]">
+              <div className="inline-flex min-w-0 items-center gap-2 text-xs font-black text-[#143422] dark:text-[#D3E8DA] sm:text-sm">
                 <Mail size={16} className="text-[#146B3E] dark:text-[#72C08A]" />
-                <span>{SUPPORT_EMAIL}</span>
+                <span className="truncate">{SUPPORT_EMAIL} · {SUPPORT_PHONE}</span>
               </div>
               <button
                 type="button"

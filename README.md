@@ -13,8 +13,8 @@ A modern, mobile-responsive web application designed for managing durian orchard
 - **Knowledge Base**: Searchable articles and educational content on durian cultivation techniques, pest management, and market trends with modal-based article viewing.
 - **Dark Mode Theme**: Premium Nature Dark UI optimized for low-light night conditions.
 - **Progressive Web App (PWA)**: Support for dark mode styling, standalone add-to-home-screen install prompts, and standard `manifest.webmanifest` assets for mobile packaging.
-- **Authentication & Custom Profile**: Pre-configured developer credentials and an editable profile screen supporting custom name updates and **avatar upload with live preview**.
-- **Supabase Database Mode**: Stores orchard data in Supabase Postgres tables with `app_data` JSON backup/fallback and browser `localStorage` cache.
+- **Authentication & Custom Profile**: Email login plus Supabase Google Login, editable profile details, Google/profile avatar display, and avatar upload with live preview.
+- **Supabase Database Mode**: Stores orchard data in Supabase Postgres owner-scoped tables with `app_data` JSON backup/fallback and browser `localStorage` cache.
 
 ## Technology Stack
 - **Framework**: Next.js 14+ (App Router)
@@ -32,7 +32,7 @@ A modern, mobile-responsive web application designed for managing durian orchard
 
 Current project id: `hpyoyjpqitpvgckxnlww`
 
-Important production note: current RLS policies are prototype allow-all policies for the local-auth app. Replace them with Supabase Auth policies or server-side writes before public production use.
+Security note: orchard data tables (`plots`, `trees`, `batches`, `batch_stages`, `tasks`, `activities`, `finance_records`) are scoped by authenticated owner policies. Shared content tables (`articles`, `products`, `site_settings`) remain global.
 
 ## Getting Started
 

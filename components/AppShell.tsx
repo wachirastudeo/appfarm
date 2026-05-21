@@ -3,7 +3,8 @@ import dynamic from "next/dynamic"
 import { useCallback, useMemo, useRef, useState, useEffect } from "react"
 import { useAppData } from "@/lib/store"
 import type { AppUser, Article, Product } from "@/lib/store"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, Settings as SettingsIcon, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, HeartHandshake } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, HeartHandshake } from "lucide-react"
 import DurianIcon from "./DurianIcon"
 import { Skeleton } from "./ui/skeleton"
 import AnimatedBackground from "./AnimatedBackground"
@@ -16,7 +17,6 @@ const Articles = dynamic(() => import("./Articles"), { loading: () => <ContentSk
 const AdminPanel = dynamic(() => import("./AdminPanel"), { loading: () => <ContentSkeleton /> })
 const Settings = dynamic(() => import("./Settings"), { loading: () => null })
 const AuthModal = dynamic(() => import("./AuthModal"), { loading: () => null })
-const ProfileModal = dynamic(() => import("./ProfileModal"), { loading: () => null })
 const FeedbackModal = dynamic(() => import("./FeedbackModal"), { loading: () => null })
 const SupportModal = dynamic(() => import("./SupportModal"), { loading: () => null })
 
@@ -73,18 +73,7 @@ function AppFooter({ onContactClick }: { onContactClick: () => void }) {
               title="Facebook"
             >
               <svg viewBox="0 0 320 512" className="h-4 w-4 fill-current">
-                <path d="M80 299.3V512H196V299.3h86.5l18-97.8H196V166.9c0-51.7 20.3-71.5 72.7-71.5c16.3 0 29.4 .4 37 1.2V7.9C291.4 4 256.4 0 236.2 0C129.3 0 80 50.5 80 159.4v42.1H14v97.8H80z"/>
-              </svg>
-            </a>
-            <a
-              href="https://youtube.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#FF0000] shadow-sm ring-1 ring-black/5 hover:bg-[#FF0000] hover:text-white transition-all active:scale-90"
-              title="YouTube"
-            >
-              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                <path d="M80 299.3V512H196V299.3h86.5l18-97.8H196V166.9c0-51.7 20.3-71.5 72.7-71.5c16.3 0 29.4 .4 37 1.2V7.9C291.4 4 256.4 0 236.2 0C129.3 0 80 50.5 80 159.4v42.1H14v97.8H80z" />
               </svg>
             </a>
             <a
@@ -95,7 +84,7 @@ function AppFooter({ onContactClick }: { onContactClick: () => void }) {
               title="LINE"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-                <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+                <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
               </svg>
             </a>
             <a
@@ -106,7 +95,7 @@ function AppFooter({ onContactClick }: { onContactClick: () => void }) {
               title="TikTok"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
               </svg>
             </a>
           </div>
@@ -118,13 +107,20 @@ function AppFooter({ onContactClick }: { onContactClick: () => void }) {
             <Mail size={14} className="text-[#146B3E]" />
             <span>wachirastudeo@gmail.com</span>
           </a>
+          <a
+            href="tel:0924151449"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-xs font-extrabold text-[#146B3E] shadow-sm ring-1 ring-[#B9DCC8]/60 transition-all hover:bg-[#E7F3EC] hover:ring-[#146B3E]/30 active:scale-95"
+          >
+            <Phone size={14} className="text-[#146B3E]" />
+            <span>092-4151449</span>
+          </a>
 
           <button
             onClick={onContactClick}
             className="inline-flex items-center gap-2 rounded-xl bg-[#146B3E] px-3.5 py-2 text-xs font-extrabold text-white shadow-sm ring-1 ring-[#146B3E]/10 transition-all hover:bg-[#0F5A34] active:scale-95"
           >
             <MessageSquare size={14} className="text-white" />
-            <span>ติดต่อเพิ่มเติม / ส่งข้อมูล</span>
+            <span>ติดต่อเพิ่มเติม</span>
           </button>
         </div>
       </div>
@@ -278,17 +274,48 @@ function GuestHome({
 
   return (
     <div className="space-y-8 pb-12">
+      <style>{`
+        @keyframes fadeSlideUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slowZoom {
+          0% { transform: scale(1) translate(0, 0); }
+          100% { transform: scale(1.1) translate(-1.5%, -1%); }
+        }
+        @keyframes pulseGlow {
+          0% { opacity: 0.3; transform: scale(1) translate(0, 0); }
+          50% { opacity: 0.5; transform: scale(1.1) translate(20px, -20px); }
+          100% { opacity: 0.3; transform: scale(1) translate(0, 0); }
+        }
+        .animate-fade-in-up {
+          opacity: 0;
+          animation: fadeSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-zoom-bg {
+          animation: slowZoom 30s ease-in-out infinite alternate;
+        }
+        .animate-pulse-glow {
+          animation: pulseGlow 8s ease-in-out infinite;
+        }
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+      `}</style>
       <section className="guest-hero relative isolate overflow-hidden bg-[#0B2417] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="guest-hero-glow pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-[#1F6B42]/35 blur-3xl" />
-        <div className="guest-hero-glow pointer-events-none absolute -right-16 bottom-8 h-80 w-80 rounded-full bg-[#0F5A34]/40 blur-3xl" />
+        <div className="guest-hero-glow pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-[#1F6B42]/35 blur-3xl animate-pulse-glow" />
+        <div className="guest-hero-glow pointer-events-none absolute -right-16 bottom-8 h-80 w-80 rounded-full bg-[#0F5A34]/40 blur-3xl animate-pulse-glow" style={{ animationDelay: '4s' }} />
         <div className="guest-hero-card relative mx-auto grid min-h-[calc(100svh-9rem)] w-full max-w-[92rem] overflow-hidden rounded-[2rem] bg-transparent shadow-[0_28px_70px_rgba(20,107,62,0.12)] dark:shadow-[0_28px_70px_rgba(0,0,0,0.5)] border border-[#C9DACD]/30 dark:border-[#31533D]/40 ring-1 ring-white/10 lg:grid-cols-[1.08fr_0.92fr] lg:bg-white lg:dark:bg-[#14291E]">
           <div className="order-1 relative min-h-[calc(100svh-9rem)] overflow-hidden bg-[#D8EFC4] dark:bg-[#102619] lg:order-2 lg:min-h-full">
-            <img
-              src="/images/durian-banner.avif"
-              alt="สวนทุเรียน"
-              className="guest-hero-image absolute inset-0 h-full w-full object-cover object-center"
-            />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,27,17,0.14)_0%,rgba(7,27,17,0.2)_28%,rgba(7,27,17,0.72)_68%,rgba(7,27,17,0.92)_100%)] lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.9)_0%,rgba(255,255,255,0.1)_35%,rgba(9,44,25,0.12)),linear-gradient(0deg,rgba(20,107,62,0.22),transparent_55%)] lg:dark:bg-[linear-gradient(90deg,rgba(20,41,30,0.95)_0%,rgba(20,41,30,0.15)_35%,rgba(9,44,25,0.25)),linear-gradient(0deg,rgba(20,107,62,0.32),transparent_55%)]" />
+            <div className="absolute inset-0 overflow-hidden">
+              <img
+                src="/images/durian-hero-new.png"
+                alt="สวนทุเรียน"
+                className="guest-hero-image absolute inset-0 h-full w-full object-cover object-center animate-zoom-bg"
+              />
+            </div>
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,27,17,0.14)_0%,rgba(7,27,17,0.2)_28%,rgba(7,27,17,0.72)_68%,rgba(7,27,17,0.92)_100%)] lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.9)_0%,rgba(255,255,255,0.1)_35%,rgba(9,44,25,0.12)),linear-gradient(0deg,rgba(20,107,62,0.22),transparent_55%)] lg:dark:bg-[linear-gradient(90deg,rgba(20,41,30,0.95)_0%,rgba(20,41,30,0.15)_35%,rgba(9,44,25,0.25)),linear-gradient(0deg,rgba(20,107,62,0.32),transparent_55%)] transition-colors duration-1000" />
 
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
               {leafParticles.map(p => (
@@ -315,43 +342,43 @@ function GuestHome({
             </div>
 
             <div className="absolute inset-x-0 bottom-0 z-10 px-5 pb-5 pt-16 sm:px-8 sm:pb-8 lg:hidden">
-              <div className="rounded-[1.75rem] border border-white/14 bg-white/10 p-5 text-white shadow-[0_20px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
+              <div className="rounded-[1.75rem] border border-white/14 bg-white/10 p-5 text-white shadow-[0_20px_60px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all animate-fade-in-up">
                 <div className="mb-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#DDEBE1]">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/14">
                     <Leaf size={18} />
                   </span>
                   {siteName}
                 </div>
-                <p className="mb-3 text-xs font-black uppercase tracking-[0.22em] text-white/68">{tagline}</p>
-                <h1 className="max-w-[10ch] text-[clamp(2.2rem,9vw,3.4rem)] font-black leading-[0.96] text-white">
+                <p className="mb-3 text-xs font-black uppercase tracking-[0.22em] text-white/68 delay-100 animate-fade-in-up">{tagline}</p>
+                <h1 className="max-w-[10ch] text-[clamp(2.2rem,9vw,3.4rem)] font-black leading-[0.96] text-white delay-200 animate-fade-in-up">
                   จัดการสวนทุเรียน ง่ายขึ้น
                 </h1>
-                <p className="mt-3 max-w-sm text-sm font-semibold leading-6 text-white/80">
+                <p className="mt-3 max-w-sm text-sm font-semibold leading-6 text-white/80 delay-300 animate-fade-in-up">
                   วางแผนงาน บันทึกแปลง และดูภาพรวมสวนในที่เดียว
                 </p>
-                <div className="mt-5 flex gap-2.5">
+                <div className="mt-5 flex gap-2.5 delay-400 animate-fade-in-up">
                   <button
                     onClick={onLogin}
-                    className="guest-hero-cta inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#143422] shadow-xl transition-all active:scale-[0.98]"
+                    className="guest-hero-cta group inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#143422] shadow-[0_8px_20px_rgba(255,255,255,0.15)] transition-all hover:scale-105 active:scale-[0.98]"
                   >
-                    <Sparkles size={16} className="text-[#146B3E]" />
+                    <Sparkles size={16} className="text-[#146B3E] transition-transform group-hover:rotate-12" />
                     เริ่มใช้งาน
                   </button>
                   <button
                     onClick={() => onReadArticles()}
-                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/8 px-4 py-3 text-sm font-black text-white backdrop-blur-sm transition-all"
+                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/8 px-4 py-3 text-sm font-black text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/30 hover:scale-105 active:scale-[0.98]"
                   >
                     <BookOpen size={16} />
                     บทความ
                   </button>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-2.5">
-                  <div className="rounded-2xl border border-white/10 bg-black/10 p-3">
+                <div className="mt-4 grid grid-cols-2 gap-2.5 delay-400 animate-fade-in-up">
+                  <div className="rounded-2xl border border-white/10 bg-black/10 p-3 hover:bg-black/20 transition-colors">
                     <ClipboardCheck size={18} />
                     <p className="mt-2 text-sm font-black">งานประจำวัน</p>
                     <p className="mt-0.5 text-[11px] font-bold text-white/68">บันทึกและแจ้งเตือน</p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/10 p-3">
+                  <div className="rounded-2xl border border-white/10 bg-black/10 p-3 hover:bg-black/20 transition-colors">
                     <MapPinned size={18} />
                     <p className="mt-2 text-sm font-black">ข้อมูลแปลง</p>
                     <p className="mt-0.5 text-[11px] font-bold text-white/68">ตำแหน่งและสุขภาพต้น</p>
@@ -362,49 +389,52 @@ function GuestHome({
           </div>
 
           <div className="guest-hero-copy relative z-10 hidden flex-col justify-center px-6 py-8 sm:px-10 lg:order-1 lg:flex lg:px-12 lg:py-10 xl:px-16">
-            <div className="mb-8 inline-flex items-center gap-2 text-sm font-black text-[#146B3E] dark:text-[#72C08A]">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E7F3EC] dark:bg-[#1D3A29]">
-                <Leaf size={19} />
-              </span>
-              {siteName}
+            <div className="animate-fade-in-up">
+              <div className="mb-8 inline-flex items-center gap-2 text-sm font-black text-[#146B3E] dark:text-[#72C08A]">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E7F3EC] dark:bg-[#1D3A29]">
+                  <Leaf size={19} />
+                </span>
+                {siteName}
+              </div>
             </div>
-            <p className="mb-4 flex items-center gap-3 text-sm font-black uppercase tracking-[0.22em] text-[#527060] dark:text-[#B8D1C0]">
+            <p className="mb-4 flex items-center gap-3 text-sm font-black uppercase tracking-[0.22em] text-[#527060] dark:text-[#B8D1C0] animate-fade-in-up delay-100">
               <span className="h-px w-10 bg-[#A8C9B2] dark:bg-[#31533D]" />
               {tagline}
             </p>
-            <h1 className="max-w-[12ch] text-[clamp(2.6rem,4.8vw,5.2rem)] font-black leading-[1.03] text-[#146B3E] dark:text-[#72C08A] lg:max-w-none lg:whitespace-nowrap lg:text-[clamp(2.5rem,3.25vw,3.7rem)]">
+            <h1 className="max-w-[12ch] text-[clamp(2.6rem,4.8vw,5.2rem)] font-black leading-[1.03] text-[#146B3E] dark:text-[#72C08A] lg:max-w-none lg:whitespace-nowrap lg:text-[clamp(2.5rem,3.25vw,3.7rem)] animate-fade-in-up delay-200">
               จัดการสวนทุเรียน ง่ายขึ้น
             </h1>
-            <p className="mt-5 max-w-lg text-base font-semibold leading-7 text-[#527060] dark:text-[#B8D1C0] sm:text-lg">
+            <p className="mt-5 max-w-lg text-base font-semibold leading-7 text-[#527060] dark:text-[#B8D1C0] sm:text-lg animate-fade-in-up delay-300">
               วางแผนงาน บันทึกแปลง และดูภาพรวมสวนในที่เดียว
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row animate-fade-in-up delay-400">
               <button
                 onClick={onLogin}
-                className="guest-hero-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#146B3E] to-[#1D8A4E] dark:from-[#72C08A] dark:to-[#8ae4a3] px-6 py-3 text-base font-black text-white dark:text-[#0B1B12] shadow-xl shadow-[#146B3E]/20 dark:shadow-[#72C08A]/10 transition-all hover:-translate-y-0.5 active:scale-[0.98]"
+                className="guest-hero-cta group relative overflow-hidden inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#146B3E] to-[#1D8A4E] dark:from-[#72C08A] dark:to-[#8ae4a3] px-6 py-3 text-base font-black text-white dark:text-[#0B1B12] shadow-xl shadow-[#146B3E]/30 dark:shadow-[#72C08A]/20 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#146B3E]/40 active:scale-[0.98]"
               >
-                <Sparkles size={18} className="text-[#F4D35E] dark:text-[#146B3E]" />
-                เริ่มใช้งาน
-                <ArrowRight size={18} />
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                <Sparkles size={18} className="relative z-10 text-[#F4D35E] dark:text-[#146B3E] transition-transform duration-500 group-hover:rotate-180 group-hover:scale-110" />
+                <span className="relative z-10">เริ่มใช้งาน</span>
+                <ArrowRight size={18} className="relative z-10 transition-transform duration-300 group-hover:translate-x-1" />
               </button>
               <button
                 onClick={() => onReadArticles()}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-[#C9DACD] dark:border-[#31533D] bg-white dark:bg-[#1D3A29] px-6 py-3 text-base font-black text-[#143422] dark:text-[#B8D1C0] shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#146B3E] dark:hover:border-[#72C08A] hover:text-[#146B3E] dark:hover:text-[#72C08A]"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-[#C9DACD] dark:border-[#31533D] bg-white dark:bg-[#1D3A29] px-6 py-3 text-base font-black text-[#143422] dark:text-[#B8D1C0] shadow-sm transition-all hover:-translate-y-1 hover:border-[#146B3E] dark:hover:border-[#72C08A] hover:text-[#146B3E] dark:hover:text-[#72C08A] hover:shadow-lg active:scale-[0.98]"
               >
                 <BookOpen size={18} />
                 อ่านบทความ
               </button>
             </div>
-            <div className="mt-8 grid max-w-md grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-[#F2F8F4] dark:bg-[#1D3A29]/50 p-4 text-[#146B3E] dark:text-[#72C08A] border border-[#E7F3EC]/50 dark:border-[#31533D]/20 transition-all hover:scale-[1.02] duration-300">
-                <ClipboardCheck size={24} />
+            <div className="mt-8 grid max-w-md grid-cols-2 gap-3 animate-fade-in-up delay-400">
+              <div className="group rounded-2xl bg-[#F2F8F4] dark:bg-[#1D3A29]/50 p-4 text-[#146B3E] dark:text-[#72C08A] border border-[#E7F3EC]/50 dark:border-[#31533D]/20 transition-all hover:scale-[1.03] hover:shadow-md hover:bg-white dark:hover:bg-[#254633] duration-300">
+                <ClipboardCheck size={24} className="transition-transform group-hover:scale-110 group-hover:-rotate-3" />
                 <p className="mt-2 text-base font-black">งานประจำวัน</p>
-                <p className="text-xs font-bold text-muted-foreground dark:text-[#B8D1C0]/60 mt-0.5">บันทึก แจ้งเตือน งานดูแล</p>
+                <p className="text-xs font-bold text-muted-foreground dark:text-[#B8D1C0]/60 mt-0.5 transition-colors group-hover:text-[#527060] dark:group-hover:text-[#B8D1C0]">บันทึก แจ้งเตือน งานดูแล</p>
               </div>
-              <div className="rounded-2xl bg-[#F2F8F4] dark:bg-[#1D3A29]/50 p-4 text-[#146B3E] dark:text-[#72C08A] border border-[#E7F3EC]/50 dark:border-[#31533D]/20 transition-all hover:scale-[1.02] duration-300">
-                <MapPinned size={24} />
+              <div className="group rounded-2xl bg-[#F2F8F4] dark:bg-[#1D3A29]/50 p-4 text-[#146B3E] dark:text-[#72C08A] border border-[#E7F3EC]/50 dark:border-[#31533D]/20 transition-all hover:scale-[1.03] hover:shadow-md hover:bg-white dark:hover:bg-[#254633] duration-300">
+                <MapPinned size={24} className="transition-transform group-hover:scale-110 group-hover:rotate-3" />
                 <p className="mt-2 text-base font-black">ข้อมูลแปลง</p>
-                <p className="text-xs font-bold text-muted-foreground dark:text-[#B8D1C0]/60 mt-0.5">แผนที่ ตำแหน่ง สุขภาพต้น</p>
+                <p className="text-xs font-bold text-muted-foreground dark:text-[#B8D1C0]/60 mt-0.5 transition-colors group-hover:text-[#527060] dark:group-hover:text-[#B8D1C0]">แผนที่ ตำแหน่ง สุขภาพต้น</p>
               </div>
             </div>
           </div>
@@ -531,15 +561,17 @@ export default function AppShell() {
   const [isMounted, setIsMounted] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
-  const [showProfile, setShowProfile] = useState(false)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [showSupportModal, setShowSupportModal] = useState(false)
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null)
   const [articleView, setArticleView] = useState<"articles" | "products">("articles")
   const [user, setUser] = useState<AppUser | null>(null)
+  const [authChecking, setAuthChecking] = useState(true)
+  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null)
   const [farmLocation, setFarmLocation] = useState<{ lat: number; lon: number; label: string } | null>(null)
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
-  const store = useAppData()
+  const store = useAppData(user?.id ?? null)
+  const locationStorageKey = user?.id ? `farm_location_${user.id}` : "farm_location_guest"
   const todayTaskCount = useMemo(() => store.data.tasks.filter(task => {
     if (task.status !== "pending") return false
     const taskDate = new Date(task.date)
@@ -550,8 +582,13 @@ export default function AppShell() {
   }).length, [store.data.tasks])
 
   const readFarmLocation = useCallback(() => {
+    if (!user?.id) {
+      setFarmLocation(null)
+      return
+    }
+
     try {
-      const saved = localStorage.getItem("farm_location")
+      const saved = localStorage.getItem(locationStorageKey)
       if (saved) {
         setFarmLocation(JSON.parse(saved))
         return
@@ -560,24 +597,8 @@ export default function AppShell() {
       setFarmLocation(null)
     }
 
-    if (typeof navigator !== "undefined" && navigator.geolocation) {
-      // No saved location → silently try browser geolocation as fallback
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setFarmLocation({
-            lat: parseFloat(pos.coords.latitude.toFixed(4)),
-            lon: parseFloat(pos.coords.longitude.toFixed(4)),
-            label: "ตำแหน่งปัจจุบัน",
-          })
-        },
-        () => {
-          // Permission denied or unavailable — use null, Dashboard will use default
-          setFarmLocation(null)
-        },
-        { enableHighAccuracy: false, timeout: 8000 }
-      )
-    }
-  }, [])
+    setFarmLocation(null)
+  }, [locationStorageKey, user?.id])
 
   const handleCloseSettings = () => {
     readFarmLocation() // re-read location when settings closes
@@ -620,7 +641,7 @@ export default function AppShell() {
     } else {
       url.searchParams.set("tab", activeTab)
     }
-    
+
     if (activeTab === "articles") {
       url.searchParams.set("view", articleView)
       if (selectedArticleId) {
@@ -632,7 +653,7 @@ export default function AppShell() {
       url.searchParams.delete("view")
       url.searchParams.delete("articleId")
     }
-    
+
     window.history.replaceState({}, "", url.toString())
   }, [activeTab, articleView, selectedArticleId, isMounted])
 
@@ -640,9 +661,86 @@ export default function AppShell() {
     const savedUserId = localStorage.getItem("durian_current_user")
     if (savedUserId) {
       const savedUser = store.data.users.find(u => u.id === savedUserId && u.status === "active")
-      if (savedUser) setUser(savedUser)
+      if (savedUser) {
+        setUser(savedUser)
+        setAuthChecking(false)
+      }
     }
   }, [store.data.users])
+
+  const handleLoginSuccess = useCallback((nextUser: AppUser) => {
+    const previousUserId = localStorage.getItem("durian_current_user")
+    if (previousUserId && previousUserId !== nextUser.id) {
+      setFarmLocation(null)
+      localStorage.removeItem("farm_location")
+      localStorage.removeItem("farm_location_guest")
+    }
+    setUser(nextUser)
+    setAuthChecking(false)
+    setFailedAvatarUrl(null)
+    localStorage.setItem("durian_current_user", nextUser.id)
+    setShowAuth(false)
+  }, [])
+
+  useEffect(() => {
+    if (user) {
+      setAuthChecking(false)
+      return
+    }
+    let active = true
+
+    let supabase: ReturnType<typeof createClient>
+    try {
+      supabase = createClient()
+    } catch {
+      setAuthChecking(false)
+      return
+    }
+
+    supabase.auth.getUser()
+      .then(({ data }) => {
+        const authUser = data.user
+        const email = authUser?.email
+        if (!active || !authUser || !email) return null
+
+        const fullName = typeof authUser.user_metadata.full_name === "string"
+          ? authUser.user_metadata.full_name
+          : undefined
+        const name = typeof authUser.user_metadata.name === "string"
+          ? authUser.user_metadata.name
+          : fullName
+        const avatarUrl = typeof authUser.user_metadata.avatar_url === "string"
+          ? authUser.user_metadata.avatar_url
+          : undefined
+        const pictureUrl = typeof authUser.user_metadata.picture === "string"
+          ? authUser.user_metadata.picture
+          : undefined
+        const avatar = avatarUrl || pictureUrl
+
+        return store.upsertOAuthUser({
+          email,
+          name,
+          provider: authUser.app_metadata.provider || "google",
+          avatar,
+        })
+      })
+      .then(nextUser => {
+        if (!active) return
+        if (nextUser) {
+          handleLoginSuccess(nextUser)
+        } else {
+          setAuthChecking(false)
+        }
+      })
+      .catch(() => {
+        // Keep the existing email login flow available if Supabase Auth is unavailable.
+        if (active) setAuthChecking(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [handleLoginSuccess, store, user])
 
   useEffect(() => {
     const onBeforeInstallPrompt = (event: Event) => {
@@ -654,33 +752,16 @@ export default function AppShell() {
     return () => window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt)
   }, [])
 
-  const handleLoginSuccess = (nextUser: AppUser) => {
-    setUser(nextUser)
-    localStorage.setItem("durian_current_user", nextUser.id)
-    setShowAuth(false)
-  }
-
   const handleLogout = () => {
     localStorage.removeItem("durian_current_user")
     setUser(null)
+    setAuthChecking(false)
+    try {
+      createClient().auth.signOut().catch(() => undefined)
+    } catch {
+      // Local-only mode has no Supabase client to sign out from.
+    }
     if (!["dashboard", "articles"].includes(activeTab)) setActiveTab("dashboard")
-  }
-
-  const handleUpdateProfile = (changes: Partial<Pick<AppUser, "name" | "avatar">>) => {
-    if (!user) return
-    const nextUser = { ...user, ...changes }
-    setUser(nextUser)
-    store.updateUser(user.id, changes)
-  }
-
-  const openProfileFarmData = () => {
-    setShowProfile(false)
-    setActiveTab("plots")
-  }
-
-  const openProfileNotifications = () => {
-    setShowProfile(false)
-    setShowSettings(true)
   }
 
   const openArticles = (articleId?: string) => {
@@ -736,7 +817,7 @@ export default function AppShell() {
 
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} userName={user?.name} />
+        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} userName={user?.name} />
       case "plots":
         return (
           <PlotManagement
@@ -766,7 +847,7 @@ export default function AppShell() {
       case "articles":
         return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
       case "admin":
-        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} userName={user?.name} />
+        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} userName={user?.name} />
         return (
           <AdminPanel
             users={store.data.users}
@@ -795,6 +876,8 @@ export default function AppShell() {
   const totalTrees = store.data.plots.reduce((s, p) => s + p.trees.length, 0)
 
   if (!user) {
+    if (authChecking) return <AppShellSkeleton />
+
     return (
       <div className="min-h-screen bg-background">
         <AnimatedBackground />
@@ -836,8 +919,7 @@ export default function AppShell() {
                 className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[#CFE3D5] bg-white px-3 py-2 text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] dark:border-[#31533D] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:hover:bg-[#244332]"
               >
                 <HeartHandshake size={16} />
-                <span className="hidden sm:inline">สนับสนุนเว็บนี้</span>
-                <span className="sm:hidden">สนับสนุน</span>
+                <span>เลี้ยงกาแฟ</span>
               </button>
               <button
                 onClick={() => setShowAuth(true)}
@@ -912,8 +994,16 @@ export default function AppShell() {
           </div>
         </button>
         <div className="relative flex shrink-0 items-center gap-1 sm:gap-2">
+          <button
+            onClick={() => setShowSupportModal(true)}
+            aria-label="สนับสนุนเว็บนี้"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
+          >
+            <HeartHandshake size={18} />
+            <span className="text-sm font-black leading-none">เลี้ยงกาแฟ</span>
+          </button>
           {user && (
-            <>
+            <div className="contents animate-in fade-in duration-300">
               <button
                 onClick={() => setActiveTab("operations")}
                 className="relative flex items-center gap-1.5 rounded-xl bg-[#E7F3EC] px-2 sm:px-3 py-2 text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#D9EEE1]"
@@ -922,47 +1012,37 @@ export default function AppShell() {
                 <AlertTriangle size={14} />
                 <span className="font-bold text-sm leading-none">{todayTaskCount}</span>
                 <span className="hidden sm:inline text-xs font-medium text-[#527060]">งานวันนี้</span>
-                {todayTaskCount > 0 && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600 ring-2 ring-white" />}
+                {todayTaskCount > 0 && (
+                  <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600 ring-2 ring-white animate-in fade-in duration-500 delay-150" />
+                )}
               </button>
               <div className="hidden min-[390px]:flex items-center gap-1.5 bg-[#E7F3EC] rounded-xl px-3 py-2 ring-1 ring-[#CFE3D5]">
                 <DurianIcon className="h-4 w-4 text-[#146B3E]" />
                 <span className="text-[#146B3E] font-bold text-sm leading-none">{totalTrees}</span>
                 <span className="text-[#527060] text-xs font-medium">ต้น</span>
               </div>
-            </>
+            </div>
           )}
           {/* Profile / Login button */}
-          <button
-            onClick={() => user ? setShowProfile(true) : setShowAuth(true)}
-            aria-label={user ? "เปิดโปรไฟล์" : "เข้าสู่ระบบ"}
-            className="p-2 bg-[#146B3E] hover:bg-[#0F5A34] rounded-xl transition-colors shadow-sm ring-1 ring-[#146B3E]/10"
-          >
-            {user ? (
-              user.avatar
-                ? <img src={user.avatar} alt={user.name} className="w-5 h-5 rounded-full" />
-                : <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-                  <span className="text-white text-[10px] font-bold">{user.name[0]}</span>
-                </div>
-            ) : (
-              <User size={20} className="text-white" />
-            )}
-          </button>
-          <button
-            onClick={() => setShowSupportModal(true)}
-            aria-label="สนับสนุนเว็บนี้"
-            className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
-          >
-            <HeartHandshake size={18} />
-            <span className="hidden text-sm font-black leading-none sm:inline">สนับสนุนเว็บนี้</span>
-            <span className="text-sm font-black leading-none sm:hidden">สนับสนุน</span>
-          </button>
-          {user && (
+          {user ? (
             <button
               onClick={() => setShowSettings(true)}
-              aria-label="ตั้งค่า"
-              className="p-2.5 bg-[#146B3E] hover:bg-[#0F5A34] rounded-xl transition-colors shadow-sm ring-1 ring-[#146B3E]/10"
+              aria-label="เปิดตั้งค่า"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white p-0.5 shadow-sm ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#F4F9F6]"
             >
-              <SettingsIcon size={20} className="text-white" />
+              {user.avatar && user.avatar !== failedAvatarUrl
+                ? <img src={user.avatar} alt={user.name} onError={() => setFailedAvatarUrl(user.avatar ?? null)} className="h-10 w-10 rounded-full object-cover" />
+                : <div className="h-10 w-10 rounded-full bg-[#E7F3EC] flex items-center justify-center">
+                  <span className="text-[#146B3E] text-sm font-bold">{user.name[0]}</span>
+                </div>}
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowAuth(true)}
+              aria-label="เข้าสู่ระบบ"
+              className="p-2 bg-[#146B3E] hover:bg-[#0F5A34] rounded-xl transition-colors shadow-sm ring-1 ring-[#146B3E]/10"
+            >
+              <User size={20} className="text-white" />
             </button>
           )}
         </div>
@@ -996,11 +1076,12 @@ export default function AppShell() {
 
         {/* Main Content — full width, no extra card */}
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-0 bg-transparent">
-          <div 
-            key={activeTab}
-            className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-6 animate-fade-in-up"
+          <div
+            className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-6"
           >
-            {renderContent()}
+            <div key={activeTab} className="animate-in fade-in duration-200">
+              {renderContent()}
+            </div>
           </div>
           <AppFooter onContactClick={() => setShowFeedbackModal(true)} />
         </main>
@@ -1033,6 +1114,9 @@ export default function AppShell() {
         updateSiteSettings={store.updateSiteSettings}
         installPrompt={installPrompt}
         onInstallPromptUsed={() => setInstallPrompt(null)}
+        currentUser={user}
+        locationStorageKey={locationStorageKey}
+        onLogout={handleLogout}
       />
 
       {/* Auth / Login Modal */}
@@ -1043,18 +1127,6 @@ export default function AppShell() {
         authenticateUser={store.authenticateUser}
         addUser={store.addUser}
         resetPassword={store.resetPassword}
-      />
-
-      {/* Profile Modal */}
-      <ProfileModal
-        isOpen={showProfile}
-        onClose={() => setShowProfile(false)}
-        user={user}
-        onLogout={handleLogout}
-        onLogin={() => { setShowProfile(false); setShowAuth(true) }}
-        onUpdateUser={handleUpdateProfile}
-        onOpenFarmData={openProfileFarmData}
-        onOpenNotifications={openProfileNotifications}
       />
 
       {/* Feedback / Contact Modal */}

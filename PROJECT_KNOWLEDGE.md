@@ -37,7 +37,7 @@
 - Operations: tasks and activity logs with rapid inline type filters.
 - Finance: income/expense records with clickable card category filter cards.
 - Articles: durian knowledge base using `.avif` assets.
-- Profile / Auth: localized credentials, personalized updates, custom profile avatar handling.
+- Profile / Auth: localized email credentials plus Supabase Google Login, personalized updates, custom/profile avatar handling.
 
 ## Data Model
 - `AppData`: `plots`, `activities`, `tasks`, `finance`, `users`, `articles`, `products`, `siteSettings`.
@@ -55,12 +55,13 @@
 - Supabase mode is controlled by `NEXT_PUBLIC_APP_DATA_MODE=supabase`.
 - Supabase project currently used: `hpyoyjpqitpvgckxnlww`.
 - Structured Supabase tables: `profiles`, `plots`, `trees`, `batches`, `batch_stages`, `activities`, `tasks`, `finance_records`, `articles`, `products`, `site_settings`.
-- `app_data` stores a full JSON backup/fallback row.
+- `app_data` stores a full JSON backup/fallback row for legacy/global fallback; logged-in orchard data uses structured owner-scoped tables.
 - Backfilled counts: `profiles` 3, `plots` 3, `trees` 10, `activities` 3, `tasks` 3, `finance_records` 5, `articles` 7, `products` 3, `site_settings` 1, `app_data` 1.
 - Settings location uses `farm_location` and `farm_location_changed` alongside personalized configuration entries.
 - The app is client-heavy; many components use `"use client"`.
 - Existing stored data may be older, so keep backward-compatible guards when adding fields (e.g. `batches` or `avatar` string checks).
-- Current RLS policies are prototype `anon` / `authenticated` allow-all policies. Replace with Supabase Auth policies or server-side writes before production.
+- RLS owner policies now protect `plots`, `trees`, `batches`, `batch_stages`, `tasks`, `activities`, and `finance_records` for authenticated users. Policies currently map ownership through `profiles.email = auth.jwt()->>'email'` because app profile ids are text values such as `u-google-*`.
+- `articles`, `products`, `site_settings`, and `app_data` remain shared/global app data.
 
 ## Commands
 - Dev: `npm run dev`

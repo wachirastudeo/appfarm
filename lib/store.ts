@@ -76,6 +76,7 @@ export interface Tree {
 
 export interface Plot {
   id: string
+  userId?: string
   name: string
   area: number // rai
   trees: Tree[]
@@ -95,6 +96,7 @@ export const ACTIVITY_LABELS: Record<ActivityType, string> = {
 
 export interface Activity {
   id: string
+  userId?: string
   date: string // ISO
   plotId: string
   treeId?: string // Link to a specific tree if needed
@@ -107,6 +109,7 @@ export interface Activity {
 export type TaskStatus = "pending" | "done" | "cancelled"
 export interface Task {
   id: string
+  userId?: string
   date: string // ISO
   plotId: string
   title: string
@@ -123,6 +126,7 @@ export const EXPENSE_CATEGORIES: FinanceCategory[] = ["ปุ๋ย", "ยา", 
 
 export interface FinanceRecord {
   id: string
+  userId?: string
   date: string
   type: FinanceType
   category: FinanceCategory
@@ -145,6 +149,13 @@ export interface AppUser {
   provider: string
   avatar?: string
   createdAt: string
+}
+
+export type OAuthUserInput = {
+  email: string
+  name?: string
+  provider: string
+  avatar?: string
 }
 
 export interface Article {
@@ -312,13 +323,7 @@ const SEED: AppData = {
     { id: "tk2", date: new Date(Date.now() + 2 * 86400000).toISOString(), plotId: "p2", title: "ใส่ปุ๋ยรองพื้น", description: "ปุ๋ยอินทรีย์ 50 กก./ต้น", status: "pending", priority: "medium" },
     { id: "tk3", date: new Date(Date.now() - 86400000).toISOString(), plotId: "p1", title: "ตรวจดูการออกดอก", description: "นับเปอร์เซ็นต์การออกดอก", status: "done", priority: "medium" },
   ],
-  finance: [
-    { id: "f1", date: new Date(Date.now() - 5 * 86400000).toISOString(), type: "income", category: "ขายผล", amount: 45000, description: "ขายทุเรียนหมอนทอง 300 กก.", plotId: "p1" },
-    { id: "f2", date: new Date(Date.now() - 3 * 86400000).toISOString(), type: "expense", category: "ปุ๋ย", amount: 3500, description: "ซื้อปุ๋ยเคมีและอินทรีย์", plotId: "p1" },
-    { id: "f3", date: new Date(Date.now() - 2 * 86400000).toISOString(), type: "expense", category: "แรงงาน", amount: 2400, description: "ค่าแรงงานตัดหญ้า 2 วัน", plotId: "p2" },
-    { id: "f4", date: new Date(Date.now() - 1 * 86400000).toISOString(), type: "expense", category: "ยา", amount: 1800, description: "ซื้อสารเคมีกำจัดแมลง", plotId: "p2" },
-    { id: "f5", date: new Date().toISOString(), type: "income", category: "ขายผล", amount: 28000, description: "ขายทุเรียนชะนี 200 กก.", plotId: "p2" },
-  ],
+  finance: [],
   users: seedUsers,
   articles: seedArticles,
   products: seedProducts,
@@ -330,7 +335,10 @@ const SEED: AppData = {
 }
 
 // ---- Hook ----
-const STORAGE_KEY = "durian_orchard_data"
+const STORAGE_KEY_BASE = "durian_orchard_data"
+function getStorageKey(userId?: string | null) {
+  return userId ? `${STORAGE_KEY_BASE}_${userId}` : STORAGE_KEY_BASE
+}
 const STORAGE_WRITE_DELAY_MS = 250
 
 async function hashPassword(email: string, password: string) {
@@ -402,42 +410,66 @@ function normalizeAppData(data: AppData): AppData {
   }
 }
 
-function getInitialAppData(): AppData {
+function getInitialAppData(userId?: string | null): AppData {
   if (typeof window === "undefined") return SEED
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const key = getStorageKey(userId)
+    const stored = localStorage.getItem(key)
     if (!stored) {
-      return normalizeAppData({
+      // New user: seed without finance records (finance is per-user)
+      const seedWithoutFinance = {
         ...SEED,
+        finance: [],
         articles: seedArticles.map(normalizeArticleSeo),
         products: seedProducts.map(normalizeProductSeo),
-      })
+      }
+      return normalizeAppData(seedWithoutFinance)
     }
 
     return normalizeAppData(JSON.parse(stored) as AppData)
   } catch {
-    return normalizeAppData({
+    const seedWithoutFinance = {
       ...SEED,
+      finance: [],
       articles: seedArticles.map(normalizeArticleSeo),
       products: seedProducts.map(normalizeProductSeo),
-    })
+    }
+    return normalizeAppData(seedWithoutFinance)
   }
 }
 
-export function useAppData() {
-  const [data, setData] = useState<AppData>(getInitialAppData)
+export function useAppData(currentUserId?: string | null) {
+  const [data, setData] = useState<AppData>(() => getInitialAppData(currentUserId))
   const [remoteReady, setRemoteReady] = useState(false)
   const initialDataRef = useRef(data)
   const lastRemoteJsonRef = useRef("")
   const isSupabaseMode = appRuntimeConfig.dataMode === "supabase" && isSupabaseConfigured
 
   useEffect(() => {
+    const key = getStorageKey(currentUserId)
     const timeoutId = window.setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+      try {
+        localStorage.setItem(key, JSON.stringify(data))
+      } catch {
+        // ignore
+      }
     }, STORAGE_WRITE_DELAY_MS)
 
     return () => window.clearTimeout(timeoutId)
-  }, [data])
+  }, [data, currentUserId])
+
+  // When the current user changes, reload their scoped local data (or seed if missing)
+  useEffect(() => {
+    try {
+      const next = getInitialAppData(currentUserId)
+      initialDataRef.current = next
+      lastRemoteJsonRef.current = ""
+      setData(next)
+      setRemoteReady(false)
+    } catch {
+      // ignore
+    }
+  }, [currentUserId])
 
   // Load app_data (plots/activities/tasks/finance/users/settings) + articles + products from Supabase
   useEffect(() => {
@@ -449,8 +481,8 @@ export function useAppData() {
     let active = true
 
     Promise.all([
-      loadStructuredAppData().catch(() => null),
-      loadRemoteAppData(),
+      loadStructuredAppData(currentUserId).catch(() => null),
+      currentUserId ? Promise.resolve(null) : loadRemoteAppData(),
       fetchArticles().catch(() => null),
       fetchProducts().catch(() => null),
     ])
@@ -469,12 +501,12 @@ export function useAppData() {
           setData(normalized)
 
           if (!structuredData) {
-            void saveStructuredAppData(normalized)
+            void saveStructuredAppData(normalized, currentUserId)
           }
         } else {
           // First run: seed app_data and push seed articles/products to their tables
           const initial = initialDataRef.current
-          void saveRemoteAppData(initial)
+          void saveRemoteAppData(initial, currentUserId)
         }
 
         setRemoteReady(true)
@@ -487,17 +519,17 @@ export function useAppData() {
     return () => {
       active = false
     }
-  }, [isSupabaseMode])
+  }, [currentUserId, isSupabaseMode])
 
   // Sync non-articles/products data back to app_data blob
   useEffect(() => {
-    if (!isSupabaseMode || !remoteReady) return
+    if (!isSupabaseMode || !remoteReady || !currentUserId) return
 
     const nextJson = JSON.stringify(data)
     if (lastRemoteJsonRef.current === nextJson) return
 
     const timeoutId = window.setTimeout(() => {
-      saveRemoteAppData(data)
+      saveRemoteAppData(data, currentUserId)
         .then(() => {
           lastRemoteJsonRef.current = nextJson
         })
@@ -507,7 +539,7 @@ export function useAppData() {
     }, STORAGE_WRITE_DELAY_MS)
 
     return () => window.clearTimeout(timeoutId)
-  }, [data, isSupabaseMode, remoteReady])
+  }, [currentUserId, data, isSupabaseMode, remoteReady])
 
   const updateData = useCallback((updater: (prev: AppData) => AppData) => {
     setData(prev => updater(prev))
@@ -515,8 +547,8 @@ export function useAppData() {
 
   // Plots
   const addPlot = useCallback((plot: Omit<Plot, "id" | "trees">) => {
-    updateData(d => ({ ...d, plots: [...d.plots, { ...plot, id: `p${Date.now()}`, trees: [] }] }))
-  }, [updateData])
+    updateData(d => ({ ...d, plots: [...d.plots, { ...plot, userId: currentUserId ?? plot.userId, id: `p${Date.now()}`, trees: [] }] }))
+  }, [currentUserId, updateData])
 
   const updatePlot = useCallback((plotId: string, changes: Partial<Plot>) => {
     updateData(d => ({ ...d, plots: d.plots.map(p => p.id === plotId ? { ...p, ...changes } : p) }))
@@ -556,8 +588,8 @@ export function useAppData() {
 
   // Activities
   const addActivity = useCallback((act: Omit<Activity, "id" | "createdAt">) => {
-    updateData(d => ({ ...d, activities: [{ ...act, id: `a${Date.now()}`, createdAt: new Date().toISOString() }, ...d.activities] }))
-  }, [updateData])
+    updateData(d => ({ ...d, activities: [{ ...act, userId: currentUserId ?? act.userId, id: `a${Date.now()}`, createdAt: new Date().toISOString() }, ...d.activities] }))
+  }, [currentUserId, updateData])
 
   const deleteActivity = useCallback((id: string) => {
     updateData(d => ({ ...d, activities: d.activities.filter(a => a.id !== id) }))
@@ -569,8 +601,8 @@ export function useAppData() {
 
   // Tasks
   const addTask = useCallback((task: Omit<Task, "id">) => {
-    updateData(d => ({ ...d, tasks: [...d.tasks, { ...task, id: `tk${Date.now()}-${Math.random().toString(36).slice(2, 8)}` }] }))
-  }, [updateData])
+    updateData(d => ({ ...d, tasks: [...d.tasks, { ...task, userId: currentUserId ?? task.userId, id: `tk${Date.now()}-${Math.random().toString(36).slice(2, 8)}` }] }))
+  }, [currentUserId, updateData])
 
   const updateTask = useCallback((id: string, changes: Partial<Task>) => {
     updateData(d => ({ ...d, tasks: d.tasks.map(t => t.id === id ? { ...t, ...changes } : t) }))
@@ -582,8 +614,8 @@ export function useAppData() {
 
   // Finance
   const addFinance = useCallback((rec: Omit<FinanceRecord, "id">) => {
-    updateData(d => ({ ...d, finance: [{ ...rec, id: `f${Date.now()}` }, ...d.finance] }))
-  }, [updateData])
+    updateData(d => ({ ...d, finance: [{ ...rec, userId: currentUserId ?? rec.userId, id: `f${Date.now()}` }, ...d.finance] }))
+  }, [currentUserId, updateData])
 
   const deleteFinance = useCallback((id: string) => {
     updateData(d => ({ ...d, finance: d.finance.filter(f => f.id !== id) }))
@@ -622,6 +654,40 @@ export function useAppData() {
       users: d.users.map(u => u.id === user.id ? { ...u, passwordHash } : u),
     }))
     return { ...user, passwordHash }
+  }, [data.users, updateData])
+
+  const upsertOAuthUser = useCallback(async (input: OAuthUserInput) => {
+    const normalized = input.email.trim().toLowerCase()
+    if (!normalized) return null
+
+    const existing = data.users.find(u => u.email.toLowerCase() === normalized)
+    if (existing) {
+      if (existing.status !== "active") return null
+      const changes: Partial<AppUser> = {
+        name: input.name?.trim() || existing.name,
+        avatar: input.avatar || existing.avatar,
+      }
+      updateData(d => ({
+        ...d,
+        users: d.users.map(u => u.id === existing.id ? { ...u, ...changes } : u),
+      }))
+      return { ...existing, ...changes }
+    }
+
+    const newUser: AppUser = {
+      id: `u-google-${Date.now()}`,
+      name: input.name?.trim() || normalized.split("@")[0],
+      email: normalized,
+      passwordHash: "",
+      role: "user",
+      status: "active",
+      provider: input.provider,
+      avatar: input.avatar,
+      createdAt: new Date().toISOString(),
+    }
+
+    updateData(d => ({ ...d, users: [newUser, ...d.users] }))
+    return newUser
   }, [data.users, updateData])
 
   const updateUser = useCallback((id: string, changes: Partial<AppUser>) => {
@@ -754,7 +820,7 @@ export function useAppData() {
     addTask, updateTask, deleteTask,
     addFinance, deleteFinance,
     addBatch, addBatchStage, updateBatch, deleteBatch,
-    authenticateUser, addUser, resetPassword, updateUser, deleteUser,
+    authenticateUser, addUser, resetPassword, upsertOAuthUser, updateUser, deleteUser,
     addArticle, updateArticle, deleteArticle,
     addProduct, updateProduct, deleteProduct,
     updateSiteSettings,
@@ -766,7 +832,7 @@ export function useAppData() {
     addTask, updateTask, deleteTask,
     addFinance, deleteFinance,
     addBatch, addBatchStage, updateBatch, deleteBatch,
-    authenticateUser, addUser, resetPassword, updateUser, deleteUser,
+    authenticateUser, addUser, resetPassword, upsertOAuthUser, updateUser, deleteUser,
     addArticle, updateArticle, deleteArticle,
     addProduct, updateProduct, deleteProduct,
     updateSiteSettings,

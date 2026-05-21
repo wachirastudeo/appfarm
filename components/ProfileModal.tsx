@@ -40,7 +40,7 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout, onLogin,
     setNameInput(user?.name ?? "")
     setEditName(false)
     setShowSecurity(false)
-  }, [user?.id, isOpen])
+  }, [user?.id, user?.name, isOpen])
 
   if (!isOpen) return null
 

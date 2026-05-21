@@ -47,16 +47,17 @@
 ### 📖 Knowledge Base (หน้าคลังความรู้)
 - รายการบทความพร้อมระบบค้นหาและแยกหมวดหมู่ บทความใช้รูปภาพชนิด `.avif` เพื่อความรวดเร็วในการโหลด และแสดงรายละเอียดบทความผ่าน Pop-up Modal
 
-### 👤 Profile & Local Authentication
-- **AuthModal**: ฟอร์มล็อกอินจำลองสำหรับการเข้าถึงระดับนักพัฒนา (Development Credentials) พร้อมคำแนะนำการใช้งาน
-- **ProfileModal**: บอร์ดแสดงข้อมูลผู้ใช้ที่รองรับการอัปโหลดรูปภาพโปรไฟล์ (Avatar Upload) พร้อมพรีวิวสด และความสามารถในการแก้ไขชื่อส่วนตัวและแสดงสถานะความปลอดภัยสิทธิ์ผู้ใช้
+### 👤 Profile & Authentication
+- **AuthModal**: รองรับ email login เดิมและ Google Login ผ่าน Supabase Auth
+- **ProfileModal**: บอร์ดแสดงข้อมูลผู้ใช้ที่รองรับ Google/profile avatar, การอัปโหลดรูปภาพโปรไฟล์ (Avatar Upload), การแก้ไขชื่อส่วนตัว และสถานะสิทธิ์ผู้ใช้
 
 ---
 
 ## 3. ตรรกะสำคัญ (Core Business Logic)
 
-- **Supabase Database Mode**: เมื่อ `NEXT_PUBLIC_APP_DATA_MODE=supabase` แอปจะโหลด/บันทึกข้อมูลกับ Supabase Postgres tables และเก็บ `app_data` เป็น backup/fallback JSON
+- **Supabase Database Mode**: เมื่อ `NEXT_PUBLIC_APP_DATA_MODE=supabase` แอปจะโหลด/บันทึกข้อมูลสวนตาม `user_id` ของผู้ใช้ที่ login และเก็บ `app_data` เป็น backup/fallback JSON สำหรับข้อมูลรวมเดิม
 - **Database Tables**: ข้อมูลหลักแยกเป็น `profiles`, `plots`, `trees`, `batches`, `batch_stages`, `activities`, `tasks`, `finance_records`, `articles`, `products`, `site_settings`
+- **Owner Scoped Data**: `plots`, `trees`, `batches`, `batch_stages`, `activities`, `tasks`, `finance_records` เป็นข้อมูลของเจ้าของแต่ละ user
 - **Schema File**: ไฟล์สำหรับสร้าง database คือ `supabase/appfarm_database_schema.sql`
 - **Database Map**: เอกสารอ่านง่ายสำหรับ table map คือ `SUPABASE_DATABASE_MAP_TH.md`
 - **Flower Stages (ระยะดอก/ผล)**: ทุเรียนมีการเจริญเติบโตหลายระยะ (เช่น ระยะใบอ่อน, ระยะมะเขือพวง, ระยะดอกบาน, ระยะผลขยายตัว)

@@ -21,6 +21,7 @@ interface Props {
   deleteTask: (id: string) => void
   addTask: (task: Omit<Task, "id">) => void
   farmLocation: FarmLocation | null
+  locationStorageKey: string
   userName?: string
 }
 
@@ -71,7 +72,7 @@ type FarmLocation = { lat: number; lon: number; label: string }
 const ACTIVITY_ICONS: any = { fertilize: Sprout, spray: Zap, water: Droplets, prune: Scissors, harvest: PackageSearch, inspect: ClipboardList, other: MoreHorizontal }
 const ACTIVITY_COLORS: any = { fertilize: "text-green-500", spray: "text-yellow-500", water: "text-blue-500", prune: "text-orange-500", harvest: "text-primary", inspect: "text-purple-500", other: "text-muted-foreground" }
 
-export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSettings, updateTask, deleteTask, addTask, farmLocation, userName }: Props) {
+export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSettings, updateTask, deleteTask, addTask, farmLocation, locationStorageKey, userName }: Props) {
   const [weather, setWeather] = useState<{ temp: string | number; humidity: string | number; rain: string | number; wind: string | number; condition: string }>({ temp: "–", humidity: "–", rain: "–", wind: "–", condition: "กำลังโหลด..." })
   const [forecastAlert, setForecastAlert] = useState<ForecastAlert | null>(null)
   const [showLocationEditor, setShowLocationEditor] = useState(false)
@@ -344,7 +345,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
 
   const saveLocation = () => {
     if (!pendingLocation) return
-    localStorage.setItem("farm_location", JSON.stringify(pendingLocation))
+    localStorage.setItem(locationStorageKey, JSON.stringify(pendingLocation))
     window.dispatchEvent(new Event("farm_location_changed"))
     setShowLocationEditor(false)
     setPlaceSearch("")
@@ -424,20 +425,22 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
               </div>
             </div>
             <div className="mt-3 flex flex-col gap-2 border-t border-white/12 pt-2 sm:flex-row sm:items-center sm:justify-between">
-              <button
-                type="button"
-                onClick={() => setShowLocationEditor(true)}
-                className="flex min-w-0 flex-wrap items-center gap-1.5 text-left text-xs font-bold text-white/72 transition-colors hover:text-white"
-              >
-                <MapPin size={13} className="shrink-0" />
-                <span className="max-w-[12rem] truncate sm:max-w-[16rem]">{farmLocation?.label ?? "ค่าเริ่มต้น: จันทบุรี"}</span>
-              </button>
-              {!farmLocation && (
+              {farmLocation ? (
+                <button
+                  type="button"
+                  onClick={() => setShowLocationEditor(true)}
+                  className="flex min-w-0 flex-wrap items-center gap-1.5 text-left text-xs font-bold text-white/72 transition-colors hover:text-white"
+                >
+                  <MapPin size={13} className="shrink-0" />
+                  <span className="max-w-[12rem] truncate sm:max-w-[16rem]">{farmLocation.label}</span>
+                </button>
+              ) : (
                 <button
                   onClick={() => setShowLocationEditor(true)}
-                  className="shrink-0 rounded-full bg-amber-300/18 px-3 py-1 text-xs font-black text-amber-50 ring-1 ring-amber-200/36 transition-colors hover:bg-amber-300/28"
+                  className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-black text-white shadow-lg shadow-red-950/20 ring-1 ring-red-200/50 transition-colors hover:bg-red-700 sm:w-auto"
                 >
-                  ตั้งสถานที่
+                  <MapPin size={16} />
+                  ตั้งค่าสถานที่สวนเลย
                 </button>
               )}
             </div>

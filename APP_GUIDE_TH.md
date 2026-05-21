@@ -48,7 +48,7 @@
 - **ระบบดีไซน์**: Modern Nature UI (เน้นสีเขียวเข้ม Deep Forest Green)
 - **ความละเอียด**: รองรับการใช้งานทั้งบนมือถือ (1 คอลัมน์) และคอมพิวเตอร์ (2 คอลัมน์)
 - **ความปลอดภัย**: รองรับระบบ Light และ Dark Mode สำหรับการใช้งานในสภาพแสงที่ต่างกัน
-- **ฐานข้อมูล**: รองรับ Supabase Postgres สำหรับเก็บข้อมูลจริง และยังมี `localStorage` เป็น cache/fallback ฝั่ง browser
+- **ฐานข้อมูล**: รองรับ Supabase Postgres สำหรับเก็บข้อมูลจริงแบบแยกตามผู้ใช้ที่ login และยังมี `localStorage` เป็น cache/fallback ฝั่ง browser
 - **ไฟล์ schema database**: `supabase/appfarm_database_schema.sql`
 - **แผนผัง table**: `SUPABASE_DATABASE_MAP_TH.md`
 
@@ -62,6 +62,8 @@
 - `articles` บทความ
 - `products` ปุ๋ยยา/สินค้าแนะนำ
 - `app_data` backup/fallback JSON
+
+ข้อมูลสวนส่วนตัว เช่น `plots`, `trees`, `tasks`, `activities`, `finance_records` จะผูกกับผู้ใช้ที่ login ผ่าน `user_id` ส่วน `articles` และ `products` เป็นข้อมูลรวมของเว็บ
 
 ---
 ---

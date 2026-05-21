@@ -4,13 +4,14 @@
 
 ## สถานะปัจจุบันของโปรเจกต์
 
-- แอปมี `next-auth` ใน `package.json` แล้ว
-- หน้า login ตอนนี้ยังเป็น UI/local state ยังไม่ได้เชื่อม OAuth จริง
-- ถ้าใช้ NextAuth callback URL โดยทั่วไปจะเป็น:
-  - Google: `http://localhost:3000/api/auth/callback/google`
-  - LINE: `http://localhost:3000/api/auth/callback/line`
-  - Production: `https://YOUR_DOMAIN.com/api/auth/callback/google`
-  - Production: `https://YOUR_DOMAIN.com/api/auth/callback/line`
+- Google Login เชื่อมผ่าน Supabase Auth แล้ว
+- หน้า login ใช้ `components/AuthModal.tsx` เรียก `supabase.auth.signInWithOAuth({ provider: "google" })`
+- Callback route ของแอปคือ:
+  - Local: `http://localhost:3000/auth/callback`
+  - Production: `https://YOUR_DOMAIN.com/auth/callback`
+- Supabase OAuth callback ที่ต้องใส่ใน Google Cloud Console คือ:
+  - `https://hpyoyjpqitpvgckxnlww.supabase.co/auth/v1/callback`
+- LINE Login ยังไม่ได้เชื่อมในโค้ด production flow
 
 ## สิ่งที่ต้องเตรียม
 
@@ -46,11 +47,11 @@
 8. กด `Create Credentials` > `OAuth client ID`
 9. เลือก Application type เป็น `Web application`
 10. ใส่ Authorized redirect URIs:
-    - `http://localhost:3000/api/auth/callback/google`
-    - `https://YOUR_DOMAIN.com/api/auth/callback/google`
+    - `https://hpyoyjpqitpvgckxnlww.supabase.co/auth/v1/callback`
 11. เก็บค่า:
-    - `GOOGLE_CLIENT_ID`
-    - `GOOGLE_CLIENT_SECRET`
+    - `Client ID`
+    - `Client Secret`
+12. เอา `Client ID` และ `Client Secret` ไปใส่ที่ Supabase Dashboard > `Authentication` > `Sign In / Providers` > `Google`
 
 ## LINE Login
 
@@ -70,8 +71,7 @@
 6. ไปที่แท็บ `LINE Login`
 7. เปิดใช้งาน LINE Login channel
 8. ใส่ Callback URL:
-   - `http://localhost:3000/api/auth/callback/line`
-   - `https://YOUR_DOMAIN.com/api/auth/callback/line`
+   - ยังไม่ได้กำหนดในโค้ดปัจจุบัน
 9. ขอ permission ที่ต้องใช้:
    - `profile`
    - `openid`
@@ -85,43 +85,32 @@
 ห้าม commit ไฟล์ `.env.local` ขึ้น Git
 
 ```env
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=replace-with-random-secret
-
-GOOGLE_CLIENT_ID=replace-with-google-client-id
-GOOGLE_CLIENT_SECRET=replace-with-google-client-secret
-
-LINE_CLIENT_ID=replace-with-line-channel-id
-LINE_CLIENT_SECRET=replace-with-line-channel-secret
+NEXT_PUBLIC_APP_DATA_MODE=supabase
+NEXT_PUBLIC_SUPABASE_URL=https://hpyoyjpqitpvgckxnlww.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=replace-with-publishable-key
+NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=app-images
 ```
 
-สร้าง `NEXTAUTH_SECRET` ได้ด้วย:
+ห้ามใส่ Google `Client Secret` ใน `.env.local` ฝั่ง frontend ให้เก็บไว้ใน Supabase Dashboard เท่านั้น
 
-```bash
-openssl rand -base64 32
-```
-
-## จุดที่ต้องแก้ในโค้ดภายหลัง
-
-โดยทั่วไปต้องเพิ่มไฟล์:
-
-- `app/api/auth/[...nextauth]/route.ts`
-
-และต้องปรับ:
+## จุดที่เชื่อมแล้วในโค้ด
 
 - `components/AuthModal.tsx`
 - `components/AppShell.tsx`
-- ระบบเก็บ user/session ให้ใช้ session จริงแทน localStorage เฉพาะหน้า
+- `app/auth/callback/route.ts`
+- `lib/store.ts`
+- `lib/supabase/app-data.ts`
 
 ## Verification
 
 หลังใส่ค่า API แล้วให้ตรวจ:
 
 1. Login Google ได้
-2. Login LINE ได้
-3. Logout แล้ว session หายจริง
-4. Refresh หน้าแล้วยังจำ user ได้
-5. Production callback URL ตรงกับที่ตั้งไว้ใน Google/LINE
+2. Logout แล้ว session หายจริง
+3. Refresh หน้าแล้วยังจำ user ได้
+4. รูป Google profile แสดงได้จาก `avatar_url` หรือ `picture`
+5. ข้อมูล `plots`, `tasks`, `activities` แยกตาม user ที่ login
+6. Production callback URL ตรงกับที่ตั้งไว้ใน Google/Supabase
 
 ## Backup
 
@@ -138,8 +127,8 @@ git diff
 
 ถ้า auth ใหม่มีปัญหา:
 
-1. ลบ/ปิด route NextAuth ที่เพิ่มใหม่
+1. ปิด Google provider ใน Supabase ชั่วคราว
 2. กลับไปใช้ login UI เดิม
 3. คืนค่าไฟล์ที่แก้จาก Git commit ล่าสุด
 
-ห้ามเปิดเผย `Client Secret`, `Channel Secret`, หรือ `NEXTAUTH_SECRET` ในแชท, GitHub, screenshot, หรือเอกสารสาธารณะ
+ห้ามเปิดเผย `Client Secret` หรือ `Channel Secret` ในแชท, GitHub, screenshot, หรือเอกสารสาธารณะ

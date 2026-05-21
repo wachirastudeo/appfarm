@@ -11,8 +11,8 @@ interface Props {
   deleteFinance: AppDataReturn["deleteFinance"]
 }
 
-const MONTHS_TH = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."]
-const PIE_COLORS = ["#146B3E","#45A96B","#F59E0B","#D97706","#7FB58D","#64748B","#94A3B8"]
+const MONTHS_TH = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
+const PIE_COLORS = ["#146B3E", "#45A96B", "#F59E0B", "#D97706", "#7FB58D", "#64748B", "#94A3B8"]
 
 function formatCurrency(n: number) { return "฿" + n.toLocaleString("th-TH") }
 function formatShort(n: number) {
@@ -55,20 +55,6 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
 
   const plotName = (id?: string) => id ? (data.plots.find(p => p.id === id)?.name ?? id) : "ไม่ระบุ"
 
-  const augmentedFinance = useMemo(() => {
-    const now = new Date()
-    const generated = Array.from({ length: 7 }).flatMap((_, idx) => {
-      const monthOffset = 7 - idx
-      const d = new Date(now.getFullYear(), now.getMonth() - monthOffset, 12)
-      const plotId = data.plots[idx % Math.max(data.plots.length, 1)]?.id ?? ""
-      return [
-        { id: `sim-i-${idx}`, date: d.toISOString(), type: "income" as FinanceType, category: "ขายผล" as FinanceCategory, amount: 26000 + idx * 5200, description: "จำลองยอดขายย้อนหลัง", plotId, simulated: true },
-        { id: `sim-e-${idx}`, date: new Date(d.getFullYear(), d.getMonth(), 18).toISOString(), type: "expense" as FinanceType, category: (idx % 2 ? "แรงงาน" : "ปุ๋ย") as FinanceCategory, amount: 6800 + idx * 850, description: "จำลองต้นทุนย้อนหลัง", plotId, simulated: true },
-      ]
-    })
-    return [...generated, ...data.finance.map(f => ({ ...f, simulated: false }))]
-  }, [data.finance, data.plots])
-
   const filtered = useMemo(() => {
     const now = new Date()
     const start = new Date(now)
@@ -76,14 +62,19 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
     if (rangeFilter === "3m") start.setMonth(now.getMonth() - 2, 1)
     if (rangeFilter === "6m") start.setMonth(now.getMonth() - 5, 1)
 
-    return augmentedFinance
+    return data.finance
+      .map(f => ({ ...f, simulated: false }))
       .filter(f => typeFilter === "all" || f.type === typeFilter)
       .filter(f => plotFilter === "all" || f.plotId === plotFilter)
       .filter(f => categoryFilter === "all" || f.category === categoryFilter)
       .filter(f => rangeFilter === "all" || new Date(f.date) >= start)
-      .filter(f => !search.trim() || `${f.description} ${f.category} ${plotName(f.plotId)}`.toLowerCase().includes(search.toLowerCase()))
+      .filter(f => {
+        if (!search.trim()) return true
+        const plotLabel = f.plotId ? (data.plots.find(p => p.id === f.plotId)?.name ?? f.plotId) : "ไม่ระบุ"
+        return `${f.description} ${f.category} ${plotLabel}`.toLowerCase().includes(search.toLowerCase())
+      })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  }, [augmentedFinance, typeFilter, plotFilter, categoryFilter, rangeFilter, search])
+  }, [data.finance, data.plots, typeFilter, plotFilter, categoryFilter, rangeFilter, search])
 
   const stats = useMemo(() => {
     const income = filtered.filter(f => f.type === "income").reduce((s, f) => s + f.amount, 0)
@@ -161,13 +152,13 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-2 rounded-2xl border-2 border-[#B9DCC8] bg-[#E7F3EC] p-1.5">
             <button
-              onClick={() => { set("type","income"); set("category","ขายผล") }}
+              onClick={() => { set("type", "income"); set("category", "ขายผล") }}
               className={`rounded-xl py-3 text-sm font-black transition-all ${form.type === "income" ? "bg-emerald-600 text-white shadow-[0_12px_28px_rgba(5,150,105,0.28)]" : "bg-white/70 text-[#146B3E] hover:bg-white"}`}
             >
               รายรับ
             </button>
             <button
-              onClick={() => { set("type","expense"); set("category","ปุ๋ย") }}
+              onClick={() => { set("type", "expense"); set("category", "ปุ๋ย") }}
               className={`rounded-xl py-3 text-sm font-black transition-all ${form.type === "expense" ? "bg-rose-600 text-white shadow-[0_12px_28px_rgba(225,29,72,0.26)]" : "bg-white/70 text-[#7A3F52] hover:bg-white"}`}
             >
               รายจ่าย
@@ -213,7 +204,7 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
           </select>
         </div>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-wrap">
-          {(["all","income","expense"] as (FinanceType | "all")[]).map(t => (
+          {(["all", "income", "expense"] as (FinanceType | "all")[]).map(t => (
             <button key={t} onClick={() => setTypeFilter(t)} className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-bold transition-colors ${typeFilter === t ? "border-primary bg-primary text-primary-foreground" : "border-[#B9DCC8] text-[#527060] hover:text-foreground"}`}>
               <Filter size={13} />{t === "all" ? "ทั้งหมด" : t === "income" ? "รายรับ" : "รายจ่าย"}
             </button>
@@ -233,8 +224,8 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
               <XAxis dataKey="month" tick={{ fill: "#527060", fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#527060", fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={formatShort} />
               <Tooltip formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: 12, border: "1px solid #c9dacd" }} />
-              <Bar dataKey="income" name="รายรับ" fill="#146B3E" radius={[6,6,0,0]} />
-              <Bar dataKey="expense" name="รายจ่าย" fill="#E06A5F" radius={[6,6,0,0]} />
+              <Bar dataKey="income" name="รายรับ" fill="#146B3E" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="expense" name="รายจ่าย" fill="#E06A5F" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

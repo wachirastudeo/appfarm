@@ -44,7 +44,7 @@ Project: `hpyoyjpqitpvgckxnlww`
 - `password_hash`
 - `avatar_url`
 
-หมายเหตุ: ตอนนี้ยังเป็นระบบ local auth เดิม ไม่ใช่ Supabase Auth เต็มระบบ
+หมายเหตุ: Google Login ใช้ Supabase Auth แล้ว และ sync profile กลับมาที่ table นี้ โดย `id` ยังเป็น text ของแอป เช่น `u-google-*`
 
 ### `plots`
 
@@ -240,10 +240,11 @@ NEXT_PUBLIC_APP_DATA_MODE=supabase
 
 แอปจะทำงานแบบนี้:
 
-1. โหลดข้อมูลจาก table จริงก่อน เช่น `plots`, `trees`, `tasks`, `activities`
-2. ถ้า table จริงยังไม่มีข้อมูล จะ fallback ไปอ่าน `app_data`
-3. เมื่อผู้ใช้เพิ่ม/แก้/ลบข้อมูล แอปจะบันทึกกลับทั้ง table จริงและ `app_data`
-4. `articles` และ `products` ใช้ table ของตัวเองเป็นหลัก
+1. ก่อน login แอปยังใช้ guest view และข้อมูลสาธารณะ เช่น `articles`, `products`
+2. หลัง login แอปโหลด `plots`, `trees`, `tasks`, `activities`, `finance_records` ตาม `user_id` ของผู้ใช้คนนั้น
+3. เมื่อผู้ใช้เพิ่ม/แก้/ลบข้อมูลสวน แอปบันทึกกลับ table จริงพร้อม owner `user_id`
+4. `app_data` ยังเป็น backup/fallback JSON สำหรับข้อมูลรวมเดิม แต่ flow หลัง login ใช้ structured tables ตามเจ้าของเป็นหลัก
+5. `articles` และ `products` ใช้ table ของตัวเองเป็นข้อมูลรวมของเว็บ
 
 ## ความสัมพันธ์หลัก
 
@@ -277,19 +278,29 @@ app_data
 - `supabase/setup.sql` schema `app_data`
 - `supabase/articles_products.sql` schema `articles` และ `products`
 
-## ข้อควรระวังก่อนขึ้น production
+## RLS และข้อมูลแยกตามผู้ใช้
 
-ตอนนี้ RLS เปิดอยู่ แต่ policy ยังเป็นแบบ prototype:
+ข้อมูลส่วนตัวของสวนถูกล็อกตามเจ้าของ:
 
-```text
-anon / authenticated อ่านเขียนได้
-```
+- `plots`
+- `trees`
+- `batches`
+- `batch_stages`
+- `tasks`
+- `activities`
+- `finance_records`
 
-เหมาะสำหรับช่วงทดสอบการ sync เท่านั้น
+policy ใน `supabase/appfarm_database_schema.sql` ใช้ `authenticated` และตรวจ owner ผ่าน `profiles.email = auth.jwt()->>'email'` เพื่อรองรับ id เดิมของแอปที่เป็น text
 
-ก่อนเปิดให้คนใช้จริง ควรทำอย่างใดอย่างหนึ่ง:
+ข้อมูลรวมของเว็บยังเปิดรวม:
 
-1. ย้าย login ไป Supabase Auth แล้วล็อก RLS ด้วย `auth.uid()`
-2. หรือย้าย write สำคัญไปทำผ่าน server route แล้วใช้ service role เฉพาะฝั่ง server
+- `articles`
+- `products`
+- `site_settings`
+- `app_data`
 
-ห้ามใส่ `service_role key` ใน `NEXT_PUBLIC_` env หรือ frontend เด็ดขาด
+ข้อควรระวัง:
+
+- ต้อง apply SQL policy ไป Supabase จริง ไม่ใช่แก้ไฟล์ใน repo อย่างเดียว
+- อย่าใส่ `service_role key` ใน `NEXT_PUBLIC_` env หรือ frontend เด็ดขาด
+- ถ้าเปลี่ยน `profiles.id` ไปใช้ `auth.uid()` ในอนาคต ต้อง migrate owner id ของตารางลูกให้ครบ

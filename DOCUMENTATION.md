@@ -188,7 +188,7 @@ The `/components/ui` directory contains comprehensive component library:
 - **Bulk Update Modal**: Modal interface for updating entire plot flower stages at once
 
 ## State Management
-Currently relies on React local state through `store.ts` for application-wide state, then syncs to Supabase when `NEXT_PUBLIC_APP_DATA_MODE=supabase`.
+Currently relies on React local state through `store.ts` for application-wide state, then syncs owner-scoped orchard data to Supabase when `NEXT_PUBLIC_APP_DATA_MODE=supabase`.
 
 Persistence layers:
 - Supabase structured tables: `profiles`, `plots`, `trees`, `batches`, `batch_stages`, `activities`, `tasks`, `finance_records`, `articles`, `products`, `site_settings`
@@ -197,7 +197,7 @@ Persistence layers:
 
 Current Supabase project id: `hpyoyjpqitpvgckxnlww`
 
-Security note: current RLS policies are prototype allow-all policies for the local-auth implementation. Before production, replace them with Supabase Auth policies or server-side write routes.
+Security note: Google Login uses Supabase Auth. Orchard owner data (`plots`, `trees`, `batches`, `batch_stages`, `tasks`, `activities`, `finance_records`) is loaded/saved by `user_id` and protected by owner policies in `supabase/appfarm_database_schema.sql`. Shared content (`articles`, `products`, `site_settings`) remains global.
 
 For future scaling, consider:
 - React Query for server state and caching

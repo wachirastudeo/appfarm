@@ -65,8 +65,8 @@ Site URL:
 http://localhost:3000
 
 Redirect URLs:
-http://localhost:3000/**
-https://YOUR_DOMAIN.com/**
+http://localhost:3000/auth/callback
+https://YOUR_DOMAIN.com/auth/callback
 ```
 
 ตอน deploy จริงให้เปลี่ยน `YOUR_DOMAIN.com` เป็นโดเมนจริง
@@ -90,18 +90,18 @@ Callback URL ที่ Supabase ให้มา ต้อง copy ไปใส�
 
 ## 5. เปิด LINE Login
 
-Supabase ไม่มี LINE provider สำเร็จรูปแบบตรง ๆ ในบางโปรเจกต์
+LINE Login ยังไม่ได้เชื่อมในโค้ดปัจจุบัน Supabase ไม่มี LINE provider สำเร็จรูปแบบตรง ๆ ในบางโปรเจกต์
 
 ทางเลือก:
 
-1. ใช้ NextAuth จัดการ LINE แล้ว sync user เข้า Supabase
+1. เพิ่ม route server แยกสำหรับ LINE แล้ว sync user เข้า Supabase
 2. ใช้ Supabase Custom OAuth/OIDC ถ้า LINE config รองรับกับโปรเจกต์
 
-แนะนำสำหรับโปรเจกต์นี้:
+แนวทางถ้าจะทำต่อ:
 
-- ใช้ Supabase เป็น database
-- ใช้ NextAuth สำหรับ Google + LINE login
-- เก็บ user profile ลง Supabase table
+- ใช้ Supabase Auth Google ต่อไปตามเดิม
+- เพิ่ม LINE ผ่าน Supabase Custom OAuth/OIDC หรือ route server แยก
+- sync user profile ลง `profiles`
 
 ค่า LINE เอาจากคู่มือ:
 
@@ -114,7 +114,7 @@ Project ปัจจุบัน: `hpyoyjpqitpvgckxnlww`
 ตารางใน `public`:
 
 - `app_data` backup/fallback JSON ทั้งก้อน
-- `profiles` ผู้ใช้ของระบบ local auth
+- `profiles` ผู้ใช้จาก email/local เดิมและ Supabase Google Auth
 - `plots` แปลงสวน
 - `trees` ต้นทุเรียนในแต่ละแปลง
 - `batches` รุ่นดอก/ผลของต้น
@@ -143,10 +143,11 @@ Project ปัจจุบัน: `hpyoyjpqitpvgckxnlww`
 
 Flow ปัจจุบัน:
 
-1. ถ้า `NEXT_PUBLIC_APP_DATA_MODE=supabase` แอปจะโหลดข้อมูลจากตารางจริงก่อน
-2. ถ้าตารางจริงยังไม่มีข้อมูล แอป fallback ไปอ่าน `app_data`
-3. ทุกครั้งที่ข้อมูลเปลี่ยน แอปบันทึกทั้ง `app_data` และตารางจริง
-4. บทความกับปุ๋ยยาใช้ `articles` / `products` เป็นตารางหลัก
+1. ถ้า `NEXT_PUBLIC_APP_DATA_MODE=supabase` แอปจะตรวจ Supabase Auth session ก่อน
+2. เมื่อ login แล้ว แอปโหลด `plots`, `trees`, `tasks`, `activities`, `finance_records` ตาม `user_id` ของผู้ใช้คนนั้น
+3. ข้อมูลที่ผู้ใช้เพิ่มใหม่จะบันทึกพร้อม `user_id`
+4. `app_data` ยังเป็น backup/fallback JSON สำหรับข้อมูลรวมเดิม แต่ข้อมูลสวนหลักหลัง login ใช้ตารางจริงตามเจ้าของ
+5. บทความกับปุ๋ยยาใช้ `articles` / `products` เป็นตารางหลักและยังอ่านได้รวม
 
 ## 7. SQL เริ่มต้น
 
@@ -176,9 +177,12 @@ alter table activities enable row level security;
 alter table finance_records enable row level security;
 ```
 
-สถานะปัจจุบัน: ใช้ policy แบบ prototype ให้ `anon` / `authenticated` อ่านเขียนได้ เพื่อให้เว็บที่ยังใช้ local auth sync ขึ้น Supabase ได้
+สถานะปัจจุบัน:
 
-ก่อน production จริงควรเปลี่ยนเป็น Supabase Auth หรือ server route แล้วค่อยล็อก policy ด้วย user/session จริง
+- `plots`, `trees`, `batches`, `batch_stages`, `tasks`, `activities`, `finance_records` ใช้ owner-only policy สำหรับ `authenticated`
+- owner เชื่อมผ่าน `profiles.email = auth.jwt()->>'email'` เพื่อรองรับ id เดิมของแอปที่เป็น text เช่น `u-google-*`
+- `articles`, `products`, `site_settings` ยังเป็นข้อมูลรวมของเว็บ
+- ต้อง apply SQL จาก `supabase/appfarm_database_schema.sql` ไปที่ Supabase จริงหลังแก้ schema
 
 ## 9. ติดตั้ง package
 
@@ -205,9 +209,9 @@ npm install @supabase/supabase-js @supabase/ssr
 1. `.env.local` มี `NEXT_PUBLIC_SUPABASE_URL`
 2. `.env.local` มี `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 3. Google login redirect กลับเว็บได้
-4. LINE login redirect กลับเว็บได้
-5. สร้าง plot แล้วข้อมูลเข้า Supabase
-6. user คนหนึ่งมองไม่เห็นข้อมูลของอีก user
+4. Refresh แล้วไม่กระพริบกลับไปหน้า login
+5. สร้าง plot แล้วข้อมูลเข้า Supabase พร้อม `user_id`
+6. user คนหนึ่งมองไม่เห็น `plots`, `tasks`, `activities` ของอีก user
 
 ## 12. Backup
 
@@ -238,7 +242,8 @@ git diff
 
 - Supabase Free
 - Next.js เดิม
-- NextAuth สำหรับ Google + LINE
+- Supabase Auth สำหรับ Google Login
+- LINE Login ค่อยเพิ่มผ่าน Custom OAuth/OIDC หรือ route server แยก
 - Supabase Postgres เก็บข้อมูลจริง
 
 พอเว็บมีคนใช้จริงค่อยอัปเป็น Supabase Pro

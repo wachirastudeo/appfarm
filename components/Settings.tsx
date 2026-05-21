@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
-import { Settings as SettingsIcon, Download, Upload, Trash2, Moon, Sun, Info, ChevronRight, Smartphone, Bell, Shield, X, ImageIcon, MapPin, CheckCircle2 } from "lucide-react"
-import type { SiteSettings } from "@/lib/store"
+import { Settings as SettingsIcon, Download, Upload, Trash2, Moon, Sun, Info, ChevronRight, Smartphone, Bell, Shield, X, ImageIcon, MapPin, CheckCircle2, User, LogOut } from "lucide-react"
+import type { AppUser, SiteSettings } from "@/lib/store"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 
 const STORAGE_KEY = "durian_orchard_data"
@@ -16,6 +16,9 @@ interface Props {
   updateSiteSettings: (changes: Partial<SiteSettings>) => void
   installPrompt: BeforeInstallPromptEvent | null
   onInstallPromptUsed: () => void
+  currentUser?: AppUser | null
+  locationStorageKey: string
+  onLogout?: () => void
 }
 
 interface BeforeInstallPromptEvent extends Event {
@@ -30,6 +33,9 @@ export default function Settings({
   updateSiteSettings,
   installPrompt,
   onInstallPromptUsed,
+  currentUser,
+  locationStorageKey,
+  onLogout,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const confirmResetRef = useRef<HTMLDivElement>(null)
@@ -55,7 +61,7 @@ export default function Settings({
 
   const [location, setLocation] = useState<{ lat: number; lon: number; label: string } | null>(() => {
     if (typeof window === "undefined") return null
-    const saved = localStorage.getItem("farm_location")
+    const saved = localStorage.getItem(locationStorageKey)
     return saved ? JSON.parse(saved) : null
   })
 
@@ -72,6 +78,12 @@ export default function Settings({
   useEffect(() => {
     if (!isEditingName) setFarmName(siteSettings.siteName || localStorage.getItem("farm_name") || "สวนทุเรียน")
   }, [isEditingName, siteSettings.siteName])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const saved = localStorage.getItem(locationStorageKey)
+    setLocation(saved ? JSON.parse(saved) : null)
+  }, [locationStorageKey, isOpen])
 
   useEscapeToClose({ enabled: isOpen, onEscape: onClose, containerRef })
   useEscapeToClose({ enabled: isOpen && showConfirmReset, onEscape: () => setShowConfirmReset(false), containerRef: confirmResetRef })
@@ -189,7 +201,7 @@ export default function Settings({
       label: shortLabel,
     }
     setLocation(loc)
-    localStorage.setItem("farm_location", JSON.stringify(loc))
+    localStorage.setItem(locationStorageKey, JSON.stringify(loc))
     window.dispatchEvent(new Event("farm_location_changed"))
     setSearchResults([])
     setPlaceSearch("")
@@ -291,6 +303,39 @@ export default function Settings({
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
+
+      {currentUser && (
+        <div className="space-y-3">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">บัญชีผู้ใช้</h2>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              {currentUser.avatar ? (
+                <img src={currentUser.avatar} alt={currentUser.name} className="h-11 w-11 rounded-full object-cover" />
+              ) : (
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10">
+                  <User size={20} className="text-primary" />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-foreground">{currentUser.name}</p>
+                <p className="truncate text-xs text-muted-foreground">{currentUser.email}</p>
+              </div>
+              {onLogout && (
+                <button
+                  onClick={() => {
+                    onLogout()
+                    onClose()
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-600 transition-colors hover:bg-red-50"
+                >
+                  <LogOut size={14} />
+                  ออกจากระบบ
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Farm Info Section */}
       <div className="space-y-3">

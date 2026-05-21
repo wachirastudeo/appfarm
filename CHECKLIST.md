@@ -7,9 +7,11 @@ This checklist outlines the missing features and potential improvements identifi
 ## 🚀 1. Data Persistence & Backend Integration
 - [x] **Database Setup**: Supabase Postgres tables are created and seeded/backfilled. Main schema file: `supabase/appfarm_database_schema.sql`.
 - [x] **Structured Data Sync**: Core app data syncs to `profiles`, `plots`, `trees`, `tasks`, `activities`, `finance_records`, `articles`, `products`, and `site_settings`, while `app_data` remains as JSON backup/fallback.
-- [ ] **Production RLS Hardening**: Replace prototype `anon` / `authenticated` allow-all policies with Supabase Auth policies or server-side writes before launch.
+- [x] **Owner-Scoped Orchard Data**: `plots`, `trees`, `batches`, `batch_stages`, `tasks`, `activities`, and `finance_records` load/save by logged-in user.
+- [x] **RLS Hardening for Orchard Data**: Main schema defines owner-only policies for authenticated orchard data tables.
 - [ ] **Multi-User & Staff Access**: Implement role-based access control (RBAC) allowing orchard owners to assign limited view/edit permissions to field staff.
-- [ ] **Secure Authentication**: Replace the client-side bcrypt/hash simulation with real OAuth (Google) or Firebase/Supabase Auth.
+- [x] **Secure Google Authentication**: Google Login is connected through Supabase Auth.
+- [ ] **Staff Access / RBAC Hardening**: Extend roles beyond owner-only access for field staff or admins.
 
 ## 🗺️ 2. Geographic & Map Visualizations (GIS)
 - [ ] **Visual Orchard Layout**: Add an interactive grid/map (e.g., via Leaflet/MapLibre) to plot tree coordinate pins and visually track health statuses.
