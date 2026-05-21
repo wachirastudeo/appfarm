@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Settings as SettingsIcon, Download, Upload, Trash2, Moon, Sun, Info, ChevronRight, Smartphone, Bell, Shield, X, ImageIcon, MapPin, CheckCircle2 } from "lucide-react"
 import type { SiteSettings } from "@/lib/store"
+import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 
 const STORAGE_KEY = "durian_orchard_data"
 const APP_VERSION = "1.0.0"
@@ -30,6 +31,8 @@ export default function Settings({
   installPrompt,
   onInstallPromptUsed,
 }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const confirmResetRef = useRef<HTMLDivElement>(null)
   const [showConfirmReset, setShowConfirmReset] = useState(false)
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light"
@@ -69,6 +72,9 @@ export default function Settings({
   useEffect(() => {
     if (!isEditingName) setFarmName(siteSettings.siteName || localStorage.getItem("farm_name") || "สวนทุเรียน")
   }, [isEditingName, siteSettings.siteName])
+
+  useEscapeToClose({ enabled: isOpen, onEscape: onClose, containerRef })
+  useEscapeToClose({ enabled: isOpen && showConfirmReset, onEscape: () => setShowConfirmReset(false), containerRef: confirmResetRef })
 
   const handleExportData = () => {
     try {
@@ -250,7 +256,7 @@ export default function Settings({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+    <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -552,7 +558,7 @@ export default function Settings({
 
       {/* Confirm Reset Modal */}
       {showConfirmReset && (
-        <div className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center p-4 rounded-t-3xl sm:rounded-2xl">
+        <div ref={confirmResetRef} data-escapable-layer="true" className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center p-4 rounded-t-3xl sm:rounded-2xl">
           <div className="bg-card rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-xl">
             <div className="text-center">
               <div className="mx-auto w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mb-3">

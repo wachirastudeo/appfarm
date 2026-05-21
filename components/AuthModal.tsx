@@ -1,6 +1,7 @@
 "use client"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import type { AppUser } from "@/lib/store"
+import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { X, Mail, Eye, EyeOff, AlertCircle, ShieldCheck, Sparkles } from "lucide-react"
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticateUser, addUser, resetPassword }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const [mode, setMode] = useState<"choose" | "email" | "forgot">("choose")
   const [isSignUp, setIsSignUp] = useState(false)
   const [email, setEmail] = useState("")
@@ -29,6 +31,8 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
   const signupNameInputId = "auth-signup-name"
   const resetEmailInputId = "auth-reset-email"
   const resetPasswordInputId = "auth-reset-password"
+
+  useEscapeToClose({ enabled: isOpen, onEscape: onClose, containerRef })
 
   if (!isOpen) return null
 
@@ -96,7 +100,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
   const reset = () => { setMode("choose"); setError(""); setSuccess(""); setEmail(""); setPassword(""); setNewPassword(""); setName(""); setIsSignUp(false) }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
+    <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       <div className="relative grid w-full max-w-4xl max-h-[92dvh] overflow-y-auto rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-2xl ring-1 ring-emerald-950/10 md:grid-cols-[1.05fr_0.95fr]">

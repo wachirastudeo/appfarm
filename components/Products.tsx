@@ -148,43 +148,41 @@ export default function Products({
         )
       )}
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${compact ? "2xl:grid-cols-4" : ""}`}>
         {filteredProducts.map(product => (
           <div
             key={product.id}
-            className="group relative overflow-hidden rounded-3xl border border-border/70 bg-card/65 backdrop-blur-md shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)] hover:border-primary/30 flex flex-col h-full"
+            className={`group relative overflow-hidden rounded-2xl border border-border/70 bg-card/65 backdrop-blur-md shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)] ${compact ? "min-h-[24rem]" : "min-h-[28rem] sm:min-h-[30rem]"}`}
           >
-            <div className="relative h-52 overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden">
               <img
                 src={product.image}
                 alt={product.imageAlt || product.name}
                 className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
               />
-              <div className="absolute left-4 top-4 rounded-xl bg-background/80 backdrop-blur-md px-3.5 py-1.5 text-xs font-black text-primary border border-border/40 shadow-md">
-                {product.category}
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/38 to-black/10" />
             </div>
-            <div className="flex flex-col flex-1 p-5 sm:p-6">
-              <h3 className="line-clamp-2 text-lg font-black leading-snug text-foreground mb-2 group-hover:text-primary transition-colors">
+            <div className={`relative z-10 flex h-full flex-col justify-end ${compact ? "p-4" : "p-5 sm:p-6"}`}>
+              <div className="mb-3">
+                <span className="inline-flex rounded-lg border border-white/20 bg-white/14 px-3 py-1 text-[11px] font-black text-white shadow-md backdrop-blur-md">
+                  {product.category}
+                </span>
+              </div>
+              <h3 className="mb-1.5 line-clamp-2 text-base font-black leading-snug text-white transition-colors group-hover:text-white/90 sm:text-lg">
                 {product.name}
               </h3>
-              {product.geoSummary && (
-                <p className="mt-1 text-sm font-bold leading-relaxed text-primary">
-                  {product.geoSummary}
-                </p>
-              )}
               {product.description && (
-                <p className="mt-2 text-sm font-semibold leading-relaxed text-muted-foreground line-clamp-3">
+                <p className="mt-1.5 line-clamp-2 text-xs font-semibold leading-relaxed text-white/80 sm:text-sm">
                   {product.description}
                 </p>
               )}
-              <div className="mt-auto pt-5 border-t border-border/40">
+              <div className="mt-auto pt-3">
                 {product.affiliateUrl ? (
                   <a
                     href={product.affiliateUrl}
                     target="_blank"
                     rel="nofollow sponsored noopener noreferrer"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-emerald-600 hover:from-primary/95 hover:to-emerald-600/95 shadow-md hover:shadow-lg shadow-primary/10 transition-all duration-300 py-3.5 px-4 text-sm font-extrabold text-primary-foreground"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-emerald-600 px-4 py-2.5 text-sm font-extrabold text-primary-foreground shadow-md shadow-primary/10 transition-all duration-300 hover:from-primary/95 hover:to-emerald-600/95 hover:shadow-lg"
                   >
                     {product.priceLabel || "ดูรายละเอียด"}
                     <ExternalLink size={16} />
@@ -192,7 +190,7 @@ export default function Products({
                 ) : (
                   <button
                     disabled
-                    className="w-full rounded-2xl bg-muted/65 border border-border px-4 py-3.5 text-sm font-black text-muted-foreground"
+                    className="w-full rounded-xl border border-border bg-muted/65 px-4 py-2.5 text-sm font-black text-muted-foreground"
                   >
                     ยังไม่ได้ใส่ลิงก์
                   </button>

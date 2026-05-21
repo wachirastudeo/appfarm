@@ -7,6 +7,7 @@ import {
   AlertTriangle
 } from "lucide-react"
 import Image from "next/image"
+import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { TaskCard } from "./TaskPlanner"
 import DurianIcon from "./DurianIcon"
 import { Skeleton } from "./ui/skeleton"
@@ -78,6 +79,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
   const [searchResults, setSearchResults] = useState<PlaceResult[]>([])
   const [pendingLocation, setPendingLocation] = useState<FarmLocation | null>(null)
   const [searchingPlace, setSearchingPlace] = useState(false)
+  const locationEditorRef = useRef<HTMLDivElement | null>(null)
   const recommendedArticles = useMemo(() => {
     const active = data.articles.filter(article => article.status === "published")
     if (active.length >= 3) return active.slice(0, 3)
@@ -171,6 +173,15 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
     }
     articlesScrollRef.current.scrollLeft = articlesScrollLeft.current - walk
   }
+
+  useEscapeToClose({
+    enabled: showLocationEditor,
+    onEscape: () => {
+      setShowLocationEditor(false)
+      setPendingLocation(null)
+    },
+    containerRef: locationEditorRef,
+  })
 
   const handleArticlesTouchMove = (e: React.TouchEvent) => {
     if (!isDraggingArticles.current || !articlesScrollRef.current) return
@@ -476,7 +487,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       </div>
 
       {showLocationEditor && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/45 p-3 backdrop-blur-sm sm:p-4">
+        <div ref={locationEditorRef} data-escapable-layer="true" className="fixed inset-0 z-[80] flex items-center justify-center bg-black/45 p-3 backdrop-blur-sm sm:p-4">
           <div className="w-full max-w-md rounded-3xl border border-border bg-card p-4 shadow-2xl sm:p-5 max-h-[90vh] overflow-y-auto">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>

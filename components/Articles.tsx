@@ -2,7 +2,8 @@
 import { useEffect, useMemo, useState } from "react"
 import type { Article, Product } from "@/lib/store"
 import { absoluteUrl, articleJsonLd, createExcerpt, createSlug, DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, DEFAULT_TITLE, SITE_NAME, SITE_URL } from "@/lib/seo"
-import { Search, X, ArrowRight, Share2, Bookmark, ArrowLeft, ExternalLink } from "lucide-react"
+import { Search, X, ArrowRight, Share2, Bookmark, ArrowLeft, ExternalLink, Facebook, MessageCircleMore, Link2, Smartphone, Twitter } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Products from "./Products"
 
 const SAVED_ARTICLES_KEY = "durian_saved_articles"
@@ -131,7 +132,7 @@ export default function Articles({
   }
 
   const shareArticle = async (article: Article) => {
-    const shareUrl = `${window.location.origin}${window.location.pathname}?article=${encodeURIComponent(article.slug || createSlug(article.title))}`
+    const shareUrl = getArticleShareUrl(article)
     const text = `${article.title}\n${shareUrl}`
     try {
       if (navigator.share) {
@@ -146,13 +147,35 @@ export default function Articles({
     }
   }
 
+  const openSocialShare = (article: Article, platform: "facebook" | "line" | "x") => {
+    const shareUrl = getArticleShareUrl(article)
+    const shareText = `${article.title}`
+    const socialUrls = {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+      line: `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}`,
+      x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+    }
+
+    window.open(socialUrls[platform], "_blank", "noopener,noreferrer")
+    showActionMessage("เปิดหน้าต่างแชร์แล้ว")
+  }
+
+  const copyArticleLink = async (article: Article) => {
+    try {
+      await navigator.clipboard.writeText(getArticleShareUrl(article))
+      showActionMessage("คัดลอกลิงก์แล้ว")
+    } catch {
+      showActionMessage("คัดลอกลิงก์ไม่สำเร็จ")
+    }
+  }
+
   const selectedArticleSaved = selectedArticle ? savedArticleIds.includes(selectedArticle.id) : false
 
   // Full Blog View
   if (selectedArticle) {
     return (
-      <div className="animate-in fade-in duration-500 pb-20">
-        <div className="flex items-center justify-between gap-2 mb-6 sm:mb-8 sticky top-0 bg-background/80 backdrop-blur-md py-3 sm:py-4 z-10 border-b border-border/50">
+      <div className="animate-in fade-in duration-500 rounded-[2rem] border border-[#DDEBE1]/80 bg-white px-4 py-4 shadow-[0_20px_50px_rgba(20,107,62,0.06)] sm:px-6 sm:py-5 pb-20 dark:border-[#31533D]/45 dark:bg-[#14291E]">
+        <div className="sticky top-0 z-10 mb-6 flex items-center justify-between gap-2 border-b border-border/50 bg-white/95 py-3 backdrop-blur-md sm:mb-8 sm:py-4 dark:bg-[#14291E]/95">
           <button
             onClick={() => setSelectedArticle(null)}
             className="flex items-center gap-2 text-base sm:text-lg font-black text-primary hover:translate-x-[-4px] transition-transform"
@@ -169,14 +192,39 @@ export default function Articles({
             >
               <Bookmark size={20} fill={selectedArticleSaved ? "currentColor" : "none"} />
             </button>
-            <button
-              onClick={() => shareArticle(selectedArticle)}
-              aria-label="แชร์บทความ"
-              title="แชร์บทความ"
-              className="p-2.5 sm:p-3 hover:bg-muted rounded-2xl transition-all text-primary border border-primary/10"
-            >
-              <Share2 size={20} />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="แชร์บทความ"
+                  title="แชร์บทความ"
+                  className="p-2.5 sm:p-3 hover:bg-muted rounded-2xl transition-all text-primary border border-primary/10"
+                >
+                  <Share2 size={20} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52 rounded-2xl">
+                <DropdownMenuItem onClick={() => shareArticle(selectedArticle)}>
+                  <Smartphone className="text-primary" />
+                  แชร์ผ่านเครื่อง
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openSocialShare(selectedArticle, "facebook")}>
+                  <Facebook className="text-[#1877F2]" />
+                  แชร์ไป Facebook
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openSocialShare(selectedArticle, "line")}>
+                  <MessageCircleMore className="text-[#06C755]" />
+                  แชร์ไป LINE
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openSocialShare(selectedArticle, "x")}>
+                  <Twitter className="text-foreground" />
+                  แชร์ไป X
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => copyArticleLink(selectedArticle)}>
+                  <Link2 className="text-primary" />
+                  คัดลอกลิงก์
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -231,51 +279,68 @@ export default function Articles({
   }
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-5 rounded-[2rem] border border-[#DDEBE1]/80 bg-white px-4 py-3 shadow-[0_20px_50px_rgba(20,107,62,0.06)] sm:px-6 sm:py-4 pb-10 dark:border-[#31533D]/45 dark:bg-[#14291E]">
       {/* Sleek Premium Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pt-2 sm:pt-4">
-        <div>
+      <div className="flex flex-col gap-2 pt-0 xl:flex-row xl:items-center xl:justify-between">
+        <div className="min-w-0">
           <h2 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">คลังความรู้</h2>
-          <p className="mt-2 text-base text-muted-foreground font-semibold">สาระน่ารู้และคำแนะนำจากผู้เชี่ยวชาญเพื่อสวนทุเรียนของคุณ</p>
+          <p className="mt-1 text-sm text-muted-foreground font-semibold sm:text-base">สาระน่ารู้และคำแนะนำสำหรับการดูแลสวนทุเรียน</p>
         </div>
-        <div className="flex gap-1.5 rounded-2xl border border-border/80 bg-muted/40 backdrop-blur-md p-1.5 shadow-inner w-fit">
-          <button
-            onClick={() => {
-              setActiveView("articles")
-              setActiveCategory("ทั้งหมด")
-            }}
-            className={`rounded-xl px-5 py-2.5 text-sm font-black transition-all duration-300 ${
-              activeView === "articles"
-                ? "bg-background text-primary shadow-md border border-border/30 scale-100 font-extrabold"
-                : "text-muted-foreground hover:text-foreground hover:bg-background/25"
-            }`}
-          >
-            บทความ
-          </button>
-          <button
-            onClick={() => {
-              setActiveView("products")
-              setActiveCategory("ทั้งหมด")
-            }}
-            className={`rounded-xl px-5 py-2.5 text-sm font-black transition-all duration-300 ${
-              activeView === "products"
-                ? "bg-background text-primary shadow-md border border-border/30 scale-100 font-extrabold"
-                : "text-muted-foreground hover:text-foreground hover:bg-background/25"
-            }`}
-          >
-            ปุ๋ยและยา
-          </button>
+        <div className="flex flex-wrap items-center gap-2.5 xl:max-w-[40rem] xl:justify-end">
+          <div className="relative min-w-[16rem] flex-1 xl:max-w-sm">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={20} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder={activeView === "products" ? "ค้นหาปุ๋ย ยา สารเคมี..." : "ค้นหาเทคนิค โรคพืช ปุ๋ย..."}
+              className="w-full bg-card/50 backdrop-blur-md border-2 border-border/80 rounded-xl pl-11 pr-10 py-2 text-sm font-bold outline-none transition-all duration-300 focus:ring-4 focus:ring-primary/10 focus:border-primary hover:border-primary/45 shadow-sm hover:shadow-md"
+            />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <X size={20} />
+              </button>
+            )}
+          </div>
+          <div className="flex shrink-0 gap-1 rounded-xl border border-border/80 bg-muted/40 p-1 shadow-inner w-fit">
+            <button
+              onClick={() => {
+                setActiveView("articles")
+                setActiveCategory("ทั้งหมด")
+              }}
+              className={`rounded-lg px-4 py-2 text-sm font-black transition-all duration-300 ${
+                activeView === "articles"
+                  ? "bg-background text-primary shadow-md border border-border/30 scale-100 font-extrabold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/25"
+              }`}
+            >
+              บทความ
+            </button>
+            <button
+              onClick={() => {
+                setActiveView("products")
+                setActiveCategory("ทั้งหมด")
+              }}
+              className={`rounded-lg px-4 py-2 text-sm font-black transition-all duration-300 ${
+                activeView === "products"
+                  ? "bg-background text-primary shadow-md border border-border/30 scale-100 font-extrabold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/25"
+              }`}
+            >
+              ปุ๋ยและยา
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Categories Chips & Search Box Row */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide flex-1">
+      <div className="flex">
+        <div className="flex flex-1 flex-nowrap gap-2.5 overflow-x-auto pb-2 scrollbar-hide xl:min-w-0">
           {categories.map(c => (
             <button
               key={c}
               onClick={() => setActiveCategory(c)}
-              className={`shrink-0 px-5 py-2.5 rounded-2xl text-sm sm:text-base font-bold transition-all duration-300 ${
+              className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
                 activeCategory === c
                   ? "bg-gradient-to-r from-primary to-emerald-600 text-primary-foreground shadow-lg shadow-primary/20 scale-[1.03]"
                   : "bg-card/40 backdrop-blur-sm border border-border/85 text-muted-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
@@ -284,22 +349,6 @@ export default function Articles({
               {c}
             </button>
           ))}
-        </div>
-
-        <div className="relative w-full md:max-w-md shrink-0">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={20} />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            placeholder={activeView === "products" ? "ค้นหาปุ๋ย ยา สารเคมี..." : "ค้นหาเทคนิค โรคพืช ปุ๋ย..."}
-            className="w-full bg-card/50 backdrop-blur-md border-2 border-border/80 rounded-2xl pl-12 pr-10 py-3 text-base font-bold outline-none transition-all duration-300 focus:ring-4 focus:ring-primary/10 focus:border-primary hover:border-primary/45 shadow-sm hover:shadow-md"
-          />
-          {searchTerm && (
-            <button onClick={() => setSearchTerm("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-              <X size={20} />
-            </button>
-          )}
         </div>
       </div>
 
@@ -374,4 +423,8 @@ function setCanonical(href: string) {
   const tag = document.querySelector('link[rel="canonical"]') || document.head.appendChild(document.createElement("link"))
   tag.setAttribute("rel", "canonical")
   tag.setAttribute("href", href)
+}
+
+function getArticleShareUrl(article: Article) {
+  return `${SITE_URL}/?article=${encodeURIComponent(article.slug || createSlug(article.title))}`
 }

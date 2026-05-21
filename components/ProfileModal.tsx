@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import type { AppUser } from "@/lib/store"
+import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { X, User, LogOut, ChevronRight, Shield, Bell, Leaf, Camera, CheckCircle2 } from "lucide-react"
 
 interface Props {
@@ -27,10 +28,13 @@ const PROVIDER_COLOR: Record<string, string> = {
 }
 
 export default function ProfileModal({ isOpen, onClose, user, onLogout, onLogin, onUpdateUser, onOpenFarmData, onOpenNotifications }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const [editName, setEditName] = useState(false)
   const [nameInput, setNameInput] = useState(user?.name ?? "")
   const [showSecurity, setShowSecurity] = useState(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
+
+  useEscapeToClose({ enabled: isOpen, onEscape: onClose, containerRef })
 
   useEffect(() => {
     setNameInput(user?.name ?? "")
@@ -61,7 +65,7 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout, onLogin,
     : "?"
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
+    <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 

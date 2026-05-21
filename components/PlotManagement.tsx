@@ -1,10 +1,11 @@
 "use client"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import {
   Plot, Tree, FlowerStage, DurianVariety,
   FLOWER_STAGE_LABELS, FLOWER_STAGES, VARIETIES,
   useAppData
 } from "@/lib/store"
+import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import {
   Plus, Pencil, Trash2, QrCode, RefreshCw, X, Check,
   ChevronRight, ArrowLeft,
@@ -74,6 +75,7 @@ function getTreeNumberFromBase(base: string, offset: number) {
 function SelectionUpdateModal({ plot, selectedIds, onClose, onUpdate }: {
   plot: Plot; selectedIds: Set<string>; onClose: () => void; onUpdate: (changes: Partial<Tree>, batchData?: { name: string; stage: FlowerStage; date: string; note: string } | null) => void
 }) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const [stage, setStage] = useState<FlowerStage>(plot.trees[0]?.stage ?? "vegetative")
   const [health, setHealth] = useState<Tree["health"]>(plot.trees[0]?.health ?? "good")
   const [variety, setVariety] = useState<DurianVariety>(plot.trees[0]?.variety ?? "หมอนทอง")
@@ -88,6 +90,8 @@ function SelectionUpdateModal({ plot, selectedIds, onClose, onUpdate }: {
   const [batchNote, setBatchNote] = useState("")
   const count = selectedIds.size
 
+  useEscapeToClose({ enabled: true, onEscape: onClose, containerRef })
+
   const handleUpdate = () => {
     const changes: Partial<Tree> = {}
     if (updateStage) changes.stage = stage
@@ -101,7 +105,7 @@ function SelectionUpdateModal({ plot, selectedIds, onClose, onUpdate }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
+    <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
       <div className="bg-card border border-border rounded-[2rem] p-6 w-full max-w-[95%] sm:max-w-md shadow-2xl shadow-primary/10 animate-in zoom-in-95 duration-300 max-h-[90dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
@@ -179,7 +183,7 @@ function SelectionUpdateModal({ plot, selectedIds, onClose, onUpdate }: {
                 <input value={batchNote} onChange={e => setBatchNote(e.target.value)}
                   className="w-full bg-background border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                   placeholder="บันทึกเพิ่มเติม (ไม่บังคับ)" />
-                <p className="text-xs text-muted-foreground">ระยะจะใช้ค่าเดียวกับ "ระยะดอก/ผล" ด้านบน</p>
+                <p className="text-xs text-muted-foreground">ระยะจะใช้ค่าเดียวกับ &quot;ระยะดอก/ผล&quot; ด้านบน</p>
               </div>
             )}
           </div>
@@ -199,9 +203,13 @@ function SelectionUpdateModal({ plot, selectedIds, onClose, onUpdate }: {
 function BulkUpdateModal({ plot, onClose, onUpdate }: {
   plot: Plot; onClose: () => void; onUpdate: (stage: FlowerStage) => void
 }) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const [stage, setStage] = useState<FlowerStage>(plot.trees[0]?.stage ?? "vegetative")
+
+  useEscapeToClose({ enabled: true, onEscape: onClose, containerRef })
+
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
+    <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
       <div className="bg-card border border-border rounded-[2rem] p-6 w-full max-w-[95%] sm:max-w-md shadow-2xl shadow-primary/10 animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
@@ -251,9 +259,13 @@ function BulkUpdateModal({ plot, onClose, onUpdate }: {
 }
 
 function QRModal({ tree, plot, onClose }: { tree: Tree; plot: Plot; onClose: () => void }) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const qrData = JSON.stringify({ plotId: plot.id, plotName: plot.name, treeId: tree.id, treeNumber: tree.treeNumber, variety: tree.variety })
+
+  useEscapeToClose({ enabled: true, onEscape: onClose, containerRef })
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
+    <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-xs text-center shadow-xl" onClick={e => e.stopPropagation()}>
         <h3 className="font-semibold text-foreground mb-1">QR Code ต้นทุเรียน</h3>
         <p className="text-muted-foreground text-base mb-4">{plot.name} · {tree.treeNumber}</p>
@@ -268,6 +280,10 @@ function QRModal({ tree, plot, onClose }: { tree: Tree; plot: Plot; onClose: () 
 }
 
 function AllQRModal({ plot, onClose }: { plot: Plot; onClose: () => void }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEscapeToClose({ enabled: true, onEscape: onClose, containerRef })
+
   return (
     <>
       <style>{`
@@ -311,7 +327,7 @@ function AllQRModal({ plot, onClose }: { plot: Plot; onClose: () => void }) {
           }
         }
       `}</style>
-      <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
+      <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
         <div className="bg-card border border-border rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
           <div className="p-5 border-b border-border flex justify-between items-center bg-muted/30 rounded-t-3xl shrink-0 print-hide">
             <div>

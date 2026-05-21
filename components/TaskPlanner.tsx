@@ -1,5 +1,6 @@
 "use client"
 import { useState, useMemo, useEffect, useRef } from "react"
+import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { downloadTaskCalendarFile, downloadTasksCalendarFile, getGoogleCalendarUrl } from "@/lib/calendar"
 import { Task, TaskStatus, useAppData } from "@/lib/store"
 import { Plus, Check, X, Trash2, ChevronLeft, ChevronRight, CalendarDays, RotateCcw, Pencil, ChevronDown, ChevronUp, CalendarPlus, Download } from "lucide-react"
@@ -62,6 +63,9 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
   const startX = useRef(0)
   const scrollLeft = useRef(0)
   const [dragged, setDragged] = useState(false)
+  const formModalRef = useRef<HTMLDivElement | null>(null)
+
+  useEscapeToClose({ enabled: showForm, onEscape: () => setShowForm(false), containerRef: formModalRef })
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return
@@ -431,7 +435,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
+        <div ref={formModalRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <div className="w-full max-w-lg bg-white rounded-2xl p-4 border border-[#B9DCC8] shadow-[0_20px_60px_rgba(20,107,62,0.18)] space-y-3" onClick={e => e.stopPropagation()}>
             <h3 className="text-sm font-black text-foreground">เพิ่มแผนงาน</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
