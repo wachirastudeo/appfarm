@@ -444,7 +444,6 @@ function GuestHome({
       <section className="mx-auto max-w-7xl rounded-[2rem] bg-card/60 backdrop-blur-md p-5 sm:p-6 shadow-[0_12px_40px_rgba(20,107,62,0.04)] border border-border/80 dark:border-border/30">
         <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-primary/70">Knowledge for growers</p>
             <h2 className="text-2xl font-black text-foreground">บทความแนะนำ</h2>
             <p className="text-sm font-bold text-muted-foreground">เริ่มจากความรู้เรื่องน้ำ โรค ปุ๋ย ดอก และตลาดทุเรียน</p>
           </div>
@@ -482,7 +481,6 @@ function GuestHome({
         <section className="overflow-hidden rounded-[2rem] border border-border/80 bg-card/60 backdrop-blur-md py-6 shadow-[0_12px_40px_rgba(20,107,62,0.04)] dark:border-border/30">
           <div className="mb-4 flex items-center justify-between gap-3 px-5 sm:px-6">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-primary/70">Recommended inputs</p>
               <h2 className="text-2xl font-black text-foreground">ปุ๋ยและยาแนะนำ</h2>
               <p className="text-sm font-bold text-muted-foreground">รวมปุ๋ย ยา สารเคมี และอุปกรณ์ที่ใช้กับสวนทุเรียน</p>
             </div>
@@ -817,7 +815,7 @@ export default function AppShell() {
 
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} userName={user?.name} />
+        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} userName={user?.name} />
       case "plots":
         return (
           <PlotManagement
@@ -847,7 +845,7 @@ export default function AppShell() {
       case "articles":
         return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
       case "admin":
-        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} userName={user?.name} />
+        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} userName={user?.name} />
         return (
           <AdminPanel
             users={store.data.users}

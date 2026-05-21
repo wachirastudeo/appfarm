@@ -2,9 +2,9 @@
 import { useMemo, useState, useEffect, useRef } from "react"
 import { AppData, Task } from "@/lib/store"
 import {
-  Droplets, Wind, TrendingUp, TrendingDown, ListTodo, Sun, CloudSun, CloudRain, BookOpen,
+  Droplets, Wind, TrendingUp, TrendingDown, ListTodo, Sun, CloudSun, CloudRain,
   Sprout, Zap, Scissors, PackageSearch, ClipboardList, MoreHorizontal, Plus, X, Check, MapPin,
-  AlertTriangle
+  AlertTriangle, ArrowRight, ChevronLeft, ChevronRight, ExternalLink
 } from "lucide-react"
 import Image from "next/image"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
@@ -17,6 +17,7 @@ interface Props {
   onNavigate?: (tab: "dashboard" | "plots" | "operations" | "finance" | "articles") => void
   onOpenArticle?: (articleId: string) => void
   onOpenSettings?: () => void
+  onOpenProducts?: () => void
   updateTask: (id: string, updates: Partial<Task>) => void
   deleteTask: (id: string) => void
   addTask: (task: Omit<Task, "id">) => void
@@ -72,7 +73,7 @@ type FarmLocation = { lat: number; lon: number; label: string }
 const ACTIVITY_ICONS: any = { fertilize: Sprout, spray: Zap, water: Droplets, prune: Scissors, harvest: PackageSearch, inspect: ClipboardList, other: MoreHorizontal }
 const ACTIVITY_COLORS: any = { fertilize: "text-green-500", spray: "text-yellow-500", water: "text-blue-500", prune: "text-orange-500", harvest: "text-primary", inspect: "text-purple-500", other: "text-muted-foreground" }
 
-export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSettings, updateTask, deleteTask, addTask, farmLocation, locationStorageKey, userName }: Props) {
+export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSettings, onOpenProducts, updateTask, deleteTask, addTask, farmLocation, locationStorageKey, userName }: Props) {
   const [weather, setWeather] = useState<{ temp: string | number; humidity: string | number; rain: string | number; wind: string | number; condition: string }>({ temp: "–", humidity: "–", rain: "–", wind: "–", condition: "กำลังโหลด..." })
   const [forecastAlert, setForecastAlert] = useState<ForecastAlert | null>(null)
   const [showLocationEditor, setShowLocationEditor] = useState(false)
@@ -83,7 +84,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
   const locationEditorRef = useRef<HTMLDivElement | null>(null)
   const recommendedArticles = useMemo(() => {
     const active = data.articles.filter(article => article.status === "published")
-    if (active.length >= 3) return active.slice(0, 3)
+    if (active.length >= 9) return active.slice(0, 9)
     const defaultSeeds = [
       { id: "art1", title: "เทคนิคการให้น้ำทุเรียนช่วงเตรียมทำใบ", category: "การดูแลรักษา", image: "/images/articles/article_watering_1778037948644.avif", status: "published" },
       { id: "art2", title: "รับมือโรคไฟทอปธอร่า หน้าฝนนี้ต้องรอด", category: "โรคและแมลง", image: "/images/articles/article_disease_1778037967060.avif", status: "published" },
@@ -91,89 +92,61 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
     ]
     const list = [...active]
     for (const seed of defaultSeeds) {
-      if (list.length >= 3) break
+      if (list.length >= 9) break
       if (!list.some(a => a.title === seed.title)) {
         list.push(seed as any)
       }
     }
-    return list.slice(0, 3)
+    return list.slice(0, 9)
   }, [data.articles])
 
-  const carouselArticles = useMemo(() => {
-    return [...recommendedArticles, ...recommendedArticles, ...recommendedArticles]
-  }, [recommendedArticles])
+  // Products carousel
+  const activeProducts = useMemo(() => data.products.filter(p => p.status === "active"), [data.products])
+  const carouselProducts = useMemo(() => activeProducts.length > 0 ? [...activeProducts, ...activeProducts] : [], [activeProducts])
+  const productDrag = useRef({ active: false, startX: 0, scrollLeft: 0 })
 
-  const articlesScrollRef = useRef<HTMLDivElement | null>(null)
+  const productTrack = () => document.getElementById("dashboard-product-carousel")
 
-  const normalizeArticlesScroll = (track: HTMLDivElement) => {
-    if (window.innerWidth >= 1024) return
-    const singleSetWidth = track.scrollWidth / 3
-    if (singleSetWidth <= 0) return
-    if (track.scrollLeft >= singleSetWidth * 2) {
-      track.scrollLeft -= singleSetWidth
-    } else if (track.scrollLeft <= 0) {
-      track.scrollLeft += singleSetWidth
-    }
+  const normalizeProductScroll = (track: HTMLElement) => {
+    const half = track.scrollWidth / 2
+    if (half <= 0) return
+    if (track.scrollLeft >= half) track.scrollLeft -= half
+    if (track.scrollLeft <= 0) track.scrollLeft += half
   }
+
+  const scrollProducts = (direction: "left" | "right") => {
+    const track = productTrack()
+    if (!track) return
+    normalizeProductScroll(track)
+    track.scrollBy({ left: direction === "right" ? 300 : -300, behavior: "smooth" })
+  }
+
+  const startProductDrag = (clientX: number) => {
+    const track = productTrack()
+    if (!track) return
+    productDrag.current = { active: true, startX: clientX, scrollLeft: track.scrollLeft }
+  }
+
+  const moveProductDrag = (clientX: number) => {
+    if (!productDrag.current.active) return
+    const track = productTrack()
+    if (!track) return
+    track.scrollLeft = productDrag.current.scrollLeft - (clientX - productDrag.current.startX)
+    normalizeProductScroll(track)
+  }
+
+  const stopProductDrag = () => { productDrag.current.active = false }
 
   useEffect(() => {
-    if (articlesScrollRef.current && window.innerWidth < 1024) {
-      const track = articlesScrollRef.current
-      setTimeout(() => {
-        if (track) {
-          track.scrollLeft = track.scrollWidth / 3
-        }
-      }, 100)
-    }
-  }, [recommendedArticles])
-
-  const isDraggingArticles = useRef(false)
-  const articlesStartX = useRef(0)
-  const articlesScrollLeft = useRef(0)
-  const [articlesDragged, setArticlesDragged] = useState(false)
-
-  const handleArticlesMouseDown = (e: React.MouseEvent) => {
-    if (!articlesScrollRef.current) return
-    isDraggingArticles.current = true
-    articlesStartX.current = e.pageX - articlesScrollRef.current.offsetLeft
-    articlesScrollLeft.current = articlesScrollRef.current.scrollLeft
-    setArticlesDragged(false)
-  }
-
-  const handleArticlesTouchStart = (e: React.TouchEvent) => {
-    if (!articlesScrollRef.current) return
-    isDraggingArticles.current = true
-    articlesStartX.current = e.touches[0].pageX - articlesScrollRef.current.offsetLeft
-    articlesScrollLeft.current = articlesScrollRef.current.scrollLeft
-    setArticlesDragged(false)
-  }
-
-  const handleArticlesMouseLeave = () => {
-    isDraggingArticles.current = false
-  }
-
-  const handleArticlesMouseUp = () => {
-    setTimeout(() => {
-      isDraggingArticles.current = false
-    }, 50)
-  }
-
-  const handleArticlesTouchEnd = () => {
-    setTimeout(() => {
-      isDraggingArticles.current = false
-    }, 50)
-  }
-
-  const handleArticlesMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingArticles.current || !articlesScrollRef.current) return
-    e.preventDefault()
-    const x = e.pageX - articlesScrollRef.current.offsetLeft
-    const walk = (x - articlesStartX.current) * 1.5
-    if (Math.abs(x - articlesStartX.current) > 5) {
-      setArticlesDragged(true)
-    }
-    articlesScrollRef.current.scrollLeft = articlesScrollLeft.current - walk
-  }
+    if (activeProducts.length <= 1) return
+    const interval = window.setInterval(() => {
+      const track = productTrack()
+      if (!track) return
+      normalizeProductScroll(track)
+      track.scrollBy({ left: 300, behavior: "smooth" })
+    }, 3600)
+    return () => window.clearInterval(interval)
+  }, [activeProducts.length])
 
   useEscapeToClose({
     enabled: showLocationEditor,
@@ -183,16 +156,6 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
     },
     containerRef: locationEditorRef,
   })
-
-  const handleArticlesTouchMove = (e: React.TouchEvent) => {
-    if (!isDraggingArticles.current || !articlesScrollRef.current) return
-    const x = e.touches[0].pageX - articlesScrollRef.current.offsetLeft
-    const walk = (x - articlesStartX.current) * 1.5
-    if (Math.abs(x - articlesStartX.current) > 5) {
-      setArticlesDragged(true)
-    }
-    articlesScrollRef.current.scrollLeft = articlesScrollLeft.current - walk
-  }
 
   const weatherLoading = weather.condition === "กำลังโหลด..."
   const plotNameById = useMemo(
@@ -777,58 +740,128 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       </div>
 
       {/* Recommended Articles */}
-      <div className="space-y-3 w-full overflow-hidden">
-        <div className="flex items-center justify-between rounded-2xl bg-[#146B3E] px-4 py-3 text-white shadow-[0_12px_30px_rgba(15,59,37,0.16)]">
-          <h3 className="font-bold flex items-center gap-2">
-            <span className="rounded-lg bg-white/12 p-1.5"><BookOpen size={18} className="text-[#E7F3EC]" /></span> บทความแนะนำ
-          </h3>
-          <button onClick={() => onNavigate?.("articles")} className="text-sm text-[#E7F3EC] font-medium hover:text-white">ดูทั้งหมด</button>
+      <div className="mx-auto max-w-7xl rounded-[2rem] bg-card/60 backdrop-blur-md p-5 sm:p-6 shadow-[0_12px_40px_rgba(20,107,62,0.04)] border border-border/80 dark:border-border/30">
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-foreground">บทความแนะนำ</h2>
+            <p className="text-sm font-bold text-muted-foreground">เริ่มจากความรู้เรื่องน้ำ โรค ปุ๋ย ดอก และตลาดทุเรียน</p>
+          </div>
+          <button onClick={() => onNavigate?.("articles")} className="inline-flex items-center gap-2 text-sm font-black text-primary hover:text-primary/80 transition-colors">
+            ดูบทความทั้งหมด <ArrowRight size={16} />
+          </button>
         </div>
-
-        {/* Horizontal scroll on mobile, 3-col grid on desktop */}
-        <div 
-          ref={articlesScrollRef}
-          onScroll={e => normalizeArticlesScroll(e.currentTarget)}
-          onMouseDown={handleArticlesMouseDown}
-          onMouseMove={handleArticlesMouseMove}
-          onMouseUp={handleArticlesMouseUp}
-          onMouseLeave={handleArticlesMouseLeave}
-          onTouchStart={handleArticlesTouchStart}
-          onTouchMove={handleArticlesTouchMove}
-          onTouchEnd={handleArticlesTouchEnd}
-          className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0 select-none cursor-grab active:cursor-grabbing"
-        >
-          {carouselArticles.map((article, index) => (
-            <div
-              key={`${article.id}-${index}`}
-              onClick={(e) => {
-                if (articlesDragged) {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  return
-                }
-                onOpenArticle?.(article.id) ?? onNavigate?.("articles")
-              }}
-              className={`flex-shrink-0 w-[260px] snap-start lg:w-auto orchard-card orchard-card-hover rounded-xl overflow-hidden cursor-pointer group ${index >= 3 ? 'lg:hidden' : ''}`}
+        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+          {recommendedArticles.map(article => (
+            <button
+              key={article.id}
+              type="button"
+              onClick={() => onOpenArticle?.(article.id) ?? onNavigate?.("articles")}
+              className="group w-[240px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30 sm:w-full sm:min-w-0"
             >
-              <div className="relative h-32 lg:h-36 overflow-hidden pointer-events-none">
+              <div className="relative h-24 overflow-hidden sm:h-28">
                 <Image
                   src={article.image}
                   alt={article.title}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 240px"
+                  className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.08]"
                 />
-                <div className="absolute top-2 left-2 bg-[#E7F3EC]/95 backdrop-blur-sm rounded-full px-2.5 py-0.5 shadow-sm">
-                  <span className="text-xs text-primary font-semibold">{article.category}</span>
+              </div>
+              <div className="p-4">
+                <span className="rounded-lg bg-primary/10 px-2.5 py-0.5 text-xs font-black text-primary">{article.category}</span>
+                <h3 className="mt-2 line-clamp-2 text-sm font-black leading-snug text-foreground transition-colors group-hover:text-primary">
+                  {article.title}
+                </h3>
+                <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-extrabold text-primary transition-all duration-300">
+                  อ่านต่อ
+                  <ArrowRight size={12} />
                 </div>
               </div>
-              <div className="p-3 pointer-events-none">
-                <h4 className="font-semibold text-sm text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">{article.title}</h4>
-              </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
+
+      {/* Products Carousel */}
+      {activeProducts.length > 0 && (
+        <div className="overflow-hidden rounded-[2rem] border border-border/80 bg-card/60 backdrop-blur-md py-6 shadow-[0_12px_40px_rgba(20,107,62,0.04)] dark:border-border/30">
+          <div className="mb-4 flex items-center justify-between gap-3 px-5 sm:px-6">
+            <div>
+              <h2 className="text-2xl font-black text-foreground">ปุ๋ยและยาแนะนำ</h2>
+              <p className="text-sm font-bold text-muted-foreground">รวมปุ๋ย ยา สารเคมี และอุปกรณ์ที่ใช้กับสวนทุเรียน</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button onClick={() => onOpenProducts?.()} className="hidden rounded-2xl border border-border bg-background/50 backdrop-blur-sm px-4 py-2 text-sm font-black text-primary transition-all hover:bg-primary hover:text-primary-foreground sm:inline-flex">
+                ดูทั้งหมด
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollProducts("left")}
+                aria-label="เลื่อนปุ๋ยและยาซ้าย"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/80 bg-card text-primary transition-all hover:border-primary/30 hover:bg-muted active:scale-95"
+              >
+                <ChevronLeft size={22} />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollProducts("right")}
+                aria-label="เลื่อนปุ๋ยและยาขวา"
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md transition-all hover:bg-primary/95 hover:scale-105 active:scale-95"
+              >
+                <ChevronRight size={22} />
+              </button>
+            </div>
+          </div>
+          <div className="product-carousel-mask">
+            <div
+              id="dashboard-product-carousel"
+              className="product-carousel-track flex w-full cursor-grab select-none gap-4 overflow-x-auto px-5 active:cursor-grabbing sm:px-6 scrollbar-hide"
+              onMouseDown={event => startProductDrag(event.clientX)}
+              onMouseMove={event => moveProductDrag(event.clientX)}
+              onMouseUp={stopProductDrag}
+              onMouseLeave={stopProductDrag}
+              onTouchStart={event => startProductDrag(event.touches[0]?.clientX ?? 0)}
+              onTouchMove={event => moveProductDrag(event.touches[0]?.clientX ?? 0)}
+              onTouchEnd={stopProductDrag}
+              onScroll={event => normalizeProductScroll(event.currentTarget)}
+            >
+              {carouselProducts.map((product, index) => (
+                <button
+                  key={`${product.id}-${index}`}
+                  type="button"
+                  onClick={() => onOpenProducts?.()}
+                  className="group flex h-[18.5rem] w-[190px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30 sm:h-[19rem] sm:w-[220px]"
+                >
+                  <div className="h-24 overflow-hidden sm:h-28 relative">
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      sizes="220px"
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col p-4">
+                    <span className="text-xs font-black text-primary bg-primary/10 px-2.5 py-0.5 rounded-lg">{product.category}</span>
+                    <h3 className="mt-2 min-h-[3.5rem] line-clamp-2 text-sm font-black leading-snug text-foreground transition-colors group-hover:text-primary">
+                      {product.name}
+                    </h3>
+                    {product.description && (
+                      <p className="mt-1.5 min-h-[2.5rem] line-clamp-2 text-xs font-semibold leading-relaxed text-muted-foreground">
+                        {product.description}
+                      </p>
+                    )}
+                    <div className="mt-auto inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-emerald-600 px-3.5 py-2 text-xs font-extrabold text-primary-foreground shadow-sm transition-all duration-300 group-hover:shadow-md">
+                      ดูสินค้า
+                      <ExternalLink size={12} />
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
