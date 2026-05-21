@@ -1,6 +1,6 @@
 "use client"
 import { useState, useMemo, useEffect, useRef } from "react"
-import { downloadTaskCalendarFile, getGoogleCalendarUrl } from "@/lib/calendar"
+import { downloadTaskCalendarFile, downloadTasksCalendarFile, getGoogleCalendarUrl } from "@/lib/calendar"
 import { Task, TaskStatus, useAppData } from "@/lib/store"
 import { Plus, Check, X, Trash2, ChevronLeft, ChevronRight, CalendarDays, RotateCcw, Pencil, ChevronDown, ChevronUp, CalendarPlus, Download } from "lucide-react"
 
@@ -18,6 +18,20 @@ const PRIORITY_COLORS = {
   low: "border-l-emerald-600 bg-white",
 }
 const PRIORITY_LABELS = { high: "ด่วน", medium: "ปกติ", low: "ต่ำ" }
+const PRIORITY_OPTION_STYLES: Record<Task["priority"], { active: string; inactive: string }> = {
+  high: {
+    active: "bg-rose-600 text-white border-rose-600 shadow-[0_8px_18px_rgba(225,29,72,0.28)]",
+    inactive: "bg-rose-50 text-rose-700 border-rose-200 hover:border-rose-300",
+  },
+  medium: {
+    active: "bg-amber-500 text-white border-amber-500 shadow-[0_8px_18px_rgba(245,158,11,0.28)]",
+    inactive: "bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-300",
+  },
+  low: {
+    active: "bg-emerald-600 text-white border-emerald-600 shadow-[0_8px_18px_rgba(5,150,105,0.28)]",
+    inactive: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-300",
+  },
+}
 const STATUS_LABELS: Record<TaskStatus, string> = { pending: "รอดำเนินการ", done: "เสร็จแล้ว", cancelled: "ยกเลิก" }
 
 function getDaysInMonth(year: number, month: number) {
@@ -35,6 +49,10 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
   const [calMonth, setCalMonth] = useState(today.getMonth())
   const [selectedDate, setSelectedDate] = useState<string>(today.toISOString().split("T")[0])
   const [showForm, setShowForm] = useState(false)
+  const [repeatEnabled, setRepeatEnabled] = useState(false)
+  const [repeatEveryDays, setRepeatEveryDays] = useState(2)
+  const [repeatLimitEnabled, setRepeatLimitEnabled] = useState(false)
+  const [repeatLimitMonths, setRepeatLimitMonths] = useState(3)
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all")
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -121,10 +139,34 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
 
   const handleAdd = () => {
     if (!form.title || !form.plotId) return
-    const taskDate = new Date(form.date).toISOString()
-    addTask({ ...form, date: taskDate })
+    const intervalDays = Math.max(1, Number(repeatEveryDays) || 1)
+    const monthsLimit = Math.max(1, Number(repeatLimitMonths) || 1)
+    const startDate = new Date(`${form.date}T00:00:00`)
+    const maxDate = repeatEnabled && repeatLimitEnabled
+      ? new Date(startDate.getFullYear(), startDate.getMonth() + monthsLimit, startDate.getDate())
+      : null
+
+    const datesToCreate: Date[] = []
+    if (!repeatEnabled) {
+      datesToCreate.push(startDate)
+    } else {
+      let cursor = new Date(startDate)
+      while (!maxDate || cursor <= maxDate) {
+        datesToCreate.push(new Date(cursor))
+        cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + intervalDays)
+      }
+    }
+
+    datesToCreate.forEach((d) => {
+      addTask({ ...form, date: d.toISOString() })
+    })
+
     setSelectedDate(form.date) // Switch to the date of the new task
     setForm({ date: form.date, plotId: data.plots[0]?.id ?? "", title: "", description: "", priority: "medium", status: "pending" })
+    setRepeatEnabled(false)
+    setRepeatEveryDays(2)
+    setRepeatLimitEnabled(false)
+    setRepeatLimitMonths(3)
     setShowForm(false)
   }
 
@@ -168,10 +210,17 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-bold text-foreground">แผนการทำงาน</h2>
         <button
-          onClick={() => { setForm(f => ({ ...f, date: selectedDate })); setShowForm(v => !v) }}
+          onClick={() => {
+            setForm(f => ({ ...f, date: selectedDate, plotId: data.plots[0]?.id ?? "", title: "", description: "", priority: "medium" }))
+            setRepeatEnabled(false)
+            setRepeatEveryDays(2)
+            setRepeatLimitEnabled(false)
+            setRepeatLimitMonths(3)
+            setShowForm(true)
+          }}
           className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#0F5A34] transition-opacity shadow-[0_10px_24px_rgba(20,107,62,0.10)]"
         >
-          <Plus size={16} />{showForm ? "ยกเลิก" : "เพิ่มงาน"}
+          <Plus size={16} /> เพิ่มแผนงาน
         </button>
       </div>
 
@@ -327,46 +376,6 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
             </div>
           </div>
 
-          {/* Add Form */}
-          {showForm && (
-            <div className="bg-[#E7F3EC] rounded-2xl p-4 space-y-3 border border-[#B9DCC8]">
-              <h3 className="font-semibold text-foreground text-sm">เพิ่มงานใหม่</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-[#527060] mb-1 block">วันที่</label>
-                  <input type="date" value={form.date} onChange={e => set("date", e.target.value)} className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-[#527060] mb-1 block">แปลง</label>
-                  <select value={form.plotId} onChange={e => set("plotId", e.target.value)} className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-                    {data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-[#527060] mb-1 block">ชื่องาน</label>
-                <input value={form.title} onChange={e => set("title", e.target.value)} className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="ชื่อแผนงาน..." />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-[#527060] mb-1 block">รายละเอียด</label>
-                <textarea value={form.description} onChange={e => set("description", e.target.value)} rows={2} className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="รายละเอียดเพิ่มเติม..." />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-[#527060] mb-1 block">ความสำคัญ</label>
-                <div className="flex gap-2">
-                  {(["high", "medium", "low"] as Task["priority"][]).map(p => (
-                    <button key={p} onClick={() => set("priority", p)} className={`flex-1 py-2 rounded-xl text-sm font-black border transition-all ${form.priority === p ? "bg-primary text-primary-foreground border-primary" : "bg-background border-[#B9DCC8] text-[#527060] hover:border-primary/50"}`}>
-                      {PRIORITY_LABELS[p]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex gap-2 pt-1">
-                <button onClick={() => setShowForm(false)} className="flex-1 border border-[#B9DCC8] rounded-lg py-2 text-sm text-[#527060] font-medium hover:bg-[#E7F3EC]">ยกเลิก</button>
-                <button onClick={handleAdd} className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 text-sm font-semibold hover:bg-[#0F5A34]">บันทึก</button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Right Side: Task Lists */}
@@ -379,6 +388,15 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
                 งานวันที่ {new Date(selectedDate).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}
                 <span className="text-xs text-[#527060] font-normal">({allFilteredTasks.length} รายการ)</span>
               </h3>
+              {allFilteredTasks.length > 0 && (
+                <button
+                  onClick={() => downloadTasksCalendarFile(allFilteredTasks, plotName, `tasks-${selectedDate}`)}
+                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#B9DCC8] text-xs font-semibold text-[#146B3E] hover:bg-[#E7F3EC] transition-colors"
+                >
+                  <Download size={13} />
+                  ลงทุกงาน
+                </button>
+              )}
             </div>
 
             {pendingTasks.length === 0 ? (
@@ -411,6 +429,136 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
           )}
         </div>
       </div>
+
+      {showForm && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
+          <div className="w-full max-w-lg bg-white rounded-2xl p-4 border border-[#B9DCC8] shadow-[0_20px_60px_rgba(20,107,62,0.18)] space-y-3" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-black text-foreground">เพิ่มแผนงาน</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-[#527060] mb-1 block">วันที่</label>
+                <input
+                  type="date"
+                  value={form.date}
+                  onChange={e => set("date", e.target.value)}
+                  className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-[#527060] mb-1 block">แปลง</label>
+                <select
+                  value={form.plotId}
+                  onChange={e => set("plotId", e.target.value)}
+                  className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  {data.plots.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-[#527060] mb-1 block">ชื่อแผนงาน</label>
+              <input
+                value={form.title}
+                onChange={e => set("title", e.target.value)}
+                placeholder="ชื่อแผนงาน..."
+                className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-[#527060] mb-1 block">รายละเอียด</label>
+              <textarea
+                value={form.description}
+                onChange={e => set("description", e.target.value)}
+                placeholder="รายละเอียด..."
+                rows={2}
+                className="w-full bg-background border border-[#B9DCC8] rounded-lg px-3 py-2 text-sm text-[#527060] resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-[#527060] mb-1 block">ความสำคัญ</label>
+              <div className="flex gap-2">
+                {(["high", "medium", "low"] as Task["priority"][]).map(p => (
+                  <button
+                    type="button"
+                    key={p}
+                    onClick={() => set("priority", p)}
+                    className={`flex-1 py-2 rounded-xl text-sm font-black border transition-all ${form.priority === p ? PRIORITY_OPTION_STYLES[p].active : PRIORITY_OPTION_STYLES[p].inactive}`}
+                  >
+                    {PRIORITY_LABELS[p]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-xl border border-[#B9DCC8] bg-[#F7FAF8] p-3 space-y-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-[#146B3E]">
+                <input
+                  type="checkbox"
+                  checked={repeatEnabled}
+                  onChange={(e) => setRepeatEnabled(e.target.checked)}
+                  className="h-4 w-4 accent-[#146B3E]"
+                />
+                งานทำซ้ำ
+              </label>
+              {repeatEnabled && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-[#527060]">ทุก</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={repeatEveryDays}
+                      onChange={(e) => setRepeatEveryDays(Math.max(1, Number(e.target.value) || 1))}
+                      className="w-20 bg-white border border-[#B9DCC8] rounded-lg px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                    <span className="text-[#527060]">วัน</span>
+                  </div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-[#527060]">
+                    <input
+                      type="checkbox"
+                      checked={repeatLimitEnabled}
+                      onChange={(e) => setRepeatLimitEnabled(e.target.checked)}
+                      className="h-4 w-4 accent-[#146B3E]"
+                    />
+                    จำกัดระยะเวลา (เดือน)
+                  </label>
+                  {repeatLimitEnabled && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-[#527060]">สูงสุด</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={repeatLimitMonths}
+                        onChange={(e) => setRepeatLimitMonths(Math.max(1, Number(e.target.value) || 1))}
+                        className="w-20 bg-white border border-[#B9DCC8] rounded-lg px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                      <span className="text-[#527060]">เดือน</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="flex-1 border border-[#B9DCC8] rounded-lg py-2 text-sm text-[#527060] font-medium hover:bg-[#E7F3EC]"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={handleAdd}
+                disabled={!form.title.trim() || !form.plotId}
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 text-sm font-semibold hover:bg-[#0F5A34] disabled:opacity-40"
+              >
+                บันทึก
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -493,7 +641,7 @@ export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask }:
               <button
                 key={p}
                 onClick={() => setEditForm({ ...editForm, priority: p })}
-                className={`flex-1 py-2 rounded-xl text-sm font-black border transition-all ${editForm.priority === p ? "bg-primary text-primary-foreground border-primary" : "bg-background border-[#B9DCC8] text-[#527060] hover:border-primary/50"}`}
+                className={`flex-1 py-2 rounded-xl text-sm font-black border transition-all ${editForm.priority === p ? PRIORITY_OPTION_STYLES[p].active : PRIORITY_OPTION_STYLES[p].inactive}`}
               >
                 {PRIORITY_LABELS[p]}
               </button>

@@ -24,10 +24,21 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
+  const emailInputId = "auth-email"
+  const passwordInputId = "auth-password"
+  const signupNameInputId = "auth-signup-name"
+  const resetEmailInputId = "auth-reset-email"
+  const resetPasswordInputId = "auth-reset-password"
+
   if (!isOpen) return null
 
   const handleUnavailableSocialLogin = () => {
     setError("Google/LINE ยังไม่ได้เชื่อมต่อ ใช้อีเมลเพื่อเข้าสู่ระบบก่อน")
+  }
+
+  const handleUnavailablePasswordReset = () => {
+    setError("การรีเซ็ตรหัสผ่านอัตโนมัติยังไม่พร้อมในโหมดนี้ กรุณาติดต่อผู้ดูแลระบบ")
+    setSuccess("")
   }
 
   const handleEmailSubmit = (e: React.FormEvent) => {
@@ -227,29 +238,36 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
               </button>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-500">อีเมล</label>
+                <label htmlFor={resetEmailInputId} className="text-xs font-semibold text-gray-500">อีเมล</label>
                 <input
+                  id={resetEmailInputId}
+                  name="email"
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="example@email.com"
+                  autoComplete="email"
                   className="w-full border border-gray-200 focus:border-emerald-400 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/20 transition-all"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-500">รหัสผ่านใหม่</label>
+                <label htmlFor={resetPasswordInputId} className="text-xs font-semibold text-gray-500">รหัสผ่านใหม่</label>
                 <div className="relative">
                   <input
+                    id={resetPasswordInputId}
+                    name="new-password"
                     type={showPass ? "text" : "password"}
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
                     placeholder="••••••••"
+                    autoComplete="new-password"
                     className="w-full border border-gray-200 focus:border-emerald-400 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/20 transition-all pr-11"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPass(v => !v)}
+                    aria-label={showPass ? "ซ่อนรหัสผ่านใหม่" : "แสดงรหัสผ่านใหม่"}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
                   >
                     {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -287,41 +305,51 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
 
               {isSignUp && (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-500">ชื่อ</label>
+                  <label htmlFor={signupNameInputId} className="text-xs font-semibold text-gray-500">ชื่อ</label>
                   <input
+                    id={signupNameInputId}
+                    name="name"
                     type="text"
                     value={name}
                     onChange={e => setName(e.target.value)}
                     placeholder="ชื่อของคุณ"
+                    autoComplete="name"
                     className="w-full border border-gray-200 focus:border-emerald-400 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/20 transition-all"
                   />
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-500">อีเมล</label>
+                <label htmlFor={emailInputId} className="text-xs font-semibold text-gray-500">อีเมล</label>
                 <input
+                  id={emailInputId}
+                  name="email"
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="example@email.com"
+                  autoComplete="email"
                   className="w-full border border-gray-200 focus:border-emerald-400 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/20 transition-all"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-500">รหัสผ่าน</label>
+                <label htmlFor={passwordInputId} className="text-xs font-semibold text-gray-500">รหัสผ่าน</label>
                 <div className="relative">
                   <input
+                    id={passwordInputId}
+                    name="password"
                     type={showPass ? "text" : "password"}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
+                    autoComplete={isSignUp ? "new-password" : "current-password"}
                     className="w-full border border-gray-200 focus:border-emerald-400 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/20 transition-all pr-11"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPass(v => !v)}
+                    aria-label={showPass ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
                   >
                     {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -365,7 +393,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
               {!isSignUp && (
                 <button
                   type="button"
-                  onClick={() => { setMode("forgot"); setError(""); setSuccess(""); setNewPassword("") }}
+                  onClick={handleUnavailablePasswordReset}
                   className="w-full text-center text-xs text-gray-400 hover:text-gray-600 transition-colors py-0.5"
                 >
                   ลืมรหัสผ่าน?

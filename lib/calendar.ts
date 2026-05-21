@@ -84,3 +84,47 @@ export function downloadTaskCalendarFile(task: Task, plotName: string) {
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
 }
+
+export function downloadTasksCalendarFile(tasks: Task[], getPlotName: (plotId: string) => string, fileName = "all-tasks") {
+  if (tasks.length === 0) return
+  const now = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z"
+
+  const events = tasks.flatMap((task) => {
+    const startDate = compactDate(task.date)
+    const endDate = nextCompactDate(task.date)
+    const plotName = getPlotName(task.plotId)
+    const details = [task.description, `แปลง: ${plotName}`].filter(Boolean).join("\\n")
+
+    return [
+      "BEGIN:VEVENT",
+      `UID:${task.id}@appfarm.local`,
+      `DTSTAMP:${now}`,
+      `DTSTART;VALUE=DATE:${startDate}`,
+      `DTEND;VALUE=DATE:${endDate}`,
+      `SUMMARY:${escapeIcsText(task.title)}`,
+      `DESCRIPTION:${escapeIcsText(details)}`,
+      `LOCATION:${escapeIcsText(plotName)}`,
+      "END:VEVENT",
+    ]
+  })
+
+  const content = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    `PRODID:-//${APP_NAME}//Task Planner//TH`,
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    ...events,
+    "END:VCALENDAR",
+  ].join("\r\n")
+
+  const blob = new Blob([content], { type: "text/calendar;charset=utf-8" })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = `${safeFileName(fileName)}.ics`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}

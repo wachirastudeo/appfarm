@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useId, useState } from "react"
 import type { AppUser, Article, NewUserInput, Product, SiteSettings } from "@/lib/store"
 import { appRuntimeConfig, getDataModeLabel, isSupabaseConfigured } from "@/lib/runtime-config"
 import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "@/lib/seo"
@@ -605,10 +605,14 @@ export default function AdminPanel({
 }
 
 function AdminInput({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string }) {
+  const inputId = useId()
+  const inputName = `${label.replace(/\s+/g, "-").toLowerCase()}-input`
   return (
-    <label className="block space-y-1.5">
+    <label htmlFor={inputId} className="block space-y-1.5">
       <span className="text-xs font-black text-muted-foreground">{label}</span>
       <input
+        id={inputId}
+        name={inputName}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
@@ -619,10 +623,14 @@ function AdminInput({ label, value, onChange, placeholder }: { label: string; va
 }
 
 function AdminTextarea({ label, value, onChange, placeholder, rows = 3 }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string; rows?: number }) {
+  const textareaId = useId()
+  const textareaName = `${label.replace(/\s+/g, "-").toLowerCase()}-textarea`
   return (
-    <label className="block space-y-1.5">
+    <label htmlFor={textareaId} className="block space-y-1.5">
       <span className="text-xs font-black text-muted-foreground">{label}</span>
       <textarea
+        id={textareaId}
+        name={textareaName}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}

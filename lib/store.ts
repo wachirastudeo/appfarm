@@ -476,7 +476,7 @@ export function useAppData() {
 
   // Tasks
   const addTask = useCallback((task: Omit<Task, "id">) => {
-    updateData(d => ({ ...d, tasks: [...d.tasks, { ...task, id: `tk${Date.now()}` }] }))
+    updateData(d => ({ ...d, tasks: [...d.tasks, { ...task, id: `tk${Date.now()}-${Math.random().toString(36).slice(2, 8)}` }] }))
   }, [updateData])
 
   const updateTask = useCallback((id: string, changes: Partial<Task>) => {
