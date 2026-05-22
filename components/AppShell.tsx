@@ -964,7 +964,7 @@ export default function AppShell() {
         <main className="relative z-10">
           {activeTab === "articles" ? (
             <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 md:px-8 md:py-6">
-              <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} savedArticlesStorageKey="durian_saved_articles_guest" onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
+              <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} savedArticlesStorageKey="durian_saved_articles_guest" guestMobileRail onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
             </div>
           ) : (
             <GuestHome

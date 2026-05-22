@@ -409,7 +409,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
               {allFilteredTasks.length > 0 && (
                 <button
                   onClick={() => downloadTasksCalendarFile(allFilteredTasks, plotName, `tasks-${selectedDate}`)}
-                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#B9DCC8] text-xs font-semibold text-[#146B3E] hover:bg-[#E7F3EC] transition-colors"
+                  className="hidden shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#B9DCC8] text-xs font-semibold text-[#146B3E] hover:bg-[#E7F3EC] transition-colors sm:inline-flex"
                 >
                   <Download size={13} />
                   ลงทุกงาน
@@ -715,7 +715,7 @@ export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask }:
           <button
             onClick={() => downloadTaskCalendarFile(task, plotName)}
             title="ดาวน์โหลดไฟล์ปฏิทินสำหรับ iPhone/Android"
-            className="p-1.5 text-[#527060] hover:text-primary rounded-lg hover:bg-[#E7F3EC] transition-colors"
+            className="hidden p-1.5 text-[#527060] hover:text-primary rounded-lg hover:bg-[#E7F3EC] transition-colors sm:block"
           >
             <Download size={14} />
           </button>

@@ -83,6 +83,7 @@ export default function Settings({
 
   const [location, setLocation] = useState<{ lat: number; lon: number; label: string } | null>(() => {
     if (typeof window === "undefined") return null
+    if (currentUser?.farmLocation) return currentUser.farmLocation
     const saved = localStorage.getItem(locationStorageKey)
     return saved ? JSON.parse(saved) : null
   })
@@ -103,9 +104,15 @@ export default function Settings({
 
   useEffect(() => {
     if (typeof window === "undefined") return
+    if (currentUser?.farmLocation) {
+      setLocation(currentUser.farmLocation)
+      localStorage.setItem(locationStorageKey, JSON.stringify(currentUser.farmLocation))
+      return
+    }
+
     const saved = localStorage.getItem(locationStorageKey)
     setLocation(saved ? JSON.parse(saved) : null)
-  }, [locationStorageKey, isOpen])
+  }, [currentUser?.farmLocation, locationStorageKey, isOpen])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -307,13 +314,14 @@ export default function Settings({
       lon: parseFloat(parseFloat(result.lon).toFixed(4)),
       label: shortLabel,
     }
-    setLocation(loc)
-    localStorage.setItem(locationStorageKey, JSON.stringify(loc))
     try {
       await onUpdateFarmProfile({ farmLocation: loc })
+      setLocation(loc)
+      localStorage.setItem(locationStorageKey, JSON.stringify(loc))
       window.dispatchEvent(new Event("farm_location_changed"))
     } catch {
       alert("บันทึกตำแหน่งสวนไม่สำเร็จ กรุณาลองใหม่")
+      return
     }
     setSearchResults([])
     setPlaceSearch("")

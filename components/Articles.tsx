@@ -13,6 +13,7 @@ interface Props {
   initialView?: "articles" | "products"
   savedArticleIds?: string[]
   savedArticlesStorageKey: string
+  guestMobileRail?: boolean
   onSavedArticleIdsChange?: (savedArticleIds: string[]) => Promise<void>
   onViewChange?: (view: "articles" | "products") => void
   onArticleSelect?: (articleId: string | null) => void
@@ -25,6 +26,7 @@ export default function Articles({
   initialView = "articles",
   savedArticleIds: storedSavedArticleIds,
   savedArticlesStorageKey,
+  guestMobileRail = false,
   onSavedArticleIdsChange,
   onViewChange,
   onArticleSelect,
@@ -372,17 +374,18 @@ export default function Articles({
           hideSearchFilter
           searchTerm={searchTerm}
           activeCategory={activeCategory}
+          mobileRail={guestMobileRail}
         />
       ) : (
         /* Articles Grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className={guestMobileRail ? "-mx-4 flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3" : "grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3"}>
           {filteredArticles.map((article, index) => {
             const excerpt = createExcerpt(article.content, 90)
             return (
               <div
                 key={article.id}
                 onClick={() => setSelectedArticle(article)}
-                className="group relative bg-card/65 backdrop-blur-md border border-border/70 rounded-3xl overflow-hidden hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)] transition-all duration-500 cursor-pointer hover:-translate-y-1.5 flex flex-col h-full shadow-sm hover:border-primary/30"
+                className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/70 bg-card/65 shadow-sm backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)] ${guestMobileRail ? "w-[17rem] shrink-0 cursor-pointer sm:w-auto sm:min-w-0" : "cursor-pointer"}`}
               >
                 <div className="relative h-52 sm:h-60 overflow-hidden">
                   <img

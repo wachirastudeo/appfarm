@@ -10,6 +10,7 @@ interface Props {
   hideSearchFilter?: boolean
   searchTerm?: string
   activeCategory?: string
+  mobileRail?: boolean
 }
 
 export default function Products({
@@ -18,6 +19,7 @@ export default function Products({
   hideSearchFilter = false,
   searchTerm: externalSearchTerm,
   activeCategory: externalActiveCategory,
+  mobileRail = false,
 }: Props) {
   const [internalSearchTerm, setInternalSearchTerm] = useState("")
   const [internalActiveCategory, setInternalActiveCategory] = useState("ทั้งหมด")
@@ -148,13 +150,13 @@ export default function Products({
         )
       )}
 
-      <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${compact ? "2xl:grid-cols-4" : ""}`}>
+      <div className={mobileRail ? "-mx-4 flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4" : `grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${compact ? "2xl:grid-cols-4" : ""}`}>
         {filteredProducts.map(product => {
           const affiliateUrl = safeHttpUrl(product.affiliateUrl)
           return (
           <div
             key={product.id}
-            className={`group relative overflow-hidden rounded-2xl border border-border/70 bg-card/65 backdrop-blur-md shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)] ${compact ? "min-h-[24rem]" : "min-h-[28rem] sm:min-h-[30rem]"}`}
+            className={`group relative overflow-hidden rounded-2xl border border-border/70 bg-card/65 backdrop-blur-md shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)] ${compact ? "min-h-[24rem]" : "min-h-[28rem] sm:min-h-[30rem]"} ${mobileRail ? "w-[17rem] shrink-0 sm:w-auto sm:min-w-0" : ""}`}
           >
             <div className="absolute inset-0 overflow-hidden">
               <img
