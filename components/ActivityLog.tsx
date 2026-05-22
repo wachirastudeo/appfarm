@@ -1,7 +1,8 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Activity, ActivityType, ACTIVITY_LABELS, Plot, useAppData } from "@/lib/store"
-import { Plus, Trash2, Sprout, Droplets, Scissors, PackageSearch, Zap, ClipboardList, MoreHorizontal, Clock, ListFilter } from "lucide-react"
+import { validateDate, validateNumber, validateText } from "@/lib/form-validation"
+import { Plus, Trash2, Sprout, Droplets, Scissors, PackageSearch, Zap, ClipboardList, MoreHorizontal, Clock, ListFilter, ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react"
 
 type AppDataReturn = ReturnType<typeof useAppData>
 interface Props {
@@ -19,15 +20,35 @@ const ACTIVITY_COLORS: Record<ActivityType, string> = {
   fertilize: "text-green-400", spray: "text-yellow-400", water: "text-blue-400",
   prune: "text-orange-400", harvest: "text-primary", inspect: "text-purple-400", other: "text-[#527060]",
 }
+const MONTHS_TH = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
+const DAYS_TH = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"]
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" })
+}
+
+function toInputDate(date: Date) {
+  return date.toISOString().split("T")[0]
+}
+
+function getDaysInMonth(year: number, month: number) {
+  return new Date(year, month + 1, 0).getDate()
+}
+
+function getFirstDayOfMonth(year: number, month: number) {
+  return new Date(year, month, 1).getDay()
 }
 
 export default function ActivityLog({ data, addActivity, deleteActivity, updateActivity }: Props) {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [filter, setFilter] = useState<ActivityType | "all">("all")
+  const today = new Date()
+  const [timeFilter, setTimeFilter] = useState<"month" | "year" | "all">("month")
+  const [selectedMonth, setSelectedMonth] = useState(today.getMonth())
+  const [selectedYear, setSelectedYear] = useState(today.getFullYear())
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [isCalendarExpanded, setIsCalendarExpanded] = useState(false)
   const [form, setForm] = useState({
     date: new Date().toISOString().split("T")[0],
     plotId: data.plots[0]?.id ?? "",
@@ -46,8 +67,19 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
   const set = (k: string, v: unknown) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = () => {
-    if (!form.description || !form.plotId) return
-    const activityData = { ...form, date: new Date(form.date).toISOString() }
+    const description = validateText("รายละเอียด", form.description, { required: true, maxLength: 500, allowMultiline: true })
+    const cost = validateNumber("ค่าใช้จ่าย", form.cost, { min: 0, max: 100000000 })
+    const date = validateDate("วันที่", form.date)
+    if (!form.plotId) {
+      alert("กรุณาเลือกแปลงก่อนบันทึก")
+      return
+    }
+    const invalid = [description, cost, date].find(result => !result.ok)
+    if (invalid && !invalid.ok) {
+      alert(invalid.message)
+      return
+    }
+    const activityData = { ...form, description: description.value, cost: cost.value, date: new Date(date.value).toISOString() }
     
     if (editingId) {
       updateActivity(editingId, activityData)
@@ -80,18 +112,188 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
 
   const plotName = (id: string) => data.plots.find(p => p.id === id)?.name ?? id
 
-  const filtered = data.activities
-    .filter(a => filter === "all" || a.activityType === filter)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const filtered = useMemo(() => {
+    return data.activities
+      .filter(a => filter === "all" || a.activityType === filter)
+      .filter(a => {
+        if (timeFilter === "all") return true
+        const d = new Date(a.date)
+        if (timeFilter === "month") {
+          const inMonth = d.getMonth() === selectedMonth && d.getFullYear() === selectedYear
+          return inMonth && (!selectedDay || a.date.split("T")[0] === selectedDay)
+        }
+        return d.getFullYear() === selectedYear
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }, [data.activities, filter, timeFilter, selectedDay, selectedMonth, selectedYear])
+
+  const activityCountByDate = useMemo(() => {
+    const map: Record<string, number> = {}
+    data.activities
+      .filter(a => filter === "all" || a.activityType === filter)
+      .forEach(a => {
+        const d = new Date(a.date)
+        if (d.getMonth() !== selectedMonth || d.getFullYear() !== selectedYear) return
+        const date = a.date.split("T")[0]
+        map[date] = (map[date] ?? 0) + 1
+      })
+    return map
+  }, [data.activities, filter, selectedMonth, selectedYear])
+
+  const daysInMonth = getDaysInMonth(selectedYear, selectedMonth)
+  const firstDay = getFirstDayOfMonth(selectedYear, selectedMonth)
+  const todayDate = toInputDate(today)
+
+  const timeLabel = timeFilter === "month"
+    ? `${MONTHS_TH[selectedMonth]} ${selectedYear + 543}`
+    : timeFilter === "year"
+      ? `${selectedYear + 543}`
+      : "ทั้งหมด"
+
+  const moveMonth = (delta: number) => {
+    setSelectedDay(null)
+    setSelectedMonth(m => {
+      const next = m + delta
+      if (next < 0) {
+        setSelectedYear(y => y - 1)
+        return 11
+      }
+      if (next > 11) {
+        setSelectedYear(y => y + 1)
+        return 0
+      }
+      return next
+    })
+  }
+
+  const moveYear = (delta: number) => setSelectedYear(y => y + delta)
+  const setTimeMode = (mode: typeof timeFilter) => {
+    setTimeFilter(mode)
+    if (mode !== "month") {
+      setSelectedDay(null)
+      setIsCalendarExpanded(false)
+    }
+  }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-foreground">บันทึกสวน</h2>
-        <button onClick={() => { if(showForm) handleCancel(); else setShowForm(true); }} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-base font-black hover:bg-[#0F5A34] transition-colors shadow-[0_10px_24px_rgba(20,107,62,0.16)]">
-          <Plus size={16} />{showForm ? "ยกเลิก" : "บันทึก"}
-        </button>
+      <div className="space-y-2 lg:flex lg:items-center lg:justify-between lg:space-y-0">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-lg font-bold text-foreground">บันทึกสวน</h2>
+          <button onClick={() => { if(showForm) handleCancel(); else setShowForm(true); }} className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-sm font-black text-primary-foreground shadow-[0_10px_24px_rgba(20,107,62,0.16)] transition-colors hover:bg-[#0F5A34] sm:hidden">
+            <Plus size={16} />{showForm ? "ยกเลิก" : "บันทึก"}
+          </button>
+        </div>
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto rounded-2xl border border-[#B9DCC8] bg-white p-1.5 shadow-[0_10px_24px_rgba(20,107,62,0.08)] scrollbar-hide sm:gap-2 sm:p-2">
+            <select
+              aria-label="ช่วงเวลาบันทึกสวน"
+              value={timeFilter}
+              onChange={e => setTimeMode(e.target.value as typeof timeFilter)}
+              className="h-10 shrink-0 rounded-xl border border-[#B9DCC8] bg-[#F7FAF8] px-3 text-sm font-black text-[#146B3E] outline-none sm:hidden"
+            >
+              <option value="month">เดือน</option>
+              <option value="year">ปี</option>
+              <option value="all">ทั้งหมด</option>
+            </select>
+            <div className="hidden shrink-0 rounded-xl border border-[#B9DCC8] bg-[#F7FAF8] p-1 sm:flex">
+              <button onClick={() => setTimeMode("month")} className={`rounded-lg px-2.5 py-1.5 text-sm font-black transition-all sm:px-3 ${timeFilter === "month" ? "bg-primary text-primary-foreground shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "text-[#146B3E] hover:bg-white"}`}>
+                เดือน
+              </button>
+              <button onClick={() => setTimeMode("year")} className={`rounded-lg px-2.5 py-1.5 text-sm font-black transition-all sm:px-3 ${timeFilter === "year" ? "bg-primary text-primary-foreground shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "text-[#146B3E] hover:bg-white"}`}>
+                ปี
+              </button>
+              <button onClick={() => setTimeMode("all")} className={`rounded-lg px-2.5 py-1.5 text-sm font-black transition-all sm:px-3 ${timeFilter === "all" ? "bg-primary text-primary-foreground shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "text-[#146B3E] hover:bg-white"}`}>
+                ทั้งหมด
+              </button>
+            </div>
+
+            <div className="flex min-h-10 shrink-0 items-center justify-between gap-0.5 rounded-xl bg-[#E7F3EC] px-0.5 text-[#146B3E] sm:min-w-44 sm:gap-1 sm:px-1">
+              {timeFilter === "all" ? (
+                <div className="flex w-full min-w-40 items-center justify-center gap-1.5 px-3 py-2 text-sm font-extrabold text-foreground sm:min-w-44">
+                  <ListFilter size={15} className="text-[#146B3E]" />
+                  ทั้งหมด
+                </div>
+              ) : (
+                <>
+                <button
+                  aria-label={timeFilter === "month" ? "เดือนก่อน" : "ปีก่อน"}
+                  onClick={() => timeFilter === "month" ? moveMonth(-1) : moveYear(-1)}
+                  className="rounded-xl p-2 transition-all hover:bg-white hover:text-primary"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                {timeFilter === "month" ? (
+                  <button
+                    aria-expanded={isCalendarExpanded}
+                    onClick={() => setIsCalendarExpanded(v => !v)}
+                    className="flex min-w-20 items-center justify-center gap-1 rounded-xl px-1 py-2 text-sm font-extrabold text-foreground transition-all hover:bg-white sm:min-w-24 sm:px-2"
+                  >
+                    {timeLabel}
+                    {isCalendarExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
+                ) : (
+                  <span className="min-w-16 text-center text-sm font-extrabold text-foreground sm:min-w-20">{timeLabel}</span>
+                )}
+                <button
+                  aria-label={timeFilter === "month" ? "เดือนถัดไป" : "ปีถัดไป"}
+                  onClick={() => timeFilter === "month" ? moveMonth(1) : moveYear(1)}
+                  className="rounded-xl p-2 transition-all hover:bg-white hover:text-primary"
+                >
+                  <ChevronRight size={18} />
+                </button>
+                </>
+              )}
+            </div>
+
+            <span className="shrink-0 rounded-xl bg-[#E7F3EC] px-2 py-2 text-center text-xs font-bold text-[#527060]">{filtered.length} รายการ</span>
+          </div>
+          <button onClick={() => { if(showForm) handleCancel(); else setShowForm(true); }} className="hidden items-center gap-2 rounded-xl bg-primary px-4 py-2 text-base font-black text-primary-foreground shadow-[0_10px_24px_rgba(20,107,62,0.16)] transition-colors hover:bg-[#0F5A34] sm:flex">
+            <Plus size={16} />{showForm ? "ยกเลิก" : "บันทึก"}
+          </button>
+        </div>
       </div>
+
+      {timeFilter === "month" && isCalendarExpanded && (
+        <div className="rounded-2xl border border-[#B9DCC8] bg-white p-4 shadow-[0_10px_24px_rgba(20,107,62,0.08)]">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-base font-extrabold text-foreground">{MONTHS_TH[selectedMonth]} {selectedYear + 543}</span>
+            <button
+              onClick={() => setSelectedDay(null)}
+              className={`rounded-xl border px-3 py-1.5 text-xs font-black transition-all ${selectedDay ? "border-[#B9DCC8] bg-[#F7FAF8] text-[#146B3E] hover:bg-[#E7F3EC]" : "border-primary bg-primary text-primary-foreground"}`}
+            >
+              ทั้งเดือน
+            </button>
+          </div>
+          <div className="mb-1 grid grid-cols-7 gap-1">
+            {DAYS_TH.map(d => <div key={d} className="py-1 text-center text-xs font-black text-[#527060]">{d}</div>)}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: firstDay }).map((_, i) => <div key={`empty-${i}`} />)}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day = i + 1
+              const date = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+              const activityCount = activityCountByDate[date] ?? 0
+              const isSelected = selectedDay === date
+              const isToday = todayDate === date
+              return (
+                <button
+                  key={day}
+                  onClick={() => setSelectedDay(isSelected ? null : date)}
+                  className={`relative flex h-11 flex-col items-center justify-center rounded-xl text-sm font-semibold transition-all ${isSelected ? "bg-primary text-primary-foreground shadow-md" : isToday ? "bg-primary/10 font-bold text-primary ring-1 ring-primary" : activityCount ? "bg-[#E7F3EC] text-foreground hover:bg-[#D8EEE2]" : "text-[#527060] hover:bg-[#E7F3EC] hover:text-foreground"}`}
+                >
+                  {day}
+                  {activityCount > 0 && (
+                    <span className={`absolute bottom-1 min-w-3 rounded-full px-1 text-[9px] font-black leading-3 ${isSelected ? "bg-primary-foreground text-primary" : "bg-primary text-primary-foreground"}`}>
+                      {activityCount}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <div className="bg-[#E7F3EC] rounded-xl p-4 space-y-3 border border-[#B9DCC8]">
@@ -126,7 +328,7 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
           </div>
           <div>
             <label className="text-base font-bold text-[#527060] mb-1.5 block uppercase tracking-wider">ค่าใช้จ่าย (บาท)</label>
-            <input type="number" value={form.cost} onChange={e => set("cost", Number(e.target.value))} className="w-full bg-[#F7FBF8] border border-[#B9DCC8] rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" min={0} />
+            <input type="number" value={form.cost} onChange={e => set("cost", Number(e.target.value))} className="w-full bg-[#F7FBF8] border border-[#B9DCC8] rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" min={0} max={100000000} step="0.01" />
           </div>
           <div className="flex gap-3 pt-2">
             <button onClick={handleCancel} className="flex-1 bg-[#F7FBF8] border border-[#B9DCC8] rounded-xl py-3 text-[#527060] font-bold hover:bg-[#E7F3EC] transition-colors">ยกเลิก</button>
@@ -135,15 +337,14 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
         </div>
       )}
 
-      {/* Filter Chips */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        <button onClick={() => setFilter("all")} className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-black border transition-all ${filter === "all" ? "bg-primary text-primary-foreground border-primary shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "border-[#B9DCC8] bg-white text-[#146B3E] hover:border-primary/50"}`}>
+      <div className="flex flex-wrap gap-2 sm:flex-nowrap sm:overflow-x-auto sm:pb-1 sm:scrollbar-hide">
+        <button onClick={() => setFilter("all")} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-black border transition-all ${filter === "all" ? "bg-primary text-primary-foreground border-primary shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "border-[#B9DCC8] bg-white text-[#146B3E] hover:border-primary/50"}`}>
           <ListFilter size={14} /> ทั้งหมด
         </button>
         {(Object.keys(ACTIVITY_LABELS) as ActivityType[]).map(t => {
           const Icon = ACTIVITY_ICONS[t]
           return (
-            <button key={t} onClick={() => setFilter(t)} className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-black border transition-all ${filter === t ? "bg-primary text-primary-foreground border-primary shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "border-[#B9DCC8] bg-white text-[#146B3E] hover:border-primary/50"}`}>
+            <button key={t} onClick={() => setFilter(t)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-black border transition-all ${filter === t ? "bg-primary text-primary-foreground border-primary shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "border-[#B9DCC8] bg-white text-[#146B3E] hover:border-primary/50"}`}>
               <Icon size={14} /> {ACTIVITY_LABELS[t]}
             </button>
           )

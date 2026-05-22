@@ -1,5 +1,5 @@
 import AppShell from "@/components/AppShell"
-import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, SITE_URL } from "@/lib/seo"
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, serializeJsonLd, SITE_NAME, SITE_URL } from "@/lib/seo"
 
 export default function Page() {
   const jsonLd = {
@@ -22,7 +22,7 @@ export default function Page() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <AppShell />
     </>

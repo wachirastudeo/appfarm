@@ -26,6 +26,20 @@ export function cleanText(value: string) {
   return value.replace(/\s+/g, " ").trim()
 }
 
+export function serializeJsonLd(value: unknown) {
+  return JSON.stringify(value).replace(/</g, "\\u003c")
+}
+
+export function safeHttpUrl(value: string | undefined) {
+  if (!value) return ""
+  try {
+    const url = new URL(value)
+    return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : ""
+  } catch {
+    return ""
+  }
+}
+
 export function createExcerpt(value: string, maxLength = 155) {
   const text = cleanText(value)
   if (text.length <= maxLength) return text

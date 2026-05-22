@@ -5,6 +5,7 @@ import {
   FLOWER_STAGE_LABELS, FLOWER_STAGES, VARIETIES,
   useAppData
 } from "@/lib/store"
+import { validateDate, validateNumber, validateText } from "@/lib/form-validation"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import {
   Plus, Pencil, Trash2, QrCode, RefreshCw, X, Check,
@@ -93,13 +94,22 @@ function SelectionUpdateModal({ plot, selectedIds, onClose, onUpdate }: {
   useEscapeToClose({ enabled: true, onEscape: onClose, containerRef })
 
   const handleUpdate = () => {
+    const checkedNotes = validateText("หมายเหตุ", notes, { maxLength: 500, allowMultiline: true })
+    const checkedBatchName = validateText("ชื่อรุ่น", batchName, { required: addBatchToo, maxLength: 120 })
+    const checkedBatchDate = validateDate("วันที่บันทึกรุ่น", batchDate)
+    const checkedBatchNote = validateText("บันทึกรุ่น", batchNote, { maxLength: 500 })
+    if ((updateNotes && !checkedNotes.ok) || (addBatchToo && (!checkedBatchName.ok || !checkedBatchDate.ok || !checkedBatchNote.ok))) {
+      const invalid = !checkedNotes.ok ? checkedNotes : !checkedBatchName.ok ? checkedBatchName : !checkedBatchDate.ok ? checkedBatchDate : checkedBatchNote
+      alert(invalid.message)
+      return
+    }
     const changes: Partial<Tree> = {}
     if (updateStage) changes.stage = stage
     if (updateHealth) changes.health = health
     if (updateVariety) changes.variety = variety
-    if (updateNotes) changes.notes = notes
+    if (updateNotes) changes.notes = checkedNotes.value
     if (Object.keys(changes).length > 0 || addBatchToo) {
-      onUpdate(changes, addBatchToo ? { name: batchName, stage, date: batchDate, note: batchNote } : null)
+      onUpdate(changes, addBatchToo ? { name: checkedBatchName.value, stage, date: checkedBatchDate.value, note: checkedBatchNote.value } : null)
     }
     onClose()
   }
@@ -384,14 +394,23 @@ function TreeForm({ tree, existingTrees = [], onSave, onSaveMany, onCancel }: {
   const [addCount, setAddCount] = useState(1)
   const set = (k: string, v: unknown) => setForm(f => ({ ...f, [k]: v }))
   const handleSave = () => {
+    const treeNumber = validateText("หมายเลขต้น", form.treeNumber, { required: !isAdding, maxLength: 80 })
+    const age = validateNumber("อายุ", form.age, { min: 1, max: 200, integer: true })
+    const count = validateNumber("จำนวนต้นที่เพิ่ม", addCount, { min: 1, max: 200, integer: true })
+    const notes = validateText("บันทึก", form.notes, { maxLength: 500, allowMultiline: true })
+    if (!treeNumber.ok || !age.ok || !count.ok || !notes.ok) {
+      const invalid = !treeNumber.ok ? treeNumber : !age.ok ? age : !count.ok ? count : notes
+      alert(invalid.message)
+      return
+    }
+    const checkedForm = { ...form, treeNumber: treeNumber.value, age: age.value, notes: notes.value }
     if (!isAdding) {
-      if (form.treeNumber.trim()) onSave({ ...form, treeNumber: form.treeNumber.trim() })
+      onSave(checkedForm)
       return
     }
 
-    const count = Math.max(1, Math.min(200, addCount))
-    const baseTree = { ...form, treeNumber: form.treeNumber.trim() }
-    const items = Array.from({ length: count }, (_, index) => ({
+    const baseTree = checkedForm
+    const items = Array.from({ length: count.value }, (_, index) => ({
       ...baseTree,
       treeNumber: baseTree.treeNumber ? getTreeNumberFromBase(baseTree.treeNumber, index) : getNextTreeNumber(existingTrees, index),
       batches: [],
@@ -501,16 +520,24 @@ function TreeDetailView({
   const treeActivities = activities.filter(a => a.treeId === tree.id)
 
   const handleQuickAddBatch = () => {
-    const batchName = quickBatchForm.name.trim() || `รุ่นที่ ${(tree.batches?.length || 0) + 1}`
+    const name = validateText("ชื่อรุ่น", quickBatchForm.name, { maxLength: 120 })
+    const date = validateDate("วันที่บันทึก", quickBatchForm.date)
+    const note = validateText("บันทึกเพิ่มเติม", quickBatchForm.note, { maxLength: 500 })
+    if (!name.ok || !date.ok || !note.ok) {
+      const invalid = !name.ok ? name : !date.ok ? date : note
+      alert(invalid.message)
+      return
+    }
+    const batchName = name.value || `รุ่นที่ ${(tree.batches?.length || 0) + 1}`
     const batchId = `b${Date.now()}`
     const stageId = `s${Date.now() + 1}`
-    const stageDate = new Date(quickBatchForm.date).toISOString()
+    const stageDate = new Date(date.value).toISOString()
     const newBatch = {
       id: batchId,
       name: batchName,
       fruitCount: 0,
       bloomDate: quickBatchForm.stage === 'bloom' ? stageDate : undefined,
-      stages: [{ id: stageId, stage: quickBatchForm.stage, date: stageDate, note: quickBatchForm.note }],
+      stages: [{ id: stageId, stage: quickBatchForm.stage, date: stageDate, note: note.value }],
     }
     updateTree(plot.id, tree.id, {
       stage: quickBatchForm.stage,
@@ -518,6 +545,38 @@ function TreeDetailView({
     })
     setShowAddBatchForm(false)
     setQuickBatchForm({ name: `รุ่นที่ ${(tree.batches?.length || 0) + 2}`, stage: 'egg_fish', date: new Date().toISOString().split('T')[0], note: '' })
+  }
+
+  const handleSaveBatch = (batchId: string) => {
+    const name = validateText("ชื่อรุ่น", batchForm.name, { required: true, maxLength: 120 })
+    const fruitCount = validateNumber("จำนวนผลผลิต", batchForm.fruitCount, { min: 0, max: 100000, integer: true })
+    if (!name.ok || !fruitCount.ok) {
+      alert(!name.ok ? name.message : fruitCount.message)
+      return
+    }
+    updateBatch(plot.id, tree.id, batchId, { name: name.value, fruitCount: fruitCount.value })
+    setActiveBatchIdForEdit(null)
+  }
+
+  const handleSaveStage = (batchId: string, stageId?: string) => {
+    const date = validateDate("วันที่บันทึกระยะ", stageForm.date)
+    const note = validateText("บันทึกเพิ่มเติม", stageForm.note, { maxLength: 500 })
+    if (!date.ok || !note.ok) {
+      alert(!date.ok ? date.message : note.message)
+      return
+    }
+    const nextStage = { stage: stageForm.stage, date: new Date(date.value).toISOString(), note: note.value }
+    if (!stageId) {
+      addBatchStage(plot.id, tree.id, batchId, nextStage)
+      setActiveBatchIdForStage(null)
+      return
+    }
+    const batch = tree.batches.find(item => item.id === batchId)
+    if (!batch) return
+    updateBatch(plot.id, tree.id, batchId, {
+      stages: batch.stages.map(stage => stage.id === stageId ? { ...stage, ...nextStage } : stage)
+    })
+    setActiveStageIdForEdit(null)
   }
 
   const updateStageAndLog = (stage: FlowerStage) => {
@@ -676,14 +735,14 @@ function TreeDetailView({
                             <div>
                               <label className="text-base font-bold text-muted-foreground uppercase mb-1 block">จำนวนผลผลิต</label>
                               <div className="relative">
-                                <input type="number" value={batchForm.fruitCount} onChange={e => setBatchForm({ ...batchForm, fruitCount: Number(e.target.value) })} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base font-bold pr-10" placeholder="0" />
+                                <input type="number" value={batchForm.fruitCount} onChange={e => setBatchForm({ ...batchForm, fruitCount: Number(e.target.value) })} className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base font-bold pr-10" min={0} max={100000} step={1} placeholder="0" />
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-base font-bold text-muted-foreground">ลูก</span>
                               </div>
                             </div>
                           </div>
                           <div className="flex gap-2 mt-3">
                             <button onClick={() => setActiveBatchIdForEdit(null)} className="flex-1 text-base py-2 border border-border rounded-lg">ยกเลิก</button>
-                            <button onClick={() => { updateBatch(plot.id, tree.id, batch.id, batchForm); setActiveBatchIdForEdit(null) }} className="flex-1 text-base py-2 bg-primary text-primary-foreground rounded-lg">บันทึก</button>
+                            <button onClick={() => handleSaveBatch(batch.id)} className="flex-1 text-base py-2 bg-primary text-primary-foreground rounded-lg">บันทึก</button>
                           </div>
                         </div>
                       ) : (
@@ -750,10 +809,7 @@ function TreeDetailView({
                             <input type="text" value={stageForm.note} onChange={e => setStageForm({ ...stageForm, note: e.target.value })} placeholder="บันทึกเพิ่มเติม (ตัวเลือก)" className="w-full bg-input border border-border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-1 focus:ring-accent" />
                             <div className="flex gap-2 pt-2">
                               <button onClick={() => setActiveBatchIdForStage(null)} className="flex-1 py-2 text-base border border-border rounded-lg text-muted-foreground hover:text-foreground">ยกเลิก</button>
-                              <button onClick={() => {
-                                addBatchStage(plot.id, tree.id, batch.id, { stage: stageForm.stage, date: new Date(stageForm.date).toISOString(), note: stageForm.note });
-                                setActiveBatchIdForStage(null);
-                              }} className="flex-1 py-2 text-base bg-primary text-primary-foreground rounded-lg font-bold shadow-md">บันทึก</button>
+                              <button onClick={() => handleSaveStage(batch.id)} className="flex-1 py-2 text-base bg-primary text-primary-foreground rounded-lg font-bold shadow-md">บันทึก</button>
                             </div>
                           </div>
                         ) : (
@@ -788,12 +844,7 @@ function TreeDetailView({
                                     <input type="text" value={stageForm.note} onChange={e => setStageForm({ ...stageForm, note: e.target.value })} placeholder="บันทึกเพิ่มเติม" className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-base" />
                                     <div className="flex gap-2 pt-1">
                                       <button onClick={() => setActiveStageIdForEdit(null)} className="flex-1 py-1.5 text-base border border-border rounded-lg text-muted-foreground">ยกเลิก</button>
-                                      <button onClick={() => {
-                                        updateBatch(plot.id, tree.id, batch.id, {
-                                          stages: batch.stages.map(s => s.id === st.id ? { ...s, stage: stageForm.stage, date: new Date(stageForm.date).toISOString(), note: stageForm.note } : s)
-                                        });
-                                        setActiveStageIdForEdit(null);
-                                      }} className="flex-1 py-1.5 text-base bg-primary text-primary-foreground rounded-lg">บันทึก</button>
+                                      <button onClick={() => handleSaveStage(batch.id, st.id)} className="flex-1 py-1.5 text-base bg-primary text-primary-foreground rounded-lg">บันทึก</button>
                                     </div>
                                   </div>
                                 ) : (
@@ -889,6 +940,19 @@ function PlotDetailView({
     setSelectedIds(new Set())
   }
 
+  const handleSavePlot = () => {
+    const name = validateText("ชื่อแปลง", plotForm.name, { required: true, maxLength: 120 })
+    const area = validateNumber("พื้นที่", plotForm.area, { min: 0.5, max: 100000 })
+    const notes = validateText("บันทึก", plotForm.notes, { maxLength: 500 })
+    if (!name.ok || !area.ok || !notes.ok) {
+      const invalid = !name.ok ? name : !area.ok ? area : notes
+      alert(invalid.message)
+      return
+    }
+    updatePlot(plot.id, { name: name.value, area: area.value, notes: notes.value })
+    setEditingPlot(false)
+  }
+
   const selectedTree = plot.trees.find(t => t.id === selectedTreeId)
 
   if (selectedTree) {
@@ -962,7 +1026,7 @@ function PlotDetailView({
               <input value={plotForm.notes} onChange={e => setPlotForm(f => ({ ...f, notes: e.target.value }))} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="บันทึกเพิ่มเติม" />
               <div className="flex gap-2">
                 <button onClick={() => setEditingPlot(false)} className="flex-1 border border-border rounded-xl py-2.5 text-muted-foreground font-bold hover:bg-muted/50">ยกเลิก</button>
-                <button onClick={() => { updatePlot(plot.id, plotForm); setEditingPlot(false) }} className="flex-1 bg-primary text-primary-foreground rounded-xl py-2.5 font-bold hover:opacity-90">บันทึก</button>
+                <button onClick={handleSavePlot} className="flex-1 bg-primary text-primary-foreground rounded-xl py-2.5 font-bold hover:opacity-90">บันทึก</button>
               </div>
             </div>
           ) : (
@@ -1111,8 +1175,15 @@ export default function PlotManagement({
   const [plotForm, setPlotForm] = useState({ name: "", area: 1, notes: "" })
 
   const handleAddPlot = () => {
-    if (!plotForm.name) return
-    addPlot(plotForm)
+    const name = validateText("ชื่อแปลง", plotForm.name, { required: true, maxLength: 120 })
+    const area = validateNumber("พื้นที่", plotForm.area, { min: 0.5, max: 100000 })
+    const notes = validateText("บันทึก", plotForm.notes, { maxLength: 500 })
+    if (!name.ok || !area.ok || !notes.ok) {
+      const invalid = !name.ok ? name : !area.ok ? area : notes
+      alert(invalid.message)
+      return
+    }
+    addPlot({ name: name.value, area: area.value, notes: notes.value })
     setPlotForm({ name: "", area: 1, notes: "" })
     setShowAddPlot(false)
   }

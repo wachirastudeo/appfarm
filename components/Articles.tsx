@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useMemo, useState } from "react"
 import type { Article, Product } from "@/lib/store"
-import { absoluteUrl, articleJsonLd, createExcerpt, createSlug, DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, DEFAULT_TITLE, SITE_NAME, SITE_URL } from "@/lib/seo"
+import { absoluteUrl, articleJsonLd, createExcerpt, createSlug, DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, DEFAULT_TITLE, safeHttpUrl, serializeJsonLd, SITE_NAME, SITE_URL } from "@/lib/seo"
 import { Search, X, ArrowRight, Share2, Bookmark, ArrowLeft, ExternalLink, Facebook, MessageCircleMore, Link2, Smartphone, Twitter } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Products from "./Products"
@@ -173,6 +173,7 @@ export default function Articles({
 
   // Full Blog View
   if (selectedArticle) {
+    const affiliateUrl = safeHttpUrl(selectedArticle.affiliateUrl)
     return (
       <div className="animate-in fade-in duration-500 rounded-[2rem] border border-[#DDEBE1]/80 bg-white px-4 py-4 shadow-[0_20px_50px_rgba(20,107,62,0.06)] sm:px-6 sm:py-5 pb-20 dark:border-[#31533D]/45 dark:bg-[#14291E]">
         <div className="sticky top-0 z-10 mb-6 flex items-center justify-between gap-2 border-b border-border/50 bg-white/95 py-3 backdrop-blur-md sm:mb-8 sm:py-4 dark:bg-[#14291E]/95">
@@ -244,7 +245,7 @@ export default function Articles({
           <div className="prose prose-lg max-w-none px-2 sm:px-6 lg:px-0">
             <script
               type="application/ld+json"
-              dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd(selectedArticle)) }}
+              dangerouslySetInnerHTML={{ __html: serializeJsonLd(articleJsonLd(selectedArticle)) }}
             />
             {selectedArticle.geoSummary && (
               <section className="mb-8 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
@@ -255,13 +256,13 @@ export default function Articles({
             <div className="text-base lg:text-lg leading-relaxed text-foreground/80 whitespace-pre-wrap">
               {selectedArticle.content}
             </div>
-            {selectedArticle.affiliateUrl && (
+            {affiliateUrl && (
               <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
                 <p className="text-sm font-black text-primary">ปุ๋ยและยาแนะนำ</p>
                 <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-base font-black text-foreground">{selectedArticle.affiliateTitle || "ดูปุ๋ยและยาแนะนำ"}</p>
                   <a
-                    href={selectedArticle.affiliateUrl}
+                    href={affiliateUrl}
                     target="_blank"
                     rel="nofollow sponsored noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-black text-primary-foreground hover:opacity-90"
@@ -335,12 +336,12 @@ export default function Articles({
 
       {/* Categories Chips & Search Box Row */}
       <div className="flex">
-        <div className="flex flex-1 flex-nowrap gap-2.5 overflow-x-auto pb-2 scrollbar-hide xl:min-w-0">
+        <div className="flex flex-1 flex-wrap gap-2.5 sm:flex-nowrap sm:overflow-x-auto sm:pb-2 sm:scrollbar-hide xl:min-w-0">
           {categories.map(c => (
             <button
               key={c}
               onClick={() => setActiveCategory(c)}
-              className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
                 activeCategory === c
                   ? "bg-gradient-to-r from-primary to-emerald-600 text-primary-foreground shadow-lg shadow-primary/20 scale-[1.03]"
                   : "bg-card/40 backdrop-blur-sm border border-border/85 text-muted-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary"

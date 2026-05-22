@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect, useRef } from "react"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { downloadTaskCalendarFile, downloadTasksCalendarFile, getGoogleCalendarUrl } from "@/lib/calendar"
 import { Task, TaskStatus, useAppData } from "@/lib/store"
+import { validateDate, validateNumber, validateText } from "@/lib/form-validation"
 import { Plus, Check, X, Trash2, ChevronLeft, ChevronRight, CalendarDays, RotateCcw, Pencil, ChevronDown, ChevronUp, CalendarPlus, Download } from "lucide-react"
 
 type AppDataReturn = ReturnType<typeof useAppData>
@@ -142,10 +143,23 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
   const set = (k: string, v: unknown) => setForm(f => ({ ...f, [k]: v }))
 
   const handleAdd = () => {
-    if (!form.title || !form.plotId) return
-    const intervalDays = Math.max(1, Number(repeatEveryDays) || 1)
-    const monthsLimit = Math.max(1, Number(repeatLimitMonths) || 1)
-    const startDate = new Date(`${form.date}T00:00:00`)
+    const title = validateText("ชื่อแผนงาน", form.title, { required: true, maxLength: 160 })
+    const description = validateText("รายละเอียด", form.description, { maxLength: 500, allowMultiline: true })
+    const date = validateDate("วันที่", form.date)
+    const interval = validateNumber("จำนวนวันทำซ้ำ", repeatEveryDays, { min: 1, max: 365, integer: true })
+    const monthLimit = validateNumber("จำนวนเดือนที่ทำซ้ำ", repeatLimitMonths, { min: 1, max: 24, integer: true })
+    if (!form.plotId) {
+      alert("กรุณาเลือกแปลงก่อนบันทึก")
+      return
+    }
+    const invalid = [title, description, date, ...(repeatEnabled ? [interval] : []), ...(repeatEnabled && repeatLimitEnabled ? [monthLimit] : [])].find(result => !result.ok)
+    if (invalid && !invalid.ok) {
+      alert(invalid.message)
+      return
+    }
+    const intervalDays = interval.value
+    const monthsLimit = monthLimit.value
+    const startDate = new Date(`${date.value}T00:00:00`)
     const maxDate = repeatEnabled && repeatLimitEnabled
       ? new Date(startDate.getFullYear(), startDate.getMonth() + monthsLimit, startDate.getDate())
       : null
@@ -162,7 +176,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
     }
 
     datesToCreate.forEach((d) => {
-      addTask({ ...form, date: d.toISOString() })
+      addTask({ ...form, title: title.value, description: description.value, date: d.toISOString() })
     })
 
     setSelectedDate(form.date) // Switch to the date of the new task
@@ -229,12 +243,12 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
       </div>
 
       {/* Status Filter */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-wrap">
+      <div className="flex flex-wrap gap-2 sm:flex-nowrap sm:overflow-x-auto sm:pb-1 sm:scrollbar-hide">
         {(["all", "pending", "done", "cancelled"] as (TaskStatus | "all")[]).map(s => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
-            className={`shrink-0 px-3 py-1.5 rounded-xl text-sm font-black border transition-all ${statusFilter === s ? "bg-primary text-primary-foreground border-primary shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "border-[#B9DCC8] bg-white text-[#146B3E] hover:border-primary/50"}`}
+            className={`px-3 py-1.5 rounded-xl text-sm font-black border transition-all ${statusFilter === s ? "bg-primary text-primary-foreground border-primary shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "border-[#B9DCC8] bg-white text-[#146B3E] hover:border-primary/50"}`}
           >
             {s === "all" ? "ทั้งหมด" : STATUS_LABELS[s]}
           </button>
@@ -512,6 +526,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
                     <input
                       type="number"
                       min={1}
+                      max={365}
                       value={repeatEveryDays}
                       onChange={(e) => setRepeatEveryDays(Math.max(1, Number(e.target.value) || 1))}
                       className="w-20 bg-white border border-[#B9DCC8] rounded-lg px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -533,6 +548,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
                       <input
                         type="number"
                         min={1}
+                        max={24}
                         value={repeatLimitMonths}
                         onChange={(e) => setRepeatLimitMonths(Math.max(1, Number(e.target.value) || 1))}
                         className="w-20 bg-white border border-[#B9DCC8] rounded-lg px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -590,7 +606,19 @@ export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask }:
   const googleCalendarUrl = getGoogleCalendarUrl(task, plotName)
 
   const handleSaveEdit = () => {
-    updateTask(task.id, { ...editForm, date: new Date(editForm.date).toISOString() })
+    const title = validateText("ชื่องาน", editForm.title, { required: true, maxLength: 160 })
+    const description = validateText("รายละเอียด", editForm.description, { maxLength: 500, allowMultiline: true })
+    const date = validateDate("วันที่", editForm.date)
+    if (!editForm.plotId) {
+      alert("กรุณาเลือกแปลงก่อนบันทึก")
+      return
+    }
+    const invalid = [title, description, date].find(result => !result.ok)
+    if (invalid && !invalid.ok) {
+      alert(invalid.message)
+      return
+    }
+    updateTask(task.id, { ...editForm, title: title.value, description: description.value, date: new Date(date.value).toISOString() })
     setIsEditing(false)
   }
 

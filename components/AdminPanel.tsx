@@ -3,6 +3,7 @@ import { useId, useState } from "react"
 import type { AppUser, Article, NewUserInput, Product, SiteSettings } from "@/lib/store"
 import { appRuntimeConfig, getDataModeLabel, isSupabaseConfigured } from "@/lib/runtime-config"
 import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "@/lib/seo"
+import { validateEmail, validateHttpUrl, validateImageFile, validateText } from "@/lib/form-validation"
 import { BookOpen, Edit3, Image, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users, MessageSquare } from "lucide-react"
 
 interface Props {
@@ -101,12 +102,13 @@ export default function AdminPanel({
 
   const uploadImage = async (file: File | undefined, onDone: (dataUrl: string) => void, label: string) => {
     if (!file) return
-    if (!file.type.startsWith("image/")) {
-      setMessage("กรุณาเลือกไฟล์รูปภาพ")
+    const checkedFile = validateImageFile(file, 5 * 1024 * 1024)
+    if (!checkedFile.ok) {
+      setMessage(checkedFile.message)
       return
     }
     try {
-      const dataUrl = await convertImageToAvifDataUrl(file)
+      const dataUrl = await convertImageToAvifDataUrl(checkedFile.value)
       onDone(dataUrl)
       setMessage(`อัปโหลด${label}แล้ว กดบันทึกเพื่อนำไปใช้`)
     } catch {
@@ -115,24 +117,52 @@ export default function AdminPanel({
   }
 
   const saveSettings = () => {
-    updateSiteSettings(settingsDraft)
+    const siteName = validateText("ชื่อเว็บ", settingsDraft.siteName, { required: true, maxLength: 120 })
+    const tagline = validateText("คำโปรย", settingsDraft.tagline, { required: true, maxLength: 160 })
+    if (!siteName.ok || !tagline.ok) {
+      setMessage(!siteName.ok ? siteName.message : tagline.message)
+      return
+    }
+    updateSiteSettings({ ...settingsDraft, siteName: siteName.value, tagline: tagline.value })
     setMessage("บันทึกตั้งค่าเว็บแล้ว")
   }
 
   const saveArticle = () => {
-    if (!articleDraft.title.trim() || !articleDraft.content.trim()) {
-      setMessage("กรุณากรอกหัวข้อและเนื้อหาบทความ")
+    const title = validateText("หัวข้อ", articleDraft.title, { required: true, maxLength: 180 })
+    const category = validateText("หมวดหมู่", articleDraft.category, { required: true, maxLength: 80 })
+    const content = validateText("เนื้อหาบทความ", articleDraft.content, { required: true, maxLength: 12000, allowMultiline: true })
+    const affiliateTitle = validateText("ชื่อปุ๋ย/ยาแนะนำ", articleDraft.affiliateTitle ?? "", { maxLength: 180 })
+    const affiliateUrl = validateHttpUrl("Affiliate link", articleDraft.affiliateUrl ?? "", Boolean(affiliateTitle.value))
+    const slug = validateText("Slug", articleDraft.slug ?? "", { maxLength: 180 })
+    const metaTitle = validateText("Meta title", articleDraft.metaTitle ?? "", { maxLength: 180 })
+    const metaDescription = validateText("Meta description", articleDraft.metaDescription ?? "", { maxLength: 500, allowMultiline: true })
+    const keywords = validateText("Keywords", articleDraft.keywords ?? "", { maxLength: 500 })
+    const geoSummary = validateText("สรุปสั้น", articleDraft.geoSummary ?? "", { maxLength: 1000, allowMultiline: true })
+    const imageAlt = validateText("Alt รูปภาพ", articleDraft.imageAlt ?? "", { maxLength: 300 })
+    const authorName = validateText("ผู้เขียน", articleDraft.authorName ?? "", { maxLength: 120 })
+    if (affiliateUrl.value && !affiliateTitle.value) {
+      setMessage("กรุณากรอกชื่อปุ๋ย/ยาแนะนำก่อน Affiliate link")
+      return
+    }
+    const invalid = [title, category, content, affiliateTitle, affiliateUrl, slug, metaTitle, metaDescription, keywords, geoSummary, imageAlt, authorName].find(result => !result.ok)
+    if (invalid && !invalid.ok) {
+      setMessage(invalid.message)
       return
     }
     const nextArticle = {
       ...articleDraft,
-      slug: articleDraft.slug?.trim() || createSlug(articleDraft.title),
-      metaTitle: articleDraft.metaTitle?.trim() || articleDraft.title,
-      metaDescription: articleDraft.metaDescription?.trim() || createExcerpt(articleDraft.content),
-      keywords: uniqueKeywords([articleDraft.keywords, articleDraft.category, articleDraft.title, "ทุเรียน"]).join(", "),
-      geoSummary: articleDraft.geoSummary?.trim() || createGeoSummary(articleDraft.title, articleDraft.content),
-      imageAlt: articleDraft.imageAlt?.trim() || articleDraft.title,
-      authorName: articleDraft.authorName?.trim() || "ทีมสวนทุเรียน",
+      title: title.value,
+      category: category.value,
+      content: content.value,
+      affiliateTitle: affiliateTitle.value,
+      affiliateUrl: affiliateUrl.value,
+      slug: slug.value || createSlug(title.value),
+      metaTitle: metaTitle.value || title.value,
+      metaDescription: metaDescription.value || createExcerpt(content.value),
+      keywords: uniqueKeywords([keywords.value, category.value, title.value, "ทุเรียน"]).join(", "),
+      geoSummary: geoSummary.value || createGeoSummary(title.value, content.value),
+      imageAlt: imageAlt.value || title.value,
+      authorName: authorName.value || "ทีมสวนทุเรียน",
     }
     if (editingArticleId) {
       updateArticle(editingArticleId, nextArticle)
@@ -165,19 +195,39 @@ export default function AdminPanel({
   }
 
   const saveProduct = () => {
-    if (!productDraft.name.trim() || !productDraft.affiliateUrl.trim()) {
-      setMessage("กรุณากรอกชื่อปุ๋ย/ยาและ Affiliate link")
+    const name = validateText("ชื่อปุ๋ย/ยา", productDraft.name, { required: true, maxLength: 180 })
+    const category = validateText("หมวดหมู่", productDraft.category, { required: true, maxLength: 80 })
+    const description = validateText("รายละเอียดสั้น", productDraft.description, { required: true, maxLength: 1000, allowMultiline: true })
+    const priceLabel = validateText("ข้อความราคา/ปุ่ม", productDraft.priceLabel, { required: true, maxLength: 80 })
+    const affiliateUrl = validateHttpUrl("Affiliate link", productDraft.affiliateUrl, true)
+    const slug = validateText("Slug", productDraft.slug ?? "", { maxLength: 180 })
+    const metaTitle = validateText("Meta title", productDraft.metaTitle ?? "", { maxLength: 180 })
+    const metaDescription = validateText("Meta description", productDraft.metaDescription ?? "", { maxLength: 500, allowMultiline: true })
+    const keywords = validateText("Keywords", productDraft.keywords ?? "", { maxLength: 500 })
+    const geoSummary = validateText("สรุปสั้น", productDraft.geoSummary ?? "", { maxLength: 1000, allowMultiline: true })
+    const imageAlt = validateText("Alt รูปภาพ", productDraft.imageAlt ?? "", { maxLength: 300 })
+    const brandName = validateText("แบรนด์", productDraft.brandName ?? "", { maxLength: 120 })
+    const sku = validateText("SKU/รหัสสินค้า", productDraft.sku ?? "", { maxLength: 120 })
+    const invalid = [name, category, description, priceLabel, affiliateUrl, slug, metaTitle, metaDescription, keywords, geoSummary, imageAlt, brandName, sku].find(result => !result.ok)
+    if (invalid && !invalid.ok) {
+      setMessage(invalid.message)
       return
     }
     const nextProduct = {
       ...productDraft,
-      slug: productDraft.slug?.trim() || createSlug(productDraft.name),
-      metaTitle: productDraft.metaTitle?.trim() || productDraft.name,
-      metaDescription: productDraft.metaDescription?.trim() || createExcerpt(productDraft.description),
-      keywords: uniqueKeywords([productDraft.keywords, productDraft.category, productDraft.name, "ปุ๋ยยา", "ทุเรียน"]).join(", "),
-      geoSummary: productDraft.geoSummary?.trim() || createGeoSummary(productDraft.name, productDraft.description),
-      imageAlt: productDraft.imageAlt?.trim() || productDraft.name,
-      brandName: productDraft.brandName?.trim() || "สวนทุเรียน",
+      name: name.value,
+      category: category.value,
+      description: description.value,
+      priceLabel: priceLabel.value,
+      affiliateUrl: affiliateUrl.value,
+      slug: slug.value || createSlug(name.value),
+      metaTitle: metaTitle.value || name.value,
+      metaDescription: metaDescription.value || createExcerpt(description.value),
+      keywords: uniqueKeywords([keywords.value, category.value, name.value, "ปุ๋ยยา", "ทุเรียน"]).join(", "),
+      geoSummary: geoSummary.value || createGeoSummary(name.value, description.value),
+      imageAlt: imageAlt.value || name.value,
+      brandName: brandName.value || "สวนทุเรียน",
+      sku: sku.value,
     }
     if (editingProductId) {
       updateProduct(editingProductId, nextProduct)
@@ -211,12 +261,18 @@ export default function AdminPanel({
   }
 
   const createUser = async () => {
-    if (!userDraft.name.trim() || !userDraft.email.trim() || !userDraft.password.trim()) {
-      setMessage("กรุณากรอกข้อมูล user ให้ครบ")
+    const name = validateText("ชื่อ", userDraft.name, { required: true, maxLength: 120 })
+    const email = validateEmail(userDraft.email)
+    const password = validateText("รหัสผ่าน", userDraft.password, { required: true, maxLength: 128 })
+    if (!name.ok || !email.ok || !password.ok) {
+      setMessage(!name.ok ? name.message : !email.ok ? email.message : password.message)
       return
     }
     const created = await addUser({
       ...userDraft,
+      name: name.value,
+      email: email.value,
+      password: password.value,
       status: "active",
       provider: "email",
     })
@@ -498,8 +554,8 @@ export default function AdminPanel({
         </div>
         <div className="mb-4 grid gap-3 md:grid-cols-5">
           <AdminInput label="ชื่อ" value={userDraft.name} onChange={name => setUserDraft(v => ({ ...v, name }))} />
-          <AdminInput label="อีเมล" value={userDraft.email} onChange={email => setUserDraft(v => ({ ...v, email }))} />
-          <AdminInput label="รหัสผ่าน" value={userDraft.password} onChange={password => setUserDraft(v => ({ ...v, password }))} />
+          <AdminInput label="อีเมล" value={userDraft.email} onChange={email => setUserDraft(v => ({ ...v, email }))} type="email" />
+          <AdminInput label="รหัสผ่าน" value={userDraft.password} onChange={password => setUserDraft(v => ({ ...v, password }))} type="password" />
           <select value={userDraft.role} onChange={e => setUserDraft(v => ({ ...v, role: e.target.value as AppUser["role"] }))} className="self-end rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-bold outline-none">
             <option value="user">User</option>
             <option value="admin">Admin</option>
@@ -604,7 +660,7 @@ export default function AdminPanel({
   )
 }
 
-function AdminInput({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string }) {
+function AdminInput({ label, value, onChange, placeholder, type = "text" }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string; type?: "text" | "email" | "password" }) {
   const inputId = useId()
   const inputName = `${label.replace(/\s+/g, "-").toLowerCase()}-input`
   return (
@@ -613,6 +669,7 @@ function AdminInput({ label, value, onChange, placeholder }: { label: string; va
       <input
         id={inputId}
         name={inputName}
+        type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}

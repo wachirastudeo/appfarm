@@ -3,6 +3,7 @@ import { useRef, useState } from "react"
 import { X, MessageSquare, Send } from "lucide-react"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { useToast } from "@/hooks/use-toast"
+import { validateText } from "@/lib/form-validation"
 
 interface Props {
   isOpen: boolean
@@ -23,10 +24,13 @@ export default function FeedbackModal({ isOpen, onClose }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || !message.trim()) {
+    const checkedName = validateText("ชื่อ", name, { required: true, maxLength: 120 })
+    const checkedContact = validateText("ช่องทางติดต่อกลับ", contact, { maxLength: 160 })
+    const checkedMessage = validateText("ข้อความ", message, { required: true, maxLength: 1200, allowMultiline: true })
+    if (!checkedName.ok || !checkedContact.ok || !checkedMessage.ok) {
       toast({
-        title: "กรุณากรอกข้อมูลให้ครบถ้วน",
-        description: "กรุณาระบุชื่อและข้อความที่ต้องการส่ง",
+        title: "ข้อมูลไม่ถูกต้อง",
+        description: !checkedName.ok ? checkedName.message : !checkedContact.ok ? checkedContact.message : checkedMessage.message,
         variant: "destructive"
       })
       return
@@ -41,9 +45,9 @@ export default function FeedbackModal({ isOpen, onClose }: Props) {
         const currentFeedbacks = stored ? JSON.parse(stored) : []
         const newFeedback = {
           id: `fb-${Date.now()}`,
-          name: name.trim(),
-          contact: contact.trim(),
-          message: message.trim(),
+          name: checkedName.value,
+          contact: checkedContact.value,
+          message: checkedMessage.value,
           date: new Date().toISOString()
         }
         localStorage.setItem("appfarm_feedback", JSON.stringify([newFeedback, ...currentFeedbacks]))

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react"
 import type { AppUser } from "@/lib/store"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
+import { validateImageFile, validateText } from "@/lib/form-validation"
 import { X, User, LogOut, ChevronRight, Shield, Bell, Leaf, Camera, CheckCircle2 } from "lucide-react"
 
 interface Props {
@@ -45,19 +46,27 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout, onLogin,
   if (!isOpen) return null
 
   const saveName = () => {
-    const nextName = nameInput.trim()
-    if (!nextName) return
-    onUpdateUser({ name: nextName })
+    const nextName = validateText("ชื่อ", nameInput, { required: true, maxLength: 120 })
+    if (!nextName.ok) {
+      alert(nextName.message)
+      return
+    }
+    onUpdateUser({ name: nextName.value })
     setEditName(false)
   }
 
   const handleAvatarChange = (file?: File) => {
-    if (!file || !file.type.startsWith("image/")) return
+    if (!file) return
+    const checkedFile = validateImageFile(file, 5 * 1024 * 1024)
+    if (!checkedFile.ok) {
+      alert(checkedFile.message)
+      return
+    }
     const reader = new FileReader()
     reader.onload = () => {
       if (typeof reader.result === "string") onUpdateUser({ avatar: reader.result })
     }
-    reader.readAsDataURL(file)
+    reader.readAsDataURL(checkedFile.value)
   }
 
   const initials = user?.name

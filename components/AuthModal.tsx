@@ -3,6 +3,7 @@ import { useRef, useState } from "react"
 import type { AppUser } from "@/lib/store"
 import { createClient } from "@/lib/supabase/client"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
+import { validateEmail, validateText } from "@/lib/form-validation"
 import { X, Mail, Eye, EyeOff, AlertCircle, ShieldCheck, Sparkles } from "lucide-react"
 
 interface Props {
@@ -72,13 +73,18 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
     e.preventDefault()
     setError("")
     setSuccess("")
-    if (!email || !password) { setError("กรุณากรอกอีเมลและรหัสผ่าน"); return }
-    if (isSignUp && !name) { setError("กรุณากรอกชื่อของคุณ"); return }
+    const checkedEmail = validateEmail(email)
+    const checkedPassword = validateText("รหัสผ่าน", password, { required: true, maxLength: 128 })
+    const checkedName = validateText("ชื่อ", name, { required: isSignUp, maxLength: 120 })
+    if (!checkedEmail.ok || !checkedPassword.ok || !checkedName.ok) {
+      setError(!checkedEmail.ok ? checkedEmail.message : !checkedPassword.ok ? checkedPassword.message : checkedName.message)
+      return
+    }
     setLoading("email")
     setTimeout(async () => {
       const user = isSignUp
-        ? addUser({ name, email, password, role: "user", status: "active", provider: "email" })
-        : authenticateUser(email, password)
+        ? addUser({ name: checkedName.value, email: checkedEmail.value, password: checkedPassword.value, role: "user", status: "active", provider: "email" })
+        : authenticateUser(checkedEmail.value, checkedPassword.value)
       const result = await user
       if (!result) {
         setError(isSignUp ? "อีเมลนี้มีผู้ใช้งานแล้ว" : "อีเมลหรือรหัสผ่านไม่ถูกต้อง")
@@ -95,16 +101,21 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
     e.preventDefault()
     setError("")
     setSuccess("")
-    if (!email || !newPassword) { setError("กรุณากรอกอีเมลและรหัสผ่านใหม่"); return }
+    const checkedEmail = validateEmail(email)
+    const checkedPassword = validateText("รหัสผ่านใหม่", newPassword, { required: true, maxLength: 128 })
+    if (!checkedEmail.ok || !checkedPassword.ok) {
+      setError(!checkedEmail.ok ? checkedEmail.message : checkedPassword.message)
+      return
+    }
     setLoading("reset")
     setTimeout(async () => {
-      const result = await resetPassword(email, newPassword)
+      const result = await resetPassword(checkedEmail.value, checkedPassword.value)
       if (!result) {
         setError("ไม่พบบัญชีอีเมลนี้ในระบบ")
         setLoading(null)
         return
       }
-      setPassword(newPassword)
+      setPassword(checkedPassword.value)
       setNewPassword("")
       setIsSignUp(false)
       setMode("email")

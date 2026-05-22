@@ -1,6 +1,7 @@
 "use client"
 import { useMemo, useState } from "react"
 import { FinanceType, FinanceCategory, INCOME_CATEGORIES, EXPENSE_CATEGORIES, useAppData } from "@/lib/store"
+import { validateDate, validateNumber, validateText } from "@/lib/form-validation"
 import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, X, Search, Filter, CalendarDays, ReceiptText, Tags, Layers } from "lucide-react"
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from "recharts"
 
@@ -47,8 +48,15 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
   const allCategories = [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES].filter((v, i, arr) => arr.indexOf(v) === i)
 
   const handleAdd = () => {
-    if (!form.description || form.amount <= 0) return
-    addFinance({ ...form, date: new Date(form.date).toISOString() })
+    const description = validateText("รายละเอียด", form.description, { required: true, maxLength: 240 })
+    const amount = validateNumber("จำนวนเงิน", form.amount, { min: 0.01, max: 100000000 })
+    const date = validateDate("วันที่", form.date)
+    const invalid = [description, amount, date].find(result => !result.ok)
+    if (invalid && !invalid.ok) {
+      alert(invalid.message)
+      return
+    }
+    addFinance({ ...form, description: description.value, amount: amount.value, date: new Date(date.value).toISOString() })
     setForm({ date: new Date().toISOString().split("T")[0], type: "expense", category: "ปุ๋ย", amount: 0, description: "", plotId: data.plots[0]?.id ?? "" })
     setShowForm(false)
   }
@@ -166,7 +174,7 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input type="date" value={form.date} onChange={e => set("date", e.target.value)} className="rounded-xl border border-[#B9DCC8] bg-[#F7FBF8] px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/40" />
-            <input type="number" value={form.amount || ""} onChange={e => set("amount", Number(e.target.value))} className="rounded-xl border border-[#B9DCC8] bg-[#F7FBF8] px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/40" min={0} placeholder="จำนวนเงิน" />
+            <input type="number" value={form.amount || ""} onChange={e => set("amount", Number(e.target.value))} className="rounded-xl border border-[#B9DCC8] bg-[#F7FBF8] px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/40" min={0} max={100000000} step="0.01" placeholder="จำนวนเงิน" />
           </div>
           <div className="flex flex-wrap gap-2">
             {categories.map(c => (
@@ -203,9 +211,9 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
             {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-wrap">
+        <div className="mt-3 flex flex-wrap gap-2 sm:flex-nowrap sm:overflow-x-auto sm:pb-1 sm:scrollbar-hide">
           {(["all", "income", "expense"] as (FinanceType | "all")[]).map(t => (
-            <button key={t} onClick={() => setTypeFilter(t)} className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-bold transition-colors ${typeFilter === t ? "border-primary bg-primary text-primary-foreground" : "border-[#B9DCC8] text-[#527060] hover:text-foreground"}`}>
+            <button key={t} onClick={() => setTypeFilter(t)} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-bold transition-colors ${typeFilter === t ? "border-primary bg-primary text-primary-foreground" : "border-[#B9DCC8] text-[#527060] hover:text-foreground"}`}>
               <Filter size={13} />{t === "all" ? "ทั้งหมด" : t === "income" ? "รายรับ" : "รายจ่าย"}
             </button>
           ))}

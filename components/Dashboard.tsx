@@ -1,6 +1,7 @@
 "use client"
 import { useMemo, useState, useEffect, useRef } from "react"
 import { AppData, Task } from "@/lib/store"
+import { validateDate, validateText } from "@/lib/form-validation"
 import {
   Droplets, Wind, TrendingUp, TrendingDown, ListTodo, Sun, CloudSun, CloudRain,
   Sprout, Zap, Scissors, PackageSearch, ClipboardList, MoreHorizontal, Plus, X, Check, MapPin,
@@ -32,7 +33,7 @@ function StatCard({ icon: Icon, label, value, sub, color = "text-primary", bgCol
   return (
     <div
       onClick={onClick}
-      className={`orchard-card rounded-xl p-4 flex gap-3 items-center overflow-hidden relative ${onClick ? 'orchard-card-hover cursor-pointer' : ''}`}
+      className={`orchard-card rounded-[28px] p-5 sm:p-6 flex gap-3 items-center overflow-hidden relative ${onClick ? 'orchard-card-hover cursor-pointer' : ''}`}
     >
       <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#E7F3EC]/55" />
       <div className={`relative p-3 rounded-xl ${bgColor} ring-1 ring-black/5`}><Icon size={22} className={color} /></div>
@@ -267,10 +268,19 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
   })
 
   const handleQuickAdd = () => {
-    if (!quickForm.title.trim()) return
+    const title = validateText("ชื่องาน", quickForm.title, { required: true, maxLength: 160 })
+    const date = validateDate("วันที่", quickForm.date)
+    if (!quickForm.plotId) {
+      alert("กรุณาเลือกแปลงก่อนบันทึก")
+      return
+    }
+    if (!title.ok || !date.ok) {
+      alert(!title.ok ? title.message : date.message)
+      return
+    }
     addTask({
-      title: quickForm.title.trim(),
-      date: new Date(quickForm.date).toISOString(),
+      title: title.value,
+      date: new Date(date.value).toISOString(),
       plotId: quickForm.plotId,
       priority: quickForm.priority,
       description: "",
@@ -281,12 +291,16 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
   }
 
   const handlePlaceSearch = async () => {
-    if (!placeSearch.trim()) return
+    const search = validateText("ชื่อสถานที่", placeSearch, { required: true, maxLength: 160 })
+    if (!search.ok) {
+      alert(search.message)
+      return
+    }
     setSearchingPlace(true)
     setSearchResults([])
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeSearch + " ประเทศไทย")}` +
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(search.value + " ประเทศไทย")}` +
         `&format=json&limit=5&addressdetails=1&accept-language=th`
       )
       setSearchResults(await res.json())
@@ -325,12 +339,12 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
           alt="สวนทุเรียน"
           width={1200}
           height={400}
-          className="w-full h-[27rem] sm:h-[25rem] lg:h-[25rem] object-cover"
+          className="absolute inset-0 h-full w-full object-cover"
           priority
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,59,37,0.86),rgba(15,59,37,0.46)_48%,rgba(15,59,37,0.12)),linear-gradient(0deg,rgba(0,0,0,0.52),transparent_55%)]" />
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 lg:p-8">
-          <p className="text-[#E7F3EC] text-sm font-semibold mb-1 uppercase tracking-wider">{new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long" })}</p>
+        <div className="relative flex min-h-[27rem] flex-col justify-end p-4 sm:min-h-[25rem] sm:p-5 lg:p-8">
+          <p className="mb-1 max-w-full text-sm font-semibold leading-tight text-[#E7F3EC] break-words">{new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long" })}</p>
           <div className="flex items-center gap-2 mb-3">
             <h1 className="text-white text-xl sm:text-2xl lg:text-3xl font-black drop-shadow-lg leading-tight">
               สวัสดีคุณ{userName?.trim() || "ชาวสวน"}
@@ -400,10 +414,11 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
               ) : (
                 <button
                   onClick={() => setShowLocationEditor(true)}
-                  className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-black text-white shadow-lg shadow-red-950/20 ring-1 ring-red-200/50 transition-colors hover:bg-red-700 sm:w-auto"
+                  className="inline-flex min-h-10 w-fit max-w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-3 py-2 text-sm font-black text-white shadow-lg shadow-red-950/20 ring-1 ring-red-200/50 transition-colors hover:bg-red-700 sm:px-4"
                 >
                   <MapPin size={16} />
-                  ตั้งค่าสถานที่สวนเลย
+                  <span className="sm:hidden">ตั้งสถานที่สวน</span>
+                  <span className="hidden sm:inline">ตั้งค่าสถานที่สวนเลย</span>
                 </button>
               )}
             </div>
@@ -456,7 +471,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       </div>
 
       {showLocationEditor && (
-        <div ref={locationEditorRef} data-escapable-layer="true" className="fixed inset-0 z-[80] flex items-center justify-center bg-black/45 p-3 backdrop-blur-sm sm:p-4">
+        <div ref={locationEditorRef} data-escapable-layer="true" className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/45 p-3 pt-5 backdrop-blur-sm sm:p-4 sm:pt-8">
           <div className="w-full max-w-md rounded-3xl border border-border bg-card p-4 shadow-2xl sm:p-5 max-h-[90vh] overflow-y-auto">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
@@ -562,21 +577,26 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
         </div>
 
         {/* Tasks (mobile: order-1 / desktop: order-2 inside 2-col grid with Activities) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start order-1 lg:order-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 xl:gap-6 items-stretch order-1 lg:order-2">
           {/* Tasks card — always visible */}
-          <div className="orchard-card rounded-xl p-3 sm:p-4">
+          <div className="orchard-card rounded-[32px] p-5 sm:p-6 xl:p-7 flex h-full min-h-[18rem] flex-col">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h3 className="font-bold text-foreground flex items-center gap-2"><span className="rounded-lg bg-amber-100 p-1.5"><ListTodo size={18} className="text-amber-600" /></span>งานที่ต้องทำ</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowAddTask(v => !v)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-semibold transition-all ${showAddTask ? "bg-amber-100 text-amber-700" : "bg-[#E7F3EC] text-[#146B3E] hover:bg-[#D8EEE2]"
+                  className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-black transition-all ${showAddTask ? "bg-amber-100 text-amber-700 shadow-[0_8px_18px_rgba(245,158,11,0.12)]" : "bg-[#E7F3EC] text-[#146B3E] hover:bg-[#D8EEE2] hover:shadow-[0_8px_18px_rgba(20,107,62,0.08)]"
                     }`}
                 >
                   {showAddTask ? <X size={14} /> : <Plus size={14} />}
                   {showAddTask ? "ยกเลิก" : "เพิ่ม"}
                 </button>
-                <button onClick={() => onNavigate?.("operations")} className="text-sm text-primary font-medium hover:underline">ดูทั้งหมด</button>
+                <button
+                  onClick={() => onNavigate?.("operations")}
+                  className="inline-flex items-center rounded-full px-4 py-2 text-sm font-black text-primary transition-colors hover:bg-[#E7F3EC]"
+                >
+                  ดูทั้งหมด
+                </button>
               </div>
             </div>
 
@@ -618,7 +638,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
                 <button
                   onClick={handleQuickAdd}
                   disabled={!quickForm.title.trim()}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-lg py-2 text-sm font-bold hover:opacity-90 disabled:opacity-40 transition-opacity"
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-full py-2.5 text-sm font-black hover:bg-[#0F5A34] disabled:opacity-40 transition-colors shadow-[0_10px_24px_rgba(20,107,62,0.12)]"
                 >
                   <Check size={15} /> บันทึกงาน
                 </button>
@@ -641,7 +661,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
 
           {/* Activities — desktop only (inside 2-col grid) */}
           <div
-            className="hidden lg:block orchard-card orchard-card-hover rounded-xl p-4 cursor-pointer"
+            className="hidden lg:block orchard-card orchard-card-hover rounded-[32px] p-5 xl:p-6 cursor-pointer h-full min-h-[18rem]"
             onClick={() => onNavigate?.("operations")}
           >
             <div className="flex items-center justify-between mb-3">
@@ -653,13 +673,13 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
                     localStorage.setItem("open_activity_form", "1")
                     onNavigate?.("operations")
                   }}
-                  className="flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-sm font-bold text-primary-foreground hover:opacity-90"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-black text-primary-foreground shadow-[0_10px_24px_rgba(20,107,62,0.12)] transition-colors hover:bg-[#0F5A34]"
                 >
                   <Plus size={14} /> บันทึก
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onNavigate?.("operations") }}
-                  className="text-sm text-primary font-medium hover:underline"
+                  className="inline-flex items-center rounded-full px-4 py-2 text-sm font-black text-primary transition-colors hover:bg-[#E7F3EC]"
                 >ดูทั้งหมด</button>
               </div>
             </div>
@@ -703,13 +723,13 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
                   localStorage.setItem("open_activity_form", "1")
                   onNavigate?.("operations")
                 }}
-                className="flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-sm font-bold text-primary-foreground hover:opacity-90"
+                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-black text-primary-foreground shadow-[0_10px_24px_rgba(20,107,62,0.12)] transition-colors hover:bg-[#0F5A34]"
               >
                 <Plus size={14} /> บันทึก
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); onNavigate?.("operations") }}
-                className="text-sm text-primary font-medium hover:underline"
+                className="inline-flex items-center rounded-full px-4 py-2 text-sm font-black text-primary transition-colors hover:bg-[#E7F3EC]"
               >ดูทั้งหมด</button>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { Settings as SettingsIcon, Download, Upload, Trash2, Moon, Sun, Info, ChevronRight, Smartphone, Bell, Shield, X, ImageIcon, MapPin, CheckCircle2, User, LogOut } from "lucide-react"
 import type { AppUser, SiteSettings } from "@/lib/store"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
+import { validateImageFile, validateText } from "@/lib/form-validation"
 
 const STORAGE_KEY = "durian_orchard_data"
 const APP_VERSION = "1.0.0"
@@ -114,6 +115,10 @@ export default function Settings({
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0]
       if (!file) return
+      if (!file.name.toLowerCase().endsWith(".json") || file.size > 10 * 1024 * 1024) {
+        alert("กรุณาเลือกไฟล์สำรอง JSON ไม่เกิน 10MB")
+        return
+      }
       const reader = new FileReader()
       reader.onload = (ev) => {
         try {
@@ -142,18 +147,23 @@ export default function Settings({
   }
 
   const handleSaveFarmName = () => {
-    const nextName = farmName.trim() || "สวนทุเรียน"
-    setFarmName(nextName)
-    localStorage.setItem("farm_name", nextName)
-    updateSiteSettings({ siteName: nextName })
+    const nextName = validateText("ชื่อสวน", farmName || "สวนทุเรียน", { required: true, maxLength: 120 })
+    if (!nextName.ok) {
+      alert(nextName.message)
+      return
+    }
+    setFarmName(nextName.value)
+    localStorage.setItem("farm_name", nextName.value)
+    updateSiteSettings({ siteName: nextName.value })
     setIsEditingName(false)
   }
 
   const handleCoverImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) {
-      alert("ไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่เล็กกว่า 5MB")
+    const checkedFile = validateImageFile(file, 5 * 1024 * 1024)
+    if (!checkedFile.ok) {
+      alert(checkedFile.message)
       return
     }
     const reader = new FileReader()
@@ -162,7 +172,7 @@ export default function Settings({
       setCoverImage(result)
       localStorage.setItem("farm_cover_image", result)
     }
-    reader.readAsDataURL(file)
+    reader.readAsDataURL(checkedFile.value)
   }
 
   const handleRemoveCover = () => {
@@ -174,12 +184,16 @@ export default function Settings({
 
 
   const handlePlaceSearch = async () => {
-    if (!placeSearch.trim()) return
+    const search = validateText("ชื่อสถานที่", placeSearch, { required: true, maxLength: 160 })
+    if (!search.ok) {
+      alert(search.message)
+      return
+    }
     setSearching(true)
     setSearchResults([])
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeSearch + " ประเทศไทย")}` +
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(search.value + " ประเทศไทย")}` +
         `&format=json&limit=5&addressdetails=1&accept-language=th`,
         { headers: { "User-Agent": "DurianOrchardApp/1.0" } }
       )
