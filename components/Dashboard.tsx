@@ -637,8 +637,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
                 </div>
                 <button
                   onClick={handleQuickAdd}
-                  disabled={!quickForm.title.trim()}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-full py-2.5 text-sm font-black hover:bg-[#0F5A34] disabled:opacity-40 transition-colors shadow-[0_10px_24px_rgba(20,107,62,0.12)]"
+                  className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-full py-2.5 text-sm font-black hover:bg-[#0F5A34] transition-colors shadow-[0_10px_24px_rgba(20,107,62,0.12)]"
                 >
                   <Check size={15} /> บันทึกงาน
                 </button>

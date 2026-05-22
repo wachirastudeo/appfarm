@@ -108,9 +108,12 @@ export default function SupportModal({ isOpen, onClose, onOpenContact }: Props) 
           <div className="mt-4 rounded-2xl border border-[#B9DCC8]/55 bg-gradient-to-br from-[#F7FBF8] to-[#EAF5EE] p-4 dark:border-[#31533D]/45 dark:from-[#13251B] dark:to-[#102118]">
             <p className="text-xs font-black uppercase tracking-wider text-[#527060] dark:text-[#B8D1C0]">ช่องทางติดต่อสนับสนุนและลงโฆษณา</p>
             <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="inline-flex min-w-0 items-center gap-2 text-xs font-black text-[#143422] dark:text-[#D3E8DA] sm:text-sm">
+              <div className="inline-flex min-w-0 items-start gap-2 text-xs font-black text-[#143422] dark:text-[#D3E8DA] sm:text-sm">
                 <Mail size={16} className="text-[#146B3E] dark:text-[#72C08A]" />
-                <span className="truncate">{SUPPORT_EMAIL} · {SUPPORT_PHONE}</span>
+                <span className="min-w-0 space-y-0.5">
+                  <span className="block truncate">{SUPPORT_EMAIL}</span>
+                  <span className="block">{SUPPORT_PHONE}</span>
+                </span>
               </div>
               <button
                 type="button"

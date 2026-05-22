@@ -570,8 +570,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
               <button
                 type="button"
                 onClick={handleAdd}
-                disabled={!form.title.trim() || !form.plotId}
-                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 text-sm font-semibold hover:bg-[#0F5A34] disabled:opacity-40"
+                className="flex-1 bg-primary text-primary-foreground rounded-lg py-2 text-sm font-semibold hover:bg-[#0F5A34]"
               >
                 บันทึก
               </button>

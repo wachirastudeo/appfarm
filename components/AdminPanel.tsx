@@ -326,8 +326,8 @@ export default function AdminPanel({
               <h3 className="text-lg font-black">ตั้งค่าเว็บ</h3>
             </div>
             <div className="space-y-3">
-              <AdminInput label="ชื่อเว็บ" value={settingsDraft.siteName} onChange={siteName => setSettingsDraft(v => ({ ...v, siteName }))} />
-              <AdminInput label="คำโปรย" value={settingsDraft.tagline} onChange={tagline => setSettingsDraft(v => ({ ...v, tagline }))} />
+              <AdminInput label="ชื่อเว็บ" value={settingsDraft.siteName} onChange={siteName => setSettingsDraft(v => ({ ...v, siteName }))} required />
+              <AdminInput label="คำโปรย" value={settingsDraft.tagline} onChange={tagline => setSettingsDraft(v => ({ ...v, tagline }))} required />
               <label className="block space-y-1.5">
                 <span className="text-xs font-black text-muted-foreground">อัปโหลดโลโก้</span>
                 <div className="flex items-center gap-3">
@@ -410,8 +410,8 @@ export default function AdminPanel({
         </div>
         <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="space-y-3">
-            <AdminInput label="หัวข้อ" value={articleDraft.title} onChange={title => setArticleDraft(v => ({ ...v, title }))} />
-            <AdminInput label="หมวดหมู่" value={articleDraft.category} onChange={category => setArticleDraft(v => ({ ...v, category }))} />
+            <AdminInput label="หัวข้อ" value={articleDraft.title} onChange={title => setArticleDraft(v => ({ ...v, title }))} required />
+            <AdminInput label="หมวดหมู่" value={articleDraft.category} onChange={category => setArticleDraft(v => ({ ...v, category }))} required />
             <div className="rounded-xl border border-border bg-muted/40 p-3">
               <p className="mb-2 text-xs font-black text-muted-foreground">SEO / AI Search บทความ</p>
               <div className="space-y-2">
@@ -444,8 +444,8 @@ export default function AdminPanel({
                 )}
               </div>
             </label>
-            <label className="block text-xs font-black text-muted-foreground">เนื้อหา</label>
-            <textarea value={articleDraft.content} onChange={e => setArticleDraft(v => ({ ...v, content: e.target.value }))} className="min-h-40 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
+            <label className="block text-xs font-black text-muted-foreground">เนื้อหา *</label>
+            <textarea value={articleDraft.content} onChange={e => setArticleDraft(v => ({ ...v, content: e.target.value }))} required placeholder="กรอกเนื้อหาบทความ" className="min-h-40 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
             <select value={articleDraft.status} onChange={e => setArticleDraft(v => ({ ...v, status: e.target.value as Article["status"] }))} className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-bold outline-none">
               <option value="published">เผยแพร่</option>
               <option value="draft">ฉบับร่าง</option>
@@ -483,10 +483,10 @@ export default function AdminPanel({
         </div>
         <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="space-y-3">
-            <AdminInput label="ชื่อปุ๋ย/ยา" value={productDraft.name} onChange={name => setProductDraft(v => ({ ...v, name }))} />
-            <AdminInput label="หมวดหมู่" value={productDraft.category} onChange={category => setProductDraft(v => ({ ...v, category }))} />
-            <AdminInput label="ข้อความราคา/ปุ่ม" value={productDraft.priceLabel} onChange={priceLabel => setProductDraft(v => ({ ...v, priceLabel }))} />
-            <AdminInput label="Affiliate link" value={productDraft.affiliateUrl} onChange={affiliateUrl => setProductDraft(v => ({ ...v, affiliateUrl }))} placeholder="https://..." />
+            <AdminInput label="ชื่อปุ๋ย/ยา" value={productDraft.name} onChange={name => setProductDraft(v => ({ ...v, name }))} required />
+            <AdminInput label="หมวดหมู่" value={productDraft.category} onChange={category => setProductDraft(v => ({ ...v, category }))} required />
+            <AdminInput label="ข้อความราคา/ปุ่ม" value={productDraft.priceLabel} onChange={priceLabel => setProductDraft(v => ({ ...v, priceLabel }))} required />
+            <AdminInput label="Affiliate link" value={productDraft.affiliateUrl} onChange={affiliateUrl => setProductDraft(v => ({ ...v, affiliateUrl }))} placeholder="https://..." required />
             <div className="rounded-xl border border-border bg-muted/40 p-3">
               <p className="mb-2 text-xs font-black text-muted-foreground">SEO / AI Search ปุ๋ยและยา</p>
               <div className="space-y-2">
@@ -518,8 +518,8 @@ export default function AdminPanel({
                 )}
               </div>
             </label>
-            <label className="block text-xs font-black text-muted-foreground">รายละเอียดสั้น</label>
-            <textarea value={productDraft.description} onChange={e => setProductDraft(v => ({ ...v, description: e.target.value }))} className="min-h-24 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
+            <label className="block text-xs font-black text-muted-foreground">รายละเอียดสั้น *</label>
+            <textarea value={productDraft.description} onChange={e => setProductDraft(v => ({ ...v, description: e.target.value }))} required placeholder="กรอกรายละเอียดสั้น" className="min-h-24 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
             <select value={productDraft.status} onChange={e => setProductDraft(v => ({ ...v, status: e.target.value as Product["status"] }))} className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-bold outline-none">
               <option value="active">แสดงหน้าแรก</option>
               <option value="draft">ซ่อน</option>
@@ -553,9 +553,9 @@ export default function AdminPanel({
           <h3 className="text-lg font-black">จัดการ User</h3>
         </div>
         <div className="mb-4 grid gap-3 md:grid-cols-5">
-          <AdminInput label="ชื่อ" value={userDraft.name} onChange={name => setUserDraft(v => ({ ...v, name }))} />
-          <AdminInput label="อีเมล" value={userDraft.email} onChange={email => setUserDraft(v => ({ ...v, email }))} type="email" />
-          <AdminInput label="รหัสผ่าน" value={userDraft.password} onChange={password => setUserDraft(v => ({ ...v, password }))} type="password" />
+          <AdminInput label="ชื่อ" value={userDraft.name} onChange={name => setUserDraft(v => ({ ...v, name }))} required />
+          <AdminInput label="อีเมล" value={userDraft.email} onChange={email => setUserDraft(v => ({ ...v, email }))} type="email" required />
+          <AdminInput label="รหัสผ่าน" value={userDraft.password} onChange={password => setUserDraft(v => ({ ...v, password }))} type="password" required />
           <select value={userDraft.role} onChange={e => setUserDraft(v => ({ ...v, role: e.target.value as AppUser["role"] }))} className="self-end rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-bold outline-none">
             <option value="user">User</option>
             <option value="admin">Admin</option>
@@ -660,19 +660,20 @@ export default function AdminPanel({
   )
 }
 
-function AdminInput({ label, value, onChange, placeholder, type = "text" }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string; type?: "text" | "email" | "password" }) {
+function AdminInput({ label, value, onChange, placeholder, required = false, type = "text" }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string; required?: boolean; type?: "text" | "email" | "password" }) {
   const inputId = useId()
   const inputName = `${label.replace(/\s+/g, "-").toLowerCase()}-input`
   return (
     <label htmlFor={inputId} className="block space-y-1.5">
-      <span className="text-xs font-black text-muted-foreground">{label}</span>
+      <span className="text-xs font-black text-muted-foreground">{label}{required ? " *" : ""}</span>
       <input
         id={inputId}
         name={inputName}
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
+        placeholder={placeholder ?? (required ? `กรอก${label}` : undefined)}
+        required={required}
         className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold outline-none transition-colors focus:border-primary"
       />
     </label>
