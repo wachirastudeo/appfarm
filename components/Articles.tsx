@@ -288,7 +288,7 @@ export default function Articles({
           <p className="mt-1 text-sm text-muted-foreground font-semibold sm:text-base">สาระน่ารู้และคำแนะนำสำหรับการดูแลสวนทุเรียน</p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5 xl:max-w-[40rem] xl:justify-end">
-          <div className="relative min-w-[16rem] flex-1 xl:max-w-sm">
+          <div className="relative min-w-0 flex-1 basis-full sm:min-w-[16rem] xl:max-w-sm">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={20} />
             <input
               type="text"

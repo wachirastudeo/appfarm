@@ -26,12 +26,12 @@ export default function Operations({ data, addTask, updateTask, deleteTask, addA
   }, [])
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       {/* Sub-Tab Switcher */}
-      <div className="flex bg-[#E7F3EC] p-1.5 rounded-2xl border-2 border-[#B9DCC8] shadow-[0_10px_24px_rgba(20,107,62,0.10)]">
+      <div className="flex min-w-0 bg-[#E7F3EC] p-1.5 rounded-2xl border-2 border-[#B9DCC8] shadow-[0_10px_24px_rgba(20,107,62,0.10)]">
         <button
           onClick={() => setActiveTab("tasks")}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-black transition-all ${
+          className={`min-w-0 flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-black transition-all ${
             activeTab === "tasks"
               ? "bg-primary text-primary-foreground shadow-[0_12px_28px_rgba(20,107,62,0.24)]"
               : "bg-white/70 text-[#146B3E] hover:bg-white"
@@ -41,7 +41,7 @@ export default function Operations({ data, addTask, updateTask, deleteTask, addA
         </button>
         <button
           onClick={() => setActiveTab("activities")}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-black transition-all ${
+          className={`min-w-0 flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-black transition-all ${
             activeTab === "activities"
               ? "bg-primary text-primary-foreground shadow-[0_12px_28px_rgba(20,107,62,0.24)]"
               : "bg-white/70 text-[#146B3E] hover:bg-white"

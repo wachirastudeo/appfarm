@@ -224,7 +224,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
   const completedTasks = allFilteredTasks.filter(t => t.status !== "pending")
 
   return (
-    <div className="space-y-5">
+    <div className="min-w-0 space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-bold text-foreground">แผนการทำงาน</h2>
         <button
@@ -690,7 +690,7 @@ export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask }:
 
   return (
     <div className={`bg-white rounded-2xl border border-[#B9DCC8] border-l-4 p-3 transition-all hover:shadow-[0_10px_24px_rgba(20,107,62,0.10)] ${isDone || isCancelled ? "border-l-[#B9DCC8] opacity-80" : priorityBorder[task.priority]}`}>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+      <div className="grid min-w-0 grid-cols-1 gap-2 min-[430px]:grid-cols-[minmax(0,1fr)_auto] min-[430px]:items-center min-[430px]:gap-3">
         <div className="flex min-w-0 items-start gap-3">
           <span className={`mt-1.5 shrink-0 block w-2.5 h-2.5 rounded-full ${isDone ? "bg-emerald-500" : isCancelled ? "bg-[#B9DCC8]" : priorityDot[task.priority]}`} />
           <div className="min-w-0">
@@ -703,7 +703,7 @@ export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask }:
             )}
           </div>
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-1 min-[430px]:justify-end">
           <a
             href={googleCalendarUrl}
             target="_blank"

@@ -102,10 +102,10 @@ function AppFooter({ onContactClick }: { onContactClick: () => void }) {
 
           <a
             href="mailto:wachirastudeo@gmail.com"
-            className="inline-flex items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-xs font-extrabold text-[#146B3E] shadow-sm ring-1 ring-[#B9DCC8]/60 transition-all hover:bg-[#E7F3EC] hover:ring-[#146B3E]/30 active:scale-95"
+            className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-xs font-extrabold text-[#146B3E] shadow-sm ring-1 ring-[#B9DCC8]/60 transition-all hover:bg-[#E7F3EC] hover:ring-[#146B3E]/30 active:scale-95"
           >
             <Mail size={14} className="text-[#146B3E]" />
-            <span>wachirastudeo@gmail.com</span>
+            <span className="truncate">wachirastudeo@gmail.com</span>
           </a>
           <a
             href="tel:0924151449"
@@ -1047,7 +1047,7 @@ export default function AppShell() {
       </header>
 
       {/* Body: Sidebar + Content */}
-      <div className="flex flex-1 overflow-hidden relative z-10">
+      <div className="relative z-10 flex min-w-0 flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
         <nav className="hidden lg:flex flex-col w-56 bg-white/40 dark:bg-black/15 backdrop-blur-md border-r border-[#DDEBE1]/40 dark:border-[#31533D]/25 py-4 px-3 gap-1.5 shrink-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.1),10px_0_30px_rgba(0,0,0,0.02)] relative overflow-hidden">
           <p className="relative px-2 pt-2 text-xs font-black text-muted-foreground uppercase tracking-wider mb-1">เมนูหลัก</p>
@@ -1073,9 +1073,9 @@ export default function AppShell() {
         </nav>
 
         {/* Main Content — full width, no extra card */}
-        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0 bg-transparent">
+        <main className="min-w-0 flex-1 overflow-y-auto bg-transparent pb-20 lg:pb-0">
           <div
-            className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-3 sm:py-4 md:py-6"
+            className="mx-auto w-full min-w-0 max-w-7xl px-3 py-3 sm:px-4 sm:py-4 md:px-8 md:py-6"
           >
             <div key={activeTab} className="animate-in fade-in duration-200">
               {renderContent()}

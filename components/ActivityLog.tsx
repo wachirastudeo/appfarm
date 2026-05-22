@@ -372,7 +372,7 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
                   <span className="text-base font-medium text-primary">{plotName(a.plotId)}</span>
                 </div>
                 <p className="text-base text-[#527060] leading-relaxed mb-2">{a.description}</p>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                   <span className="text-base font-medium text-[#527060] flex items-center gap-1">
                     <Clock size={12} /> {formatDate(a.date)}
                   </span>

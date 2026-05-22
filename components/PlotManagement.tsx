@@ -1046,7 +1046,7 @@ function PlotDetailView({
         </div>
         {/* Row 2: action buttons (only when not editing) */}
         {!editingPlot && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 min-[430px]:flex-nowrap">
             {selectMode ? (
               <>
                 <button onClick={toggleSelectAll} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border-2 border-[#146B3E] text-[#146B3E] rounded-2xl text-sm font-black hover:bg-[#E7F3EC] transition-all">
@@ -1191,7 +1191,7 @@ export default function PlotManagement({
   const selectedPlot = data.plots.find(p => p.id === selectedPlotId)
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 items-start min-h-[600px]">
+    <div className="flex min-w-0 flex-col items-start gap-6 lg:min-h-[600px] lg:flex-row">
       {/* Left Column: Plot List (Sticky on desktop) */}
       <div className={`w-full lg:w-64 shrink-0 space-y-3 lg:sticky lg:top-4 ${selectedPlotId ? 'hidden lg:block' : 'block'}`}>
         <div className="relative overflow-hidden rounded-2xl bg-[#146B3E] p-3 text-white shadow-sm">
