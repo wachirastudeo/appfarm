@@ -9,6 +9,17 @@ type AppDataRow = {
   updated_at: string
 }
 
+function withoutOwnerData(appData: AppData): AppData {
+  return {
+    ...appData,
+    users: [],
+    plots: [],
+    activities: [],
+    tasks: [],
+    finance: [],
+  }
+}
+
 export async function loadRemoteAppData() {
   const supabase = createClient()
   const { data, error } = await supabase
@@ -32,7 +43,7 @@ export async function saveRemoteAppData(appData: AppData, ownerUserId?: string |
     .from("app_data")
     .upsert({
       id: APP_DATA_ID,
-      data: appData,
+      data: withoutOwnerData(appData),
       updated_at: new Date().toISOString(),
     })
 
@@ -49,6 +60,12 @@ function rowToUser(row: Record<string, unknown>): AppUser {
     provider: (row.provider as string) || "email",
     passwordHash: (row.password_hash as string) || "",
     avatar: (row.avatar_url as string) || undefined,
+    coverImage: (row.cover_image as string) || undefined,
+    coverPositionX: row.cover_position_x === null || row.cover_position_x === undefined ? undefined : Number(row.cover_position_x),
+    coverPositionY: row.cover_position_y === null || row.cover_position_y === undefined ? undefined : Number(row.cover_position_y),
+    farmName: (row.farm_name as string) || undefined,
+    farmLocation: row.farm_location as AppUser["farmLocation"],
+    savedArticleIds: Array.isArray(row.saved_article_ids) ? row.saved_article_ids.filter(id => typeof id === "string") : undefined,
     createdAt: row.created_at as string,
   }
 }
@@ -184,7 +201,7 @@ function rowToProduct(row: Record<string, unknown>): Product {
 
 function rowToSettings(row: Record<string, unknown> | null): SiteSettings {
   return {
-    siteName: (row?.site_name as string) || "สวนทุเรียน",
+    siteName: (row?.site_name as string) || "DurianFlow",
     tagline: (row?.tagline as string) || "Smart Orchard",
     logoUrl: (row?.logo_url as string) || "",
   }
@@ -315,6 +332,12 @@ export async function saveStructuredAppData(appData: AppData, ownerUserId?: stri
     email: user.email,
     name: user.name,
     avatar_url: user.avatar ?? null,
+    cover_image: user.coverImage ?? null,
+    cover_position_x: user.coverPositionX ?? null,
+    cover_position_y: user.coverPositionY ?? null,
+    farm_name: user.farmName ?? null,
+    farm_location: user.farmLocation ?? null,
+    saved_article_ids: user.savedArticleIds ?? null,
     role: user.role,
     status: user.status,
     provider: user.provider,

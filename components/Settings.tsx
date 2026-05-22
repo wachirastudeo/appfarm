@@ -6,7 +6,7 @@ import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { validateImageFile, validateText } from "@/lib/form-validation"
 import { Slider } from "./ui/slider"
 
-const STORAGE_KEY = "durian_orchard_data"
+const STORAGE_KEY_BASE = "durian_orchard_data"
 const APP_VERSION = "1.0.0"
 const THEME_KEY = "durian_theme"
 const NOTIFICATION_KEY = "durian_notifications_enabled"
@@ -23,12 +23,13 @@ interface Props {
   isOpen: boolean
   onClose: () => void
   siteSettings: SiteSettings
-  updateSiteSettings: (changes: Partial<SiteSettings>) => void
   installPrompt: BeforeInstallPromptEvent | null
   onInstallPromptUsed: () => void
   currentUser?: AppUser | null
   locationStorageKey: string
   coverStorageKey: string
+  onUpdateCover: (changes: Partial<Pick<AppUser, "coverImage" | "coverPositionX" | "coverPositionY">>) => Promise<void>
+  onUpdateFarmProfile: (changes: Partial<Pick<AppUser, "farmName" | "farmLocation">>) => Promise<void>
   onLogout?: () => void
 }
 
@@ -41,12 +42,13 @@ export default function Settings({
   isOpen,
   onClose,
   siteSettings,
-  updateSiteSettings,
   installPrompt,
   onInstallPromptUsed,
   currentUser,
   locationStorageKey,
   coverStorageKey,
+  onUpdateCover,
+  onUpdateFarmProfile,
   onLogout,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -58,7 +60,7 @@ export default function Settings({
   })
   const [farmName, setFarmName] = useState(() => {
     if (typeof window === "undefined") return "สวนทุเรียน"
-    return localStorage.getItem("farm_name") || siteSettings.siteName || "สวนทุเรียน"
+    return currentUser?.farmName || siteSettings.siteName || "สวนทุเรียน"
   })
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
     if (typeof window === "undefined") return false
@@ -67,13 +69,13 @@ export default function Settings({
   const [isEditingName, setIsEditingName] = useState(false)
   const [coverImage, setCoverImage] = useState<string | null>(() => {
     if (typeof window === "undefined") return null
-    return localStorage.getItem(coverStorageKey) || null
+    return currentUser?.coverImage || localStorage.getItem(coverStorageKey) || null
   })
   const [coverPosition, setCoverPosition] = useState(() => {
     if (typeof window === "undefined") return { x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION }
     return {
-      x: readCoverPosition(`${coverStorageKey}_x`),
-      y: readCoverPosition(`${coverStorageKey}_y`),
+      x: currentUser?.coverPositionX ?? readCoverPosition(`${coverStorageKey}_x`),
+      y: currentUser?.coverPositionY ?? readCoverPosition(`${coverStorageKey}_y`),
     }
   })
   const [coverPositionDraft, setCoverPositionDraft] = useState(coverPosition)
@@ -96,8 +98,8 @@ export default function Settings({
   }, [theme])
 
   useEffect(() => {
-    if (!isEditingName) setFarmName(siteSettings.siteName || localStorage.getItem("farm_name") || "สวนทุเรียน")
-  }, [isEditingName, siteSettings.siteName])
+    if (!isEditingName) setFarmName(currentUser?.farmName || siteSettings.siteName || "สวนทุเรียน")
+  }, [currentUser?.farmName, isEditingName, siteSettings.siteName])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -107,12 +109,12 @@ export default function Settings({
 
   useEffect(() => {
     if (typeof window === "undefined") return
-    setCoverImage(localStorage.getItem(coverStorageKey) || null)
+    setCoverImage(currentUser?.coverImage || localStorage.getItem(coverStorageKey) || null)
     setCoverPosition({
-      x: readCoverPosition(`${coverStorageKey}_x`),
-      y: readCoverPosition(`${coverStorageKey}_y`),
+      x: currentUser?.coverPositionX ?? readCoverPosition(`${coverStorageKey}_x`),
+      y: currentUser?.coverPositionY ?? readCoverPosition(`${coverStorageKey}_y`),
     })
-  }, [coverStorageKey, isOpen])
+  }, [coverStorageKey, currentUser?.coverImage, currentUser?.coverPositionX, currentUser?.coverPositionY, isOpen])
 
   useEffect(() => {
     setCoverPositionDraft(coverPosition)
@@ -123,7 +125,7 @@ export default function Settings({
 
   const handleExportData = () => {
     try {
-      const data = localStorage.getItem(STORAGE_KEY)
+      const data = localStorage.getItem(currentUser?.id ? `${STORAGE_KEY_BASE}_${currentUser.id}` : STORAGE_KEY_BASE)
       if (!data) {
         alert("ไม่พบข้อมูลที่จะสำรอง")
         return
@@ -160,7 +162,7 @@ export default function Settings({
             alert("ไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์สำรองที่ถูกต้อง")
             return
           }
-          localStorage.setItem(STORAGE_KEY, content)
+          localStorage.setItem(currentUser?.id ? `${STORAGE_KEY_BASE}_${currentUser.id}` : STORAGE_KEY_BASE, content)
           alert("กู้คืนข้อมูลสำเร็จ! กรุณารีเฟรชหน้าเว็บ")
           window.location.reload()
         } catch {
@@ -173,21 +175,24 @@ export default function Settings({
   }
 
   const handleResetData = () => {
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(currentUser?.id ? `${STORAGE_KEY_BASE}_${currentUser.id}` : STORAGE_KEY_BASE)
     alert("ล้างข้อมูลสำเร็จ! กรุณารีเฟรชหน้าเว็บ")
     window.location.reload()
   }
 
-  const handleSaveFarmName = () => {
+  const handleSaveFarmName = async () => {
     const nextName = validateText("ชื่อสวน", farmName || "สวนทุเรียน", { required: true, maxLength: 120 })
     if (!nextName.ok) {
       alert(nextName.message)
       return
     }
     setFarmName(nextName.value)
-    localStorage.setItem("farm_name", nextName.value)
-    updateSiteSettings({ siteName: nextName.value })
-    setIsEditingName(false)
+    try {
+      await onUpdateFarmProfile({ farmName: nextName.value })
+      setIsEditingName(false)
+    } catch {
+      alert("บันทึกชื่อสวนไม่สำเร็จ กรุณาลองใหม่")
+    }
   }
 
   const handleCoverImage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -199,7 +204,7 @@ export default function Settings({
       return
     }
     const reader = new FileReader()
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const result = ev.target?.result as string
       setCoverImage(result)
       setCoverPosition({ x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION })
@@ -207,19 +212,37 @@ export default function Settings({
       localStorage.setItem(coverStorageKey, result)
       localStorage.removeItem(`${coverStorageKey}_x`)
       localStorage.removeItem(`${coverStorageKey}_y`)
-      window.dispatchEvent(new Event("farm_cover_image_changed"))
+      try {
+        await onUpdateCover({
+          coverImage: result,
+          coverPositionX: undefined,
+          coverPositionY: undefined,
+        })
+        window.dispatchEvent(new Event("farm_cover_image_changed"))
+      } catch {
+        alert("บันทึกภาพปกไม่สำเร็จ กรุณาลองใหม่")
+      }
     }
     reader.readAsDataURL(checkedFile.value)
   }
 
-  const handleRemoveCover = () => {
+  const handleRemoveCover = async () => {
     setCoverImage(null)
     setCoverPosition({ x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION })
     setCoverPositionDraft({ x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION })
     localStorage.removeItem(coverStorageKey)
     localStorage.removeItem(`${coverStorageKey}_x`)
     localStorage.removeItem(`${coverStorageKey}_y`)
-    window.dispatchEvent(new Event("farm_cover_image_changed"))
+    try {
+      await onUpdateCover({
+        coverImage: undefined,
+        coverPositionX: undefined,
+        coverPositionY: undefined,
+      })
+      window.dispatchEvent(new Event("farm_cover_image_changed"))
+    } catch {
+      alert("ลบภาพปกไม่สำเร็จ กรุณาลองใหม่")
+    }
     if (coverInputRef.current) coverInputRef.current.value = ""
   }
 
@@ -228,11 +251,21 @@ export default function Settings({
     setCoverPositionDraft(position => ({ ...position, [axis]: nextValue }))
   }
 
-  const handleSaveCoverPosition = () => {
+  const handleSaveCoverPosition = async () => {
     setCoverPosition(coverPositionDraft)
+    if (coverImage) localStorage.setItem(coverStorageKey, coverImage)
     localStorage.setItem(`${coverStorageKey}_x`, String(coverPositionDraft.x))
     localStorage.setItem(`${coverStorageKey}_y`, String(coverPositionDraft.y))
-    window.dispatchEvent(new Event("farm_cover_image_changed"))
+    try {
+      await onUpdateCover({
+        coverImage: coverImage || undefined,
+        coverPositionX: coverPositionDraft.x,
+        coverPositionY: coverPositionDraft.y,
+      })
+      window.dispatchEvent(new Event("farm_cover_image_changed"))
+    } catch {
+      alert("บันทึกภาพปกไม่สำเร็จ กรุณาลองใหม่")
+    }
   }
 
   const handleCancelCoverPosition = () => {
@@ -266,7 +299,7 @@ export default function Settings({
     }
   }
 
-  const handleSelectPlace = (result: { display_name: string; lat: string; lon: string }) => {
+  const handleSelectPlace = async (result: { display_name: string; lat: string; lon: string }) => {
     const parts = result.display_name.split(",")
     const shortLabel = parts.slice(0, 2).join(",").trim()
     const loc = {
@@ -276,7 +309,12 @@ export default function Settings({
     }
     setLocation(loc)
     localStorage.setItem(locationStorageKey, JSON.stringify(loc))
-    window.dispatchEvent(new Event("farm_location_changed"))
+    try {
+      await onUpdateFarmProfile({ farmLocation: loc })
+      window.dispatchEvent(new Event("farm_location_changed"))
+    } catch {
+      alert("บันทึกตำแหน่งสวนไม่สำเร็จ กรุณาลองใหม่")
+    }
     setSearchResults([])
     setPlaceSearch("")
     setLocationSaved(true)
@@ -490,8 +528,7 @@ export default function Settings({
                   <button
                     type="button"
                     onClick={handleSaveCoverPosition}
-                    disabled={!coverPositionChanged}
-                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-40"
+                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
                   >
                     บันทึก
                   </button>

@@ -7,12 +7,22 @@ create table if not exists public.profiles (
   email text unique,
   name text,
   avatar_url text,
+  cover_image text,
+  cover_position_x numeric,
+  cover_position_y numeric,
+  farm_name text,
+  farm_location jsonb,
+  saved_article_ids text[],
   role text not null default 'user',
   status text not null default 'active',
   provider text not null default 'email',
   password_hash text,
   created_at timestamptz not null default now()
 );
+
+-- Keep existing profile tables able to persist orchard map selections.
+alter table public.profiles
+  add column if not exists farm_location jsonb;
 
 -- 2. Plots Table
 create table if not exists public.plots (
@@ -143,7 +153,7 @@ create table if not exists public.products (
 -- 11. Site Settings Table
 create table if not exists public.site_settings (
   id text primary key default 'default',
-  site_name text not null default 'สวนทุเรียน',
+  site_name text not null default 'DurianFlow',
   tagline text not null default 'Smart Orchard',
   logo_url text,
   created_at timestamptz not null default now(),
@@ -163,15 +173,32 @@ alter table public.articles enable row level security;
 alter table public.products enable row level security;
 alter table public.site_settings enable row level security;
 
--- Create public read/write policies for all tables (compatible with anonymous prototype key)
-create policy profiles_all on public.profiles for all to anon, authenticated using (true) with check (true);
-create policy plots_all on public.plots for all to anon, authenticated using (true) with check (true);
-create policy trees_all on public.trees for all to anon, authenticated using (true) with check (true);
-create policy batches_all on public.batches for all to anon, authenticated using (true) with check (true);
-create policy batch_stages_all on public.batch_stages for all to anon, authenticated using (true) with check (true);
-create policy tasks_all on public.tasks for all to anon, authenticated using (true) with check (true);
-create policy activities_all on public.activities for all to anon, authenticated using (true) with check (true);
-create policy finance_records_all on public.finance_records for all to anon, authenticated using (true) with check (true);
+-- Owner-scoped orchard and profile policies
+create policy profiles_owner on public.profiles for all to authenticated
+  using (email = (auth.jwt() ->> 'email'))
+  with check (email = (auth.jwt() ->> 'email'));
+create policy plots_owner on public.plots for all to authenticated
+  using (exists (select 1 from public.profiles p where p.id = plots.user_id and p.email = (auth.jwt() ->> 'email')))
+  with check (exists (select 1 from public.profiles p where p.id = plots.user_id and p.email = (auth.jwt() ->> 'email')));
+create policy trees_owner on public.trees for all to authenticated
+  using (exists (select 1 from public.plots pl join public.profiles p on p.id = pl.user_id where pl.id = trees.plot_id and p.email = (auth.jwt() ->> 'email')))
+  with check (exists (select 1 from public.plots pl join public.profiles p on p.id = pl.user_id where pl.id = trees.plot_id and p.email = (auth.jwt() ->> 'email')));
+create policy batches_owner on public.batches for all to authenticated
+  using (exists (select 1 from public.trees tr join public.plots pl on pl.id = tr.plot_id join public.profiles p on p.id = pl.user_id where tr.id = batches.tree_id and p.email = (auth.jwt() ->> 'email')))
+  with check (exists (select 1 from public.trees tr join public.plots pl on pl.id = tr.plot_id join public.profiles p on p.id = pl.user_id where tr.id = batches.tree_id and p.email = (auth.jwt() ->> 'email')));
+create policy batch_stages_owner on public.batch_stages for all to authenticated
+  using (exists (select 1 from public.batches b join public.trees tr on tr.id = b.tree_id join public.plots pl on pl.id = tr.plot_id join public.profiles p on p.id = pl.user_id where b.id = batch_stages.batch_id and p.email = (auth.jwt() ->> 'email')))
+  with check (exists (select 1 from public.batches b join public.trees tr on tr.id = b.tree_id join public.plots pl on pl.id = tr.plot_id join public.profiles p on p.id = pl.user_id where b.id = batch_stages.batch_id and p.email = (auth.jwt() ->> 'email')));
+create policy tasks_owner on public.tasks for all to authenticated
+  using (exists (select 1 from public.profiles p where p.id = tasks.user_id and p.email = (auth.jwt() ->> 'email')))
+  with check (exists (select 1 from public.profiles p where p.id = tasks.user_id and p.email = (auth.jwt() ->> 'email')));
+create policy activities_owner on public.activities for all to authenticated
+  using (exists (select 1 from public.profiles p where p.id = activities.user_id and p.email = (auth.jwt() ->> 'email')))
+  with check (exists (select 1 from public.profiles p where p.id = activities.user_id and p.email = (auth.jwt() ->> 'email')));
+create policy finance_records_owner on public.finance_records for all to authenticated
+  using (exists (select 1 from public.profiles p where p.id = finance_records.user_id and p.email = (auth.jwt() ->> 'email')))
+  with check (exists (select 1 from public.profiles p where p.id = finance_records.user_id and p.email = (auth.jwt() ->> 'email')));
+-- Shared content
 create policy articles_all on public.articles for all to anon, authenticated using (true) with check (true);
 create policy products_all on public.products for all to anon, authenticated using (true) with check (true);
 create policy site_settings_all on public.site_settings for all to anon, authenticated using (true) with check (true);

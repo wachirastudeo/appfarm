@@ -24,6 +24,7 @@ interface Props {
   addTask: (task: Omit<Task, "id">) => void
   farmLocation: FarmLocation | null
   locationStorageKey: string
+  onUpdateFarmLocation: (location: FarmLocation) => Promise<void>
   coverImage?: string | null
   coverPosition?: string
   userName?: string
@@ -76,7 +77,7 @@ type FarmLocation = { lat: number; lon: number; label: string }
 const ACTIVITY_ICONS: any = { fertilize: Sprout, spray: Zap, water: Droplets, prune: Scissors, harvest: PackageSearch, inspect: ClipboardList, other: MoreHorizontal }
 const ACTIVITY_COLORS: any = { fertilize: "text-green-500", spray: "text-yellow-500", water: "text-blue-500", prune: "text-orange-500", harvest: "text-primary", inspect: "text-purple-500", other: "text-muted-foreground" }
 
-export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSettings, onOpenProducts, updateTask, deleteTask, addTask, farmLocation, locationStorageKey, coverImage, coverPosition, userName }: Props) {
+export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSettings, onOpenProducts, updateTask, deleteTask, addTask, farmLocation, locationStorageKey, onUpdateFarmLocation, coverImage, coverPosition, userName }: Props) {
   const [weather, setWeather] = useState<{ temp: string | number; humidity: string | number; rain: string | number; wind: string | number; condition: string }>({ temp: "–", humidity: "–", rain: "–", wind: "–", condition: "กำลังโหลด..." })
   const [forecastAlert, setForecastAlert] = useState<ForecastAlert | null>(null)
   const [showLocationEditor, setShowLocationEditor] = useState(false)
@@ -322,10 +323,16 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
     })
   }
 
-  const saveLocation = () => {
+  const saveLocation = async () => {
     if (!pendingLocation) return
     localStorage.setItem(locationStorageKey, JSON.stringify(pendingLocation))
-    window.dispatchEvent(new Event("farm_location_changed"))
+    try {
+      await onUpdateFarmLocation(pendingLocation)
+      window.dispatchEvent(new Event("farm_location_changed"))
+    } catch {
+      alert("บันทึกตำแหน่งสวนไม่สำเร็จ กรุณาลองใหม่")
+      return
+    }
     setShowLocationEditor(false)
     setPlaceSearch("")
     setSearchResults([])

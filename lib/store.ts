@@ -7,6 +7,7 @@ import {
   fetchArticles, upsertArticle, removeArticle,
   fetchProducts, upsertProduct, removeProduct,
 } from "./supabase/articles"
+import { updateUser as updateSupabaseUser } from "./supabase/queries"
 
 // ---- Types ----
 export type FlowerStage =
@@ -148,6 +149,12 @@ export interface AppUser {
   status: UserStatus
   provider: string
   avatar?: string
+  coverImage?: string
+  coverPositionX?: number
+  coverPositionY?: number
+  farmName?: string
+  farmLocation?: { lat: number; lon: number; label: string }
+  savedArticleIds?: string[]
   createdAt: string
 }
 
@@ -328,7 +335,7 @@ const SEED: AppData = {
   articles: seedArticles,
   products: seedProducts,
   siteSettings: {
-    siteName: "สวนทุเรียน",
+    siteName: "DurianFlow",
     tagline: "Smart Orchard",
     logoUrl: "",
   },
@@ -690,9 +697,10 @@ export function useAppData(currentUserId?: string | null) {
     return newUser
   }, [data.users, updateData])
 
-  const updateUser = useCallback((id: string, changes: Partial<AppUser>) => {
+  const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {
     updateData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, ...changes } : u) }))
-  }, [updateData])
+    if (isSupabaseMode) await updateSupabaseUser(id, changes)
+  }, [isSupabaseMode, updateData])
 
   const deleteUser = useCallback((id: string) => {
     updateData(d => ({ ...d, users: d.users.filter(u => u.id !== id) }))

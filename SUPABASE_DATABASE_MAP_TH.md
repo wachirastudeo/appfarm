@@ -43,6 +43,12 @@ Project: `hpyoyjpqitpvgckxnlww`
 - `provider`
 - `password_hash`
 - `avatar_url`
+- `cover_image`
+- `cover_position_x`
+- `cover_position_y`
+- `farm_name`
+- `farm_location`
+- `saved_article_ids`
 
 หมายเหตุ: Google Login ใช้ Supabase Auth แล้ว และ sync profile กลับมาที่ table นี้ โดย `id` ยังเป็น text ของแอป เช่น `u-google-*`
 

@@ -1,6 +1,6 @@
 {
-  "name": "สวนทุเรียน",
-  "short_name": "สวนทุเรียน",
+  "name": "DurianFlow",
+  "short_name": "DurianFlow",
   "description": "ระบบบริหารจัดการสวนทุเรียน",
   "start_url": "/",
   "scope": "/",

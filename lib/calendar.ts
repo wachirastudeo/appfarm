@@ -2,7 +2,7 @@
 
 import { Task } from "@/lib/store"
 
-const APP_NAME = "AppFarm"
+const APP_NAME = "DurianFlow"
 
 function datePart(value: string) {
   return value.split("T")[0]

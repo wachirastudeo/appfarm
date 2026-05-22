@@ -26,12 +26,22 @@ create table if not exists public.profiles (
   email text unique,
   name text,
   avatar_url text,
+  cover_image text,
+  cover_position_x numeric,
+  cover_position_y numeric,
+  farm_name text,
+  farm_location jsonb,
+  saved_article_ids text[],
   role text not null default 'user',
   status text not null default 'active',
   provider text not null default 'email',
   password_hash text,
   created_at timestamptz not null default now()
 );
+
+-- Keep existing profile tables able to persist orchard map selections.
+alter table public.profiles
+  add column if not exists farm_location jsonb;
 
 -- ---- Orchard plots ----
 create table if not exists public.plots (
@@ -162,7 +172,7 @@ create table if not exists public.products (
 -- ---- Site settings ----
 create table if not exists public.site_settings (
   id text primary key default 'default',
-  site_name text not null default 'สวนทุเรียน',
+  site_name text not null default 'DurianFlow',
   tagline text not null default 'Smart Orchard',
   logo_url text,
   created_at timestamptz not null default now(),

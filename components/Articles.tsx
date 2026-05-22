@@ -6,13 +6,14 @@ import { Search, X, ArrowRight, Share2, Bookmark, ArrowLeft, ExternalLink, Faceb
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Products from "./Products"
 
-const SAVED_ARTICLES_KEY = "durian_saved_articles"
-
 interface Props {
   articles: Article[]
   products: Product[]
   initialArticleId?: string | null
   initialView?: "articles" | "products"
+  savedArticleIds?: string[]
+  savedArticlesStorageKey: string
+  onSavedArticleIdsChange?: (savedArticleIds: string[]) => Promise<void>
   onViewChange?: (view: "articles" | "products") => void
   onArticleSelect?: (articleId: string | null) => void
 }
@@ -22,6 +23,9 @@ export default function Articles({
   products,
   initialArticleId,
   initialView = "articles",
+  savedArticleIds: storedSavedArticleIds,
+  savedArticlesStorageKey,
+  onSavedArticleIdsChange,
   onViewChange,
   onArticleSelect,
 }: Props) {
@@ -65,15 +69,20 @@ export default function Articles({
   }, [initialView])
 
   useEffect(() => {
-    const saved = localStorage.getItem(SAVED_ARTICLES_KEY)
+    if (storedSavedArticleIds) {
+      setSavedArticleIds(storedSavedArticleIds)
+      return
+    }
+
+    const saved = localStorage.getItem(savedArticlesStorageKey)
     if (!saved) return
     try {
       const parsed = JSON.parse(saved)
       if (Array.isArray(parsed)) setSavedArticleIds(parsed.filter(id => typeof id === "string"))
     } catch {
-      localStorage.removeItem(SAVED_ARTICLES_KEY)
+      localStorage.removeItem(savedArticlesStorageKey)
     }
-  }, [])
+  }, [savedArticlesStorageKey, storedSavedArticleIds])
 
   const filteredArticles = useMemo(() => {
     let result = publishedArticles
@@ -125,7 +134,10 @@ export default function Articles({
     setSavedArticleIds(current => {
       const isSaved = current.includes(article.id)
       const next = isSaved ? current.filter(id => id !== article.id) : [...current, article.id]
-      localStorage.setItem(SAVED_ARTICLES_KEY, JSON.stringify(next))
+      localStorage.setItem(savedArticlesStorageKey, JSON.stringify(next))
+      if (onSavedArticleIdsChange) {
+        void onSavedArticleIdsChange(next).catch(() => showActionMessage("บันทึกรายการบทความไม่สำเร็จ"))
+      }
       showActionMessage(isSaved ? "นำออกจากรายการบันทึกแล้ว" : "บันทึกบทความแล้ว")
       return next
     })

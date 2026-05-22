@@ -277,6 +277,12 @@ export async function insertUser(user: AppUser) {
       provider: user.provider,
       password_hash: user.passwordHash,
       avatar_url: user.avatar || null,
+      cover_image: user.coverImage || null,
+      cover_position_x: user.coverPositionX ?? null,
+      cover_position_y: user.coverPositionY ?? null,
+      farm_name: user.farmName || null,
+      farm_location: user.farmLocation || null,
+      saved_article_ids: user.savedArticleIds || null,
       created_at: user.createdAt,
     })
   if (error) throw error
@@ -290,6 +296,12 @@ export async function updateUser(userId: string, changes: Partial<AppUser>) {
   if (changes.role !== undefined) dbChanges.role = changes.role
   if (changes.status !== undefined) dbChanges.status = changes.status
   if (changes.avatar !== undefined) dbChanges.avatar_url = changes.avatar || null
+  if ("coverImage" in changes) dbChanges.cover_image = changes.coverImage || null
+  if ("coverPositionX" in changes) dbChanges.cover_position_x = changes.coverPositionX ?? null
+  if ("coverPositionY" in changes) dbChanges.cover_position_y = changes.coverPositionY ?? null
+  if ("farmName" in changes) dbChanges.farm_name = changes.farmName || null
+  if ("farmLocation" in changes) dbChanges.farm_location = changes.farmLocation ?? null
+  if ("savedArticleIds" in changes) dbChanges.saved_article_ids = changes.savedArticleIds ?? null
   if (changes.passwordHash !== undefined) dbChanges.password_hash = changes.passwordHash
 
   const { error } = await supabase

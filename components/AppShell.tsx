@@ -341,7 +341,7 @@ function GuestHome({
               ))}
             </div>
 
-            <div className="absolute inset-x-0 bottom-0 z-10 px-5 pb-5 pt-16 sm:px-8 sm:pb-8 lg:hidden">
+            <div className="absolute inset-x-0 top-0 z-10 px-5 pb-16 pt-5 sm:px-8 sm:pt-8 lg:hidden">
               <div className="rounded-[1.75rem] border border-white/14 bg-white/10 p-5 text-white shadow-[0_20px_60px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all animate-fade-in-up">
                 <div className="mb-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#DDEBE1]">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/14">
@@ -588,6 +588,11 @@ export default function AppShell() {
       return
     }
 
+    if (user.farmLocation) {
+      setFarmLocation(user.farmLocation)
+      return
+    }
+
     try {
       const saved = localStorage.getItem(locationStorageKey)
       if (saved) {
@@ -599,7 +604,7 @@ export default function AppShell() {
     }
 
     setFarmLocation(null)
-  }, [locationStorageKey, user?.id])
+  }, [locationStorageKey, user])
 
   const readFarmCoverImage = useCallback(() => {
     if (!user?.id) {
@@ -608,13 +613,13 @@ export default function AppShell() {
       return
     }
 
-    setFarmCoverImage(localStorage.getItem(coverStorageKey) || null)
+    setFarmCoverImage(user.coverImage || localStorage.getItem(coverStorageKey) || null)
     const storedX = localStorage.getItem(`${coverStorageKey}_x`)
     const storedY = localStorage.getItem(`${coverStorageKey}_y`)
-    const x = storedX === null || !Number.isFinite(Number(storedX)) ? 50 : Number(storedX)
-    const y = storedY === null || !Number.isFinite(Number(storedY)) ? 50 : Number(storedY)
+    const x = user.coverPositionX ?? (storedX === null || !Number.isFinite(Number(storedX)) ? 50 : Number(storedX))
+    const y = user.coverPositionY ?? (storedY === null || !Number.isFinite(Number(storedY)) ? 50 : Number(storedY))
     setFarmCoverPosition(`${x}% ${y}%`)
-  }, [coverStorageKey, user?.id])
+  }, [coverStorageKey, user])
 
   const handleCloseSettings = () => {
     readFarmLocation() // re-read location when settings closes
@@ -841,7 +846,7 @@ export default function AppShell() {
 
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
+        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => store.updateUser(user!.id, { farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
       case "plots":
         return (
           <PlotManagement
@@ -869,9 +874,9 @@ export default function AppShell() {
       case "finance":
         return <Finance data={store.data} addFinance={store.addFinance} deleteFinance={store.deleteFinance} />
       case "articles":
-        return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
+        return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} savedArticleIds={user?.savedArticleIds} savedArticlesStorageKey={user?.id ? `durian_saved_articles_${user.id}` : "durian_saved_articles_guest"} onSavedArticleIdsChange={savedArticleIds => user ? store.updateUser(user.id, { savedArticleIds }) : Promise.resolve()} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
       case "admin":
-        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
+        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => store.updateUser(user!.id, { farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
         return (
           <AdminPanel
             users={store.data.users}
@@ -894,7 +899,7 @@ export default function AppShell() {
     }
   }
 
-  const siteName = store.data.siteSettings.siteName || "สวนทุเรียน"
+  const siteName = user?.farmName || store.data.siteSettings.siteName || "สวนทุเรียน"
   const tagline = store.data.siteSettings.tagline || "Smart Orchard"
   const logoUrl = store.data.siteSettings.logoUrl
   const totalTrees = store.data.plots.reduce((s, p) => s + p.trees.length, 0)
@@ -959,7 +964,7 @@ export default function AppShell() {
         <main className="relative z-10">
           {activeTab === "articles" ? (
             <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 md:px-8 md:py-6">
-              <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
+              <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} savedArticlesStorageKey="durian_saved_articles_guest" onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
             </div>
           ) : (
             <GuestHome
@@ -1135,12 +1140,13 @@ export default function AppShell() {
         isOpen={showSettings}
         onClose={handleCloseSettings}
         siteSettings={store.data.siteSettings}
-        updateSiteSettings={store.updateSiteSettings}
         installPrompt={installPrompt}
         onInstallPromptUsed={() => setInstallPrompt(null)}
         currentUser={user}
         locationStorageKey={locationStorageKey}
         coverStorageKey={coverStorageKey}
+        onUpdateCover={changes => store.updateUser(user.id, changes)}
+        onUpdateFarmProfile={changes => store.updateUser(user.id, changes)}
         onLogout={handleLogout}
       />
 
