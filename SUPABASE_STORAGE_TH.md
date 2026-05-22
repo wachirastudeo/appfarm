@@ -30,7 +30,7 @@ Allowed MIME types: image/png, image/jpeg, image/webp, image/avif
 NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=app-images
 ```
 
-บน server จริงให้ใส่ค่าเดียวกันใน Environment Variables
+บน server จริงให้ใส่ค่าเดียวกันใน Environment Variables โดย `lib/runtime-config.ts` ใช้ `app-images` เป็น default ปัจจุบัน
 
 ## 3. โครง path ที่แนะนำ
 

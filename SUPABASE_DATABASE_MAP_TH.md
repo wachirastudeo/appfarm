@@ -273,6 +273,7 @@ app_data
 - `lib/supabase/app-data.ts` โหลด/บันทึกข้อมูลหลักกับ Supabase
 - `lib/supabase/articles.ts` โหลด/บันทึกบทความและสินค้า
 - `lib/supabase/client.ts` สร้าง Supabase browser client
+- `lib/supabase/server.ts` สร้าง Supabase server client สำหรับ callback/route
 - `lib/runtime-config.ts` อ่านค่า env และ data mode
 - `supabase/schema.sql` schema ตารางหลัก
 - `supabase/setup.sql` schema `app_data`

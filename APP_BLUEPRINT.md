@@ -81,7 +81,7 @@
 ---
 
 ## 5. ข้อมูลทางเทคนิค (Technical Stack)
-- **Framework**: Next.js 14+ (App Router)
+- **Framework**: Next.js 16.2.4 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **Icons**: Lucide React

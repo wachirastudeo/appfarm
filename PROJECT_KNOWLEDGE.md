@@ -8,7 +8,7 @@
 - Full **Dark Mode** support and **Progressive Web App (PWA)** capability (install handler, manifest assets).
 
 ## Tech Stack
-- Next.js App Router, React 19, TypeScript.
+- Next.js 16.2.4 App Router, React 19, TypeScript.
 - Tailwind CSS v4 via PostCSS.
 - Radix UI primitives, shadcn-style components in `components/ui/`.
 - next-themes for Light and Dark theme toggling.

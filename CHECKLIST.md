@@ -18,7 +18,7 @@ This checklist outlines the missing features and potential improvements identifi
 - [ ] **Location-based Weather Mapping**: Automatically fetch coordinates using GPS instead of manual text-based place search.
 
 ## 📊 3. Finance & Yield Analytics
-- [ ] **Dynamic Charts**: Add visual graphs (bar charts, pie charts) for income vs. expense tracking and category breakdown using Recharts or Chart.js.
+- [x] **Dynamic Charts**: Finance includes Recharts summaries for income vs. expense trends and category breakdown.
 - [ ] **Exportable Reports**: Generate PDF/CSV reports for financial audits, crop sales, and task completions.
 - [ ] **Weight & Grade Logs**: Track crop yield weight and grade classifications (Grade A, B, C) per harvest batch.
 

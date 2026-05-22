@@ -4,8 +4,8 @@
 The application is built using the **Next.js App Router** paradigm with **Tailwind CSS** for styling. It emphasizes Server Components by default with explicit Client Components where interactivity is required.
 
 ## Technology Stack
-- **Framework**: Next.js (App Router)
-- **Styling**: Tailwind CSS with PostCSS
+- **Framework**: Next.js 16.2.4 (App Router)
+- **Styling**: Tailwind CSS v4 with PostCSS
 - **Theme Management**: next-themes for light/dark mode support
 - **Component Library**: Radix UI primitives with custom extensions
 - **Icons**: Lucide React
@@ -19,6 +19,9 @@ Contains the Next.js routing logic, page components, and layouts.
 - `layout.tsx`: Root layout wrapping all pages with theme provider
 - `page.tsx`: Main dashboard entry point
 - `globals.css`: Global CSS variables, theme definitions, and Tailwind configuration
+- `auth/callback/route.ts`: Supabase OAuth callback route
+- `api/system/health/route.ts`: Runtime configuration health route
+- `sitemap.ts` and `robots.ts`: Metadata routes backed by `NEXT_PUBLIC_SITE_URL`
 
 ### `/components`
 Contains reusable UI elements and feature-specific components.
@@ -79,7 +82,7 @@ All styling is controlled through CSS variables defined in `app/globals.css` wit
 Designed specifically for agricultural operators working in unpredictable outdoor light conditions:
 - **Base Readable Scale**: Desktop starts at **20px** (`1.25rem`) base size to prevent eye fatigue.
 - **Custom font-sizes**: XS (`18px`), SM (`19px`), Base (`20px`), LG (`22px`), XL (`24px`), XXL (`28px`), 3XL (`32px`), 4XL (`36px`), 5XL (`40px`).
-- **Font Stack**: Leverages native Thai legibility optimizations combined with Geist and Inter.
+- **Font Stack**: Uses Prompt for Thai text and Inter for Latin text through `next/font`.
 
 ### Progressive Web App (PWA) & Skeletons
 - Standard `manifest.webmanifest` assets located in `/public`.
@@ -112,6 +115,7 @@ Scheduling interface for upcoming orchard tasks. Provides:
 - Task creation with automatic calendar focus on the new task's date
 - Status tracking with visual indicators (pending/done/cancelled)
 - Integrated task editing and deletion
+- Google Calendar links and downloadable calendar files for scheduled tasks
 
 ### 4. Financial Management (`Finance.tsx`)
 Comprehensive financial tracking and analysis. Features:

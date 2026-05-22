@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Project
-- Next.js + TypeScript app.
+- Next.js 16 App Router + TypeScript app.
 - Main app code lives in `app/`, shared UI in `components/`, utilities in `lib/`, hooks in `hooks/`, static assets in `public/`, and global styles in `styles/`.
 - Read `PROJECT_KNOWLEDGE.md` first for project context before scanning the whole repo.
 

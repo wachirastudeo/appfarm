@@ -24,6 +24,8 @@ interface Props {
   addTask: (task: Omit<Task, "id">) => void
   farmLocation: FarmLocation | null
   locationStorageKey: string
+  coverImage?: string | null
+  coverPosition?: string
   userName?: string
 }
 
@@ -74,7 +76,7 @@ type FarmLocation = { lat: number; lon: number; label: string }
 const ACTIVITY_ICONS: any = { fertilize: Sprout, spray: Zap, water: Droplets, prune: Scissors, harvest: PackageSearch, inspect: ClipboardList, other: MoreHorizontal }
 const ACTIVITY_COLORS: any = { fertilize: "text-green-500", spray: "text-yellow-500", water: "text-blue-500", prune: "text-orange-500", harvest: "text-primary", inspect: "text-purple-500", other: "text-muted-foreground" }
 
-export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSettings, onOpenProducts, updateTask, deleteTask, addTask, farmLocation, locationStorageKey, userName }: Props) {
+export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSettings, onOpenProducts, updateTask, deleteTask, addTask, farmLocation, locationStorageKey, coverImage, coverPosition, userName }: Props) {
   const [weather, setWeather] = useState<{ temp: string | number; humidity: string | number; rain: string | number; wind: string | number; condition: string }>({ temp: "–", humidity: "–", rain: "–", wind: "–", condition: "กำลังโหลด..." })
   const [forecastAlert, setForecastAlert] = useState<ForecastAlert | null>(null)
   const [showLocationEditor, setShowLocationEditor] = useState(false)
@@ -335,11 +337,12 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       {/* Hero Banner with Image */}
       <div className="relative rounded-2xl overflow-hidden shadow-[0_22px_55px_rgba(15,59,37,0.22)] ring-1 ring-white/70">
         <Image
-          src="/images/durian-banner.avif"
+          src={coverImage || "/images/durian-banner.avif"}
           alt="สวนทุเรียน"
           width={1200}
           height={400}
           className="absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition: coverPosition }}
           priority
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,59,37,0.86),rgba(15,59,37,0.46)_48%,rgba(15,59,37,0.12)),linear-gradient(0deg,rgba(0,0,0,0.52),transparent_55%)]" />

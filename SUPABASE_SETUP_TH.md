@@ -30,7 +30,8 @@
 เก็บค่านี้:
 
 - `Project URL`
-- `anon public key`
+- `publishable key` สำหรับ frontend
+- `anon public key` เฉพาะโปรเจกต์ legacy ที่ยังต้องใช้ fallback
 
 ตัวอย่าง `.env.local`
 
@@ -172,6 +173,8 @@ Flow ปัจจุบัน:
 alter table profiles enable row level security;
 alter table plots enable row level security;
 alter table trees enable row level security;
+alter table batches enable row level security;
+alter table batch_stages enable row level security;
 alter table tasks enable row level security;
 alter table activities enable row level security;
 alter table finance_records enable row level security;
@@ -192,13 +195,14 @@ alter table finance_records enable row level security;
 npm install @supabase/supabase-js @supabase/ssr
 ```
 
-## 10. ไฟล์ที่ต้องเพิ่มภายหลัง
+## 10. ไฟล์ที่มีใน repo แล้ว
 
-แนะนำเพิ่ม:
+ไฟล์ที่ flow ปัจจุบันใช้งาน:
 
 - `lib/supabase/client.ts`
 - `lib/supabase/server.ts`
-- `app/api/*` สำหรับเขียน/อ่านข้อมูลแบบปลอดภัย
+- `app/auth/callback/route.ts`
+- `app/api/system/health/route.ts`
 
 อย่าเรียก database write สำคัญจาก frontend ตรง ๆ ถ้ายังไม่ได้ทำ RLS ให้ถูก
 
@@ -207,7 +211,7 @@ npm install @supabase/supabase-js @supabase/ssr
 หลังตั้งค่าเสร็จต้องเช็ค:
 
 1. `.env.local` มี `NEXT_PUBLIC_SUPABASE_URL`
-2. `.env.local` มี `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+2. `.env.local` มี `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` หรือ `NEXT_PUBLIC_SUPABASE_ANON_KEY` สำหรับ legacy fallback
 3. Google login redirect กลับเว็บได้
 4. Refresh แล้วไม่กระพริบกลับไปหน้า login
 5. สร้าง plot แล้วข้อมูลเข้า Supabase พร้อม `user_id`

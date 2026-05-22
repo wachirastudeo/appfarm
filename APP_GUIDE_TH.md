@@ -16,6 +16,7 @@
 - สรุปภาพรวมของสวน: จำนวนต้นทั้งหมด, จำนวนแปลง
 - แจ้งเตือนงานที่ต้องทำในวันนี้
 - แสดงสถานะสุขภาพของต้นทุเรียนในภาพรวม
+- ค้นหาตำแหน่งฟาร์มด้วย OpenStreetMap และดูพยากรณ์อากาศรายวันล่วงหน้า 5 วันจาก Open-Meteo
 
 ### 📝 การบันทึกกิจกรรม (Activity Logging)
 - บันทึกการฉีดพ่นยา, การใส่ปุ๋ย, และการให้น้ำ
@@ -54,16 +55,20 @@
 
 ข้อมูลหลักถูกเก็บใน Supabase tables:
 
+- `profiles` โปรไฟล์ผู้ใช้
 - `plots` แปลงสวน
 - `trees` ต้นทุเรียน
+- `batches` รุ่นดอก/ผล
+- `batch_stages` ประวัติระยะของรุ่นดอก/ผล
 - `tasks` งานที่ต้องทำ
 - `activities` บันทึกสวน
 - `finance_records` รายรับรายจ่าย
 - `articles` บทความ
 - `products` ปุ๋ยยา/สินค้าแนะนำ
+- `site_settings` ตั้งค่าเว็บ/ชื่อสวน
 - `app_data` backup/fallback JSON
 
-ข้อมูลสวนส่วนตัว เช่น `plots`, `trees`, `tasks`, `activities`, `finance_records` จะผูกกับผู้ใช้ที่ login ผ่าน `user_id` ส่วน `articles` และ `products` เป็นข้อมูลรวมของเว็บ
+ข้อมูลสวนส่วนตัว เช่น `plots`, `trees`, `batches`, `batch_stages`, `tasks`, `activities`, `finance_records` จะผูกกับผู้ใช้ที่ login ผ่าน `user_id` ส่วน `articles`, `products`, `site_settings` เป็นข้อมูลรวมของเว็บ
 
 ---
 ---

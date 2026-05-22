@@ -4,11 +4,20 @@ import { Settings as SettingsIcon, Download, Upload, Trash2, Moon, Sun, Info, Ch
 import type { AppUser, SiteSettings } from "@/lib/store"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { validateImageFile, validateText } from "@/lib/form-validation"
+import { Slider } from "./ui/slider"
 
 const STORAGE_KEY = "durian_orchard_data"
 const APP_VERSION = "1.0.0"
 const THEME_KEY = "durian_theme"
 const NOTIFICATION_KEY = "durian_notifications_enabled"
+const DEFAULT_COVER_POSITION = 50
+
+const readCoverPosition = (key: string) => {
+  if (typeof window === "undefined") return DEFAULT_COVER_POSITION
+  const saved = localStorage.getItem(key)
+  const position = saved === null ? DEFAULT_COVER_POSITION : Number(saved)
+  return Number.isFinite(position) ? position : DEFAULT_COVER_POSITION
+}
 
 interface Props {
   isOpen: boolean
@@ -19,6 +28,7 @@ interface Props {
   onInstallPromptUsed: () => void
   currentUser?: AppUser | null
   locationStorageKey: string
+  coverStorageKey: string
   onLogout?: () => void
 }
 
@@ -36,6 +46,7 @@ export default function Settings({
   onInstallPromptUsed,
   currentUser,
   locationStorageKey,
+  coverStorageKey,
   onLogout,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -56,7 +67,14 @@ export default function Settings({
   const [isEditingName, setIsEditingName] = useState(false)
   const [coverImage, setCoverImage] = useState<string | null>(() => {
     if (typeof window === "undefined") return null
-    return localStorage.getItem("farm_cover_image") || null
+    return localStorage.getItem(coverStorageKey) || null
+  })
+  const [coverPosition, setCoverPosition] = useState(() => {
+    if (typeof window === "undefined") return { x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION }
+    return {
+      x: readCoverPosition(`${coverStorageKey}_x`),
+      y: readCoverPosition(`${coverStorageKey}_y`),
+    }
   })
   const coverInputRef = useRef<HTMLInputElement>(null)
 
@@ -85,6 +103,15 @@ export default function Settings({
     const saved = localStorage.getItem(locationStorageKey)
     setLocation(saved ? JSON.parse(saved) : null)
   }, [locationStorageKey, isOpen])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    setCoverImage(localStorage.getItem(coverStorageKey) || null)
+    setCoverPosition({
+      x: readCoverPosition(`${coverStorageKey}_x`),
+      y: readCoverPosition(`${coverStorageKey}_y`),
+    })
+  }, [coverStorageKey, isOpen])
 
   useEscapeToClose({ enabled: isOpen, onEscape: onClose, containerRef })
   useEscapeToClose({ enabled: isOpen && showConfirmReset, onEscape: () => setShowConfirmReset(false), containerRef: confirmResetRef })
@@ -170,15 +197,31 @@ export default function Settings({
     reader.onload = (ev) => {
       const result = ev.target?.result as string
       setCoverImage(result)
-      localStorage.setItem("farm_cover_image", result)
+      setCoverPosition({ x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION })
+      localStorage.setItem(coverStorageKey, result)
+      localStorage.removeItem(`${coverStorageKey}_x`)
+      localStorage.removeItem(`${coverStorageKey}_y`)
+      window.dispatchEvent(new Event("farm_cover_image_changed"))
     }
     reader.readAsDataURL(checkedFile.value)
   }
 
   const handleRemoveCover = () => {
     setCoverImage(null)
-    localStorage.removeItem("farm_cover_image")
+    setCoverPosition({ x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION })
+    localStorage.removeItem(coverStorageKey)
+    localStorage.removeItem(`${coverStorageKey}_x`)
+    localStorage.removeItem(`${coverStorageKey}_y`)
+    window.dispatchEvent(new Event("farm_cover_image_changed"))
     if (coverInputRef.current) coverInputRef.current.value = ""
+  }
+
+  const handleCoverPosition = (axis: "x" | "y", value: number[]) => {
+    const nextValue = value[0] ?? DEFAULT_COVER_POSITION
+    const nextPosition = { ...coverPosition, [axis]: nextValue }
+    setCoverPosition(nextPosition)
+    localStorage.setItem(`${coverStorageKey}_${axis}`, String(nextValue))
+    window.dispatchEvent(new Event("farm_cover_image_changed"))
   }
 
 
@@ -391,7 +434,7 @@ export default function Settings({
             {/* Preview */}
             {coverImage ? (
               <div className="relative h-36 w-full">
-                <img src={coverImage} alt="ภาพปกสวน" className="w-full h-full object-cover" />
+                <img src={coverImage} alt="ภาพปกสวน" className="w-full h-full object-cover" style={{ objectPosition: `${coverPosition.x}% ${coverPosition.y}%` }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <button
                   onClick={handleRemoveCover}
@@ -400,6 +443,24 @@ export default function Settings({
                   <X size={14} className="text-white" />
                 </button>
                 <span className="absolute bottom-2 left-3 text-white text-xs font-semibold drop-shadow">ภาพปกสวน</span>
+              </div>
+            ) : null}
+            {coverImage ? (
+              <div className="space-y-3 border-b border-border px-4 py-3">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-3 text-xs">
+                    <span className="font-semibold text-foreground">เลื่อนซ้าย-ขวา</span>
+                    <span className="text-muted-foreground">{coverPosition.x}%</span>
+                  </div>
+                  <Slider value={[coverPosition.x]} onValueChange={value => handleCoverPosition("x", value)} aria-label="ปรับตำแหน่งภาพปกแนวนอน" />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-3 text-xs">
+                    <span className="font-semibold text-foreground">เลื่อนขึ้น-ลง</span>
+                    <span className="text-muted-foreground">{coverPosition.y}%</span>
+                  </div>
+                  <Slider value={[coverPosition.y]} onValueChange={value => handleCoverPosition("y", value)} aria-label="ปรับตำแหน่งภาพปกแนวตั้ง" />
+                </div>
               </div>
             ) : null}
             <button

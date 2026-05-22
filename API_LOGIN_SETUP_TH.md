@@ -6,6 +6,7 @@
 
 - Google Login เชื่อมผ่าน Supabase Auth แล้ว
 - หน้า login ใช้ `components/AuthModal.tsx` เรียก `supabase.auth.signInWithOAuth({ provider: "google" })`
+- Frontend ใช้ `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` เป็น public key หลัก และรองรับ `NEXT_PUBLIC_SUPABASE_ANON_KEY` เป็น legacy fallback
 - Callback route ของแอปคือ:
   - Local: `http://localhost:3000/auth/callback`
   - Production: `https://YOUR_DOMAIN.com/auth/callback`

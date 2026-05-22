@@ -567,9 +567,12 @@ export default function AppShell() {
   const [authChecking, setAuthChecking] = useState(true)
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null)
   const [farmLocation, setFarmLocation] = useState<{ lat: number; lon: number; label: string } | null>(null)
+  const [farmCoverImage, setFarmCoverImage] = useState<string | null>(null)
+  const [farmCoverPosition, setFarmCoverPosition] = useState("50% 50%")
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const store = useAppData(user?.id ?? null)
   const locationStorageKey = user?.id ? `farm_location_${user.id}` : "farm_location_guest"
+  const coverStorageKey = user?.id ? `farm_cover_image_${user.id}` : "farm_cover_image_guest"
   const todayTaskCount = useMemo(() => store.data.tasks.filter(task => {
     if (task.status !== "pending") return false
     const taskDate = new Date(task.date)
@@ -598,8 +601,24 @@ export default function AppShell() {
     setFarmLocation(null)
   }, [locationStorageKey, user?.id])
 
+  const readFarmCoverImage = useCallback(() => {
+    if (!user?.id) {
+      setFarmCoverImage(null)
+      setFarmCoverPosition("50% 50%")
+      return
+    }
+
+    setFarmCoverImage(localStorage.getItem(coverStorageKey) || null)
+    const storedX = localStorage.getItem(`${coverStorageKey}_x`)
+    const storedY = localStorage.getItem(`${coverStorageKey}_y`)
+    const x = storedX === null || !Number.isFinite(Number(storedX)) ? 50 : Number(storedX)
+    const y = storedY === null || !Number.isFinite(Number(storedY)) ? 50 : Number(storedY)
+    setFarmCoverPosition(`${x}% ${y}%`)
+  }, [coverStorageKey, user?.id])
+
   const handleCloseSettings = () => {
     readFarmLocation() // re-read location when settings closes
+    readFarmCoverImage()
     setShowSettings(false)
   }
 
@@ -610,6 +629,13 @@ export default function AppShell() {
     window.addEventListener("farm_location_changed", onLocationChange)
     return () => window.removeEventListener("farm_location_changed", onLocationChange)
   }, [readFarmLocation])
+
+  useEffect(() => {
+    readFarmCoverImage()
+    const onCoverImageChange = () => readFarmCoverImage()
+    window.addEventListener("farm_cover_image_changed", onCoverImageChange)
+    return () => window.removeEventListener("farm_cover_image_changed", onCoverImageChange)
+  }, [readFarmCoverImage])
 
   // Sync URL search parameters to local state on mount
   useEffect(() => {
@@ -815,7 +841,7 @@ export default function AppShell() {
 
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} userName={user?.name} />
+        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
       case "plots":
         return (
           <PlotManagement
@@ -845,7 +871,7 @@ export default function AppShell() {
       case "articles":
         return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
       case "admin":
-        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} userName={user?.name} />
+        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
         return (
           <AdminPanel
             users={store.data.users}
@@ -1114,6 +1140,7 @@ export default function AppShell() {
         onInstallPromptUsed={() => setInstallPrompt(null)}
         currentUser={user}
         locationStorageKey={locationStorageKey}
+        coverStorageKey={coverStorageKey}
         onLogout={handleLogout}
       />
 

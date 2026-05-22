@@ -5,7 +5,7 @@ This document outlines the visual identity and design tokens for the Durian Orch
 
 ## Typography
 The application uses a high-visibility typography system with a base size of **20px** for excellent readability on mobile devices.
-- **Primary Typeface**: Geist / Inter (San-serif)
+- **Primary Typeface**: Prompt / Inter (Sans-serif)
 - **Thai Support**: Optimized system font stack for Thai legibility
 - **Hierarchy**: Strong contrast between bold headings and readable body text
 
@@ -40,7 +40,7 @@ The application implements an **enhanced mobile-first typography scale** with a 
 - **Sub-text (SM/19px)**: `1.1875rem` / Line height: `1.75rem`
 - **Mini-text (XS/18px)**: `1.125rem` / Line height: `1.75rem`
 - **Title hierarchy**: Up to `5xl` (`2.5rem`) for key metrics.
-- **Fonts**: Pre-optimized font stack leveraging the custom `--font-thai` system stack blended with Geist / Inter.
+- **Fonts**: Pre-optimized font stack using Prompt through `--font-thai` with Inter for Latin text.
 
 ## Layout & Components
 

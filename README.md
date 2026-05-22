@@ -17,13 +17,13 @@ A modern, mobile-responsive web application designed for managing durian orchard
 - **Supabase Database Mode**: Stores orchard data in Supabase Postgres owner-scoped tables with `app_data` JSON backup/fallback and browser `localStorage` cache.
 
 ## Technology Stack
-- **Framework**: Next.js 14+ (App Router)
+- **Framework**: Next.js 16.2.4 (App Router)
 - **UI Library**: React 19
 - **Theme Manager**: next-themes
 - **Styling**: Tailwind CSS v4, PostCSS
 - **Components**: Radix UI primitives, Lucide Icons
 - **Language**: TypeScript
-- **Database**: Supabase Postgres (`profiles`, `plots`, `trees`, `tasks`, `activities`, `finance_records`, `articles`, `products`, `site_settings`, `app_data`)
+- **Database**: Supabase Postgres (`profiles`, `plots`, `trees`, `batches`, `batch_stages`, `tasks`, `activities`, `finance_records`, `articles`, `products`, `site_settings`, `app_data`)
 
 ## Database Docs
 - Human-readable table map: `SUPABASE_DATABASE_MAP_TH.md`
@@ -37,7 +37,7 @@ Security note: orchard data tables (`plots`, `trees`, `batches`, `batch_stages`,
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v18+)
+- Node.js (v20.9+)
 - npm, yarn, pnpm, or bun
 
 ### Installation
