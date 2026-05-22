@@ -264,6 +264,36 @@ export async function deleteFinanceRecord(recordId: string) {
 }
 
 // ---- Users ----
+export async function findUserByEmail(email: string) {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("email", email.trim().toLowerCase())
+    .maybeSingle()
+
+  if (error) throw error
+  if (!data) return null
+
+  return {
+    id: data.id as string,
+    email: data.email as string,
+    name: data.name as string,
+    role: data.role as AppUser["role"],
+    status: data.status as AppUser["status"],
+    provider: (data.provider as string) || "email",
+    passwordHash: (data.password_hash as string) || "",
+    avatar: (data.avatar_url as string) || undefined,
+    coverImage: (data.cover_image as string) || undefined,
+    coverPositionX: data.cover_position_x === null || data.cover_position_x === undefined ? undefined : Number(data.cover_position_x),
+    coverPositionY: data.cover_position_y === null || data.cover_position_y === undefined ? undefined : Number(data.cover_position_y),
+    farmName: (data.farm_name as string) || undefined,
+    farmLocation: data.farm_location as AppUser["farmLocation"],
+    savedArticleIds: Array.isArray(data.saved_article_ids) ? data.saved_article_ids.filter((id: unknown) => typeof id === "string") : undefined,
+    createdAt: data.created_at as string,
+  } satisfies AppUser
+}
+
 export async function insertUser(user: AppUser) {
   const supabase = createClient()
   const { error } = await supabase

@@ -7,7 +7,7 @@ import {
   fetchArticles, upsertArticle, removeArticle,
   fetchProducts, upsertProduct, removeProduct,
 } from "./supabase/articles"
-import { updateUser as updateSupabaseUser } from "./supabase/queries"
+import { findUserByEmail as findSupabaseUserByEmail, updateUser as updateSupabaseUser } from "./supabase/queries"
 
 // ---- Types ----
 export type FlowerStage =
@@ -667,7 +667,8 @@ export function useAppData(currentUserId?: string | null) {
     const normalized = input.email.trim().toLowerCase()
     if (!normalized) return null
 
-    const existing = data.users.find(u => u.email.toLowerCase() === normalized)
+    const remoteUser = isSupabaseMode ? await findSupabaseUserByEmail(normalized).catch(() => null) : null
+    const existing = remoteUser ?? data.users.find(u => u.email.toLowerCase() === normalized)
     if (existing) {
       if (existing.status !== "active") return null
       const changes: Partial<AppUser> = {
@@ -676,7 +677,9 @@ export function useAppData(currentUserId?: string | null) {
       }
       updateData(d => ({
         ...d,
-        users: d.users.map(u => u.id === existing.id ? { ...u, ...changes } : u),
+        users: d.users.some(u => u.id === existing.id)
+          ? d.users.map(u => u.id === existing.id ? { ...u, ...changes } : u)
+          : [{ ...existing, ...changes }, ...d.users.filter(u => u.email.toLowerCase() !== normalized)],
       }))
       return { ...existing, ...changes }
     }
@@ -695,7 +698,7 @@ export function useAppData(currentUserId?: string | null) {
 
     updateData(d => ({ ...d, users: [newUser, ...d.users] }))
     return newUser
-  }, [data.users, updateData])
+  }, [data.users, isSupabaseMode, updateData])
 
   const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {
     updateData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, ...changes } : u) }))
