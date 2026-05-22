@@ -76,6 +76,7 @@ export default function Settings({
       y: readCoverPosition(`${coverStorageKey}_y`),
     }
   })
+  const [coverPositionDraft, setCoverPositionDraft] = useState(coverPosition)
   const coverInputRef = useRef<HTMLInputElement>(null)
 
   const [location, setLocation] = useState<{ lat: number; lon: number; label: string } | null>(() => {
@@ -112,6 +113,10 @@ export default function Settings({
       y: readCoverPosition(`${coverStorageKey}_y`),
     })
   }, [coverStorageKey, isOpen])
+
+  useEffect(() => {
+    setCoverPositionDraft(coverPosition)
+  }, [coverPosition])
 
   useEscapeToClose({ enabled: isOpen, onEscape: onClose, containerRef })
   useEscapeToClose({ enabled: isOpen && showConfirmReset, onEscape: () => setShowConfirmReset(false), containerRef: confirmResetRef })
@@ -198,6 +203,7 @@ export default function Settings({
       const result = ev.target?.result as string
       setCoverImage(result)
       setCoverPosition({ x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION })
+      setCoverPositionDraft({ x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION })
       localStorage.setItem(coverStorageKey, result)
       localStorage.removeItem(`${coverStorageKey}_x`)
       localStorage.removeItem(`${coverStorageKey}_y`)
@@ -209,6 +215,7 @@ export default function Settings({
   const handleRemoveCover = () => {
     setCoverImage(null)
     setCoverPosition({ x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION })
+    setCoverPositionDraft({ x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION })
     localStorage.removeItem(coverStorageKey)
     localStorage.removeItem(`${coverStorageKey}_x`)
     localStorage.removeItem(`${coverStorageKey}_y`)
@@ -218,11 +225,21 @@ export default function Settings({
 
   const handleCoverPosition = (axis: "x" | "y", value: number[]) => {
     const nextValue = value[0] ?? DEFAULT_COVER_POSITION
-    const nextPosition = { ...coverPosition, [axis]: nextValue }
-    setCoverPosition(nextPosition)
-    localStorage.setItem(`${coverStorageKey}_${axis}`, String(nextValue))
+    setCoverPositionDraft(position => ({ ...position, [axis]: nextValue }))
+  }
+
+  const handleSaveCoverPosition = () => {
+    setCoverPosition(coverPositionDraft)
+    localStorage.setItem(`${coverStorageKey}_x`, String(coverPositionDraft.x))
+    localStorage.setItem(`${coverStorageKey}_y`, String(coverPositionDraft.y))
     window.dispatchEvent(new Event("farm_cover_image_changed"))
   }
+
+  const handleCancelCoverPosition = () => {
+    setCoverPositionDraft(coverPosition)
+  }
+
+  const coverPositionChanged = coverPosition.x !== coverPositionDraft.x || coverPosition.y !== coverPositionDraft.y
 
 
 
@@ -434,7 +451,7 @@ export default function Settings({
             {/* Preview */}
             {coverImage ? (
               <div className="relative h-36 w-full">
-                <img src={coverImage} alt="ภาพปกสวน" className="w-full h-full object-cover" style={{ objectPosition: `${coverPosition.x}% ${coverPosition.y}%` }} />
+                <img src={coverImage} alt="ภาพปกสวน" className="w-full h-full object-cover" style={{ objectPosition: `${coverPositionDraft.x}% ${coverPositionDraft.y}%` }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <button
                   onClick={handleRemoveCover}
@@ -450,16 +467,34 @@ export default function Settings({
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-3 text-xs">
                     <span className="font-semibold text-foreground">เลื่อนซ้าย-ขวา</span>
-                    <span className="text-muted-foreground">{coverPosition.x}%</span>
+                    <span className="text-muted-foreground">{coverPositionDraft.x}%</span>
                   </div>
-                  <Slider value={[coverPosition.x]} onValueChange={value => handleCoverPosition("x", value)} aria-label="ปรับตำแหน่งภาพปกแนวนอน" />
+                  <Slider value={[coverPositionDraft.x]} onValueChange={value => handleCoverPosition("x", value)} aria-label="ปรับตำแหน่งภาพปกแนวนอน" />
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-3 text-xs">
                     <span className="font-semibold text-foreground">เลื่อนขึ้น-ลง</span>
-                    <span className="text-muted-foreground">{coverPosition.y}%</span>
+                    <span className="text-muted-foreground">{coverPositionDraft.y}%</span>
                   </div>
-                  <Slider value={[coverPosition.y]} onValueChange={value => handleCoverPosition("y", value)} aria-label="ปรับตำแหน่งภาพปกแนวตั้ง" />
+                  <Slider value={[coverPositionDraft.y]} onValueChange={value => handleCoverPosition("y", value)} aria-label="ปรับตำแหน่งภาพปกแนวตั้ง" />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCancelCoverPosition}
+                    disabled={!coverPositionChanged}
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveCoverPosition}
+                    disabled={!coverPositionChanged}
+                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    บันทึก
+                  </button>
                 </div>
               </div>
             ) : null}
