@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 interface Particle {
   id: number
@@ -11,14 +11,30 @@ interface Particle {
   opacity: number
 }
 
+const particles: Particle[] = Array.from({ length: 12 }, (_, id) => {
+  const seed = id + 1
+  const sizeVal = 3 + (seed * 7 % 50) / 10
+  const durationVal = 12 + (seed * 11 % 120) / 10
+  const delayVal = -((seed * 13) % 200) / 10
+  const driftVal = ((seed * 17) % 40) - 20
+  const opacityVal = 0.15 + ((seed * 19) % 35) / 100
+
+  return {
+    id,
+    left: `${(seed * 29) % 100}%`,
+    size: `${sizeVal}px`,
+    delay: `${delayVal}s`,
+    duration: `${durationVal}s`,
+    driftX: `${driftVal}px`,
+    opacity: opacityVal,
+  }
+})
+
 export default function AnimatedBackground() {
-  const [mounted, setMounted] = useState(false)
   const frameRef = useRef<number | null>(null)
   const mouseRef = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
-    setMounted(true)
-
     const setMousePosition = () => {
       frameRef.current = null
       document.documentElement.style.setProperty("--mouse-x", `${mouseRef.current.x}px`)
@@ -36,6 +52,9 @@ export default function AnimatedBackground() {
     mouseRef.current = { x: window.innerWidth / 2, y: window.innerHeight / 2 }
     setMousePosition()
 
+    const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches
+    if (!canHover) return
+
     window.addEventListener("mousemove", handleMouseMove, { passive: true })
     return () => {
       if (frameRef.current !== null) {
@@ -44,31 +63,6 @@ export default function AnimatedBackground() {
       window.removeEventListener("mousemove", handleMouseMove)
     }
   }, [])
-
-  // Generate stable particle configuration on mount
-  const particles = useMemo(() => {
-    const arr: Particle[] = []
-    for (let i = 0; i < 12; i++) {
-      const sizeVal = Math.random() * 5 + 3 // 3px to 8px
-      const durationVal = Math.random() * 12 + 12 // 12s to 24s
-      const delayVal = Math.random() * -20 // negative delay to start immediately
-      const driftVal = Math.random() * 40 - 20 // -20px to 20px
-      const opacityVal = Math.random() * 0.35 + 0.15 // 0.15 to 0.5 opacity
-
-      arr.push({
-        id: i,
-        left: `${Math.random() * 100}%`,
-        size: `${sizeVal}px`,
-        delay: `${delayVal}s`,
-        duration: `${durationVal}s`,
-        driftX: `${driftVal}px`,
-        opacity: opacityVal,
-      })
-    }
-    return arr;
-  }, [])
-
-  if (!mounted) return null
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-background">

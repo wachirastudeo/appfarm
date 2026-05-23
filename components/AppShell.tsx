@@ -240,10 +240,10 @@ function GuestHome({
   onReadArticles: (articleId?: string) => void
   onOpenProducts: () => void
 }) {
-  const publishedArticles = articles.filter(article => article.status === "published")
-  const featuredArticles = publishedArticles.slice(0, 9)
-  const activeProducts = products.filter(product => product.status === "active")
-  const carouselProducts = activeProducts.length > 0 ? [...activeProducts, ...activeProducts] : []
+  const publishedArticles = useMemo(() => articles.filter(article => article.status === "published"), [articles])
+  const featuredArticles = useMemo(() => publishedArticles.slice(0, 9), [publishedArticles])
+  const activeProducts = useMemo(() => products.filter(product => product.status === "active"), [products])
+  const carouselProducts = useMemo(() => activeProducts.length > 0 ? [...activeProducts, ...activeProducts] : [], [activeProducts])
   const productDrag = useRef({ active: false, startX: 0, scrollLeft: 0 })
 
   const leafParticles = useMemo<LeafParticle[]>(() => {
@@ -310,6 +310,7 @@ function GuestHome({
   useEffect(() => {
     if (activeProducts.length <= 1) return
     const interval = window.setInterval(() => {
+      if (document.hidden) return
       const track = productTrack()
       if (!track) return
       normalizeProductScroll(track)
@@ -547,7 +548,7 @@ function GuestHome({
               className="group w-[240px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30 sm:w-full sm:min-w-0"
             >
               <div className="relative h-24 overflow-hidden sm:h-28">
-                <img src={article.image} alt={article.title} className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.08]" />
+                <img src={article.image} alt={article.title} loading="lazy" decoding="async" className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.08]" />
               </div>
               <div className="p-4">
                 <span className="rounded-lg bg-primary/10 px-2.5 py-0.5 text-xs font-black text-primary">{article.category}</span>
@@ -614,7 +615,7 @@ function GuestHome({
                   className="group flex h-[18.5rem] w-[190px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30 sm:h-[19rem] sm:w-[220px]"
                 >
                   <div className="h-24 overflow-hidden sm:h-28 relative">
-                    <img src={product.image} alt={product.name} className="block h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]" />
+                    <img src={product.image} alt={product.name} loading="lazy" decoding="async" className="block h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]" />
                   </div>
                   <div className="flex flex-1 flex-col p-4">
                     <span className="text-xs font-black text-primary bg-primary/10 px-2.5 py-0.5 rounded-lg">{product.category}</span>
@@ -1067,23 +1068,29 @@ export default function AppShell() {
           <AppFooter onContactClick={() => setShowFeedbackModal(true)} />
         </main>
 
-        <AuthModal
-          isOpen={showAuth}
-          onClose={() => setShowAuth(false)}
-          onLoginSuccess={handleLoginSuccess}
-          authenticateUser={store.authenticateUser}
-          addUser={store.addUser}
-          resetPassword={store.resetPassword}
-        />
-        <FeedbackModal
-          isOpen={showFeedbackModal}
-          onClose={() => setShowFeedbackModal(false)}
-        />
-        <SupportModal
-          isOpen={showSupportModal}
-          onClose={() => setShowSupportModal(false)}
-          onOpenContact={() => setShowFeedbackModal(true)}
-        />
+        {showAuth && (
+          <AuthModal
+            isOpen={showAuth}
+            onClose={() => setShowAuth(false)}
+            onLoginSuccess={handleLoginSuccess}
+            authenticateUser={store.authenticateUser}
+            addUser={store.addUser}
+            resetPassword={store.resetPassword}
+          />
+        )}
+        {showFeedbackModal && (
+          <FeedbackModal
+            isOpen={showFeedbackModal}
+            onClose={() => setShowFeedbackModal(false)}
+          />
+        )}
+        {showSupportModal && (
+          <SupportModal
+            isOpen={showSupportModal}
+            onClose={() => setShowSupportModal(false)}
+            onOpenContact={() => setShowFeedbackModal(true)}
+          />
+        )}
       </div>
     )
   }
@@ -1218,40 +1225,48 @@ export default function AppShell() {
       </nav>
 
       {/* Settings Modal */}
-      <Settings
-        isOpen={showSettings}
-        onClose={handleCloseSettings}
-        siteSettings={store.data.siteSettings}
-        installPrompt={installPrompt}
-        onInstallPromptUsed={() => setInstallPrompt(null)}
-        currentUser={user}
-        locationStorageKey={locationStorageKey}
-        coverStorageKey={coverStorageKey}
-        onUpdateCover={changes => store.updateUser(user.id, changes)}
-        onUpdateFarmProfile={changes => store.updateUser(user.id, changes)}
-        onLogout={handleLogout}
-      />
+      {showSettings && (
+        <Settings
+          isOpen={showSettings}
+          onClose={handleCloseSettings}
+          siteSettings={store.data.siteSettings}
+          installPrompt={installPrompt}
+          onInstallPromptUsed={() => setInstallPrompt(null)}
+          currentUser={user}
+          locationStorageKey={locationStorageKey}
+          coverStorageKey={coverStorageKey}
+          onUpdateCover={changes => store.updateUser(user.id, changes)}
+          onUpdateFarmProfile={changes => store.updateUser(user.id, changes)}
+          onLogout={handleLogout}
+        />
+      )}
 
       {/* Auth / Login Modal */}
-      <AuthModal
-        isOpen={showAuth}
-        onClose={() => setShowAuth(false)}
-        onLoginSuccess={handleLoginSuccess}
-        authenticateUser={store.authenticateUser}
-        addUser={store.addUser}
-        resetPassword={store.resetPassword}
-      />
+      {showAuth && (
+        <AuthModal
+          isOpen={showAuth}
+          onClose={() => setShowAuth(false)}
+          onLoginSuccess={handleLoginSuccess}
+          authenticateUser={store.authenticateUser}
+          addUser={store.addUser}
+          resetPassword={store.resetPassword}
+        />
+      )}
 
       {/* Feedback / Contact Modal */}
-      <FeedbackModal
-        isOpen={showFeedbackModal}
-        onClose={() => setShowFeedbackModal(false)}
-      />
-      <SupportModal
-        isOpen={showSupportModal}
-        onClose={() => setShowSupportModal(false)}
-        onOpenContact={() => setShowFeedbackModal(true)}
-      />
+      {showFeedbackModal && (
+        <FeedbackModal
+          isOpen={showFeedbackModal}
+          onClose={() => setShowFeedbackModal(false)}
+        />
+      )}
+      {showSupportModal && (
+        <SupportModal
+          isOpen={showSupportModal}
+          onClose={() => setShowSupportModal(false)}
+          onOpenContact={() => setShowFeedbackModal(true)}
+        />
+      )}
     </div>
   )
 }
