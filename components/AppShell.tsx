@@ -902,7 +902,6 @@ export default function AppShell() {
   const siteName = user?.farmName || store.data.siteSettings.siteName || "สวนทุเรียน"
   const tagline = store.data.siteSettings.tagline || "Smart Orchard"
   const logoUrl = store.data.siteSettings.logoUrl
-  const totalTrees = store.data.plots.reduce((s, p) => s + p.trees.length, 0)
 
   if (!user) {
     if (authChecking) return <AppShellSkeleton />
@@ -1047,11 +1046,6 @@ export default function AppShell() {
                   <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600 ring-2 ring-white animate-in fade-in duration-500 delay-150" />
                 )}
               </button>
-              <div className="hidden min-[390px]:flex items-center gap-1.5 bg-[#E7F3EC] rounded-xl px-3 py-2 ring-1 ring-[#CFE3D5]">
-                <DurianIcon className="h-4 w-4 text-[#146B3E]" />
-                <span className="text-[#146B3E] font-bold text-sm leading-none">{totalTrees}</span>
-                <span className="text-[#527060] text-xs font-medium">ต้น</span>
-              </div>
             </div>
           )}
           {/* Profile / Login button */}
