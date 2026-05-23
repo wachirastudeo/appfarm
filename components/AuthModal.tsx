@@ -1,6 +1,6 @@
 "use client"
 import Image from "next/image"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { AppUser } from "@/lib/store"
 import { createClient } from "@/lib/supabase/client"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
@@ -35,9 +35,10 @@ interface Props {
   authenticateUser: (email: string, password: string) => Promise<AppUser | null>
   addUser: (user: Omit<AppUser, "id" | "createdAt" | "passwordHash" | "password"> & { password: string }) => Promise<AppUser | null>
   resetPassword: (email: string, password: string) => Promise<AppUser | null>
+  initialError?: string
 }
 
-export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticateUser, addUser, resetPassword }: Props) {
+export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticateUser, addUser, resetPassword, initialError }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [mode, setMode] = useState<"choose" | "email" | "forgot">("choose")
   const [isSignUp, setIsSignUp] = useState(false)
@@ -58,6 +59,14 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
 
   useEscapeToClose({ enabled: isOpen, onEscape: onClose, containerRef })
 
+  useEffect(() => {
+    if (isOpen && initialError) {
+      setError(initialError)
+      setSuccess("")
+      setMode("choose")
+    }
+  }, [initialError, isOpen])
+
   if (!isOpen) return null
 
   const handleOAuthLogin = async (provider: "google" | "custom:line") => {
@@ -71,7 +80,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          scopes: provider === "custom:line" ? "openid profile email" : undefined,
+          scopes: provider === "custom:line" ? "openid profile" : undefined,
         },
       })
       if (error) {

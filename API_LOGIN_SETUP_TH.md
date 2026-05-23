@@ -82,6 +82,7 @@
 10. เก็บค่า:
     - `LINE_CLIENT_ID` หรือ `LINE_CHANNEL_ID`
     - `LINE_CLIENT_SECRET` หรือ `LINE_CHANNEL_SECRET`
+    - ใช้ค่า `Channel ID` ที่เป็นตัวเลขเท่านั้น ห้ามใช้ `LIFF ID` หรือ ID ที่ขึ้นต้นด้วย `U`
 11. ไปที่ Supabase Dashboard > `Authentication` > `Sign In / Providers`
 12. สร้าง Custom provider ใหม่:
     - Configuration method: `Auto-discovery (OIDC)`

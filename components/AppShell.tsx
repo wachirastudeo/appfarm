@@ -38,6 +38,21 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 
 const MOBILE_TABS = TABS.slice(0, 4) // Show only 4 tabs on mobile
 
+function getOAuthErrorFromUrl() {
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
+  const queryParams = new URLSearchParams(window.location.search)
+  const error = hashParams.get("error") || queryParams.get("auth_error") || queryParams.get("error")
+  if (!error) return null
+
+  const description =
+    hashParams.get("error_description") ||
+    queryParams.get("auth_error_description") ||
+    queryParams.get("error_description") ||
+    "ไม่สามารถเข้าสู่ระบบด้วยผู้ให้บริการภายนอกได้"
+
+  return description.replace(/\+/g, " ")
+}
+
 const GUEST_FEATURES: { title: string; description: string; icon: React.ElementType; tone: string }[] = [
   {
     title: "วางแผนงานสวน",
@@ -624,6 +639,7 @@ export default function AppShell() {
   const [isMounted, setIsMounted] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [showSupportModal, setShowSupportModal] = useState(false)
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null)
@@ -638,6 +654,10 @@ export default function AppShell() {
   const store = useAppData(user?.id ?? null)
   const locationStorageKey = user?.id ? `farm_location_${user.id}` : "farm_location_guest"
   const coverStorageKey = user?.id ? `farm_cover_image_${user.id}` : "farm_cover_image_guest"
+  const openAuth = useCallback(() => {
+    setAuthError(null)
+    setShowAuth(true)
+  }, [])
   const todayTaskCount = useMemo(() => store.data.tasks.filter(task => {
     if (task.status !== "pending") return false
     const taskDate = new Date(task.date)
@@ -771,9 +791,20 @@ export default function AppShell() {
     }
     setUser(nextUser)
     setAuthChecking(false)
+    setAuthError(null)
     setFailedAvatarUrl(null)
     localStorage.setItem("durian_current_user", nextUser.id)
     setShowAuth(false)
+  }, [])
+
+  useEffect(() => {
+    const oauthError = getOAuthErrorFromUrl()
+    if (!oauthError) return
+
+    setAuthError(oauthError)
+    setShowAuth(true)
+
+    window.history.replaceState(null, "", window.location.pathname || "/")
   }, [])
 
   useEffect(() => {
@@ -886,7 +917,7 @@ export default function AppShell() {
         <GuestHome
           articles={store.data.articles}
           products={store.data.products}
-          onLogin={() => setShowAuth(true)}
+          onLogin={openAuth}
           onReadArticles={openArticles}
           onOpenProducts={openProducts}
         />
@@ -898,7 +929,7 @@ export default function AppShell() {
         <GuestHome
           articles={store.data.articles}
           products={store.data.products}
-          onLogin={() => setShowAuth(true)}
+          onLogin={openAuth}
           onReadArticles={openArticles}
           onOpenProducts={openProducts}
         />
@@ -1011,7 +1042,7 @@ export default function AppShell() {
                 <span className="hidden sm:inline">เลี้ยงกาแฟ</span>
               </button>
               <button
-                onClick={() => setShowAuth(true)}
+                onClick={openAuth}
                 aria-label="เข้าสู่ระบบ"
                 className="inline-flex h-10 w-auto items-center justify-center gap-2 rounded-2xl bg-[#146B3E] px-4 py-2 text-sm font-black text-white shadow-[0_12px_24px_rgba(20,107,62,0.18)] transition-all hover:bg-[#0F5A34] active:scale-[0.98]"
               >
@@ -1031,7 +1062,7 @@ export default function AppShell() {
             <GuestHome
               articles={store.data.articles}
               products={store.data.products}
-              onLogin={() => setShowAuth(true)}
+              onLogin={openAuth}
               onReadArticles={openArticles}
               onOpenProducts={openProducts}
             />
@@ -1047,6 +1078,7 @@ export default function AppShell() {
             authenticateUser={store.authenticateUser}
             addUser={store.addUser}
             resetPassword={store.resetPassword}
+            initialError={authError ?? undefined}
           />
         )}
         {showFeedbackModal && (
@@ -1127,7 +1159,7 @@ export default function AppShell() {
             </button>
           ) : (
             <button
-              onClick={() => setShowAuth(true)}
+              onClick={openAuth}
               aria-label="เข้าสู่ระบบ"
               className="rounded-xl bg-[#146B3E] px-3.5 py-2 text-sm font-black text-white shadow-sm ring-1 ring-[#146B3E]/10 transition-colors hover:bg-[#0F5A34]"
             >
@@ -1221,6 +1253,7 @@ export default function AppShell() {
           authenticateUser={store.authenticateUser}
           addUser={store.addUser}
           resetPassword={store.resetPassword}
+          initialError={authError ?? undefined}
         />
       )}
 
