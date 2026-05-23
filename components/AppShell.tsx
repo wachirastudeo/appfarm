@@ -528,12 +528,12 @@ function GuestHome({
       </section>
 
       <section className="mx-auto max-w-7xl rounded-[2rem] bg-card/60 backdrop-blur-md p-5 sm:p-6 shadow-[0_12px_40px_rgba(20,107,62,0.04)] border border-border/80 dark:border-border/30">
-        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
             <h2 className="text-2xl font-black text-foreground">บทความแนะนำ</h2>
             <p className="text-sm font-bold text-muted-foreground">เริ่มจากความรู้เรื่องน้ำ โรค ปุ๋ย ดอก และตลาดทุเรียน</p>
           </div>
-          <button onClick={() => onReadArticles()} className="inline-flex items-center gap-2 text-sm font-black text-primary hover:text-primary/80 transition-colors">
+          <button onClick={() => onReadArticles()} className="inline-flex shrink-0 items-center gap-2 pt-1 text-sm font-black text-primary transition-colors hover:text-primary/80">
             ดูบทความทั้งหมด <ArrowRight size={16} />
           </button>
         </div>
