@@ -367,6 +367,7 @@ function GuestHome({
                   alt={image.alt}
                   fill
                   sizes="(min-width: 1024px) 42rem, 100vw"
+                  loading={index === 0 ? "eager" : "lazy"}
                   className="guest-hero-image object-cover object-center opacity-0"
                   style={{
                     animation: "heroImageSlide 15s ease-in-out infinite",
