@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # คู่มือตั้งค่า Supabase Free สำหรับเว็บจริง
 
 ใช้ไฟล์นี้เป็น checklist ตอนสร้าง database จริงให้โปรเจกต์นี้
@@ -6,13 +8,13 @@
 
 ลิงก์:
 
-- Supabase: https://supabase.com/
-- Dashboard: https://supabase.com/dashboard
-- Docs: https://supabase.com/docs
+- Supabase: <https://supabase.com/>
+- Dashboard: <https://supabase.com/dashboard>
+- Docs: <https://supabase.com/docs>
 
 ขั้นตอน:
 
-1. เข้า https://supabase.com/dashboard
+1. เข้า <https://supabase.com/dashboard>
 2. Login ด้วย GitHub หรือ Email
 3. กด `New project`
 4. เลือก Organization

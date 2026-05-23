@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # คู่มือตั้งค่า Supabase Storage Free สำหรับรูปภาพ
 
 ใช้เก็บรูป:

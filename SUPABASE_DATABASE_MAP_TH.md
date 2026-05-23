@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # แผนผัง Database Supabase
 
 ไฟล์นี้ไว้ดูว่าใน Supabase ข้อมูลแต่ละส่วนของแอปอยู่ table ไหน

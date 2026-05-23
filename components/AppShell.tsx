@@ -303,11 +303,11 @@ function GuestHome({
         .delay-300 { animation-delay: 300ms; }
         .delay-400 { animation-delay: 400ms; }
       `}</style>
-      <section className="guest-hero relative isolate overflow-hidden bg-[#0B2417] px-4 py-8 sm:px-6 lg:px-8">
+      <section className="guest-hero relative isolate min-h-svh overflow-hidden bg-[#0B2417]">
         <div className="guest-hero-glow pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-[#1F6B42]/35 blur-3xl animate-pulse-glow" />
         <div className="guest-hero-glow pointer-events-none absolute -right-16 bottom-8 h-80 w-80 rounded-full bg-[#0F5A34]/40 blur-3xl animate-pulse-glow" style={{ animationDelay: '4s' }} />
-        <div className="guest-hero-card relative mx-auto grid min-h-[calc(100svh-9rem)] w-full max-w-[92rem] overflow-hidden rounded-[2rem] bg-transparent shadow-[0_28px_70px_rgba(20,107,62,0.12)] dark:shadow-[0_28px_70px_rgba(0,0,0,0.5)] border border-[#C9DACD]/30 dark:border-[#31533D]/40 ring-1 ring-white/10 lg:grid-cols-[1.08fr_0.92fr] lg:bg-white lg:dark:bg-[#14291E]">
-          <div className="order-1 relative min-h-[calc(100svh-9rem)] overflow-hidden bg-[#D8EFC4] dark:bg-[#102619] lg:order-2 lg:min-h-full">
+        <div className="guest-hero-card relative mx-auto grid min-h-svh w-full overflow-hidden bg-transparent lg:grid-cols-[1.08fr_0.92fr] lg:bg-white lg:dark:bg-[#14291E]">
+          <div className="order-1 relative min-h-svh overflow-hidden bg-[#D8EFC4] dark:bg-[#102619] lg:order-2 lg:min-h-full">
             <div className="absolute inset-0 overflow-hidden">
               <img
                 src="/images/durian-hero-new.png"
@@ -945,17 +945,19 @@ export default function AppShell() {
               <button
                 onClick={() => setShowSupportModal(true)}
                 aria-label="สนับสนุนเว็บนี้"
-                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[#CFE3D5] bg-white px-3 py-2 text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] dark:border-[#31533D] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:hover:bg-[#244332]"
+                className="inline-flex h-10 w-10 items-center justify-center gap-2 rounded-2xl border border-[#CFE3D5] bg-white px-0 text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] sm:w-auto sm:px-3 sm:py-2 dark:border-[#31533D] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:hover:bg-[#244332]"
               >
                 <HeartHandshake size={16} />
-                <span>เลี้ยงกาแฟ</span>
+                <span className="hidden sm:inline">เลี้ยงกาแฟ</span>
               </button>
               <button
                 onClick={() => setShowAuth(true)}
-                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl bg-[#146B3E] px-4 py-2 text-sm font-black text-white shadow-[0_12px_24px_rgba(20,107,62,0.18)] transition-all hover:bg-[#0F5A34] active:scale-[0.98]"
+                aria-label="เข้าสู่ระบบ"
+                className="inline-flex h-10 w-10 items-center justify-center gap-2 rounded-2xl bg-[#146B3E] px-0 text-sm font-black text-white shadow-[0_12px_24px_rgba(20,107,62,0.18)] transition-all hover:bg-[#0F5A34] active:scale-[0.98] sm:w-auto sm:px-4 sm:py-2"
               >
-                เข้าสู่ระบบ
-                <ArrowRight size={16} />
+                <User size={16} className="sm:hidden" />
+                <span className="hidden sm:inline">เข้าสู่ระบบ</span>
+                <ArrowRight size={16} className="hidden sm:block" />
               </button>
             </div>
           </div>
@@ -1005,7 +1007,7 @@ export default function AppShell() {
     <div className="h-screen bg-transparent flex flex-col relative overflow-hidden">
       <AnimatedBackground />
       {/* Top Header Bar */}
-      <header className="relative z-20 bg-white/75 dark:bg-[#0F1F17]/75 backdrop-blur-md px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1]/40 dark:border-[#31533D]/45 shadow-[0_8px_30px_rgba(20,107,62,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)] overflow-hidden">
+      <header className="sticky top-0 z-40 bg-white/75 dark:bg-[#0F1F17]/75 backdrop-blur-md px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1]/40 dark:border-[#31533D]/45 shadow-[0_8px_30px_rgba(20,107,62,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)] overflow-hidden">
         <button
           onClick={() => setActiveTab("dashboard")}
           className="relative flex min-w-0 items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity active:scale-95"
@@ -1026,10 +1028,10 @@ export default function AppShell() {
           <button
             onClick={() => setShowSupportModal(true)}
             aria-label="สนับสนุนเว็บนี้"
-            className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
+            className="inline-flex h-10 w-10 items-center justify-center gap-2 rounded-xl bg-white px-0 text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] sm:w-auto sm:px-3 sm:py-2 dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
           >
             <HeartHandshake size={18} />
-            <span className="text-sm font-black leading-none">เลี้ยงกาแฟ</span>
+            <span className="hidden text-sm font-black leading-none sm:inline">เลี้ยงกาแฟ</span>
           </button>
           {user && (
             <div className="contents animate-in fade-in duration-300">

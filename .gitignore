@@ -90,3 +90,4 @@ next.user-config.*
 *.pfx
 *.cert
 *.crt
+.vercel

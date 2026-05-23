@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # คู่มือขอ API สำหรับ Google Login และ LINE Login
 
 ไฟล์นี้ใช้เป็น checklist สำหรับไปขอ `Client ID`, `Client Secret`, `Channel ID`, และ `Channel Secret` เพื่อเชื่อม login จริงกับแอปนี้
@@ -27,9 +29,9 @@
 
 ลิงก์หลัก:
 
-- Google Cloud Console: https://console.cloud.google.com/
-- OAuth setup docs: https://support.google.com/googleapi/answer/6158849
-- OAuth consent screen docs: https://developers.google.com/workspace/guides/configure-oauth-consent
+- Google Cloud Console: <https://console.cloud.google.com/>
+- OAuth setup docs: <https://support.google.com/googleapi/answer/6158849>
+- OAuth consent screen docs: <https://developers.google.com/workspace/guides/configure-oauth-consent>
 
 ขั้นตอน:
 
@@ -58,9 +60,9 @@
 
 ลิงก์หลัก:
 
-- LINE Developers Console: https://developers.line.biz/console/
-- LINE Login docs: https://developers.line.biz/en/docs/line-login/
-- Create channel docs: https://developers.line.biz/en/docs/liff/getting-started/
+- LINE Developers Console: <https://developers.line.biz/console/>
+- LINE Login docs: <https://developers.line.biz/en/docs/line-login/>
+- Create channel docs: <https://developers.line.biz/en/docs/liff/getting-started/>
 
 ขั้นตอน:
 

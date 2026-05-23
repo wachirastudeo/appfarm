@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # คู่มือ Deploy Vercel สำหรับใช้งานจริง
 
 ใช้ checklist นี้สำหรับนำแอปขึ้น Vercel และใช้ Supabase เป็นฐานข้อมูลจริง
@@ -47,8 +49,8 @@ Build Command: npm run build
 Install Command: npm install
 ```
 
-4. ใช้ preview deployments สำหรับ branch หรือ pull request
-5. ปล่อย production โดย merge หรือ push commit ที่อนุมัติแล้วเข้า Vercel production branch
+1. ใช้ preview deployments สำหรับ branch หรือ pull request
+2. ปล่อย production โดย merge หรือ push commit ที่อนุมัติแล้วเข้า Vercel production branch
 
 ## 4. Environment Variables
 
@@ -120,15 +122,15 @@ NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=app-images
 https://YOUR_DOMAIN
 ```
 
-3. เพิ่ม redirect URLs แบบ exact:
+1. เพิ่ม redirect URLs แบบ exact:
 
 ```text
 https://YOUR_DOMAIN/auth/callback
 http://localhost:3000/auth/callback
 ```
 
-4. เพิ่ม preview redirect URLs เฉพาะกรณี preview deployments ต้องใช้ Google login
-5. สำหรับ production ให้ใช้ redirect URL แบบ exact
+1. เพิ่ม preview redirect URLs เฉพาะกรณี preview deployments ต้องใช้ Google login
+2. สำหรับ production ให้ใช้ redirect URL แบบ exact
 
 login component ปัจจุบันส่ง Google OAuth กลับมาที่:
 
@@ -176,8 +178,8 @@ ${window.location.origin}/auth/callback
 
 ## 9. เอกสารอ้างอิง
 
-- Vercel Git deployments: https://vercel.com/docs/deployments/git
-- Vercel environment variables: https://vercel.com/docs/environment-variables
-- Supabase redirect URLs: https://supabase.com/docs/guides/auth/redirect-urls
-- Supabase Google login: https://supabase.com/docs/guides/auth/social-login/auth-google
-- Supabase backups: https://supabase.com/docs/guides/platform/backups
+- Vercel Git deployments: <https://vercel.com/docs/deployments/git>
+- Vercel environment variables: <https://vercel.com/docs/environment-variables>
+- Supabase redirect URLs: <https://supabase.com/docs/guides/auth/redirect-urls>
+- Supabase Google login: <https://supabase.com/docs/guides/auth/social-login/auth-google>
+- Supabase backups: <https://supabase.com/docs/guides/platform/backups>

@@ -1,6 +1,9 @@
+<!-- markdownlint-disable MD013 -->
+
 # Project Knowledge
 
 ## What This App Is
+
 - Durian orchard management web app for Thai users.
 - Tracks plots, trees, flower/fruit stages, field activities, tasks, finance records, settings, profile/login UI, and cultivation articles.
 - UI text is mainly Thai. Keep new user-facing copy consistent with the current Thai tone unless asked otherwise.
@@ -8,6 +11,7 @@
 - Full **Dark Mode** support and **Progressive Web App (PWA)** capability (install handler, manifest assets).
 
 ## Tech Stack
+
 - Next.js 16.2.4 App Router, React 19, TypeScript.
 - Tailwind CSS v4 via PostCSS.
 - Radix UI primitives, shadcn-style components in `components/ui/`.
@@ -16,6 +20,7 @@
 - Supabase Postgres for real database persistence, with `localStorage` kept as client fallback/cache.
 
 ## Important Files
+
 - `app/page.tsx`: renders `AppShell`.
 - `app/layout.tsx`: Thai metadata, fonts, viewport, next-themes wrapping, production Vercel Analytics.
 - `app/globals.css`: global styles, Light/Dark theme tokens, typography readability scales.
@@ -32,6 +37,7 @@
 - `public/images/`: durian article/banner assets.
 
 ## Main Features
+
 - Dashboard: orchard overview, tasks, activities, personalized greeting, custom farm settings, OSM place finder, and 5-day daily forecast chart view with loading skeleton elements.
 - Plot management: plots, trees, bulk stage updates, tree health, fruit/flower batches, **plot deletion with confirmation dialog**, and **bulk addition form sequential auto-numbering trees**.
 - Operations: tasks and activity logs with rapid inline type filters.
@@ -40,6 +46,7 @@
 - Profile / Auth: localized email credentials plus Supabase Google Login, personalized updates, custom/profile avatar handling.
 
 ## Data Model
+
 - `AppData`: `plots`, `activities`, `tasks`, `finance`, `users`, `articles`, `products`, `siteSettings`.
 - `Plot`: has `trees`.
 - `Tree`: variety, age, health, current `FlowerStage`, notes, `batches`, `lastUpdated`.
@@ -50,6 +57,7 @@
 - `AppUser`: id, name, email, passwordHash, role, status, provider, avatar image strings, createdAt.
 
 ## State And Persistence
+
 - `useAppData()` in `lib/store.ts` owns app state.
 - Storage key: `durian_orchard_data` is still used as browser fallback/cache.
 - Supabase mode is controlled by `NEXT_PUBLIC_APP_DATA_MODE=supabase`.
@@ -64,6 +72,7 @@
 - `articles`, `products`, `site_settings`, and `app_data` remain shared/global app data.
 
 ## Commands
+
 - Dev: `npm run dev`
 - Lint: `npm run lint`
 - Build: `npm run build`
@@ -71,6 +80,7 @@
 - There are both `package-lock.json` and `pnpm-lock.yaml`; avoid touching lockfiles unless dependency work requires it.
 
 ## Coding Rules
+
 - Keep changes small and scoped.
 - Preserve Thai labels, agricultural terms, and existing UI tone.
 - Prefer existing `components/ui` controls and `lib/utils.ts` helpers.
@@ -80,6 +90,7 @@
 - Preserve the existing Supabase schema/table names unless a migration is intentionally planned.
 
 ## Verification
+
 - Run `npm run lint` for code changes when practical.
 - Run `npm run build` for route, shared component, store/type, or Next config changes.
 - If verification is skipped, state why.
