@@ -1104,7 +1104,7 @@ export default function AppShell() {
     <div className="h-screen bg-transparent flex flex-col relative overflow-hidden">
       <AnimatedBackground />
       {/* Top Header Bar */}
-      <header className="sticky top-0 z-40 bg-white/75 dark:bg-[#0F1F17]/75 backdrop-blur-md px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1]/40 dark:border-[#31533D]/45 shadow-[0_8px_30px_rgba(20,107,62,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)] overflow-hidden">
+      <header className="sticky top-0 z-40 bg-white/75 dark:bg-[#0F1F17]/75 backdrop-blur-md px-3 sm:px-4 md:px-8 pt-2 sm:pt-2 pb-2 sm:pb-2 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1]/40 dark:border-[#31533D]/45 shadow-[0_8px_30px_rgba(20,107,62,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)] overflow-hidden">
         <button
           onClick={() => setActiveTab("dashboard")}
           className="relative flex min-w-0 items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity active:scale-95"
@@ -1125,7 +1125,7 @@ export default function AppShell() {
           <button
             onClick={() => setShowSupportModal(true)}
             aria-label="สนับสนุนเว็บนี้"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] sm:w-auto sm:gap-2 sm:px-3 sm:py-2 dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] sm:h-auto sm:w-auto sm:gap-2 sm:px-3 sm:py-2 dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
           >
             <HeartHandshake size={18} />
             <span className="hidden text-sm font-black leading-none sm:inline">เลี้ยงกาแฟ</span>
