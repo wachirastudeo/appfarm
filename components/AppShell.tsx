@@ -1125,7 +1125,7 @@ export default function AppShell() {
           <button
             onClick={() => setShowSupportModal(true)}
             aria-label="สนับสนุนเว็บนี้"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] sm:h-auto sm:w-auto sm:gap-2 sm:px-3 sm:py-2 dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
+            className="inline-flex py-2 w-10 items-center justify-center rounded-xl bg-white text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] sm:h-auto sm:w-auto sm:gap-2 sm:px-3 sm:py-2 dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
           >
             <HeartHandshake size={18} />
             <span className="hidden text-sm font-black leading-none sm:inline">เลี้ยงกาแฟ</span>
