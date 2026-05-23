@@ -7,14 +7,14 @@
 ## สถานะปัจจุบันของโปรเจกต์
 
 - Google Login เชื่อมผ่าน Supabase Auth แล้ว
-- หน้า login ใช้ `components/AuthModal.tsx` เรียก `supabase.auth.signInWithOAuth({ provider: "google" })`
+- หน้า login ใช้ `components/AuthModal.tsx` เรียก `supabase.auth.signInWithOAuth()` สำหรับ Google และ LINE
 - Frontend ใช้ `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` เป็น public key หลัก และรองรับ `NEXT_PUBLIC_SUPABASE_ANON_KEY` เป็น legacy fallback
 - Callback route ของแอปคือ:
   - Local: `http://localhost:3000/auth/callback`
   - Production: `https://YOUR_DOMAIN.com/auth/callback`
 - Supabase OAuth callback ที่ต้องใส่ใน Google Cloud Console คือ:
   - `https://hpyoyjpqitpvgckxnlww.supabase.co/auth/v1/callback`
-- LINE Login ยังไม่ได้เชื่อมในโค้ด production flow
+- LINE Login เชื่อมผ่าน Supabase Auth แบบ Custom OAuth/OIDC provider แล้ว เพราะ Supabase ไม่มี LINE เป็น built-in provider
 
 ## สิ่งที่ต้องเตรียม
 
@@ -74,7 +74,7 @@
 6. ไปที่แท็บ `LINE Login`
 7. เปิดใช้งาน LINE Login channel
 8. ใส่ Callback URL:
-   - ยังไม่ได้กำหนดในโค้ดปัจจุบัน
+   - `https://hpyoyjpqitpvgckxnlww.supabase.co/auth/v1/callback`
 9. ขอ permission ที่ต้องใช้:
    - `profile`
    - `openid`
@@ -82,6 +82,18 @@
 10. เก็บค่า:
     - `LINE_CLIENT_ID` หรือ `LINE_CHANNEL_ID`
     - `LINE_CLIENT_SECRET` หรือ `LINE_CHANNEL_SECRET`
+11. ไปที่ Supabase Dashboard > `Authentication` > `Sign In / Providers`
+12. สร้าง Custom provider ใหม่:
+    - Configuration method: `Auto-discovery (OIDC)`
+    - Provider ID / Identifier: `custom:line`
+    - Issuer URL: `https://access.line.me`
+    - Client ID: LINE `Channel ID`
+    - Client Secret: LINE `Channel Secret`
+    - Scopes: `openid profile email`
+13. ถ้าใช้ manual OAuth2 ให้ใส่:
+    - Authorization URL: `https://access.line.me/oauth2/v2.1/authorize`
+    - Token URL: `https://api.line.me/oauth2/v2.1/token`
+    - UserInfo URL: `https://api.line.me/oauth2/v2.1/userinfo`
 
 ## ตัวอย่าง `.env.local`
 
@@ -94,7 +106,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=replace-with-publishable-key
 NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=app-images
 ```
 
-ห้ามใส่ Google `Client Secret` ใน `.env.local` ฝั่ง frontend ให้เก็บไว้ใน Supabase Dashboard เท่านั้น
+ห้ามใส่ Google `Client Secret` หรือ LINE `Channel Secret` ใน `.env.local` ฝั่ง frontend ให้เก็บไว้ใน Supabase Dashboard เท่านั้น
 
 ## จุดที่เชื่อมแล้วในโค้ด
 
@@ -109,11 +121,12 @@ NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=app-images
 หลังใส่ค่า API แล้วให้ตรวจ:
 
 1. Login Google ได้
-2. Logout แล้ว session หายจริง
-3. Refresh หน้าแล้วยังจำ user ได้
-4. รูป Google profile แสดงได้จาก `avatar_url` หรือ `picture`
-5. ข้อมูล `plots`, `tasks`, `activities` แยกตาม user ที่ login
-6. Production callback URL ตรงกับที่ตั้งไว้ใน Google/Supabase
+2. Login LINE ได้ และ LINE ส่ง email กลับมาได้
+3. Logout แล้ว session หายจริง
+4. Refresh หน้าแล้วยังจำ user ได้
+5. รูป profile แสดงได้จาก `avatar_url` หรือ `picture`
+6. ข้อมูล `plots`, `tasks`, `activities` แยกตาม user ที่ login
+7. Production callback URL ตรงกับที่ตั้งไว้ใน Google/LINE/Supabase
 
 ## Backup
 
@@ -130,7 +143,7 @@ git diff
 
 ถ้า auth ใหม่มีปัญหา:
 
-1. ปิด Google provider ใน Supabase ชั่วคราว
+1. ปิด Google หรือ LINE provider ใน Supabase ชั่วคราว
 2. กลับไปใช้ login UI เดิม
 3. คืนค่าไฟล์ที่แก้จาก Git commit ล่าสุด
 
