@@ -226,16 +226,12 @@ interface LeafParticle {
 function GuestHome({
   articles,
   products,
-  siteName,
-  tagline,
   onLogin,
   onReadArticles,
   onOpenProducts,
 }: {
   articles: Article[]
   products: Product[]
-  siteName: string
-  tagline: string
   onLogin: () => void
   onReadArticles: (articleId?: string) => void
   onOpenProducts: () => void
@@ -405,13 +401,6 @@ function GuestHome({
 
             <div className="relative z-10 px-5 pb-4 pt-4 sm:px-8 sm:pb-6 sm:pt-8 lg:hidden">
               <div className="rounded-[1.5rem] border border-white/14 bg-white/10 p-4 text-white shadow-[0_20px_60px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all animate-fade-in-up">
-                <div className="mb-2 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-[#DDEBE1]">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/14">
-                    <Leaf size={16} />
-                  </span>
-                  {siteName}
-                </div>
-                <p className="mb-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-white/68 delay-100 animate-fade-in-up">{tagline}</p>
                 <h1 className="max-w-[11ch] text-[clamp(1.8rem,7.4vw,2.35rem)] font-black leading-[0.98] text-white delay-200 animate-fade-in-up">
                   จัดการสวนทุเรียน ง่ายขึ้น
                 </h1>
@@ -451,18 +440,6 @@ function GuestHome({
           </div>
 
           <div className="guest-hero-copy relative z-10 hidden flex-col justify-center px-6 py-8 sm:px-10 lg:order-1 lg:flex lg:px-12 lg:py-10 xl:px-16">
-            <div className="animate-fade-in-up">
-              <div className="mb-8 inline-flex items-center gap-2 text-sm font-black text-[#146B3E] dark:text-[#72C08A]">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E7F3EC] dark:bg-[#1D3A29]">
-                  <Leaf size={19} />
-                </span>
-                {siteName}
-              </div>
-            </div>
-            <p className="mb-4 flex items-center gap-3 text-sm font-black uppercase tracking-[0.22em] text-[#527060] dark:text-[#B8D1C0] animate-fade-in-up delay-100">
-              <span className="h-px w-10 bg-[#A8C9B2] dark:bg-[#31533D]" />
-              {tagline}
-            </p>
             <h1 className="max-w-[12ch] text-[clamp(2.6rem,4.8vw,5.2rem)] font-black leading-[1.03] text-[#146B3E] dark:text-[#72C08A] lg:max-w-none lg:whitespace-nowrap lg:text-[clamp(2.5rem,3.25vw,3.7rem)] animate-fade-in-up delay-200">
               จัดการสวนทุเรียน ง่ายขึ้น
             </h1>
@@ -909,8 +886,6 @@ export default function AppShell() {
         <GuestHome
           articles={store.data.articles}
           products={store.data.products}
-          siteName={siteName}
-          tagline={tagline}
           onLogin={() => setShowAuth(true)}
           onReadArticles={openArticles}
           onOpenProducts={openProducts}
@@ -923,8 +898,6 @@ export default function AppShell() {
         <GuestHome
           articles={store.data.articles}
           products={store.data.products}
-          siteName={siteName}
-          tagline={tagline}
           onLogin={() => setShowAuth(true)}
           onReadArticles={openArticles}
           onOpenProducts={openProducts}
@@ -1032,10 +1005,10 @@ export default function AppShell() {
               <button
                 onClick={() => setShowSupportModal(true)}
                 aria-label="สนับสนุนเว็บนี้"
-                className="hidden h-10 items-center justify-center gap-2 rounded-2xl border border-[#CFE3D5] bg-white px-3 py-2 text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] sm:inline-flex dark:border-[#31533D] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:hover:bg-[#244332]"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#CFE3D5] bg-white text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] sm:w-auto sm:gap-2 sm:px-3 sm:py-2 dark:border-[#31533D] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:hover:bg-[#244332]"
               >
                 <HeartHandshake size={16} />
-                <span>เลี้ยงกาแฟ</span>
+                <span className="hidden sm:inline">เลี้ยงกาแฟ</span>
               </button>
               <button
                 onClick={() => setShowAuth(true)}
@@ -1120,10 +1093,10 @@ export default function AppShell() {
           <button
             onClick={() => setShowSupportModal(true)}
             aria-label="สนับสนุนเว็บนี้"
-            className="hidden h-10 items-center justify-center gap-2 rounded-xl bg-white px-3 py-2 text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] sm:inline-flex dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] sm:w-auto sm:gap-2 sm:px-3 sm:py-2 dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
           >
             <HeartHandshake size={18} />
-            <span className="text-sm font-black leading-none">เลี้ยงกาแฟ</span>
+            <span className="hidden text-sm font-black leading-none sm:inline">เลี้ยงกาแฟ</span>
           </button>
           {user && (
             <div className="contents animate-in fade-in duration-300">
