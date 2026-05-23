@@ -3,23 +3,42 @@ import { useEffect } from "react"
 
 export default function ClearLocalPage() {
   useEffect(() => {
-    try {
-      // remove any keys starting with the storage base used for per-user data
+    const clearStoredData = async () => {
       const prefix = "durian_orchard_data"
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        if (!key) continue
-        if (key === "farm_location_guest" || key.startsWith(prefix)) {
+
+      try {
+        const keysToRemove = Object.keys(localStorage).filter((key) => key === "farm_location_guest" || key.startsWith(prefix))
+        keysToRemove.forEach((key) => {
           localStorage.removeItem(key)
-        }
+        })
+        sessionStorage.clear()
+      } catch (e) {
+        // ignore
       }
-    } catch (e) {
-      // ignore
+
+      try {
+        if ("caches" in window) {
+          const cacheNames = await caches.keys()
+          await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)))
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      try {
+        if ("serviceWorker" in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations()
+          await Promise.all(registrations.map((registration) => registration.unregister()))
+        }
+      } catch (e) {
+        // ignore
+      }
     }
 
-    // give user a moment to see message, then redirect home
+    clearStoredData()
+
     const t = setTimeout(() => {
-      window.location.href = "/"
+      window.location.href = `/?refresh=${Date.now()}`
     }, 900)
     return () => clearTimeout(t)
   }, [])
