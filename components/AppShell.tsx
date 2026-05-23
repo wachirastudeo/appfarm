@@ -1031,8 +1031,6 @@ export default function AppShell() {
             <GuestHome
               articles={store.data.articles}
               products={store.data.products}
-              siteName={siteName}
-              tagline={tagline}
               onLogin={() => setShowAuth(true)}
               onReadArticles={openArticles}
               onOpenProducts={openProducts}
