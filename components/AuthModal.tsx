@@ -1,10 +1,32 @@
 "use client"
+import Image from "next/image"
 import { useRef, useState } from "react"
 import type { AppUser } from "@/lib/store"
 import { createClient } from "@/lib/supabase/client"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { validateEmail, validateText } from "@/lib/form-validation"
 import { X, Mail, Eye, EyeOff, AlertCircle, ShieldCheck, Sparkles } from "lucide-react"
+
+const AUTH_SLIDES = [
+  {
+    image: "/images/durian-hero-new.png",
+    alt: "สวนทุเรียนยามเช้า",
+    title: "เห็นภาพรวมสวนทันที",
+    description: "ติดตามแปลง งาน และสุขภาพต้นในที่เดียว",
+  },
+  {
+    image: "/images/article-watering.png",
+    alt: "ระบบน้ำในสวนทุเรียน",
+    title: "วางแผนงานประจำวัน",
+    description: "จัดคิวรดน้ำ ใส่ปุ๋ย และบันทึกกิจกรรมสวน",
+  },
+  {
+    image: "/images/article-market.png",
+    alt: "ตลาดทุเรียน",
+    title: "อ่านความรู้ก่อนตัดสินใจ",
+    description: "รวมบทความเรื่องโรค น้ำ ปุ๋ย และตลาดทุเรียน",
+  },
+]
 
 interface Props {
   isOpen: boolean
@@ -135,6 +157,16 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
 
   return (
     <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
+      <style>{`
+        @keyframes authSlideFade {
+          0%, 27% { opacity: 1; transform: scale(1); }
+          33%, 94% { opacity: 0; transform: scale(1.04); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        .auth-slide {
+          animation: authSlideFade 12s ease-in-out infinite;
+        }
+      `}</style>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       <div className="relative grid w-full max-w-4xl max-h-[92dvh] overflow-y-auto rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-2xl ring-1 ring-emerald-950/10 md:grid-cols-[1.05fr_0.95fr]">
@@ -150,6 +182,22 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
               <p className="mt-4 max-w-sm text-sm font-semibold leading-6 text-white/72">
                 เข้าสู่ระบบเพื่อดูข้อมูลสวน บทความ งานประจำวัน และหลังบ้านสำหรับผู้ดูแล
               </p>
+            </div>
+            <div aria-hidden="true" className="relative h-52 overflow-hidden rounded-[1.5rem] bg-white/10 shadow-2xl shadow-black/20 ring-1 ring-white/16">
+              {AUTH_SLIDES.map((slide, index) => (
+                <div
+                  key={slide.title}
+                  className="auth-slide absolute inset-0 opacity-0"
+                  style={{ animationDelay: `${index * 4}s` }}
+                >
+                  <Image src={slide.image} alt="" fill sizes="(min-width: 768px) 28rem, 100vw" className="object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/18 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-5">
+                    <p className="text-lg font-black leading-tight">{slide.title}</p>
+                    <p className="mt-1 text-xs font-semibold leading-5 text-white/76">{slide.description}</p>
+                  </div>
+                </div>
+              ))}
             </div>
             <div className="grid gap-3">
               {[
@@ -174,8 +222,8 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
         </button>
 
         <div className="px-5 py-7 sm:px-8 md:py-10">
-          <div className="mb-7">
-            <div className="flex items-center gap-2.5 mb-1">
+          <div className="mb-7 pt-6 text-center md:pt-0 md:text-left">
+            <div className="mb-1 flex items-center justify-center gap-2.5 md:justify-start">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 shadow-lg shadow-emerald-600/25">
                 <ShieldCheck size={18} className="text-white" />
               </div>

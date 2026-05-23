@@ -1,5 +1,6 @@
 "use client"
 import dynamic from "next/dynamic"
+import Image from "next/image"
 import { useCallback, useMemo, useRef, useState, useEffect } from "react"
 import { useAppData } from "@/lib/store"
 import type { AppUser, Article, Product } from "@/lib/store"
@@ -36,6 +37,51 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 ]
 
 const MOBILE_TABS = TABS.slice(0, 4) // Show only 4 tabs on mobile
+
+const GUEST_FEATURES: { title: string; description: string; icon: React.ElementType; tone: string }[] = [
+  {
+    title: "วางแผนงานสวน",
+    description: "สร้างงานประจำวัน จัดลำดับ และตามงานที่ต้องทำ",
+    icon: ClipboardCheck,
+    tone: "bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-400/10 dark:text-emerald-200 dark:ring-emerald-400/20",
+  },
+  {
+    title: "จัดการแปลงและต้น",
+    description: "เก็บข้อมูลแปลง ตำแหน่ง สุขภาพ และระยะการเติบโต",
+    icon: MapPinned,
+    tone: "bg-lime-50 text-lime-700 ring-lime-100 dark:bg-lime-400/10 dark:text-lime-200 dark:ring-lime-400/20",
+  },
+  {
+    title: "บันทึกกิจกรรม",
+    description: "จดงานรดน้ำ ใส่ปุ๋ย พ่นยา และค่าใช้จ่ายย้อนหลัง",
+    icon: CalendarDays,
+    tone: "bg-sky-50 text-sky-700 ring-sky-100 dark:bg-sky-400/10 dark:text-sky-200 dark:ring-sky-400/20",
+  },
+  {
+    title: "ดูภาพรวมการเงิน",
+    description: "แยกรายรับรายจ่าย เห็นต้นทุนและผลตอบแทนชัดขึ้น",
+    icon: Coins,
+    tone: "bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-400/10 dark:text-amber-200 dark:ring-amber-400/20",
+  },
+  {
+    title: "เช็กสภาพอากาศ",
+    description: "ใช้พยากรณ์ช่วยตัดสินใจงานน้ำและงานดูแลสวน",
+    icon: CloudRain,
+    tone: "bg-cyan-50 text-cyan-700 ring-cyan-100 dark:bg-cyan-400/10 dark:text-cyan-200 dark:ring-cyan-400/20",
+  },
+  {
+    title: "คลังความรู้ทุเรียน",
+    description: "อ่านบทความเรื่องโรค น้ำ ปุ๋ย ดอก และตลาดก่อนลงมือ",
+    icon: BookOpen,
+    tone: "bg-rose-50 text-rose-700 ring-rose-100 dark:bg-rose-400/10 dark:text-rose-200 dark:ring-rose-400/20",
+  },
+]
+
+const GUEST_HERO_IMAGES = [
+  { src: "/images/durian-hero-new.png", alt: "สวนทุเรียนบนเนินเขา" },
+  { src: "/images/durian-banner.avif", alt: "สวนทุเรียนเขียวชอุ่ม" },
+  { src: "/images/durian-banner.jpg", alt: "ผลทุเรียนในสวน" },
+]
 
 function ContentSkeleton() {
   return (
@@ -273,7 +319,7 @@ function GuestHome({
   }, [activeProducts.length])
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-5 pb-12 sm:space-y-8">
       <style>{`
         @keyframes fadeSlideUp {
           from { opacity: 0; transform: translateY(30px); }
@@ -287,6 +333,11 @@ function GuestHome({
           0% { opacity: 0.3; transform: scale(1) translate(0, 0); }
           50% { opacity: 0.5; transform: scale(1.1) translate(20px, -20px); }
           100% { opacity: 0.3; transform: scale(1) translate(0, 0); }
+        }
+        @keyframes heroImageSlide {
+          0%, 28% { opacity: 1; transform: scale(1.02) translate(0, 0); }
+          33%, 95% { opacity: 0; transform: scale(1.09) translate(-1.5%, -1%); }
+          100% { opacity: 1; transform: scale(1.02) translate(0, 0); }
         }
         .animate-fade-in-up {
           opacity: 0;
@@ -303,17 +354,26 @@ function GuestHome({
         .delay-300 { animation-delay: 300ms; }
         .delay-400 { animation-delay: 400ms; }
       `}</style>
-      <section className="guest-hero relative isolate min-h-svh overflow-hidden bg-[#0B2417]">
+      <section className="guest-hero relative isolate overflow-hidden bg-[#0B2417] lg:min-h-svh lg:px-8 lg:py-8">
         <div className="guest-hero-glow pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-[#1F6B42]/35 blur-3xl animate-pulse-glow" />
         <div className="guest-hero-glow pointer-events-none absolute -right-16 bottom-8 h-80 w-80 rounded-full bg-[#0F5A34]/40 blur-3xl animate-pulse-glow" style={{ animationDelay: '4s' }} />
-        <div className="guest-hero-card relative mx-auto grid min-h-svh w-full overflow-hidden bg-transparent lg:grid-cols-[1.08fr_0.92fr] lg:bg-white lg:dark:bg-[#14291E]">
-          <div className="order-1 relative min-h-svh overflow-hidden bg-[#D8EFC4] dark:bg-[#102619] lg:order-2 lg:min-h-full">
+        <div className="guest-hero-card relative mx-auto grid w-full overflow-hidden bg-transparent lg:min-h-[calc(100svh-9rem)] lg:max-w-[92rem] lg:rounded-[2rem] lg:border lg:border-[#C9DACD]/30 lg:shadow-[0_28px_70px_rgba(20,107,62,0.12)] lg:ring-1 lg:ring-white/10 lg:grid-cols-[1.08fr_0.92fr] lg:bg-white lg:dark:border-[#31533D]/40 lg:dark:bg-[#14291E] lg:dark:shadow-[0_28px_70px_rgba(0,0,0,0.5)]">
+          <div className="order-1 relative overflow-hidden bg-[#D8EFC4] dark:bg-[#102619] lg:order-2 lg:min-h-full">
             <div className="absolute inset-0 overflow-hidden">
-              <img
-                src="/images/durian-hero-new.png"
-                alt="สวนทุเรียน"
-                className="guest-hero-image absolute inset-0 h-full w-full object-cover object-center animate-zoom-bg"
-              />
+              {GUEST_HERO_IMAGES.map((image, index) => (
+                <Image
+                  key={image.src}
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  sizes="(min-width: 1024px) 42rem, 100vw"
+                  className="guest-hero-image object-cover object-center opacity-0"
+                  style={{
+                    animation: "heroImageSlide 15s ease-in-out infinite",
+                    animationDelay: `${index * 5}s`,
+                  }}
+                />
+              ))}
             </div>
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,27,17,0.14)_0%,rgba(7,27,17,0.2)_28%,rgba(7,27,17,0.72)_68%,rgba(7,27,17,0.92)_100%)] lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.9)_0%,rgba(255,255,255,0.1)_35%,rgba(9,44,25,0.12)),linear-gradient(0deg,rgba(20,107,62,0.22),transparent_55%)] lg:dark:bg-[linear-gradient(90deg,rgba(20,41,30,0.95)_0%,rgba(20,41,30,0.15)_35%,rgba(9,44,25,0.25)),linear-gradient(0deg,rgba(20,107,62,0.32),transparent_55%)] transition-colors duration-1000" />
 
@@ -341,38 +401,38 @@ function GuestHome({
               ))}
             </div>
 
-            <div className="absolute inset-x-0 top-0 z-10 px-5 pb-16 pt-5 sm:px-8 sm:pt-8 lg:hidden">
-              <div className="rounded-[1.75rem] border border-white/14 bg-white/10 p-5 text-white shadow-[0_20px_60px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all animate-fade-in-up">
-                <div className="mb-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[#DDEBE1]">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/14">
-                    <Leaf size={18} />
+            <div className="relative z-10 px-5 pb-4 pt-4 sm:px-8 sm:pb-6 sm:pt-8 lg:hidden">
+              <div className="rounded-[1.5rem] border border-white/14 bg-white/10 p-4 text-white shadow-[0_20px_60px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all animate-fade-in-up">
+                <div className="mb-2 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-[#DDEBE1]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/14">
+                    <Leaf size={16} />
                   </span>
                   {siteName}
                 </div>
-                <p className="mb-3 text-xs font-black uppercase tracking-[0.22em] text-white/68 delay-100 animate-fade-in-up">{tagline}</p>
-                <h1 className="max-w-[10ch] text-[clamp(2.2rem,9vw,3.4rem)] font-black leading-[0.96] text-white delay-200 animate-fade-in-up">
+                <p className="mb-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-white/68 delay-100 animate-fade-in-up">{tagline}</p>
+                <h1 className="max-w-[11ch] text-[clamp(1.8rem,7.4vw,2.35rem)] font-black leading-[0.98] text-white delay-200 animate-fade-in-up">
                   จัดการสวนทุเรียน ง่ายขึ้น
                 </h1>
-                <p className="mt-3 max-w-sm text-sm font-semibold leading-6 text-white/80 delay-300 animate-fade-in-up">
+                <p className="mt-2 max-w-sm text-xs font-semibold leading-5 text-white/80 delay-300 animate-fade-in-up">
                   วางแผนงาน บันทึกแปลง และดูภาพรวมสวนในที่เดียว
                 </p>
-                <div className="mt-5 flex gap-2.5 delay-400 animate-fade-in-up">
+                <div className="mt-3 flex max-w-md gap-2.5 delay-400 animate-fade-in-up">
                   <button
                     onClick={onLogin}
-                    className="guest-hero-cta group inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#143422] shadow-[0_8px_20px_rgba(255,255,255,0.15)] transition-all hover:scale-105 active:scale-[0.98]"
+                    className="guest-hero-cta group inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-black text-[#143422] shadow-[0_8px_20px_rgba(255,255,255,0.15)] transition-all hover:scale-105 active:scale-[0.98]"
                   >
                     <Sparkles size={16} className="text-[#146B3E] transition-transform group-hover:rotate-12" />
                     เริ่มใช้งาน
                   </button>
                   <button
                     onClick={() => onReadArticles()}
-                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/8 px-4 py-3 text-sm font-black text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/30 hover:scale-105 active:scale-[0.98]"
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/8 px-4 py-2.5 text-sm font-black text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/30 hover:scale-105 active:scale-[0.98]"
                   >
                     <BookOpen size={16} />
                     บทความ
                   </button>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-2.5 delay-400 animate-fade-in-up">
+                <div className="mt-4 hidden grid-cols-2 gap-2.5 delay-400 animate-fade-in-up sm:grid">
                   <div className="rounded-2xl border border-white/10 bg-black/10 p-3 hover:bg-black/20 transition-colors">
                     <ClipboardCheck size={18} />
                     <p className="mt-2 text-sm font-black">งานประจำวัน</p>
@@ -438,6 +498,32 @@ function GuestHome({
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="mb-5 text-center sm:mb-7">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-primary/70">ทำงานสวนให้เป็นระบบ</p>
+          <h2 className="mt-2 text-2xl font-black leading-tight text-foreground sm:text-3xl">ฟังก์ชันที่ช่วยให้เริ่มใช้ได้ทันที</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {GUEST_FEATURES.map(feature => {
+            const Icon = feature.icon
+            return (
+              <div
+                key={feature.title}
+                className="rounded-2xl border border-border/70 bg-white/88 p-4 text-center shadow-[0_10px_28px_rgba(20,107,62,0.06)] transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-[0_16px_36px_rgba(20,107,62,0.1)] dark:bg-card/70 dark:border-border/30"
+              >
+                <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ring-1 ${feature.tone}`}>
+                  <Icon size={26} strokeWidth={2.2} />
+                </div>
+                <h3 className="mt-3 text-sm font-black leading-snug text-foreground sm:text-base">{feature.title}</h3>
+                <p className="mx-auto mt-1.5 max-w-[12rem] text-xs font-semibold leading-5 text-muted-foreground">
+                  {feature.description}
+                </p>
+              </div>
+            )
+          })}
         </div>
       </section>
 
@@ -944,18 +1030,17 @@ export default function AppShell() {
               <button
                 onClick={() => setShowSupportModal(true)}
                 aria-label="สนับสนุนเว็บนี้"
-                className="inline-flex h-10 w-10 items-center justify-center gap-2 rounded-2xl border border-[#CFE3D5] bg-white px-0 text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] sm:w-auto sm:px-3 sm:py-2 dark:border-[#31533D] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:hover:bg-[#244332]"
+                className="hidden h-10 items-center justify-center gap-2 rounded-2xl border border-[#CFE3D5] bg-white px-3 py-2 text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] sm:inline-flex dark:border-[#31533D] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:hover:bg-[#244332]"
               >
                 <HeartHandshake size={16} />
-                <span className="hidden sm:inline">เลี้ยงกาแฟ</span>
+                <span>เลี้ยงกาแฟ</span>
               </button>
               <button
                 onClick={() => setShowAuth(true)}
                 aria-label="เข้าสู่ระบบ"
-                className="inline-flex h-10 w-10 items-center justify-center gap-2 rounded-2xl bg-[#146B3E] px-0 text-sm font-black text-white shadow-[0_12px_24px_rgba(20,107,62,0.18)] transition-all hover:bg-[#0F5A34] active:scale-[0.98] sm:w-auto sm:px-4 sm:py-2"
+                className="inline-flex h-10 w-auto items-center justify-center gap-2 rounded-2xl bg-[#146B3E] px-4 py-2 text-sm font-black text-white shadow-[0_12px_24px_rgba(20,107,62,0.18)] transition-all hover:bg-[#0F5A34] active:scale-[0.98]"
               >
-                <User size={16} className="sm:hidden" />
-                <span className="hidden sm:inline">เข้าสู่ระบบ</span>
+                <span>เข้าสู่ระบบ</span>
                 <ArrowRight size={16} className="hidden sm:block" />
               </button>
             </div>
@@ -1027,10 +1112,10 @@ export default function AppShell() {
           <button
             onClick={() => setShowSupportModal(true)}
             aria-label="สนับสนุนเว็บนี้"
-            className="inline-flex h-10 w-10 items-center justify-center gap-2 rounded-xl bg-white px-0 text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] sm:w-auto sm:px-3 sm:py-2 dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
+            className="hidden h-10 items-center justify-center gap-2 rounded-xl bg-white px-3 py-2 text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] sm:inline-flex dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
           >
             <HeartHandshake size={18} />
-            <span className="hidden text-sm font-black leading-none sm:inline">เลี้ยงกาแฟ</span>
+            <span className="text-sm font-black leading-none">เลี้ยงกาแฟ</span>
           </button>
           {user && (
             <div className="contents animate-in fade-in duration-300">
@@ -1065,9 +1150,9 @@ export default function AppShell() {
             <button
               onClick={() => setShowAuth(true)}
               aria-label="เข้าสู่ระบบ"
-              className="p-2 bg-[#146B3E] hover:bg-[#0F5A34] rounded-xl transition-colors shadow-sm ring-1 ring-[#146B3E]/10"
+              className="rounded-xl bg-[#146B3E] px-3.5 py-2 text-sm font-black text-white shadow-sm ring-1 ring-[#146B3E]/10 transition-colors hover:bg-[#0F5A34]"
             >
-              <User size={20} className="text-white" />
+              เข้าสู่ระบบ
             </button>
           )}
         </div>
