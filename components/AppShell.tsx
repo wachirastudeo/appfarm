@@ -7,8 +7,10 @@ import type { AppUser, Article, Product } from "@/lib/store"
 import { createClient } from "@/lib/supabase/client"
 import { TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, HeartHandshake } from "lucide-react"
 import DurianIcon from "./DurianIcon"
+import UserAvatarImage from "./UserAvatarImage"
 import { Skeleton } from "./ui/skeleton"
 import AnimatedBackground from "./AnimatedBackground"
+import { resolveOAuthProfileFromAuthUser } from "@/lib/oauth-profile"
 
 const Dashboard = dynamic(() => import("./Dashboard"), { loading: () => <ContentSkeleton /> })
 const PlotManagement = dynamic(() => import("./PlotManagement"), { loading: () => <ContentSkeleton /> })
@@ -50,7 +52,18 @@ function getOAuthErrorFromUrl() {
     queryParams.get("error_description") ||
     "ไม่สามารถเข้าสู่ระบบด้วยผู้ให้บริการภายนอกได้"
 
-  return description.replace(/\+/g, " ")
+  const normalized = description.replace(/\+/g, " ")
+  if (/user profile from external provider/i.test(normalized)) {
+    return [
+      "เข้าสู่ระบบไม่สำเร็จ: Supabase ดึงโปรไฟล์จาก LINE ไม่ได้",
+      "1) Custom provider ต้องเป็น Manual OAuth2 (Provider ID: line)",
+      "2) โค้ดใช้ custom:line — อย่าใช้ provider ชื่อ line ถ้าไม่มี built-in LINE",
+      "3) Callback ใน LINE Developers:",
+      "https://hpyoyjpqitpvgckxnlww.supabase.co/auth/v1/callback",
+    ].join("\n")
+  }
+
+  return normalized
 }
 
 const GUEST_FEATURES: { title: string; description: string; icon: React.ElementType; tone: string }[] = [
@@ -379,6 +392,7 @@ function GuestHome({
                   alt={image.alt}
                   fill
                   sizes="(min-width: 1024px) 42rem, 100vw"
+                  priority={index === 0}
                   loading={index === 0 ? "eager" : "lazy"}
                   className="guest-hero-image object-cover object-center opacity-0"
                   style={{
@@ -807,11 +821,8 @@ export default function AppShell() {
     window.history.replaceState(null, "", window.location.pathname || "/")
   }, [])
 
+  // Stable listener — mounted once, never re-subscribes on user state changes
   useEffect(() => {
-    if (user) {
-      setAuthChecking(false)
-      return
-    }
     let active = true
 
     let supabase: ReturnType<typeof createClient>
@@ -822,50 +833,41 @@ export default function AppShell() {
       return
     }
 
-    supabase.auth.getUser()
-      .then(({ data }) => {
-        const authUser = data.user
-        const email = authUser?.email
-        if (!active || !authUser || !email) return null
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active || !session?.user) return
+      if (event !== "SIGNED_IN" && event !== "TOKEN_REFRESHED" && event !== "INITIAL_SESSION") return
 
-        const fullName = typeof authUser.user_metadata.full_name === "string"
-          ? authUser.user_metadata.full_name
-          : undefined
-        const name = typeof authUser.user_metadata.name === "string"
-          ? authUser.user_metadata.name
-          : fullName
-        const avatarUrl = typeof authUser.user_metadata.avatar_url === "string"
-          ? authUser.user_metadata.avatar_url
-          : undefined
-        const pictureUrl = typeof authUser.user_metadata.picture === "string"
-          ? authUser.user_metadata.picture
-          : undefined
-        const avatar = avatarUrl || pictureUrl
+      const identity = resolveOAuthProfileFromAuthUser(session.user)
+      if (!identity) return
 
-        return store.upsertOAuthUser({
-          email,
-          name,
-          provider: authUser.app_metadata.provider || "google",
-          avatar,
-        })
+      void store.upsertOAuthUser(identity).then(nextUser => {
+        if (active && nextUser) handleLoginSuccess(nextUser)
       })
-      .then(nextUser => {
-        if (!active) return
-        if (nextUser) {
-          handleLoginSuccess(nextUser)
-        } else {
-          setAuthChecking(false)
-        }
-      })
-      .catch(() => {
-        // Keep the existing email login flow available if Supabase Auth is unavailable.
-        if (active) setAuthChecking(false)
-      })
+    })
+
+    // Also sync immediately in case session already exists (e.g. after OAuth redirect)
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!active || !data.user) {
+        setAuthChecking(false)
+        return
+      }
+      const identity = resolveOAuthProfileFromAuthUser(data.user)
+      if (!identity) {
+        setAuthChecking(false)
+        return
+      }
+      void store.upsertOAuthUser(identity).then(nextUser => {
+        if (active && nextUser) handleLoginSuccess(nextUser)
+        else setAuthChecking(false)
+      }).catch(() => setAuthChecking(false))
+    }).catch(() => setAuthChecking(false))
 
     return () => {
       active = false
+      authListener.subscription.unsubscribe()
     }
-  }, [handleLoginSuccess, store, user])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // mount-only — handleLoginSuccess and store are stable refs
 
   useEffect(() => {
     const onBeforeInstallPrompt = (event: Event) => {
@@ -1152,7 +1154,7 @@ export default function AppShell() {
               className="flex h-11 w-11 items-center justify-center rounded-full bg-white p-0.5 shadow-sm ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#F4F9F6]"
             >
               {user.avatar && user.avatar !== failedAvatarUrl
-                ? <img src={user.avatar} alt={user.name} onError={() => setFailedAvatarUrl(user.avatar ?? null)} className="h-10 w-10 rounded-full object-cover" />
+                ? <UserAvatarImage src={user.avatar} alt={user.name} onError={() => setFailedAvatarUrl(user.avatar ?? null)} className="h-10 w-10 rounded-full object-cover" />
                 : <div className="h-10 w-10 rounded-full bg-[#E7F3EC] flex items-center justify-center">
                   <span className="text-[#146B3E] text-sm font-bold">{user.name[0]}</span>
                 </div>}

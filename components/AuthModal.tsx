@@ -75,12 +75,19 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
     setSuccess("")
     setLoading(provider)
     try {
-      const supabase = createClient()
+      let supabase
+      try {
+        supabase = createClient()
+      } catch {
+        setError("ยังไม่ได้ตั้งค่า Supabase ใน .env.local (URL + publishable key) จึงใช้ LINE/Google บน localhost ไม่ได้")
+        setLoading(null)
+        return
+      }
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          scopes: provider === "custom:line" ? "openid profile" : undefined,
+          scopes: provider === "custom:line" ? "profile openid" : undefined,
         },
       })
       if (error) {
@@ -286,9 +293,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
               </button>
 
               {error && (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">
-                  <AlertCircle size={14} className="text-red-400 shrink-0" />
-                  <p className="text-xs text-red-500">{error}</p>
+                <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">
+                  <AlertCircle size={14} className="mt-0.5 text-red-400 shrink-0" />
+                  <p className="whitespace-pre-wrap text-xs leading-5 text-red-500">{error}</p>
                 </div>
               )}
 
@@ -369,9 +376,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">
-                  <AlertCircle size={14} className="text-red-400 shrink-0" />
-                  <p className="text-xs text-red-500">{error}</p>
+                <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">
+                  <AlertCircle size={14} className="mt-0.5 text-red-400 shrink-0" />
+                  <p className="whitespace-pre-wrap text-xs leading-5 text-red-500">{error}</p>
                 </div>
               )}
 
@@ -451,9 +458,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">
-                  <AlertCircle size={14} className="text-red-400 shrink-0" />
-                  <p className="text-xs text-red-500">{error}</p>
+                <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">
+                  <AlertCircle size={14} className="mt-0.5 text-red-400 shrink-0" />
+                  <p className="whitespace-pre-wrap text-xs leading-5 text-red-500">{error}</p>
                 </div>
               )}
 

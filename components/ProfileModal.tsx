@@ -4,6 +4,7 @@ import type { AppUser } from "@/lib/store"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { validateImageFile, validateText } from "@/lib/form-validation"
 import { X, User, LogOut, ChevronRight, Shield, Bell, Leaf, Camera, CheckCircle2 } from "lucide-react"
+import UserAvatarImage from "./UserAvatarImage"
 
 interface Props {
   isOpen: boolean
@@ -19,12 +20,14 @@ interface Props {
 const PROVIDER_LABEL: Record<string, string> = {
   google: "Google",
   line: "LINE",
+  "custom:line": "LINE",
   email: "อีเมล",
 }
 
 const PROVIDER_COLOR: Record<string, string> = {
   google: "bg-blue-100 text-blue-700",
   line: "bg-green-100 text-green-700",
+  "custom:line": "bg-green-100 text-green-700",
   email: "bg-orange-100 text-orange-700",
 }
 
@@ -97,7 +100,7 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout, onLogin,
             <div className="flex items-center gap-4 pt-2">
               <div className="relative">
                 {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="w-16 h-16 rounded-2xl object-cover" />
+                  <UserAvatarImage src={user.avatar} alt={user.name} className="w-16 h-16 rounded-2xl object-cover" />
                 ) : (
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-emerald-700 flex items-center justify-center">
                     <span className="text-white text-xl font-bold">{initials}</span>
@@ -137,7 +140,9 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout, onLogin,
                     <p className="text-xs text-muted-foreground group-hover:underline">แก้ไขชื่อ</p>
                   </button>
                 )}
-                <p className="text-xs text-muted-foreground mt-0.5 truncate">{user.email}</p>
+                {!user.email.endsWith("@oauth.local") && (
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{user.email}</p>
+                )}
                 <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${PROVIDER_COLOR[user.provider] ?? "bg-muted text-muted-foreground"}`}>
                   เข้าสู่ระบบด้วย {PROVIDER_LABEL[user.provider] ?? user.provider}
                 </span>
@@ -175,7 +180,9 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout, onLogin,
                   <CheckCircle2 size={18} className="mt-0.5 text-primary" />
                   <div>
                     <p className="text-sm font-semibold text-foreground">บัญชีกำลังใช้งาน</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                    {!user.email.endsWith("@oauth.local") && (
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    )}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">

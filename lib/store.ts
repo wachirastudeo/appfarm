@@ -7,7 +7,8 @@ import {
   fetchArticles, upsertArticle, removeArticle,
   fetchProducts, upsertProduct, removeProduct,
 } from "./supabase/articles"
-import { findUserByEmail as findSupabaseUserByEmail, updateUser as updateSupabaseUser } from "./supabase/queries"
+import { findUserByEmail as findSupabaseUserByEmail, insertUser as insertSupabaseUser, updateUser as updateSupabaseUser } from "./supabase/queries"
+import { normalizeAuthProvider } from "./oauth-profile"
 
 // ---- Types ----
 export type FlowerStage =
@@ -541,7 +542,8 @@ export function useAppData(currentUserId?: string | null) {
           lastRemoteJsonRef.current = nextJson
         })
         .catch(error => {
-          console.error("Supabase data save failed", error)
+          const { message, code, details, hint } = error ?? {}
+          console.error("Supabase data save failed", { message, code, details, hint }, error)
         })
     }, STORAGE_WRITE_DELAY_MS)
 
@@ -667,36 +669,47 @@ export function useAppData(currentUserId?: string | null) {
     const normalized = input.email.trim().toLowerCase()
     if (!normalized) return null
 
+    const provider = normalizeAuthProvider(input.provider)
+    const nextAvatar = input.avatar?.trim() || undefined
     const remoteUser = isSupabaseMode ? await findSupabaseUserByEmail(normalized).catch(() => null) : null
     const existing = remoteUser ?? data.users.find(u => u.email.toLowerCase() === normalized)
     if (existing) {
       if (existing.status !== "active") return null
       const changes: Partial<AppUser> = {
         name: input.name?.trim() || existing.name,
-        avatar: input.avatar || existing.avatar,
+        provider,
+        avatar: nextAvatar || existing.avatar,
       }
+      const nextUser = { ...existing, ...changes }
       updateData(d => ({
         ...d,
         users: d.users.some(u => u.id === existing.id)
-          ? d.users.map(u => u.id === existing.id ? { ...u, ...changes } : u)
-          : [{ ...existing, ...changes }, ...d.users.filter(u => u.email.toLowerCase() !== normalized)],
+          ? d.users.map(u => u.id === existing.id ? nextUser : u)
+          : [nextUser, ...d.users.filter(u => u.email.toLowerCase() !== normalized)],
       }))
-      return { ...existing, ...changes }
+      if (isSupabaseMode) {
+        await updateSupabaseUser(existing.id, changes).catch(() => undefined)
+      }
+      return nextUser
     }
 
+    const providerSlug = provider || "oauth"
     const newUser: AppUser = {
-      id: `u-google-${Date.now()}`,
+      id: `u-${providerSlug}-${Date.now()}`,
       name: input.name?.trim() || normalized.split("@")[0],
       email: normalized,
       passwordHash: "",
       role: "user",
       status: "active",
-      provider: input.provider,
-      avatar: input.avatar,
+      provider,
+      avatar: nextAvatar,
       createdAt: new Date().toISOString(),
     }
 
     updateData(d => ({ ...d, users: [newUser, ...d.users] }))
+    if (isSupabaseMode) {
+      await insertSupabaseUser(newUser).catch(() => undefined)
+    }
     return newUser
   }, [data.users, isSupabaseMode, updateData])
 

@@ -5,6 +5,7 @@ import type { AppUser, SiteSettings } from "@/lib/store"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { validateImageFile, validateText } from "@/lib/form-validation"
 import { Slider } from "./ui/slider"
+import UserAvatarImage from "./UserAvatarImage"
 
 const STORAGE_KEY_BASE = "durian_orchard_data"
 const APP_VERSION = "1.0.0"
@@ -430,7 +431,7 @@ export default function Settings({
           <div className="bg-card border border-border rounded-xl p-4">
             <div className="flex items-center gap-3">
               {currentUser.avatar ? (
-                <img src={currentUser.avatar} alt={currentUser.name} className="h-11 w-11 rounded-full object-cover" />
+                <UserAvatarImage src={currentUser.avatar} alt={currentUser.name} className="h-11 w-11 rounded-full object-cover" />
               ) : (
                 <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10">
                   <User size={20} className="text-primary" />
@@ -438,7 +439,9 @@ export default function Settings({
               )}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-foreground">{currentUser.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{currentUser.email}</p>
+                {!currentUser.email.endsWith("@oauth.local") && (
+                  <p className="truncate text-xs text-muted-foreground">{currentUser.email}</p>
+                )}
               </div>
               {onLogout && (
                 <button

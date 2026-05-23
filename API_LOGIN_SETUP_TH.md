@@ -56,45 +56,121 @@
     - `Client Secret`
 12. เอา `Client ID` และ `Client Secret` ไปใส่ที่ Supabase Dashboard > `Authentication` > `Sign In / Providers` > `Google`
 
-## LINE Login
+## ทดสอบบน localhost ได้ไหม
 
-ลิงก์หลัก:
+ได้ — LINE/Google บน `http://localhost:3000` ใช้ได้ปกติ
 
-- LINE Developers Console: <https://developers.line.biz/console/>
-- LINE Login docs: <https://developers.line.biz/en/docs/line-login/>
-- Create channel docs: <https://developers.line.biz/en/docs/liff/getting-started/>
+- **LINE Developers / Google Cloud** ใส่ callback ไปที่ Supabase เท่านั้น:
+  - `https://hpyoyjpqitpvgckxnlww.supabase.co/auth/v1/callback`
+- **Supabase** > `Authentication` > `URL Configuration` ต้องมี:
+  - Site URL: `http://localhost:3000`
+  - Redirect URLs: `http://localhost:3000/auth/callback`
 
-ขั้นตอน:
+localhost ไม่ต้องใส่ใน LINE/Google callback — Supabase เป็นตัวกลางรับ token แล้วส่งกลับมาที่แอป
 
-1. เข้า LINE Developers Console
-2. สร้าง Provider ใหม่ หรือเลือก Provider เดิม
-3. กด `Create a new channel`
-4. เลือก channel type เป็น `LINE Login`
-5. ใส่ชื่อแอป, อีเมล, รายละเอียดบริการ, รูปภาพ และข้อมูลที่ LINE ขอ
-6. ไปที่แท็บ `LINE Login`
-7. เปิดใช้งาน LINE Login channel
-8. ใส่ Callback URL:
-   - `https://hpyoyjpqitpvgckxnlww.supabase.co/auth/v1/callback`
-9. ขอ permission ที่ต้องใช้:
-   - `profile`
-   - `openid`
-   - `email` ถ้าต้องการอีเมล ต้องขออนุมัติจาก LINE เพิ่ม
-10. เก็บค่า:
-    - `LINE_CLIENT_ID` หรือ `LINE_CHANNEL_ID`
-    - `LINE_CLIENT_SECRET` หรือ `LINE_CHANNEL_SECRET`
-    - ใช้ค่า `Channel ID` ที่เป็นตัวเลขเท่านั้น ห้ามใช้ `LIFF ID` หรือ ID ที่ขึ้นต้นด้วย `U`
-11. ไปที่ Supabase Dashboard > `Authentication` > `Sign In / Providers`
-12. สร้าง Custom provider ใหม่:
-    - Configuration method: `Auto-discovery (OIDC)`
-    - Provider ID / Identifier: `custom:line`
-    - Issuer URL: `https://access.line.me`
-    - Client ID: LINE `Channel ID`
-    - Client Secret: LINE `Channel Secret`
-    - Scopes: `openid profile email`
-13. ถ้าใช้ manual OAuth2 ให้ใส่:
-    - Authorization URL: `https://access.line.me/oauth2/v2.1/authorize`
-    - Token URL: `https://api.line.me/oauth2/v2.1/token`
-    - UserInfo URL: `https://api.line.me/oauth2/v2.1/userinfo`
+## LINE Login — ตั้ง Custom Provider ใหม่ทั้งหมด
+
+โปรเจกต์นี้ใช้ **Supabase Custom Provider** เท่านั้น (ไม่มี built-in `line`)  
+โค้ดเรียก: `signInWithOAuth({ provider: "custom:line" })`  
+ดังนั้นใน Supabase ต้องมี Custom provider ที่ **Provider ID = `line`**
+
+ลิงก์:
+
+- LINE Developers: <https://developers.line.biz/console/>
+- Supabase Dashboard: <https://supabase.com/dashboard/project/hpyoyjpqitpvgckxnlww/auth/providers>
+- ทำไมห้าม OIDC auto-discovery: <https://zenn.dev/sasatech/articles/02b8fb72b45cdd>
+
+---
+
+### ขั้นที่ 0 — ลบของเก่า (แนะนำ)
+
+1. Supabase → `Authentication` → `Sign In / Providers` → **Custom Providers**
+2. ลบ provider LINE / `custom:line` เก่าทั้งหมด (โดยเฉพาะแบบ **Auto-discovery OIDC**)
+3. อย่าใช้ provider ชื่อ `line` แบบ built-in — โปรเจกต์นี้ไม่รองรับ จะ error `Provider line could not be found`
+
+---
+
+### ขั้นที่ 1 — LINE Developers
+
+1. สร้างหรือเปิด channel ประเภท **LINE Login**
+2. แท็บ **LINE Login** → เปิดใช้งาน
+3. **Callback URL** (ใส่แค่อันนี้):
+
+```text
+https://hpyoyjpqitpvgckxnlww.supabase.co/auth/v1/callback
+```
+
+4. เปิด permission: `openid`, `profile` (ยังไม่ต้อง `email` จนกว่า LINE จะอนุมัติ)
+5. เก็บค่า:
+   - **Channel ID** = ตัวเลข เช่น `2010016565` (ห้ามใช้ LIFF ID)
+   - **Channel secret** = กด Issue / copy ใหม่
+
+---
+
+### ขั้นที่ 2 — Supabase URL Configuration
+
+`Authentication` → `URL Configuration`
+
+| ช่อง | ค่า (local) | ค่า (production) |
+|------|-------------|------------------|
+| Site URL | `http://localhost:3000` | `https://durianflow.vercel.app` |
+| Redirect URLs | `http://localhost:3000/auth/callback` | `https://durianflow.vercel.app/auth/callback` |
+
+ใส่ **ทั้ง local และ production** ใน Redirect URLs พร้อมกันได้
+
+---
+
+### ขั้นที่ 3 — สร้าง Custom Provider ใหม่
+
+`Authentication` → `Sign In / Providers` → **Add provider** / **New custom provider**
+
+| ช่องใน Dashboard | ค่าที่ใส่ |
+|------------------|-----------|
+| Configuration method | **Manual configuration** (OAuth2) — **ห้าม** Auto-discovery (OIDC) |
+| Provider name / Display name | `LINE` (ชื่อโชว์ ใส่อะไรก็ได้) |
+| Provider ID / Identifier | `line` → โค้ดจะเรียก `custom:line` |
+| Client ID | Channel ID จาก LINE (ตัวเลข) |
+| Client Secret | Channel secret จาก LINE |
+| Authorization URL | `https://access.line.me/oauth2/v2.1/authorize` |
+| Token URL | `https://api.line.me/oauth2/v2.1/token` |
+| UserInfo URL | `https://api.line.me/oauth2/v2.1/userinfo` |
+| Issuer URL | `https://access.line.me` (ถ้ามีช่อง — ใส่ได้) |
+| Scopes | `profile` เท่านั้น (**ห้าม** `openid, openid profile`) |
+| Allow users without email | **เปิด (ON)** |
+| Enabled | **เปิด (ON)** |
+
+**Callback URL** ที่ Supabase แสดง (copy ไปใส่ใน LINE ขั้นที่ 1):
+
+```text
+https://hpyoyjpqitpvgckxnlww.supabase.co/auth/v1/callback
+```
+
+กด **Save** / **Update provider**
+
+---
+
+### ขั้นที่ 4 — ทดสอบ
+
+```bash
+npm run dev
+```
+
+1. เปิด `http://localhost:3000`
+2. กด **เข้าสู่ระบบด้วย LINE**
+3. อนุมัติใน LINE → กลับมาที่ `/auth/callback` → เข้าแอปได้
+4. ดูรูปโปรไฟล์มุมขวาบน (LINE CDN ใช้ `referrerPolicy` ในแอปแล้ว)
+
+ถ้า fail → `Logs` → `Auth` ใน Supabase แล้วดูบรรทัด error จริง
+
+---
+
+### Error ที่พบบ่อย
+
+| Error | แก้ |
+|-------|-----|
+| `Provider line could not be found` | ใช้ Custom provider ID `line` + โค้ด `custom:line` — อย่าใช้ built-in `line` |
+| `Error getting user profile from external provider` | เปลี่ยนเป็น **Manual OAuth2** ไม่ใช่ OIDC; Scopes = `profile` |
+| กลับมาหน้าแรกพร้อม `auth_error` | ดู Auth logs; ตรวจ Client Secret / Callback URL ใน LINE |
 
 ## ตัวอย่าง `.env.local`
 
@@ -116,6 +192,22 @@ NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=app-images
 - `app/auth/callback/route.ts`
 - `lib/store.ts`
 - `lib/supabase/app-data.ts`
+
+## แก้ error `Error getting user profile from external provider`
+
+error นี้เกิดที่ Supabase Auth ก่อนถึง `/auth/callback` แปลว่า provider ส่ง token กลับมาแล้ว แต่ Supabase ดึง profile ไม่สำเร็จ
+
+### Google
+
+1. ตรวจ `Client ID` / `Client Secret` ใน Supabase > `Authentication` > `Providers` > `Google`
+2. ใน Google Cloud Console ใส่ redirect URI เป็น Supabase callback เท่านั้น:
+   - `https://hpyoyjpqitpvgckxnlww.supabase.co/auth/v1/callback`
+3. ถ้า OAuth consent screen อยู่โหมด Testing ต้องเพิ่มอีเมลผู้ทดสอบใน Test users
+4. เปิด scopes `openid`, `email`, `profile` ใน consent screen
+
+### LINE
+
+ดูขั้นตอนเต็มในหัวข้อ **LINE Login — ตั้ง Custom Provider ใหม่ทั้งหมด** ด้านบน
 
 ## Verification
 
