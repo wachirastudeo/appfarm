@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
+import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
 import { TaskCard } from "./TaskPlanner"
 import DurianIcon from "./DurianIcon"
 import { Skeleton } from "./ui/skeleton"
@@ -812,7 +813,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       </div>
 
       {/* Products Carousel */}
-      {activeProducts.length > 0 && (
+      {SHOW_RECOMMENDED_PRODUCTS && activeProducts.length > 0 && (
         <div className="overflow-hidden rounded-[2rem] border border-border/80 bg-card/60 backdrop-blur-md py-6 shadow-[0_12px_40px_rgba(20,107,62,0.04)] dark:border-border/30">
           <div className="mb-4 flex items-center justify-between gap-3 px-5 sm:px-6">
             <div>

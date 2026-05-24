@@ -4,6 +4,7 @@ import type { Article, Product } from "@/lib/store"
 import { absoluteUrl, articleJsonLd, createExcerpt, createSlug, DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, DEFAULT_TITLE, safeHttpUrl, serializeJsonLd, SITE_NAME, SITE_URL } from "@/lib/seo"
 import { Search, X, ArrowRight, Share2, Bookmark, ArrowLeft, ExternalLink, Facebook, MessageCircleMore, Link2, Smartphone, Twitter } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
 import Products from "./Products"
 
 interface Props {
@@ -34,13 +35,19 @@ export default function Articles({
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
   const [activeCategory, setActiveCategory] = useState("ทั้งหมด")
-  const [activeView, setActiveView] = useState<"articles" | "products">(initialView)
+  const [activeView, setActiveView] = useState<"articles" | "products">(SHOW_RECOMMENDED_PRODUCTS ? initialView : "articles")
   const [savedArticleIds, setSavedArticleIds] = useState<string[]>([])
   const [actionMessage, setActionMessage] = useState("")
 
   useEffect(() => {
     onViewChange?.(activeView)
   }, [activeView, onViewChange])
+
+  useEffect(() => {
+    if (!SHOW_RECOMMENDED_PRODUCTS && activeView === "products") {
+      setActiveView("articles")
+    }
+  }, [activeView])
 
   useEffect(() => {
     onArticleSelect?.(selectedArticle?.id ?? null)
@@ -50,7 +57,7 @@ export default function Articles({
   const activeProducts = useMemo(() => products.filter(product => product.status === "active"), [products])
 
   const categories = useMemo(() => {
-    if (activeView === "articles") {
+    if (activeView === "articles" || !SHOW_RECOMMENDED_PRODUCTS) {
       return ["ทั้งหมด", ...Array.from(new Set(publishedArticles.map(a => a.category)))]
     } else {
       return ["ทั้งหมด", ...Array.from(new Set(activeProducts.map(p => p.category)))]
@@ -67,7 +74,7 @@ export default function Articles({
   }, [initialArticleId, publishedArticles])
 
   useEffect(() => {
-    setActiveView(initialView)
+    setActiveView(SHOW_RECOMMENDED_PRODUCTS ? initialView : "articles")
   }, [initialView])
 
   useEffect(() => {
@@ -103,7 +110,7 @@ export default function Articles({
   }, [searchTerm, activeCategory, publishedArticles])
 
   useEffect(() => {
-    const title = selectedArticle?.metaTitle || selectedArticle?.title || (activeView === "products" ? `ปุ๋ยและยา | ${SITE_NAME}` : DEFAULT_TITLE)
+    const title = selectedArticle?.metaTitle || selectedArticle?.title || (activeView === "products" && SHOW_RECOMMENDED_PRODUCTS ? `ปุ๋ยและยา | ${SITE_NAME}` : DEFAULT_TITLE)
     const description = selectedArticle?.metaDescription || (selectedArticle ? createExcerpt(selectedArticle.content) : DEFAULT_DESCRIPTION)
     const image = absoluteUrl(selectedArticle?.image || "/images/durian-banner.jpg")
     const canonical = selectedArticle
@@ -270,7 +277,7 @@ export default function Articles({
             <div className="text-base lg:text-lg leading-relaxed text-foreground/80 whitespace-pre-wrap">
               {selectedArticle.content}
             </div>
-            {affiliateUrl && (
+            {SHOW_RECOMMENDED_PRODUCTS && affiliateUrl && (
               <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
                 <p className="text-sm font-black text-primary">ปุ๋ยและยาแนะนำ</p>
                 <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -308,7 +315,7 @@ export default function Articles({
               type="text"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              placeholder={activeView === "products" ? "ค้นหาปุ๋ย ยา สารเคมี..." : "ค้นหาเทคนิค โรคพืช ปุ๋ย..."}
+              placeholder={activeView === "products" && SHOW_RECOMMENDED_PRODUCTS ? "ค้นหาปุ๋ย ยา สารเคมี..." : "ค้นหาเทคนิค โรคพืช ปุ๋ย..."}
               className="w-full bg-card/50 backdrop-blur-md border-2 border-border/80 rounded-xl pl-11 pr-10 py-2 text-sm font-bold outline-none transition-all duration-300 focus:ring-4 focus:ring-primary/10 focus:border-primary hover:border-primary/45 shadow-sm hover:shadow-md"
             />
             {searchTerm && (
@@ -331,19 +338,21 @@ export default function Articles({
             >
               บทความ
             </button>
-            <button
-              onClick={() => {
-                setActiveView("products")
-                setActiveCategory("ทั้งหมด")
-              }}
-              className={`rounded-lg px-4 py-2 text-sm font-black transition-all duration-300 ${
-                activeView === "products"
-                  ? "bg-background text-primary shadow-md border border-border/30 scale-100 font-extrabold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-background/25"
-              }`}
-            >
-              ปุ๋ยและยา
-            </button>
+            {SHOW_RECOMMENDED_PRODUCTS && (
+              <button
+                onClick={() => {
+                  setActiveView("products")
+                  setActiveCategory("ทั้งหมด")
+                }}
+                className={`rounded-lg px-4 py-2 text-sm font-black transition-all duration-300 ${
+                  activeView === "products"
+                    ? "bg-background text-primary shadow-md border border-border/30 scale-100 font-extrabold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/25"
+                }`}
+              >
+                ปุ๋ยและยา
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -367,7 +376,7 @@ export default function Articles({
         </div>
       </div>
 
-      {activeView === "products" ? (
+      {SHOW_RECOMMENDED_PRODUCTS && activeView === "products" ? (
         <Products
           products={products}
           compact

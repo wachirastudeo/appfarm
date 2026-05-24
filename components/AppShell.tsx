@@ -5,7 +5,8 @@ import { useCallback, useMemo, useRef, useState, useEffect } from "react"
 import { useAppData } from "@/lib/store"
 import type { AppUser, Article, Product } from "@/lib/store"
 import { createClient } from "@/lib/supabase/client"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, HeartHandshake } from "lucide-react"
+import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, HeartHandshake, Check } from "lucide-react"
 import DurianIcon from "./DurianIcon"
 import UserAvatarImage from "./UserAvatarImage"
 import { Skeleton } from "./ui/skeleton"
@@ -66,42 +67,75 @@ function getOAuthErrorFromUrl() {
   return normalized
 }
 
-const GUEST_FEATURES: { title: string; description: string; icon: React.ElementType; tone: string }[] = [
+const GUEST_FEATURES: {
+  title: string
+  description: string
+  kicker: string
+  icon: React.ElementType
+  tone: string
+  shadowColor: string
+  themeColor: string
+  surface: string
+}[] = [
   {
     title: "วางแผนงานสวน",
     description: "สร้างงานประจำวัน จัดลำดับ และตามงานที่ต้องทำ",
+    kicker: "งานวันนี้",
     icon: ClipboardCheck,
-    tone: "bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-400/10 dark:text-emerald-200 dark:ring-emerald-400/20",
+    tone: "bg-gradient-to-br from-emerald-500 to-teal-600 text-white ring-2 ring-emerald-400/50 dark:ring-emerald-400/40",
+    shadowColor: "rgba(16, 185, 129, 0.45)",
+    themeColor: "#10B981",
+    surface: "from-emerald-50 via-white to-teal-50 dark:from-emerald-950/25 dark:via-[#14291E] dark:to-teal-950/20",
   },
   {
     title: "จัดการแปลงและต้น",
     description: "เก็บข้อมูลแปลง ตำแหน่ง สุขภาพ และระยะการเติบโต",
+    kicker: "ข้อมูลสวน",
     icon: MapPinned,
-    tone: "bg-lime-50 text-lime-700 ring-lime-100 dark:bg-lime-400/10 dark:text-lime-200 dark:ring-lime-400/20",
+    tone: "bg-gradient-to-br from-lime-500 to-green-600 text-white ring-2 ring-lime-400/50 dark:ring-lime-400/40",
+    shadowColor: "rgba(132, 204, 22, 0.45)",
+    themeColor: "#84CC16",
+    surface: "from-lime-50 via-white to-green-50 dark:from-lime-950/20 dark:via-[#14291E] dark:to-green-950/20",
   },
   {
     title: "บันทึกกิจกรรม",
     description: "จดงานรดน้ำ ใส่ปุ๋ย พ่นยา และค่าใช้จ่ายย้อนหลัง",
+    kicker: "บันทึกเร็ว",
     icon: CalendarDays,
-    tone: "bg-sky-50 text-sky-700 ring-sky-100 dark:bg-sky-400/10 dark:text-sky-200 dark:ring-sky-400/20",
+    tone: "bg-gradient-to-br from-sky-500 to-blue-600 text-white ring-2 ring-sky-400/50 dark:ring-sky-400/40",
+    shadowColor: "rgba(14, 165, 233, 0.45)",
+    themeColor: "#0EA5E9",
+    surface: "from-sky-50 via-white to-blue-50 dark:from-sky-950/20 dark:via-[#14291E] dark:to-blue-950/20",
   },
   {
     title: "ดูภาพรวมการเงิน",
     description: "แยกรายรับรายจ่าย เห็นต้นทุนและผลตอบแทนชัดขึ้น",
+    kicker: "ต้นทุนกำไร",
     icon: Coins,
-    tone: "bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-400/10 dark:text-amber-200 dark:ring-amber-400/20",
+    tone: "bg-gradient-to-br from-amber-400 to-orange-500 text-white ring-2 ring-amber-400/50 dark:ring-amber-400/40",
+    shadowColor: "rgba(245, 158, 11, 0.45)",
+    themeColor: "#F59E0B",
+    surface: "from-amber-50 via-white to-orange-50 dark:from-amber-950/20 dark:via-[#14291E] dark:to-orange-950/20",
   },
   {
     title: "เช็กสภาพอากาศ",
     description: "ใช้พยากรณ์ช่วยตัดสินใจงานน้ำและงานดูแลสวน",
+    kicker: "ก่อนลงสวน",
     icon: CloudRain,
-    tone: "bg-cyan-50 text-cyan-700 ring-cyan-100 dark:bg-cyan-400/10 dark:text-cyan-200 dark:ring-cyan-400/20",
+    tone: "bg-gradient-to-br from-cyan-500 to-blue-500 text-white ring-2 ring-cyan-400/50 dark:ring-cyan-400/40",
+    shadowColor: "rgba(6, 182, 212, 0.45)",
+    themeColor: "#06B6D4",
+    surface: "from-cyan-50 via-white to-sky-50 dark:from-cyan-950/20 dark:via-[#14291E] dark:to-sky-950/20",
   },
   {
     title: "คลังความรู้ทุเรียน",
     description: "อ่านบทความเรื่องโรค น้ำ ปุ๋ย ดอก และตลาดก่อนลงมือ",
+    kicker: "เรียนรู้ต่อ",
     icon: BookOpen,
-    tone: "bg-rose-50 text-rose-700 ring-rose-100 dark:bg-rose-400/10 dark:text-rose-200 dark:ring-rose-400/20",
+    tone: "bg-gradient-to-br from-rose-500 to-pink-600 text-white ring-2 ring-rose-400/50 dark:ring-rose-400/40",
+    shadowColor: "rgba(244, 63, 94, 0.45)",
+    themeColor: "#F43F5E",
+    surface: "from-rose-50 via-white to-pink-50 dark:from-rose-950/20 dark:via-[#14291E] dark:to-pink-950/20",
   },
 ]
 
@@ -364,6 +398,86 @@ function GuestHome({
           33%, 95% { opacity: 0; transform: scale(1.09) translate(-1.5%, -1%); }
           100% { opacity: 1; transform: scale(1.02) translate(0, 0); }
         }
+        @keyframes bounceSubtle {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+        @keyframes floatSubtle {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px) scale(1.08); }
+        }
+        @keyframes wiggleSubtle {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(-8deg); }
+          75% { transform: rotate(8deg); }
+        }
+        @keyframes jingleSubtle {
+          0%, 100% { transform: scale(1) rotate(0deg); }
+          30% { transform: scale(1.15) rotate(-12deg); }
+          60% { transform: scale(1.15) rotate(12deg); }
+        }
+        @keyframes swaySubtle {
+          0%, 100% { transform: translateX(0) translateY(0); }
+          50% { transform: translateX(-4px) translateY(-2px); }
+        }
+        @keyframes expandSubtle {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.15); }
+        }
+        @keyframes cardSheen {
+          0% { left: -100%; }
+          100% { left: 200%; }
+        }
+        .premium-feature-card {
+          position: relative;
+          overflow: hidden;
+          transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .premium-feature-card::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 50%;
+          height: 100%;
+          background: linear-gradient(
+            to right,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.25) 50%,
+            rgba(255, 255, 255, 0) 100%
+          );
+          transform: skewX(-25deg);
+          transition: none;
+        }
+        .premium-feature-card:hover::after {
+          animation: cardSheen 1.2s ease-in-out forwards;
+        }
+        .premium-feature-card:hover {
+          transform: translateY(-8px) scale(1.015);
+          border-color: rgba(20, 107, 62, 0.3);
+          box-shadow: 0 20px 40px -10px var(--hover-glow), 0 0 1px 0 var(--hover-glow);
+        }
+        .dark .premium-feature-card:hover {
+          border-color: rgba(114, 192, 138, 0.3);
+        }
+        .group:hover .hover-bounce-subtle {
+          animation: bounceSubtle 0.6s ease-in-out;
+        }
+        .group:hover .hover-float-subtle {
+          animation: floatSubtle 1.2s ease-in-out infinite;
+        }
+        .group:hover .hover-wiggle-subtle {
+          animation: wiggleSubtle 0.5s ease-in-out;
+        }
+        .group:hover .hover-jingle-subtle {
+          animation: jingleSubtle 0.6s ease-in-out;
+        }
+        .group:hover .hover-sway-subtle {
+          animation: swaySubtle 0.7s ease-in-out;
+        }
+        .group:hover .hover-expand-subtle {
+          animation: expandSubtle 0.6s ease-in-out;
+        }
         .animate-fade-in-up {
           opacity: 0;
           animation: fadeSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -509,29 +623,95 @@ function GuestHome({
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="mb-5 text-center sm:mb-7">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-primary/70">ทำงานสวนให้เป็นระบบ</p>
-          <h2 className="mt-2 text-2xl font-black leading-tight text-foreground sm:text-3xl">ฟังก์ชันที่ช่วยให้เริ่มใช้ได้ทันที</h2>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {GUEST_FEATURES.map(feature => {
-            const Icon = feature.icon
-            return (
-              <div
-                key={feature.title}
-                className="rounded-2xl border border-border/70 bg-white/88 p-4 text-center shadow-[0_10px_28px_rgba(20,107,62,0.06)] transition-all hover:-translate-y-1 hover:border-primary/20 hover:shadow-[0_16px_36px_rgba(20,107,62,0.1)] dark:bg-card/70 dark:border-border/30"
-              >
-                <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ring-1 ${feature.tone}`}>
-                  <Icon size={26} strokeWidth={2.2} />
-                </div>
-                <h3 className="mt-3 text-sm font-black leading-snug text-foreground sm:text-base">{feature.title}</h3>
-                <p className="mx-auto mt-1.5 max-w-[12rem] text-xs font-semibold leading-5 text-muted-foreground">
-                  {feature.description}
-                </p>
+      <section className="relative overflow-hidden bg-[#EEF8F0] px-4 py-12 dark:bg-[#0D1E15] sm:px-6 sm:py-16">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(20,107,62,0.07)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,107,62,0.07)_1px,transparent_1px)] bg-[size:42px_42px] dark:bg-[linear-gradient(to_right,rgba(114,192,138,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(114,192,138,0.08)_1px,transparent_1px)]" />
+        <div className="pointer-events-none absolute left-1/2 top-0 h-64 w-[38rem] -translate-x-1/2 rounded-full bg-white/70 blur-3xl dark:bg-[#22563A]/25" />
+
+        <div className="relative z-10 mx-auto max-w-7xl">
+          <div className="mb-8 flex flex-col gap-4 sm:mb-10 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#B9DCC8]/80 bg-white/75 px-3.5 py-1.5 text-xs font-black text-[#146B3E] shadow-sm backdrop-blur-md dark:border-[#31533D] dark:bg-[#14291E]/75 dark:text-[#72C08A]">
+                <Sparkles size={13} className="text-[#F59E0B]" />
+                พร้อมเริ่มจัดการสวน
               </div>
+              <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight text-[#143422] dark:text-[#E6F4EA] sm:text-4xl">
+                ฟังก์ชันที่ช่วยให้เริ่มใช้ได้ทันที
+              </h2>
+              <p className="mt-3 text-sm font-bold leading-6 text-[#527060] dark:text-[#B8D1C0]/75 sm:text-base">
+                เลือกงานที่ต้องทำ แล้วเข้าสู่ระบบเพื่อบันทึกข้อมูลสวนจริงของคุณ
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onLogin}
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#146B3E] px-5 py-3 text-sm font-black text-white shadow-lg shadow-[#146B3E]/20 transition-all hover:-translate-y-0.5 hover:bg-[#0F5A34] active:scale-[0.98] sm:w-auto"
+            >
+              เริ่มใช้งานฟรี
+              <ArrowRight size={17} />
+            </button>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {GUEST_FEATURES.map((feature, idx) => {
+            const Icon = feature.icon
+            const handleClick = () => {
+              if (idx === 5) {
+                onReadArticles()
+              } else {
+                onLogin()
+              }
+            }
+            return (
+              <button
+                key={feature.title}
+                onClick={handleClick}
+                className={`group premium-feature-card min-h-[16rem] w-full cursor-pointer rounded-[1.5rem] border border-white/80 bg-gradient-to-br ${feature.surface} p-6 text-left shadow-[0_14px_42px_rgba(20,107,62,0.09)] ring-1 ring-[#B9DCC8]/45 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:ring-[#146B3E]/20 dark:border-[#31533D]/60 dark:shadow-[0_18px_48px_rgba(0,0,0,0.22)]`}
+                style={{
+                  "--hover-glow": feature.shadowColor,
+                } as React.CSSProperties}
+              >
+                <div
+                  className="absolute inset-x-6 top-0 h-1 rounded-b-full opacity-80"
+                  style={{
+                    backgroundColor: feature.themeColor,
+                  }}
+                />
+
+                <div className="flex h-full flex-col">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="relative flex h-16 w-16 shrink-0 items-center justify-center">
+                      <div className="absolute inset-0 rounded-[1.35rem] blur-xl opacity-35 transition-all duration-500 group-hover:scale-125 group-hover:opacity-60" style={{ backgroundColor: feature.themeColor }} />
+                      <div className={`relative flex h-14 w-14 items-center justify-center rounded-[1.2rem] shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:rotate-3 ${feature.tone}`}>
+                        <Icon size={25} strokeWidth={2.2} className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.25)]" />
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-black text-[#527060] shadow-sm ring-1 ring-[#B9DCC8]/45 dark:bg-white/8 dark:text-[#B8D1C0] dark:ring-white/10">
+                      {feature.kicker}
+                    </span>
+                  </div>
+
+                  <div className="mt-7">
+                    <h3 className="text-xl font-black leading-snug text-[#243B2D] transition-colors duration-300 group-hover:text-[#146B3E] dark:text-[#E6F4EA] dark:group-hover:text-[#72C08A]">
+                      {feature.title}
+                    </h3>
+                    <p className="mt-2 text-sm font-bold leading-6 text-[#5E7568] dark:text-[#B8D1C0]/68">
+                      {feature.description}
+                    </p>
+                  </div>
+
+                  <div className="mt-auto flex items-center justify-between pt-6">
+                    <span className="text-sm font-black text-[#146B3E] dark:text-[#72C08A]">
+                      {idx === 5 ? "อ่านบทความ" : "เริ่มใช้งาน"}
+                    </span>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#146B3E] shadow-sm ring-1 ring-[#B9DCC8]/70 transition-all duration-300 group-hover:translate-x-1 group-hover:bg-[#146B3E] group-hover:text-white dark:bg-white/10 dark:text-[#72C08A] dark:ring-white/10 dark:group-hover:bg-[#72C08A] dark:group-hover:text-[#0B1B12]">
+                      <ArrowRight size={16} />
+                    </span>
+                  </div>
+                </div>
+              </button>
             )
           })}
+          </div>
         </div>
       </section>
 
@@ -571,7 +751,7 @@ function GuestHome({
         </div>
       </section>
 
-      {activeProducts.length > 0 && (
+      {SHOW_RECOMMENDED_PRODUCTS && activeProducts.length > 0 && (
         <section className="overflow-hidden rounded-[2rem] border border-border/80 bg-card/60 backdrop-blur-md py-6 shadow-[0_12px_40px_rgba(20,107,62,0.04)] dark:border-border/30">
           <div className="mb-4 flex items-center justify-between gap-3 px-5 sm:px-6">
             <div>
@@ -898,6 +1078,7 @@ export default function AppShell() {
   }
 
   const openProducts = () => {
+    if (!SHOW_RECOMMENDED_PRODUCTS) return
     setSelectedArticleId(null)
     setArticleView("products")
     setActiveTab("articles")
@@ -1029,12 +1210,14 @@ export default function AppShell() {
               >
                 บทความ
               </button>
-              <button
-                onClick={openProducts}
-                className="hidden rounded-2xl px-4 py-2 text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] md:inline-flex dark:text-[#72C08A] dark:hover:bg-white/10"
-              >
-                สินค้าแนะนำ
-              </button>
+              {SHOW_RECOMMENDED_PRODUCTS && (
+                <button
+                  onClick={openProducts}
+                  className="hidden rounded-2xl px-4 py-2 text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] md:inline-flex dark:text-[#72C08A] dark:hover:bg-white/10"
+                >
+                  สินค้าแนะนำ
+                </button>
+              )}
               <button
                 onClick={() => setShowSupportModal(true)}
                 aria-label="สนับสนุนเว็บนี้"
