@@ -1294,8 +1294,6 @@ export default function AppShell() {
   const savedSiteName = store.data.siteSettings.siteName
   const siteName = user?.farmName || (savedSiteName === "DurianFlow" ? "Durian Flow" : savedSiteName) || "สวนทุเรียน"
   const tagline = store.data.siteSettings.tagline || "Smart Orchard"
-  const logoUrl = store.data.siteSettings.logoUrl
-
   if (!user) {
     if (authChecking) return <AppShellSkeleton />
 
@@ -1309,11 +1307,7 @@ export default function AppShell() {
               className="flex min-w-0 items-center gap-2.5 text-left active:scale-95"
             >
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#146B3E] text-white ring-1 ring-[#CFE3D5] dark:bg-[#146B3E] dark:text-white dark:ring-[#31533D]">
-                {logoUrl ? (
-                  <img src={logoUrl} alt={siteName} className="h-7 w-7 rounded-xl object-cover" />
-                ) : (
-                  <DurianLogo size={26} className="h-7 w-7" />
-                )}
+                <DurianLogo size={26} className="h-7 w-7" />
               </span>
               <span className="min-w-0">
                 <span className="block truncate text-base font-black leading-none text-[#146B3E] dark:text-[#72C08A] sm:text-xl">{siteName}</span>
@@ -1432,11 +1426,7 @@ export default function AppShell() {
           className="relative flex min-w-0 items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity active:scale-95"
         >
           <div className="shrink-0 p-2 sm:p-2.5 bg-[#146B3E] dark:bg-[#146B3E] rounded-xl shadow-sm ring-1 ring-[#CFE3D5] dark:ring-[#31533D] animate-float-sway">
-            {logoUrl ? (
-              <img src={logoUrl} alt={siteName} className="h-5 w-5 sm:h-6 sm:w-6 rounded-lg object-cover" />
-            ) : (
-              <DurianLogo size={22} className="h-5 w-5 sm:h-6 sm:w-6" />
-            )}
+            <DurianLogo size={22} className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
           <div className="min-w-0 text-left">
             <h1 className="truncate font-black text-[#146B3E] dark:text-[#72C08A] text-base sm:text-xl tracking-tight leading-none">{siteName}</h1>
