@@ -184,20 +184,20 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       <div className="relative grid w-full max-w-4xl max-h-[92dvh] overflow-y-auto rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-2xl ring-1 ring-emerald-950/10 md:grid-cols-[1.05fr_0.95fr]">
-        <div className="relative hidden min-h-[560px] overflow-hidden bg-[#0B3B25] p-8 text-white md:block">
+        <div className="relative hidden min-h-[520px] overflow-hidden bg-[#0B3B25] p-8 text-white md:block">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(93,209,132,0.38),transparent_18rem),linear-gradient(145deg,rgba(255,255,255,0.14),transparent_42%)]" />
-          <div className="relative flex h-full flex-col justify-between">
+          <div className="relative flex h-full flex-col justify-center gap-7">
             <div>
-              <div className="mb-10 inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-2 text-sm font-bold ring-1 ring-white/20">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-2 text-sm font-bold ring-1 ring-white/20">
                 <Sparkles size={16} />
-                Smart Orchard OS
+                Durian Flow OS
               </div>
               <h2 className="max-w-sm text-4xl font-black leading-tight">จัดการสวนทุเรียนแบบทีมเดียวจบ</h2>
               <p className="mt-4 max-w-sm text-sm font-semibold leading-6 text-white/72">
                 เข้าสู่ระบบเพื่อดูข้อมูลสวน บทความ งานประจำวัน และหลังบ้านสำหรับผู้ดูแล
               </p>
             </div>
-            <div aria-hidden="true" className="relative h-52 overflow-hidden rounded-[1.5rem] bg-white/10 shadow-2xl shadow-black/20 ring-1 ring-white/16">
+            <div aria-hidden="true" className="relative h-[min(34dvh,18rem)] min-h-56 overflow-hidden rounded-[1.5rem] bg-white/10 shadow-2xl shadow-black/20 ring-1 ring-white/16">
               {AUTH_SLIDES.map((slide, index) => (
                 <div
                   key={slide.title}
@@ -213,18 +213,6 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
                 </div>
               ))}
             </div>
-            <div className="grid gap-3">
-              {[
-                "จัดการแปลงและต้นทุเรียน",
-                "ติดตามงานประจำวันและบันทึกสวน",
-                "ดูภาพรวมการเงินและบทความความรู้",
-              ].map(item => (
-                <div key={item} className="flex items-center gap-3 rounded-2xl bg-white/12 p-4 ring-1 ring-white/14">
-                  <ShieldCheck size={18} className="text-emerald-200" />
-                  <span className="text-sm font-bold">{item}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 
@@ -236,12 +224,12 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
         </button>
 
         <div className="px-5 py-7 sm:px-8 md:py-10">
-          <div className="mb-7 pt-6 text-center md:pt-0 md:text-left">
-            <div className="mb-1 flex items-center justify-center gap-2.5 md:justify-start">
+          <div className="mb-7 pt-6 text-center md:pt-0">
+            <div className="mb-1 flex items-center justify-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 shadow-lg shadow-emerald-600/25">
                 <ShieldCheck size={18} className="text-white" />
               </div>
-              <span className="text-sm font-bold tracking-tight text-gray-900">Smart Orchard</span>
+              <span className="text-sm font-bold tracking-tight text-gray-900">Durian Flow</span>
             </div>
             <h2 className="mt-5 text-2xl font-black text-gray-950">
               {mode === "forgot"

@@ -12,6 +12,7 @@ import UserAvatarImage from "./UserAvatarImage"
 import { Skeleton } from "./ui/skeleton"
 import AnimatedBackground from "./AnimatedBackground"
 import { resolveOAuthProfileFromAuthUser } from "@/lib/oauth-profile"
+import Settings from "./Settings"
 
 const Dashboard = dynamic(() => import("./Dashboard"), { loading: () => <ContentSkeleton /> })
 const PlotManagement = dynamic(() => import("./PlotManagement"), { loading: () => <ContentSkeleton /> })
@@ -19,10 +20,10 @@ const Operations = dynamic(() => import("./Operations"), { loading: () => <Conte
 const Finance = dynamic(() => import("./Finance"), { loading: () => <ContentSkeleton /> })
 const Articles = dynamic(() => import("./Articles"), { loading: () => <ContentSkeleton /> })
 const AdminPanel = dynamic(() => import("./AdminPanel"), { loading: () => <ContentSkeleton /> })
-const Settings = dynamic(() => import("./Settings"), { loading: () => null })
 const AuthModal = dynamic(() => import("./AuthModal"), { loading: () => null })
 const FeedbackModal = dynamic(() => import("./FeedbackModal"), { loading: () => null })
 const SupportModal = dynamic(() => import("./SupportModal"), { loading: () => null })
+const SandboxModal = dynamic(() => import("./SandboxModal"), { loading: () => null })
 
 type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin"
 
@@ -40,6 +41,12 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 ]
 
 const MOBILE_TABS = TABS.slice(0, 4) // Show only 4 tabs on mobile
+
+const HERO_BENEFITS: { label: string; icon: React.ElementType }[] = [
+  { label: "วางแผนงาน", icon: CalendarDays },
+  { label: "บันทึกแปลง", icon: MapPinned },
+  { label: "ดูภาพรวมสวน", icon: ClipboardCheck },
+]
 
 function getOAuthErrorFromUrl() {
   const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
@@ -76,6 +83,8 @@ const GUEST_FEATURES: {
   shadowColor: string
   themeColor: string
   surface: string
+  hoverClass: string
+  details: string[]
 }[] = [
   {
     title: "วางแผนงานสวน",
@@ -86,6 +95,8 @@ const GUEST_FEATURES: {
     shadowColor: "rgba(16, 185, 129, 0.45)",
     themeColor: "#10B981",
     surface: "from-emerald-50 via-white to-teal-50 dark:from-emerald-950/25 dark:via-[#14291E] dark:to-teal-950/20",
+    hoverClass: "hover-bounce-subtle",
+    details: ["งานด่วน", "เช็กสถานะ", "เตือนซ้ำ"],
   },
   {
     title: "จัดการแปลงและต้น",
@@ -96,6 +107,8 @@ const GUEST_FEATURES: {
     shadowColor: "rgba(132, 204, 22, 0.45)",
     themeColor: "#84CC16",
     surface: "from-lime-50 via-white to-green-50 dark:from-lime-950/20 dark:via-[#14291E] dark:to-green-950/20",
+    hoverClass: "hover-expand-subtle",
+    details: ["แผนที่", "สุขภาพต้น", "ระยะโต"],
   },
   {
     title: "บันทึกกิจกรรม",
@@ -106,6 +119,8 @@ const GUEST_FEATURES: {
     shadowColor: "rgba(14, 165, 233, 0.45)",
     themeColor: "#0EA5E9",
     surface: "from-sky-50 via-white to-blue-50 dark:from-sky-950/20 dark:via-[#14291E] dark:to-blue-950/20",
+    hoverClass: "hover-jingle-subtle",
+    details: ["รดน้ำ", "ใส่ปุ๋ย", "ค่าใช้จ่าย"],
   },
   {
     title: "ดูภาพรวมการเงิน",
@@ -116,6 +131,8 @@ const GUEST_FEATURES: {
     shadowColor: "rgba(245, 158, 11, 0.45)",
     themeColor: "#F59E0B",
     surface: "from-amber-50 via-white to-orange-50 dark:from-amber-950/20 dark:via-[#14291E] dark:to-orange-950/20",
+    hoverClass: "hover-wiggle-subtle",
+    details: ["รายรับ", "รายจ่าย", "กำไรสุทธิ"],
   },
   {
     title: "เช็กสภาพอากาศ",
@@ -126,16 +143,20 @@ const GUEST_FEATURES: {
     shadowColor: "rgba(6, 182, 212, 0.45)",
     themeColor: "#06B6D4",
     surface: "from-cyan-50 via-white to-sky-50 dark:from-cyan-950/20 dark:via-[#14291E] dark:to-sky-950/20",
+    hoverClass: "hover-sway-subtle",
+    details: ["ฝน", "แดด", "ลม"],
   },
   {
     title: "คลังความรู้ทุเรียน",
-    description: "อ่านบทความเรื่องโรค น้ำ ปุ๋ย ดอก และตลาดก่อนลงมือ",
+    description: "อ่านเรื่องโรค น้ำ ปุ๋ย ดอก ตลาด",
     kicker: "เรียนรู้ต่อ",
     icon: BookOpen,
     tone: "bg-gradient-to-br from-rose-500 to-pink-600 text-white ring-2 ring-rose-400/50 dark:ring-rose-400/40",
     shadowColor: "rgba(244, 63, 94, 0.45)",
     themeColor: "#F43F5E",
     surface: "from-rose-50 via-white to-pink-50 dark:from-rose-950/20 dark:via-[#14291E] dark:to-pink-950/20",
+    hoverClass: "hover-float-subtle",
+    details: ["โรค", "ดอก", "ตลาด"],
   },
 ]
 
@@ -291,12 +312,14 @@ function GuestHome({
   onLogin,
   onReadArticles,
   onOpenProducts,
+  onOpenSandbox,
 }: {
   articles: Article[]
   products: Product[]
   onLogin: () => void
   onReadArticles: (articleId?: string) => void
   onOpenProducts: () => void
+  onOpenSandbox: (tab: "tasks" | "plots" | "activities" | "finance" | "weather") => void
 }) {
   const publishedArticles = useMemo(() => articles.filter(article => article.status === "published"), [articles])
   const featuredArticles = useMemo(() => publishedArticles.slice(0, 9), [publishedArticles])
@@ -432,6 +455,8 @@ function GuestHome({
           position: relative;
           overflow: hidden;
           transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+          translate: 0 0;
+          scale: 1;
         }
         .premium-feature-card::after {
           content: '';
@@ -453,7 +478,8 @@ function GuestHome({
           animation: cardSheen 1.2s ease-in-out forwards;
         }
         .premium-feature-card:hover {
-          transform: translateY(-8px) scale(1.015);
+          translate: 0 -8px;
+          scale: 1.015;
           border-color: rgba(20, 107, 62, 0.3);
           box-shadow: 0 20px 40px -10px var(--hover-glow), 0 0 1px 0 var(--hover-glow);
         }
@@ -507,7 +533,8 @@ function GuestHome({
                   fill
                   sizes="(min-width: 1024px) 42rem, 100vw"
                   priority={index === 0}
-                  loading={index === 0 ? "eager" : "lazy"}
+                  loading="eager"
+                  fetchPriority={index === 0 ? "high" : "low"}
                   className="guest-hero-image object-cover object-center opacity-0"
                   style={{
                     animation: "heroImageSlide 15s ease-in-out infinite",
@@ -542,21 +569,31 @@ function GuestHome({
               ))}
             </div>
 
-            <div className="relative z-10 px-5 pb-4 pt-4 sm:px-8 sm:pb-6 sm:pt-8 lg:hidden">
-              <div className="rounded-[1.5rem] border border-white/14 bg-white/10 p-4 text-white shadow-[0_20px_60px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all animate-fade-in-up">
-                <h1 className="max-w-[11ch] text-[clamp(1.8rem,7.4vw,2.35rem)] font-black leading-[0.98] text-white delay-200 animate-fade-in-up">
-                  จัดการสวนทุเรียน ง่ายขึ้น
+            <div className="relative z-10 flex justify-center px-5 pb-4 pt-4 sm:px-8 sm:pb-6 sm:pt-8 lg:hidden">
+              <div className="w-full max-w-md rounded-[1.5rem] border border-white/14 bg-white/10 p-4 text-center text-white shadow-[0_20px_60px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all animate-fade-in-up">
+                <h1 className="mx-auto max-w-[12ch] text-[clamp(1.8rem,7.4vw,2.35rem)] font-black leading-[1.12] text-white delay-200 animate-fade-in-up">
+                  <span className="block">จัดการสวนทุเรียน</span>
+                  <span className="relative mt-2 inline-block -rotate-2 text-[1.12em] font-black leading-none tracking-wide text-[#F4D35E] drop-shadow-[0_8px_22px_rgba(0,0,0,0.35)]">
+                    <span className="relative z-10">ง่ายขึ้น</span>
+                    <span className="absolute -bottom-1 left-1 right-0 h-2 rounded-full bg-[#146B3E]/75" />
+                  </span>
                 </h1>
-                <p className="mt-2 max-w-sm text-xs font-semibold leading-5 text-white/80 delay-300 animate-fade-in-up">
-                  วางแผนงาน บันทึกแปลง และดูภาพรวมสวนในที่เดียว
-                </p>
+                <div className="mx-auto mt-3 flex max-w-sm flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs font-black text-white/82 delay-300 animate-fade-in-up">
+                  {HERO_BENEFITS.map(({ label, icon: Icon }) => (
+                    <span key={label} className="inline-flex items-center gap-1.5">
+                      <Icon size={13} strokeWidth={2.4} className="shrink-0 text-[#F4D35E]" />
+                      <span>{label}</span>
+                    </span>
+                  ))}
+                </div>
                 <div className="mt-3 flex max-w-md gap-2.5 delay-400 animate-fade-in-up">
                   <button
                     onClick={onLogin}
-                    className="guest-hero-cta group inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-black text-[#143422] shadow-[0_8px_20px_rgba(255,255,255,0.15)] transition-all hover:scale-105 active:scale-[0.98]"
+                    className="guest-hero-cta group relative inline-flex min-h-12 flex-[1.25] items-center justify-center gap-2 overflow-hidden rounded-2xl border border-[#F4D35E]/80 bg-white px-5 py-3 text-base font-black text-[#143422] shadow-[0_14px_34px_rgba(255,255,255,0.28),0_10px_26px_rgba(20,107,62,0.22)] ring-2 ring-white/55 transition-all hover:-translate-y-0.5 hover:scale-105 hover:border-[#F4D35E] hover:shadow-[0_18px_42px_rgba(255,255,255,0.34),0_12px_30px_rgba(20,107,62,0.3)] active:scale-[0.98]"
                   >
-                    <Sparkles size={16} className="text-[#146B3E] transition-transform group-hover:rotate-12" />
-                    เริ่มใช้งาน
+                    <Sparkles size={16} className="relative z-10 text-[#146B3E] transition-transform group-hover:rotate-12" />
+                    <span className="relative z-10">เริ่มใช้งาน</span>
+                    <ArrowRight size={16} className="relative z-10 transition-transform duration-300 group-hover:translate-x-0.5" />
                   </button>
                   <button
                     onClick={() => onReadArticles()}
@@ -583,12 +620,21 @@ function GuestHome({
           </div>
 
           <div className="guest-hero-copy relative z-10 hidden flex-col justify-center px-6 py-8 sm:px-10 lg:order-1 lg:flex lg:px-12 lg:py-10 xl:px-16">
-            <h1 className="max-w-[12ch] text-[clamp(2.6rem,4.8vw,5.2rem)] font-black leading-[1.03] text-[#146B3E] dark:text-[#72C08A] lg:max-w-none lg:whitespace-nowrap lg:text-[clamp(2.5rem,3.25vw,3.7rem)] animate-fade-in-up delay-200">
-              จัดการสวนทุเรียน ง่ายขึ้น
+            <h1 className="max-w-[12ch] text-[clamp(2.6rem,4.8vw,5.2rem)] font-black leading-[1.03] text-[#146B3E] dark:text-[#72C08A] lg:max-w-none lg:text-[clamp(2.5rem,3.25vw,3.7rem)] animate-fade-in-up delay-200">
+              <span className="block">จัดการสวนทุเรียน</span>
+              <span className="relative mt-5 inline-block origin-left -rotate-2 text-[1.16em] font-black leading-none tracking-wide text-[#D97B18] drop-shadow-[0_10px_22px_rgba(217,123,24,0.18)] dark:text-[#F4D35E]">
+                <span className="relative z-10">ง่ายขึ้น</span>
+                <span className="absolute -bottom-1 left-2 right-0 h-3 rounded-full bg-[#F4D35E]/55 dark:bg-[#146B3E]/70" />
+              </span>
             </h1>
-            <p className="mt-5 max-w-lg text-base font-semibold leading-7 text-[#527060] dark:text-[#B8D1C0] sm:text-lg animate-fade-in-up delay-300">
-              วางแผนงาน บันทึกแปลง และดูภาพรวมสวนในที่เดียว
-            </p>
+            <div className="mt-6 flex max-w-xl flex-wrap items-center gap-x-5 gap-y-2 text-base font-black text-[#527060] dark:text-[#B8D1C0] sm:text-lg animate-fade-in-up delay-300">
+              {HERO_BENEFITS.map(({ label, icon: Icon }) => (
+                <span key={label} className="inline-flex items-center gap-2">
+                  <Icon size={16} strokeWidth={2.4} className="shrink-0 text-[#146B3E] dark:text-[#72C08A]" />
+                  <span>{label}</span>
+                </span>
+              ))}
+            </div>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row animate-fade-in-up delay-400">
               <button
                 onClick={onLogin}
@@ -623,90 +669,85 @@ function GuestHome({
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-[#EEF8F0] px-4 py-12 dark:bg-[#0D1E15] sm:px-6 sm:py-16">
+      <section className="relative overflow-hidden bg-[#EEF8F0] px-4 pb-10 pt-3 dark:bg-[#0D1E15] sm:px-6 sm:pb-16 sm:pt-12">
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(20,107,62,0.07)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,107,62,0.07)_1px,transparent_1px)] bg-[size:42px_42px] dark:bg-[linear-gradient(to_right,rgba(114,192,138,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(114,192,138,0.08)_1px,transparent_1px)]" />
         <div className="pointer-events-none absolute left-1/2 top-0 h-64 w-[38rem] -translate-x-1/2 rounded-full bg-white/70 blur-3xl dark:bg-[#22563A]/25" />
 
         <div className="relative z-10 mx-auto max-w-7xl">
-          <div className="mb-8 flex flex-col gap-4 sm:mb-10 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#B9DCC8]/80 bg-white/75 px-3.5 py-1.5 text-xs font-black text-[#146B3E] shadow-sm backdrop-blur-md dark:border-[#31533D] dark:bg-[#14291E]/75 dark:text-[#72C08A]">
-                <Sparkles size={13} className="text-[#F59E0B]" />
-                พร้อมเริ่มจัดการสวน
-              </div>
-              <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight text-[#143422] dark:text-[#E6F4EA] sm:text-4xl">
+          <div className="mb-6 flex flex-col items-center gap-3 text-center sm:mb-10 sm:gap-4">
+            <div className="mx-auto max-w-xl">
+              <h2 className="text-2xl font-black leading-tight tracking-tight text-[#143422] dark:text-[#E6F4EA] sm:text-3xl">
                 ฟังก์ชันที่ช่วยให้เริ่มใช้ได้ทันที
               </h2>
-              <p className="mt-3 text-sm font-bold leading-6 text-[#527060] dark:text-[#B8D1C0]/75 sm:text-base">
-                เลือกงานที่ต้องทำ แล้วเข้าสู่ระบบเพื่อบันทึกข้อมูลสวนจริงของคุณ
-              </p>
             </div>
-            <button
-              type="button"
-              onClick={onLogin}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#146B3E] px-5 py-3 text-sm font-black text-white shadow-lg shadow-[#146B3E]/20 transition-all hover:-translate-y-0.5 hover:bg-[#0F5A34] active:scale-[0.98] sm:w-auto"
-            >
-              เริ่มใช้งานฟรี
-              <ArrowRight size={17} />
-            </button>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mx-auto grid max-w-5xl grid-cols-2 place-items-center gap-3 sm:gap-5 lg:grid-cols-3">
           {GUEST_FEATURES.map((feature, idx) => {
             const Icon = feature.icon
             const handleClick = () => {
               if (idx === 5) {
                 onReadArticles()
               } else {
-                onLogin()
+                const tabs: ("tasks" | "plots" | "activities" | "finance" | "weather")[] = [
+                  "tasks",
+                  "plots",
+                  "activities",
+                  "finance",
+                  "weather"
+                ]
+                onOpenSandbox(tabs[idx])
               }
             }
             return (
               <button
                 key={feature.title}
                 onClick={handleClick}
-                className={`group premium-feature-card min-h-[16rem] w-full cursor-pointer rounded-[1.5rem] border border-white/80 bg-gradient-to-br ${feature.surface} p-6 text-left shadow-[0_14px_42px_rgba(20,107,62,0.09)] ring-1 ring-[#B9DCC8]/45 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:ring-[#146B3E]/20 dark:border-[#31533D]/60 dark:shadow-[0_18px_48px_rgba(0,0,0,0.22)]`}
+                className={`group premium-feature-card relative flex min-h-[12rem] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[1.5rem] border border-[#B9DCC8]/50 bg-gradient-to-br ${feature.surface} p-3 text-center shadow-[0_14px_38px_rgba(20,107,62,0.07)] backdrop-blur-md transition-all duration-500 hover:shadow-[0_30px_60px_-15px_var(--hover-glow)] hover:border-[#146B3E]/30 dark:border-[#31533D]/50 dark:shadow-[0_16px_48px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_30px_60px_-15px_var(--hover-glow)] dark:hover:border-[#72C08A]/30 sm:min-h-[15.5rem] sm:max-w-[19rem] sm:rounded-[2rem] sm:p-5`}
                 style={{
                   "--hover-glow": feature.shadowColor,
                 } as React.CSSProperties}
               >
-                <div
-                  className="absolute inset-x-6 top-0 h-1 rounded-b-full opacity-80"
-                  style={{
-                    backgroundColor: feature.themeColor,
-                  }}
-                />
+                {/* Large floating background icon for premium feeling */}
+                <div className="pointer-events-none absolute -right-8 -top-8 text-[#146B3E]/5 transition-all duration-700 group-hover:rotate-12 group-hover:scale-125 group-hover:text-[#146B3E]/10 dark:text-[#72C08A]/5 dark:group-hover:text-[#72C08A]/10">
+                  <Icon size={150} strokeWidth={1} />
+                </div>
+                <div className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full opacity-20 blur-2xl transition-opacity duration-500 group-hover:opacity-35" style={{ backgroundColor: feature.themeColor }} />
 
-                <div className="flex h-full flex-col">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="relative flex h-16 w-16 shrink-0 items-center justify-center">
-                      <div className="absolute inset-0 rounded-[1.35rem] blur-xl opacity-35 transition-all duration-500 group-hover:scale-125 group-hover:opacity-60" style={{ backgroundColor: feature.themeColor }} />
-                      <div className={`relative flex h-14 w-14 items-center justify-center rounded-[1.2rem] shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:rotate-3 ${feature.tone}`}>
-                        <Icon size={25} strokeWidth={2.2} className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.25)]" />
-                      </div>
+                <div className="absolute inset-x-6 top-0 h-1.5 rounded-b-full opacity-80 sm:inset-x-10" style={{ backgroundColor: feature.themeColor }} />
+
+                <div className="relative z-10 flex flex-col items-center justify-center">
+                  <div className="relative mt-1 flex h-[4.5rem] w-[4.5rem] items-center justify-center sm:mt-2 sm:h-24 sm:w-24">
+                    <span className="absolute inset-0 rounded-full border border-white/80 bg-white/45 shadow-inner backdrop-blur-sm dark:border-white/10 dark:bg-white/5" />
+                    <span className="absolute inset-3 rounded-full opacity-20 blur-xl transition-all duration-500 group-hover:scale-125 group-hover:opacity-35" style={{ backgroundColor: feature.themeColor }} />
+                    <span className="absolute left-1 top-5 h-3 w-3 rounded-full opacity-70 shadow-sm" style={{ backgroundColor: feature.themeColor }} />
+                    <span className="absolute right-3 top-2 h-5 w-5 rounded-full border-2 border-white/85 bg-white/65 shadow-sm dark:border-white/20 dark:bg-white/10" />
+                    <span className="absolute bottom-3 right-1 h-4 w-4 rounded-full opacity-60 shadow-sm" style={{ backgroundColor: feature.themeColor }} />
+                    <div className={`relative flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-[1.15rem] shadow-[0_18px_36px_var(--hover-glow)] ring-4 ring-white/70 transition-all duration-300 group-hover:rotate-3 group-hover:scale-105 dark:ring-white/10 sm:h-[4.5rem] sm:w-[4.5rem] sm:rounded-[1.5rem] ${feature.tone}`}>
+                      <Icon size={26} strokeWidth={2.25} className={`drop-shadow-[0_1px_4px_rgba(0,0,0,0.25)] sm:size-8 ${feature.hoverClass}`} />
                     </div>
-                    <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-black text-[#527060] shadow-sm ring-1 ring-[#B9DCC8]/45 dark:bg-white/8 dark:text-[#B8D1C0] dark:ring-white/10">
-                      {feature.kicker}
-                    </span>
                   </div>
 
-                  <div className="mt-7">
-                    <h3 className="text-xl font-black leading-snug text-[#243B2D] transition-colors duration-300 group-hover:text-[#146B3E] dark:text-[#E6F4EA] dark:group-hover:text-[#72C08A]">
+                  <div className="mt-2 max-w-sm sm:mt-4">
+                    <h3 className="text-base font-black leading-tight text-[#243B2D] transition-colors duration-300 group-hover:text-[#146B3E] dark:text-[#E6F4EA] dark:group-hover:text-[#72C08A] sm:text-xl">
                       {feature.title}
                     </h3>
-                    <p className="mt-2 text-sm font-bold leading-6 text-[#5E7568] dark:text-[#B8D1C0]/68">
+                    <p className="mx-auto mt-1 line-clamp-2 text-xs font-bold leading-5 text-[#5E7568] dark:text-[#B8D1C0]/72 sm:mt-2 sm:line-clamp-none sm:text-sm sm:leading-6">
                       {feature.description}
                     </p>
                   </div>
 
-                  <div className="mt-auto flex items-center justify-between pt-6">
-                    <span className="text-sm font-black text-[#146B3E] dark:text-[#72C08A]">
-                      {idx === 5 ? "อ่านบทความ" : "เริ่มใช้งาน"}
-                    </span>
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#146B3E] shadow-sm ring-1 ring-[#B9DCC8]/70 transition-all duration-300 group-hover:translate-x-1 group-hover:bg-[#146B3E] group-hover:text-white dark:bg-white/10 dark:text-[#72C08A] dark:ring-white/10 dark:group-hover:bg-[#72C08A] dark:group-hover:text-[#0B1B12]">
-                      <ArrowRight size={16} />
-                    </span>
+                  <div className="mt-4 hidden flex-wrap justify-center gap-2 sm:flex">
+                    {feature.details.map(detail => (
+                      <span
+                        key={detail}
+                        className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-black text-[#527060] ring-1 ring-[#B9DCC8]/50 transition-colors group-hover:text-[#146B3E] dark:bg-white/8 dark:text-[#B8D1C0]/80 dark:ring-white/10 dark:group-hover:text-[#72C08A]"
+                      >
+                        {detail}
+                      </span>
+                    ))}
                   </div>
+
                 </div>
               </button>
             )
@@ -833,6 +874,8 @@ export default function AppShell() {
   const [isMounted, setIsMounted] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
+  const [showSandbox, setShowSandbox] = useState(false)
+  const [sandboxTab, setSandboxTab] = useState<"tasks" | "plots" | "activities" | "finance" | "weather">("tasks")
   const [authError, setAuthError] = useState<string | null>(null)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [showSupportModal, setShowSupportModal] = useState(false)
@@ -851,6 +894,10 @@ export default function AppShell() {
   const openAuth = useCallback(() => {
     setAuthError(null)
     setShowAuth(true)
+  }, [])
+  const openSandbox = useCallback((tab: "tasks" | "plots" | "activities" | "finance" | "weather") => {
+    setSandboxTab(tab)
+    setShowSandbox(true)
   }, [])
   const todayTaskCount = useMemo(() => store.data.tasks.filter(task => {
     if (task.status !== "pending") return false
@@ -1103,6 +1150,7 @@ export default function AppShell() {
           onLogin={openAuth}
           onReadArticles={openArticles}
           onOpenProducts={openProducts}
+          onOpenSandbox={openSandbox}
         />
       )
     }
@@ -1115,6 +1163,7 @@ export default function AppShell() {
           onLogin={openAuth}
           onReadArticles={openArticles}
           onOpenProducts={openProducts}
+          onOpenSandbox={openSandbox}
         />
       )
     }
@@ -1250,6 +1299,7 @@ export default function AppShell() {
               onLogin={openAuth}
               onReadArticles={openArticles}
               onOpenProducts={openProducts}
+              onOpenSandbox={openSandbox}
             />
           )}
           <AppFooter onContactClick={() => setShowFeedbackModal(true)} />
@@ -1277,6 +1327,14 @@ export default function AppShell() {
             isOpen={showSupportModal}
             onClose={() => setShowSupportModal(false)}
             onOpenContact={() => setShowFeedbackModal(true)}
+          />
+        )}
+        {showSandbox && (
+          <SandboxModal
+            isOpen={showSandbox}
+            onClose={() => setShowSandbox(false)}
+            onLogin={openAuth}
+            initialTab={sandboxTab}
           />
         )}
       </div>
