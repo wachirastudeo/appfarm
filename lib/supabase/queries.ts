@@ -264,17 +264,7 @@ export async function deleteFinanceRecord(recordId: string) {
 }
 
 // ---- Users ----
-export async function findUserByEmail(email: string) {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("email", email.trim().toLowerCase())
-    .maybeSingle()
-
-  if (error) throw error
-  if (!data) return null
-
+function rowToUser(data: Record<string, unknown>): AppUser {
   return {
     id: data.id as string,
     email: data.email as string,
@@ -291,7 +281,21 @@ export async function findUserByEmail(email: string) {
     farmLocation: data.farm_location as AppUser["farmLocation"],
     savedArticleIds: Array.isArray(data.saved_article_ids) ? data.saved_article_ids.filter((id: unknown) => typeof id === "string") : undefined,
     createdAt: data.created_at as string,
-  } satisfies AppUser
+  }
+}
+
+export async function findUserByEmail(email: string) {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("email", email.trim().toLowerCase())
+    .maybeSingle()
+
+  if (error) throw error
+  if (!data) return null
+
+  return rowToUser(data) satisfies AppUser
 }
 
 export async function insertUser(user: AppUser) {
@@ -334,11 +338,14 @@ export async function updateUser(userId: string, changes: Partial<AppUser>) {
   if ("savedArticleIds" in changes) dbChanges.saved_article_ids = changes.savedArticleIds ?? null
   if (changes.passwordHash !== undefined) dbChanges.password_hash = changes.passwordHash
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .update(dbChanges)
     .eq("id", userId)
+    .select("*")
+    .single()
   if (error) throw error
+  return rowToUser(data) satisfies AppUser
 }
 
 export async function deleteUser(userId: string) {

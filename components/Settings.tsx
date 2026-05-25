@@ -33,6 +33,7 @@ interface Props {
   onUpdateCover: (changes: Partial<Pick<AppUser, "coverImage" | "coverPositionX" | "coverPositionY">>) => Promise<void>
   onUpdateFarmProfile: (changes: Partial<Pick<AppUser, "farmName" | "farmLocation">>) => Promise<void>
   onLogout?: () => void
+  onShowInstallInstructions?: () => void
 }
 
 interface BeforeInstallPromptEvent extends Event {
@@ -52,6 +53,7 @@ export default function Settings({
   onUpdateCover,
   onUpdateFarmProfile,
   onLogout,
+  onShowInstallInstructions,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const confirmResetRef = useRef<HTMLDivElement>(null)
@@ -381,10 +383,14 @@ export default function Settings({
       return
     }
 
-    alert(isIos
-      ? "บน iPhone/iPad ให้กดปุ่ม Share แล้วเลือก Add to Home Screen"
-      : "หากเบราว์เซอร์รองรับ ให้ใช้เมนู Install app หรือ Add to Home screen"
-    )
+    if (onShowInstallInstructions) {
+      onShowInstallInstructions()
+    } else {
+      alert(isIos
+        ? "บน iPhone/iPad ให้กดปุ่ม Share แล้วเลือก Add to Home Screen"
+        : "หากเบราว์เซอร์รองรับ ให้ใช้เมนู Install app หรือ Add to Home screen"
+      )
+    }
   }
 
   if (!isOpen) return null

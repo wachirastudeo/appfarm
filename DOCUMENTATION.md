@@ -2,6 +2,8 @@
 
 # Project Documentation
 
+> Last updated: 2026-05-26
+
 ## Architecture Overview
 
 The application is built using the **Next.js App Router** paradigm with **Tailwind CSS** for styling. It emphasizes Server Components by default with explicit Client Components where interactivity is required.

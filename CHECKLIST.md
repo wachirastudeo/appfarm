@@ -2,6 +2,8 @@
 
 # Durian Orchard Management App - Feature Checklist
 
+> Last updated: 2026-05-26
+
 This checklist outlines the missing features and potential improvements identified during the system analysis of the durian orchard management application.
 
 ---

@@ -2,6 +2,8 @@
 
 # Design System: Durian Orchard Management
 
+> Last updated: 2026-05-26
+
 ## Overview
 
 This document outlines the visual identity and design tokens for the Durian Orchard Management application. The design uses a **Modern Nature UI** aesthetic, combining deep forest greens and muted natural tones to create a premium, high-visibility interface optimized for both outdoor field conditions and professional management.

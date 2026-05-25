@@ -2,6 +2,8 @@
 
 # คู่มือตั้งค่า Supabase Free สำหรับเว็บจริง
 
+> อัปเดตล่าสุด: 2026-05-26
+
 ใช้ไฟล์นี้เป็น checklist ตอนสร้าง database จริงให้โปรเจกต์นี้
 
 ## 1. สมัครและสร้าง Project
@@ -93,18 +95,20 @@ Callback URL ที่ Supabase ให้มา ต้อง copy ไปใส�
 
 ## 5. เปิด LINE Login
 
-LINE Login ยังไม่ได้เชื่อมในโค้ดปัจจุบัน Supabase ไม่มี LINE provider สำเร็จรูปแบบตรง ๆ ในบางโปรเจกต์
+LINE Login เชื่อมใน `components/AuthModal.tsx` ผ่าน Supabase Custom OAuth/OIDC provider โดยใช้ provider id `custom:line`
 
-ทางเลือก:
+ใน Supabase ต้องมี Custom provider ที่:
 
-1. เพิ่ม route server แยกสำหรับ LINE แล้ว sync user เข้า Supabase
-2. ใช้ Supabase Custom OAuth/OIDC ถ้า LINE config รองรับกับโปรเจกต์
+- `Provider ID`: `line`
+- callback URL ตรงกับค่าที่ Supabase แสดง
+- scopes รองรับ `profile openid`
 
-แนวทางถ้าจะทำต่อ:
+flow ปัจจุบัน:
 
-- ใช้ Supabase Auth Google ต่อไปตามเดิม
-- เพิ่ม LINE ผ่าน Supabase Custom OAuth/OIDC หรือ route server แยก
-- sync user profile ลง `profiles`
+1. หน้า login เรียก `supabase.auth.signInWithOAuth({ provider: "custom:line" })`
+2. LINE ส่งกลับเข้า Supabase callback
+3. Supabase redirect กลับ `/auth/callback`
+4. แอป sync user profile ลง `profiles`
 
 ค่า LINE เอาจากคู่มือ:
 

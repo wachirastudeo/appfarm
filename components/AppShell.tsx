@@ -14,6 +14,8 @@ import { Skeleton } from "./ui/skeleton"
 import AnimatedBackground from "./AnimatedBackground"
 import { resolveOAuthProfileFromAuthUser } from "@/lib/oauth-profile"
 import Settings from "./Settings"
+import InAppBrowserBanner from "./InAppBrowserBanner"
+import PwaInstallModal from "./PwaInstallModal"
 
 const Dashboard = dynamic(() => import("./Dashboard"), { loading: () => <ContentSkeleton /> })
 const PlotManagement = dynamic(() => import("./PlotManagement"), { loading: () => <ContentSkeleton /> })
@@ -896,6 +898,7 @@ export default function AppShell() {
   const [farmCoverPosition, setFarmCoverPosition] = useState("50% 50%")
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
+  const [showPwaInstallModal, setShowPwaInstallModal] = useState(false)
   const store = useAppData(user?.id ?? null)
   const locationStorageKey = user?.id ? `farm_location_${user.id}` : "farm_location_guest"
   const coverStorageKey = user?.id ? `farm_cover_image_${user.id}` : "farm_cover_image_guest"
@@ -1073,6 +1076,12 @@ export default function AppShell() {
     setShowAuth(false)
   }, [])
 
+  const updateCurrentUser = useCallback(async (changes: Partial<AppUser>) => {
+    if (!user) return
+    await store.updateUser(user.id, changes)
+    setUser(current => current?.id === user.id ? { ...current, ...changes } : current)
+  }, [store, user])
+
   useEffect(() => {
     const oauthError = getOAuthErrorFromUrl()
     if (!oauthError) return
@@ -1162,10 +1171,7 @@ export default function AppShell() {
       return
     }
 
-    alert(isIos
-      ? "บน iPhone/iPad ให้กดปุ่ม Share (แชร์) แล้วเลือก Add to Home Screen (เพิ่มไปยังหน้าจอโฮม)"
-      : "หากเบราว์เซอร์รองรับ ให้ใช้เมนู Install app หรือ Add to Home screen"
-    )
+    setShowPwaInstallModal(true)
   }
 
   const handleLogout = () => {
@@ -1238,7 +1244,7 @@ export default function AppShell() {
 
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => store.updateUser(user!.id, { farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
+        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => updateCurrentUser({ farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
       case "plots":
         return (
           <PlotManagement
@@ -1268,7 +1274,7 @@ export default function AppShell() {
       case "articles":
         return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} savedArticleIds={user?.savedArticleIds} savedArticlesStorageKey={user?.id ? `durian_saved_articles_${user.id}` : "durian_saved_articles_guest"} onSavedArticleIdsChange={savedArticleIds => user ? store.updateUser(user.id, { savedArticleIds }) : Promise.resolve()} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
       case "admin":
-        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => store.updateUser(user!.id, { farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
+        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => updateCurrentUser({ farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
         return (
           <AdminPanel
             users={store.data.users}
@@ -1358,6 +1364,7 @@ export default function AppShell() {
             </div>
           </div>
         </header>
+        <InAppBrowserBanner />
 
         <main className="relative z-10">
           {activeTab === "articles" ? (
@@ -1412,6 +1419,11 @@ export default function AppShell() {
             initialTab={sandboxTab}
           />
         )}
+        <PwaInstallModal
+          isOpen={showPwaInstallModal}
+          onClose={() => setShowPwaInstallModal(false)}
+          isIos={/iphone|ipad|ipod/i.test(navigator.userAgent)}
+        />
       </div>
     )
   }
@@ -1482,6 +1494,7 @@ export default function AppShell() {
           )}
         </div>
       </header>
+      <InAppBrowserBanner />
 
       {/* Body: Sidebar + Content */}
       <div className="relative z-10 flex min-w-0 flex-1 overflow-hidden">
@@ -1552,9 +1565,10 @@ export default function AppShell() {
           currentUser={user}
           locationStorageKey={locationStorageKey}
           coverStorageKey={coverStorageKey}
-          onUpdateCover={changes => store.updateUser(user.id, changes)}
-          onUpdateFarmProfile={changes => store.updateUser(user.id, changes)}
+          onUpdateCover={updateCurrentUser}
+          onUpdateFarmProfile={updateCurrentUser}
           onLogout={handleLogout}
+          onShowInstallInstructions={() => setShowPwaInstallModal(true)}
         />
       )}
 
@@ -1585,6 +1599,11 @@ export default function AppShell() {
           onOpenContact={() => setShowFeedbackModal(true)}
         />
       )}
+      <PwaInstallModal
+        isOpen={showPwaInstallModal}
+        onClose={() => setShowPwaInstallModal(false)}
+        isIos={/iphone|ipad|ipod/i.test(navigator.userAgent)}
+      />
     </div>
   )
 }

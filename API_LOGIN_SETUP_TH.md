@@ -2,6 +2,8 @@
 
 # คู่มือขอ API สำหรับ Google Login และ LINE Login
 
+> อัปเดตล่าสุด: 2026-05-26
+
 ไฟล์นี้ใช้เป็น checklist สำหรับไปขอ `Client ID`, `Client Secret`, `Channel ID`, และ `Channel Secret` เพื่อเชื่อม login จริงกับแอปนี้
 
 ## สถานะปัจจุบันของโปรเจกต์

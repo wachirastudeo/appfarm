@@ -2,6 +2,8 @@
 
 # AGENTS.md
 
+> Last updated: 2026-05-26
+
 ## Project
 
 - Next.js 16 App Router + TypeScript app.

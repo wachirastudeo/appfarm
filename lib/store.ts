@@ -716,7 +716,10 @@ export function useAppData(currentUserId?: string | null) {
 
   const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {
     updateData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, ...changes } : u) }))
-    if (isSupabaseMode) await updateSupabaseUser(id, changes)
+    if (isSupabaseMode) {
+      const updatedUser = await updateSupabaseUser(id, changes)
+      updateData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, ...updatedUser } : u) }))
+    }
   }, [isSupabaseMode, updateData])
 
   const deleteUser = useCallback((id: string) => {

@@ -28,6 +28,12 @@ const AUTH_SLIDES = [
   },
 ]
 
+const MOBILE_USER_AGENT_PATTERN = /Android|iPhone|iPad|iPod/i
+
+function isMobileBrowser() {
+  return MOBILE_USER_AGENT_PATTERN.test(window.navigator.userAgent)
+}
+
 interface Props {
   isOpen: boolean
   onClose: () => void
@@ -71,6 +77,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
 
   const handleOAuthLogin = async (provider: "google" | "custom:line") => {
     const providerName = provider === "custom:line" ? "LINE" : "Google"
+    const shouldOpenLineFromMobile = provider === "custom:line" && isMobileBrowser()
     setError("")
     setSuccess("")
     setLoading(provider)
@@ -83,16 +90,26 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
         setLoading(null)
         return
       }
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
           scopes: provider === "custom:line" ? "profile openid" : undefined,
+          skipBrowserRedirect: shouldOpenLineFromMobile,
         },
       })
       if (error) {
         setError(error.message || `ไม่สามารถเข้าสู่ระบบด้วย ${providerName} ได้`)
         setLoading(null)
+        return
+      }
+      if (shouldOpenLineFromMobile) {
+        if (!data.url) {
+          setError("ไม่พบ URL สำหรับเปิด LINE Login")
+          setLoading(null)
+          return
+        }
+        window.location.assign(data.url)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : `ไม่สามารถเข้าสู่ระบบด้วย ${providerName} ได้`)

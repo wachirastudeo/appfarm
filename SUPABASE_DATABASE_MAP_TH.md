@@ -2,6 +2,8 @@
 
 # แผนผัง Database Supabase
 
+> อัปเดตล่าสุด: 2026-05-26
+
 ไฟล์นี้ไว้ดูว่าใน Supabase ข้อมูลแต่ละส่วนของแอปอยู่ table ไหน
 
 Project: `hpyoyjpqitpvgckxnlww`

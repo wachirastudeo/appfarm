@@ -2,6 +2,8 @@
 
 # Project Knowledge
 
+> Last updated: 2026-05-26
+
 ## What This App Is
 
 - Durian orchard management web app for Thai users.

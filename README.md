@@ -2,6 +2,8 @@
 
 # Durian Orchard Management App
 
+> Last updated: 2026-05-26
+
 ## Overview
 
 A modern, mobile-responsive web application designed for managing durian orchards. The application helps orchard owners and workers track plots, manage trees, log daily agricultural activities (such as fertilizing, spraying, and irrigation), plan tasks, and maintain financial records.
