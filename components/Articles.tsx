@@ -65,11 +65,21 @@ export default function Articles({
   }, [activeView, publishedArticles, activeProducts])
 
   useEffect(() => {
-    if (!initialArticleId) return
-    const article = publishedArticles.find(a => a.id === initialArticleId)
+    if (!initialArticleId) {
+      setSelectedArticle(null)
+      return
+    }
+
+    const article = publishedArticles.find(a =>
+      a.id === initialArticleId ||
+      a.slug === initialArticleId ||
+      createSlug(a.title) === initialArticleId
+    )
     if (article) {
       setActiveView("articles")
       setSelectedArticle(article)
+    } else {
+      setSelectedArticle(null)
     }
   }, [initialArticleId, publishedArticles])
 

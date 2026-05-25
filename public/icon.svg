@@ -1,27 +1,119 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Green rounded square background -->
   <rect width="180" height="180" rx="40" fill="#146B3E"/>
-  <circle cx="90" cy="92" r="58" fill="#E7F3EC" opacity="0.18"/>
-  <path
-    d="M90 46c24 0 42 18 42 44 0 29-19 52-42 52S48 119 48 90c0-26 18-44 42-44Z"
-    fill="#E7F3EC"
-    opacity="0.22"
-  />
-  <path
-    d="M89 32c5 5 9 12 11 20l11-5 2 12 12-1-4 11 11 4-7 10 10 8-10 7 7 10-11 4 4 11-12-1-2 12-11-5-7 11-7-11-11 5-2-12-12 1 4-11-11-4 7-10-10-7 10-8-7-10 11-4-4-11 12 1 2-12 11 5c1-8 3-15 5-20Z"
-    stroke="white"
-    stroke-width="8"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M91 50c3-10 9-17 19-21"
-    stroke="white"
-    stroke-width="8"
-    stroke-linecap="round"
-  />
-  <path
-    d="M70 78c12-7 29-7 40 0M66 98c14-8 34-8 48 0M75 116c8 4 21 4 30 0"
-    stroke="white"
-    stroke-width="7"
-    stroke-linecap="round"
-  />
+  
+  <!-- Subtle circular accent behind the durian -->
+  <circle cx="90" cy="95" r="54" fill="#E7F3EC" opacity="0.08"/>
+  
+  <g transform="translate(30, 32) scale(5)">
+    <!-- Left Husk Soft Background Tint -->
+    <path
+      d="M12 5.5
+         Q10.5 6.5 10.5 7.5
+         Q9 8 9 9.2
+         Q7.5 9.8 7.5 11
+         Q6 11.8 6 13
+         Q4.5 13.8 4.8 15.2
+         Q6 16.5 6.5 17.5
+         Q8 18.5 9.5 19.2
+         Q11 20 12 20.5
+         C11.2 16.5 11.2 9.5 12 5.5 Z"
+      fill="#E7F3EC"
+      fill-opacity="0.15"
+    />
+
+    <!-- Right Husk Soft Background Tint -->
+    <path
+      d="M12 5.5
+         C16.5 5.5 19 9 19 13.5
+         C19 18 16.5 20.5 12 20.5
+         C11.2 16.5 11.2 9.5 12 5.5 Z"
+      fill="#FFE082"
+      fill-opacity="0.08"
+    />
+
+    <!-- Pulp Segments Soft Fill -->
+    <path
+      d="M14 9.5 C15.5 9.5 16.5 10.5 16.5 11.8 C16.5 13 15.5 13.8 14 13.8 C12.8 13.8 12.5 13 12.5 11.8 C12.5 10.5 12.8 9.5 14 9.5 Z"
+      fill="#FFD54F"
+      fill-opacity="0.45"
+    />
+    <path
+      d="M13.5 14.5 C15 14.5 15.8 15.5 15.8 16.8 C15.8 18 15 18.8 13.5 18.8 C12.5 18.8 12.2 18 12.2 16.8 C12.2 15.5 12.5 14.5 13.5 14.5 Z"
+      fill="#FFCA28"
+      fill-opacity="0.45"
+    />
+
+    <!-- Stem Line Art -->
+    <path
+      d="M12 5.5 C12 3.5 12.8 2.3 14 1.8"
+      stroke="#D7CCC8"
+      stroke-width="1.8"
+      stroke-linecap="round"
+    />
+
+    <!-- Leaf Line Art -->
+    <path
+      d="M13 2.8 C14.5 2 16 2.8 16 4 C15.2 4.8 13.8 4.5 13 2.8 Z"
+      stroke="#A5D6A7"
+      stroke-width="1.2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="#81C784"
+      fill-opacity="0.4"
+    />
+
+    <!-- Spiky Husk Outline (Left Half) -->
+    <path
+      d="M12 5.5
+         Q10.5 6.5 10.5 7.5
+         Q9 8 9 9.2
+         Q7.5 9.8 7.5 11
+         Q6 11.8 6 13
+         Q4.5 13.8 4.8 15.2
+         Q6 16.5 6.5 17.5
+         Q8 18.5 9.5 19.2
+         Q11 20 12 20.5"
+      stroke="#FFFFFF"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Smooth Husk Outline (Right Half) -->
+    <path
+      d="M12 5.5
+         C16.5 5.5 19 9 19 13.5
+         C19 18 16.5 20.5 12 20.5"
+      stroke="#FFFFFF"
+      stroke-width="1.8"
+      stroke-linecap="round"
+    />
+
+    <!-- Center Division Line -->
+    <path
+      d="M12 5.5 C11.2 9.5 11.2 16.5 12 20.5"
+      stroke="#FFFFFF"
+      stroke-opacity="0.4"
+      stroke-width="1.2"
+      stroke-dasharray="1 2"
+      stroke-linecap="round"
+    />
+
+    <!-- Durian Pulp Outline (Vibrant Yellow Line Art) -->
+    <path
+      d="M14 9.5 C15.5 9.5 16.5 10.5 16.5 11.8 C16.5 13 15.5 13.8 14 13.8 C12.8 13.8 12.5 13 12.5 11.8 C12.5 10.5 12.8 9.5 14 9.5 Z"
+      stroke="#FFD54F"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M13.5 14.5 C15 14.5 15.8 15.5 15.8 16.8 C15.8 18 15 18.8 13.5 18.8 C12.5 18.8 12.2 18 12.2 16.8 C12.2 15.5 12.5 14.5 13.5 14.5 Z"
+      stroke="#FFD54F"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </g>
 </svg>

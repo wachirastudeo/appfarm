@@ -8,12 +8,12 @@ interface Props {
   isOpen: boolean
   onClose: () => void
   onLogin: () => void
-  initialTab?: "tasks" | "plots" | "activities" | "finance" | "weather"
+  initialTab?: "tasks" | "plots" | "activities" | "finance"
 }
 
 export default function SandboxModal({ isOpen, onClose, onLogin, initialTab = "tasks" }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [activeTab, setActiveTab] = useState<"tasks" | "plots" | "activities" | "finance" | "weather">(initialTab)
+  const [activeTab, setActiveTab] = useState<"tasks" | "plots" | "activities" | "finance">(initialTab)
 
   useEscapeToClose({ enabled: isOpen, onEscape: onClose, containerRef })
 
@@ -56,8 +56,7 @@ export default function SandboxModal({ isOpen, onClose, onLogin, initialTab = "t
   const [finAmount, setFinAmount] = useState("")
   const [finType, setFinType] = useState<"income" | "expense">("expense")
 
-  // --- Sandbox State: Weather ---
-  const [weatherCondition, setWeatherCondition] = useState<"sunny" | "rainy" | "windy">("sunny")
+
 
   if (!isOpen) return null
 
@@ -225,17 +224,7 @@ export default function SandboxModal({ isOpen, onClose, onLogin, initialTab = "t
                 <Coins size={16} />
                 <span className="hidden sm:inline md:inline">ภาพรวมการเงิน</span>
               </button>
-              <button
-                onClick={() => setActiveTab("weather")}
-                className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-black transition-all ${
-                  activeTab === "weather"
-                    ? "bg-[#146B3E] text-white shadow-md shadow-[#146B3E]/20 dark:bg-[#72C08A] dark:text-[#0B1B12]"
-                    : "text-muted-foreground hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]/50"
-                }`}
-              >
-                <CloudRain size={16} />
-                <span className="hidden sm:inline md:inline">สภาพอากาศ</span>
-              </button>
+
             </nav>
           </div>
 
@@ -261,7 +250,6 @@ export default function SandboxModal({ isOpen, onClose, onLogin, initialTab = "t
                 {activeTab === "plots" && "จัดการแปลงทุเรียนรายต้น"}
                 {activeTab === "activities" && "บันทึกกิจกรรมประจำวัน"}
                 {activeTab === "finance" && "จดบัญชีรายรับ-รายจ่าย"}
-                {activeTab === "weather" && "วิเคราะห์อากาศอัจฉริยะ"}
               </h1>
             </div>
             <button
@@ -779,103 +767,6 @@ export default function SandboxModal({ isOpen, onClose, onLogin, initialTab = "t
               </div>
             )}
 
-            {/* PAGE 5: WEATHER FORECAST */}
-            {activeTab === "weather" && (
-              <div className="space-y-6 animate-slide-up">
-                
-                {/* Weather Mode Selector */}
-                <div className="rounded-2xl border border-white/60 bg-white p-5 shadow-sm dark:border-[#1D3A29] dark:bg-[#14291E]">
-                  <h3 className="text-sm font-black text-foreground">เลือกสถานการณ์จำลองสภาพอากาศ</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">ทดลองสลับโหมดสภาพอากาศเพื่อดูคำแนะนำการจัดการแปลงอัจฉริยะ</p>
-                  
-                  <div className="grid grid-cols-3 gap-2 mt-4">
-                    {[
-                      { id: "sunny", label: "แดดจัด / ร้อนแล้ง", icon: <Sun size={15} className="text-amber-500" /> },
-                      { id: "rainy", label: "พายุฝนตกหนัก", icon: <CloudRain size={15} className="text-blue-500" /> },
-                      { id: "windy", label: "ลมพัดกรรโชกแรง", icon: <Wind size={15} className="text-cyan-500" /> }
-                    ].map(cond => (
-                      <button
-                        key={cond.id}
-                        type="button"
-                        onClick={() => setWeatherCondition(cond.id as any)}
-                        className={`rounded-xl py-2.5 px-2 text-[11px] font-black transition-all flex items-center justify-center gap-1.5 border shadow-sm ${
-                          weatherCondition === cond.id
-                            ? "bg-[#146B3E] border-[#146B3E] text-white dark:bg-[#72C08A] dark:border-[#72C08A] dark:text-[#0B1B12]"
-                            : "bg-white text-muted-foreground border-border hover:bg-[#E7F3EC] dark:bg-[#0B140F] dark:border-white/10"
-                        }`}
-                      >
-                        {cond.icon}
-                        <span>{cond.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid gap-6 md:grid-cols-[1fr_1fr]">
-                  
-                  {/* Weather Animation Visual Card */}
-                  <div className="relative rounded-[2rem] border border-white/60 bg-gradient-to-br from-cyan-500 to-sky-600 p-6 shadow-md dark:border-[#1D3A29] flex flex-col items-center justify-center min-h-[220px] overflow-hidden text-white">
-                    <div className="absolute inset-0 bg-black/10" />
-                    
-                    {/* Floating cloud particles */}
-                    <div className="absolute top-4 left-6 h-8 w-16 bg-white/18 rounded-full blur-sm animate-pulse" />
-                    <div className="absolute bottom-6 right-8 h-10 w-20 bg-white/18 rounded-full blur-sm animate-pulse" style={{ animationDelay: '2s' }} />
-
-                    {weatherCondition === "sunny" && (
-                      <div className="relative flex flex-col items-center animate-bounce">
-                        <Sun size={64} className="text-yellow-300 animate-spin-slow drop-shadow-[0_4px_12px_rgba(251,191,36,0.5)]" />
-                        <span className="text-2xl font-black mt-4">37°C • แดดจัด</span>
-                        <span className="text-[11px] font-bold opacity-80 mt-1">ความชื้นดินสัมพัทธ์: 42% (ดินแห้ง)</span>
-                      </div>
-                    )}
-
-                    {weatherCondition === "rainy" && (
-                      <div className="relative flex flex-col items-center">
-                        <CloudRain size={64} className="text-blue-200 animate-pulse drop-shadow-[0_4px_8px_rgba(191,219,254,0.3)]" />
-                        
-                        {/* Rainfall lines animated */}
-                        <div className="absolute top-2 gap-1.5 flex mt-1">
-                          <div className="w-0.5 h-6 bg-blue-300 animate-bounce" style={{ animationDelay: '0.1s' }} />
-                          <div className="w-0.5 h-6 bg-blue-300 animate-bounce" style={{ animationDelay: '0.4s' }} />
-                          <div className="w-0.5 h-6 bg-blue-300 animate-bounce" style={{ animationDelay: '0.2s' }} />
-                        </div>
-                        
-                        <span className="text-2xl font-black mt-4">26°C • ฝนตกหนัก</span>
-                        <span className="text-[11px] font-bold opacity-80 mt-1">ความชื้นดินสัมพัทธ์: 94% (ดินแฉะมาก)</span>
-                      </div>
-                    )}
-
-                    {weatherCondition === "windy" && (
-                      <div className="relative flex flex-col items-center">
-                        <Wind size={64} className="text-teal-200 animate-pulse drop-shadow-[0_4px_8px_rgba(20,184,166,0.3)]" />
-                        
-                        {/* Winds wave representation */}
-                        <div className="absolute left-[-30px] w-48 h-8 flex flex-col justify-between opacity-30 mt-6">
-                          <div className="h-0.5 w-3/4 bg-white rounded-full animate-pulse" />
-                          <div className="h-0.5 w-full bg-white rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
-                        </div>
-
-                        <span className="text-2xl font-black mt-4">31°C • ลมกรรโชก</span>
-                        <span className="text-[11px] font-bold opacity-80 mt-1">ความชื้นดินสัมพัทธ์: 58% (อัตราน้ำระเหยสูง)</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Weather advice card */}
-                  <div className="rounded-2xl border border-white/60 bg-white p-5 shadow-sm dark:border-[#1D3A29] dark:bg-[#14291E] flex flex-col justify-center">
-                    <h4 className="text-xs font-black text-[#146B3E] dark:text-[#72C08A] uppercase tracking-wider mb-2 flex items-center gap-1">
-                      <AlertCircle size={14} /> คำแนะนำดูแลทุเรียนรายวัน
-                    </h4>
-                    <p className="text-sm font-bold text-foreground leading-relaxed">
-                      {weatherCondition === "sunny" && "☀️ สวนทุเรียนสูญเสียน้ำเร็วมาก แนะนำเพิ่มปริมาณการรดน้ำ 20% จากเวลาปกติ หรือจัดสรรการรดน้ำเป็นรอบเช้าสั้นๆ เพื่อให้ดินเก็บความชื้นได้ยาวนานขึ้น ป้องกันตาดอกไหม้แห้ง"}
-                      {weatherCondition === "rainy" && "⛈️ พายุฝนตกหนัก คุมความชื้นดินให้งดเว้นการให้น้ำ และระวังโรครากเน่าโคนเน่า (ไฟทอปธอร่า) หมั่นระบายน้ำออกจากคูแปลง อย่าปล่อยให้น้ำท่วมขังเด็ดขาด"}
-                      {weatherCondition === "windy" && "💨 ลมกระโชกแรงส่งผลให้กิ่งทุเรียนแกว่งและสูญเสียน้ำทางใบสูง ในกรณีต้นระยะผลโต ควรทำการโยงมัดผลเข้ากับกิ่งหลักให้แน่นหนาป้องกันขั้วผลหลุดร่วงเสียหาย"}
-                    </p>
-                  </div>
-
-                </div>
-              </div>
-            )}
 
           </main>
 

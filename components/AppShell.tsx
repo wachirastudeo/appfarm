@@ -6,8 +6,9 @@ import { useAppData } from "@/lib/store"
 import type { AppUser, Article, Product } from "@/lib/store"
 import { createClient } from "@/lib/supabase/client"
 import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, HeartHandshake, Check } from "lucide-react"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, HeartHandshake, Check, Smartphone, Download } from "lucide-react"
 import DurianIcon from "./DurianIcon"
+import DurianLogo from "./DurianLogo"
 import UserAvatarImage from "./UserAvatarImage"
 import { Skeleton } from "./ui/skeleton"
 import AnimatedBackground from "./AnimatedBackground"
@@ -134,6 +135,7 @@ const GUEST_FEATURES: {
     hoverClass: "hover-wiggle-subtle",
     details: ["รายรับ", "รายจ่าย", "กำไรสุทธิ"],
   },
+
   {
     title: "เช็กสภาพอากาศ",
     description: "ใช้พยากรณ์ช่วยตัดสินใจงานน้ำและงานดูแลสวน",
@@ -313,13 +315,19 @@ function GuestHome({
   onReadArticles,
   onOpenProducts,
   onOpenSandbox,
+  installPrompt,
+  onInstall,
+  isInstalled,
 }: {
   articles: Article[]
   products: Product[]
   onLogin: () => void
   onReadArticles: (articleId?: string) => void
   onOpenProducts: () => void
-  onOpenSandbox: (tab: "tasks" | "plots" | "activities" | "finance" | "weather") => void
+  onOpenSandbox: (tab: "tasks" | "plots" | "activities" | "finance") => void
+  installPrompt: BeforeInstallPromptEvent | null
+  onInstall: () => Promise<void>
+  isInstalled: boolean
 }) {
   const publishedArticles = useMemo(() => articles.filter(article => article.status === "published"), [articles])
   const featuredArticles = useMemo(() => publishedArticles.slice(0, 9), [publishedArticles])
@@ -480,11 +488,11 @@ function GuestHome({
         .premium-feature-card:hover {
           translate: 0 -8px;
           scale: 1.015;
-          border-color: rgba(20, 107, 62, 0.3);
+          border-color: var(--hover-glow);
           box-shadow: 0 20px 40px -10px var(--hover-glow), 0 0 1px 0 var(--hover-glow);
         }
         .dark .premium-feature-card:hover {
-          border-color: rgba(114, 192, 138, 0.3);
+          border-color: var(--hover-glow);
         }
         .group:hover .hover-bounce-subtle {
           animation: bounceSubtle 0.6s ease-in-out;
@@ -519,150 +527,144 @@ function GuestHome({
         .delay-300 { animation-delay: 300ms; }
         .delay-400 { animation-delay: 400ms; }
       `}</style>
-      <section className="guest-hero relative isolate overflow-hidden bg-[#0B2417] lg:min-h-svh lg:px-8 lg:py-8">
-        <div className="guest-hero-glow pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-[#1F6B42]/35 blur-3xl animate-pulse-glow" />
-        <div className="guest-hero-glow pointer-events-none absolute -right-16 bottom-8 h-80 w-80 rounded-full bg-[#0F5A34]/40 blur-3xl animate-pulse-glow" style={{ animationDelay: '4s' }} />
-        <div className="guest-hero-card relative mx-auto grid w-full overflow-hidden bg-transparent lg:min-h-[calc(100svh-9rem)] lg:max-w-[92rem] lg:rounded-[2rem] lg:border lg:border-[#C9DACD]/30 lg:shadow-[0_28px_70px_rgba(20,107,62,0.12)] lg:ring-1 lg:ring-white/10 lg:grid-cols-[1.08fr_0.92fr] lg:bg-white lg:dark:border-[#31533D]/40 lg:dark:bg-[#14291E] lg:dark:shadow-[0_28px_70px_rgba(0,0,0,0.5)]">
-          <div className="order-1 relative overflow-hidden bg-[#D8EFC4] dark:bg-[#102619] lg:order-2 lg:min-h-full">
-            <div className="absolute inset-0 overflow-hidden">
-              {GUEST_HERO_IMAGES.map((image, index) => (
-                <Image
-                  key={image.src}
-                  src={image.src}
-                  alt={image.alt}
-                  fill
-                  sizes="(min-width: 1024px) 42rem, 100vw"
-                  priority={index === 0}
-                  loading="eager"
-                  fetchPriority={index === 0 ? "high" : "low"}
-                  className="guest-hero-image object-cover object-center opacity-0"
-                  style={{
-                    animation: "heroImageSlide 15s ease-in-out infinite",
-                    animationDelay: `${index * 5}s`,
-                  }}
-                />
-              ))}
-            </div>
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,27,17,0.14)_0%,rgba(7,27,17,0.2)_28%,rgba(7,27,17,0.72)_68%,rgba(7,27,17,0.92)_100%)] lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.9)_0%,rgba(255,255,255,0.1)_35%,rgba(9,44,25,0.12)),linear-gradient(0deg,rgba(20,107,62,0.22),transparent_55%)] lg:dark:bg-[linear-gradient(90deg,rgba(20,41,30,0.95)_0%,rgba(20,41,30,0.15)_35%,rgba(9,44,25,0.25)),linear-gradient(0deg,rgba(20,107,62,0.32),transparent_55%)] transition-colors duration-1000" />
+      <section className="guest-hero relative isolate overflow-hidden bg-[#06150D] py-12 sm:py-16 lg:min-h-svh lg:px-8 lg:py-12">
+        {/* Pulsing Auroras for immersive depth */}
+        <div className="guest-hero-glow pointer-events-none absolute -left-40 top-10 h-[450px] w-[450px] rounded-full bg-[#185333]/25 blur-[120px] animate-pulse-glow" />
+        <div className="guest-hero-glow pointer-events-none absolute -right-32 bottom-8 h-[500px] w-[500px] rounded-full bg-[#0a3a20]/35 blur-[140px] animate-pulse-glow" style={{ animationDelay: '3s' }} />
+        <div className="guest-hero-glow pointer-events-none absolute left-1/3 top-1/4 h-[350px] w-[350px] rounded-full bg-[#D97B18]/10 blur-[100px] animate-pulse-glow" style={{ animationDelay: '5s' }} />
 
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {leafParticles.map(p => (
-                <div
-                  key={p.id}
-                  className="absolute"
-                  style={{
-                    right: p.right,
-                    top: p.top,
-                    animation: `hero-leaf-drift ${p.duration} infinite linear`,
-                    animationDelay: p.delay,
-                    width: `${p.size}px`,
-                    height: `${p.size}px`,
-                    opacity: p.opacity,
-                    "--drift-x": p.driftX,
-                    "--drift-y": p.driftY,
-                    "--drift-rotation": p.rotation,
-                    "--leaf-opacity": p.opacity,
-                  } as React.CSSProperties}
-                >
-                  <Leaf className="text-emerald-600/40 dark:text-emerald-400/30 w-full h-full transform -rotate-12" />
+        {/* Bento/Asymmetric Grid Container */}
+        <div className="relative mx-auto max-w-[92rem] grid w-full gap-8 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center xl:gap-12">
+          
+          {/* Left Column: Premium Headline & CTAs */}
+          <div className="guest-hero-copy relative z-10 flex flex-col justify-center text-center lg:text-left">
+
+
+            <h1 className="text-[clamp(2.4rem,5.5vw,4.5rem)] font-black leading-[1.05] text-white tracking-tight">
+              จัดการสวนทุเรียน
+              <br />
+              <span className="relative mt-3 inline-block origin-left -rotate-1 text-[1.12em] font-black leading-snug tracking-wide pt-1 pb-4">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D97B18] to-[#F59E0B] dark:from-[#F4D35E] dark:to-[#F59E0B] drop-shadow-[0_10px_22px_rgba(217,123,24,0.22)]">
+                  ให้ง่ายขึ้น
+                </span>
+                <svg className="absolute -bottom-1.5 left-0 right-0 h-4 w-full text-[#F59E0B] dark:text-[#F4D35E]" viewBox="0 0 300 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 12C50 15 100 10 150 10C200 10 250 15 295 12" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M20 15C70 17 120 13 170 13C210 13 250 16 280 14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+            </h1>
+
+            <p className="mt-8 mx-auto lg:mx-0 max-w-xl text-base font-semibold leading-relaxed text-[#B8D1C0]/90 md:text-lg">
+              แอปบันทึกงานดูแลสวน วางแผนงาน ติดตามพยากรณ์อากาศ วิเคราะห์การเงิน ครบจบในที่เดียว
+            </p>
+
+            {/* Benefits badging pills */}
+            <div className="mt-8 flex flex-wrap justify-center lg:justify-start gap-2.5">
+              {HERO_BENEFITS.map(({ label, icon: Icon }) => (
+                <div key={label} className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-sm font-black text-white hover:bg-white/10 hover:border-white/20 transition-all hover:scale-105 duration-300">
+                  <Icon size={14} className="text-emerald-400" />
+                  <span>{label}</span>
                 </div>
               ))}
             </div>
 
-            <div className="relative z-10 flex justify-center px-5 pb-4 pt-4 sm:px-8 sm:pb-6 sm:pt-8 lg:hidden">
-              <div className="w-full max-w-md rounded-[1.5rem] border border-white/14 bg-white/10 p-4 text-center text-white shadow-[0_20px_60px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all animate-fade-in-up">
-                <h1 className="mx-auto max-w-[12ch] text-[clamp(1.8rem,7.4vw,2.35rem)] font-black leading-[1.12] text-white delay-200 animate-fade-in-up">
-                  <span className="block">จัดการสวนทุเรียน</span>
-                  <span className="relative mt-2 inline-block -rotate-2 text-[1.12em] font-black leading-none tracking-wide text-[#F4D35E] drop-shadow-[0_8px_22px_rgba(0,0,0,0.35)]">
-                    <span className="relative z-10">ง่ายขึ้น</span>
-                    <span className="absolute -bottom-1 left-1 right-0 h-2 rounded-full bg-[#146B3E]/75" />
-                  </span>
-                </h1>
-                <div className="mx-auto mt-3 flex max-w-sm flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs font-black text-white/82 delay-300 animate-fade-in-up">
-                  {HERO_BENEFITS.map(({ label, icon: Icon }) => (
-                    <span key={label} className="inline-flex items-center gap-1.5">
-                      <Icon size={13} strokeWidth={2.4} className="shrink-0 text-[#F4D35E]" />
-                      <span>{label}</span>
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-3 flex max-w-md gap-2.5 delay-400 animate-fade-in-up">
-                  <button
-                    onClick={onLogin}
-                    className="guest-hero-cta group relative inline-flex min-h-12 flex-[1.25] items-center justify-center gap-2 overflow-hidden rounded-2xl border border-[#F4D35E]/80 bg-white px-5 py-3 text-base font-black text-[#143422] shadow-[0_14px_34px_rgba(255,255,255,0.28),0_10px_26px_rgba(20,107,62,0.22)] ring-2 ring-white/55 transition-all hover:-translate-y-0.5 hover:scale-105 hover:border-[#F4D35E] hover:shadow-[0_18px_42px_rgba(255,255,255,0.34),0_12px_30px_rgba(20,107,62,0.3)] active:scale-[0.98]"
-                  >
-                    <Sparkles size={16} className="relative z-10 text-[#146B3E] transition-transform group-hover:rotate-12" />
-                    <span className="relative z-10">เริ่มใช้งาน</span>
-                    <ArrowRight size={16} className="relative z-10 transition-transform duration-300 group-hover:translate-x-0.5" />
-                  </button>
-                  <button
-                    onClick={() => onReadArticles()}
-                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/8 px-4 py-2.5 text-sm font-black text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/30 hover:scale-105 active:scale-[0.98]"
-                  >
-                    <BookOpen size={16} />
-                    บทความ
-                  </button>
-                </div>
-                <div className="mt-4 hidden grid-cols-2 gap-2.5 delay-400 animate-fade-in-up sm:grid">
-                  <div className="rounded-2xl border border-white/10 bg-black/10 p-3 hover:bg-black/20 transition-colors">
-                    <ClipboardCheck size={18} />
-                    <p className="mt-2 text-sm font-black">งานประจำวัน</p>
-                    <p className="mt-0.5 text-[11px] font-bold text-white/68">บันทึกและแจ้งเตือน</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/10 p-3 hover:bg-black/20 transition-colors">
-                    <MapPinned size={18} />
-                    <p className="mt-2 text-sm font-black">ข้อมูลแปลง</p>
-                    <p className="mt-0.5 text-[11px] font-bold text-white/68">ตำแหน่งและสุขภาพต้น</p>
-                  </div>
-                </div>
-              </div>
+            {/* CTAs */}
+            <div className="mt-10 flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+              <button
+                onClick={onLogin}
+                className="guest-hero-cta group relative overflow-hidden inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 px-8 py-3.5 text-base font-black text-white shadow-xl shadow-emerald-900/35 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/25 active:scale-[0.98]"
+              >
+                <Sparkles size={18} className="text-[#F4D35E] transition-transform duration-500 group-hover:rotate-180" />
+                <span>เข้าสู่ระบบ / สมัครใช้งาน</span>
+                <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
+              </button>
+
+              <button
+                onClick={() => onOpenSandbox("plots")}
+                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 hover:border-white/25 bg-white/5 hover:bg-white/10 backdrop-blur-md px-8 py-3.5 text-base font-black text-white/90 shadow-sm transition-all duration-300 hover:-translate-y-1 active:scale-[0.98]"
+              >
+                <Smartphone size={18} className="text-emerald-400 group-hover:scale-110" />
+                <span>ทดลองเล่น Demo</span>
+              </button>
             </div>
           </div>
 
-          <div className="guest-hero-copy relative z-10 hidden flex-col justify-center px-6 py-8 sm:px-10 lg:order-1 lg:flex lg:px-12 lg:py-10 xl:px-16">
-            <h1 className="max-w-[12ch] text-[clamp(2.6rem,4.8vw,5.2rem)] font-black leading-[1.03] text-[#146B3E] dark:text-[#72C08A] lg:max-w-none lg:text-[clamp(2.5rem,3.25vw,3.7rem)] animate-fade-in-up delay-200">
-              <span className="block">จัดการสวนทุเรียน</span>
-              <span className="relative mt-5 inline-block origin-left -rotate-2 text-[1.16em] font-black leading-none tracking-wide text-[#D97B18] drop-shadow-[0_10px_22px_rgba(217,123,24,0.18)] dark:text-[#F4D35E]">
-                <span className="relative z-10">ง่ายขึ้น</span>
-                <span className="absolute -bottom-1 left-2 right-0 h-3 rounded-full bg-[#F4D35E]/55 dark:bg-[#146B3E]/70" />
-              </span>
-            </h1>
-            <div className="mt-6 flex max-w-xl flex-wrap items-center gap-x-5 gap-y-2 text-base font-black text-[#527060] dark:text-[#B8D1C0] sm:text-lg animate-fade-in-up delay-300">
-              {HERO_BENEFITS.map(({ label, icon: Icon }) => (
-                <span key={label} className="inline-flex items-center gap-2">
-                  <Icon size={16} strokeWidth={2.4} className="shrink-0 text-[#146B3E] dark:text-[#72C08A]" />
-                  <span>{label}</span>
-                </span>
-              ))}
-            </div>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row animate-fade-in-up delay-400">
-              <button
-                onClick={onLogin}
-                className="guest-hero-cta group relative overflow-hidden inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#146B3E] to-[#1D8A4E] dark:from-[#72C08A] dark:to-[#8ae4a3] px-6 py-3 text-base font-black text-white dark:text-[#0B1B12] shadow-xl shadow-[#146B3E]/30 dark:shadow-[#72C08A]/20 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#146B3E]/40 active:scale-[0.98]"
-              >
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-                <Sparkles size={18} className="relative z-10 text-[#F4D35E] dark:text-[#146B3E] transition-transform duration-500 group-hover:rotate-180 group-hover:scale-110" />
-                <span className="relative z-10">เริ่มใช้งาน</span>
-                <ArrowRight size={18} className="relative z-10 transition-transform duration-300 group-hover:translate-x-1" />
-              </button>
-              <button
-                onClick={() => onReadArticles()}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-[#C9DACD] dark:border-[#31533D] bg-white dark:bg-[#1D3A29] px-6 py-3 text-base font-black text-[#143422] dark:text-[#B8D1C0] shadow-sm transition-all hover:-translate-y-1 hover:border-[#146B3E] dark:hover:border-[#72C08A] hover:text-[#146B3E] dark:hover:text-[#72C08A] hover:shadow-lg active:scale-[0.98]"
-              >
-                <BookOpen size={18} />
-                อ่านบทความ
-              </button>
-            </div>
-            <div className="mt-8 grid max-w-md grid-cols-2 gap-3 animate-fade-in-up delay-400">
-              <div className="group rounded-2xl bg-[#F2F8F4] dark:bg-[#1D3A29]/50 p-4 text-[#146B3E] dark:text-[#72C08A] border border-[#E7F3EC]/50 dark:border-[#31533D]/20 transition-all hover:scale-[1.03] hover:shadow-md hover:bg-white dark:hover:bg-[#254633] duration-300">
-                <ClipboardCheck size={24} className="transition-transform group-hover:scale-110 group-hover:-rotate-3" />
-                <p className="mt-2 text-base font-black">งานประจำวัน</p>
-                <p className="text-xs font-bold text-muted-foreground dark:text-[#B8D1C0]/60 mt-0.5 transition-colors group-hover:text-[#527060] dark:group-hover:text-[#B8D1C0]">บันทึก แจ้งเตือน งานดูแล</p>
+          {/* Right Column: Premium Visual Bento Grid Showcase */}
+          <div className="relative z-10 flex flex-col justify-center">
+            {/* The Main Bento Shell */}
+            <div className="relative w-full rounded-[2.5rem] border border-white/10 bg-[#050D08]/20 p-6 shadow-[0_30px_70px_rgba(0,0,0,0.5)] backdrop-blur-xl overflow-hidden min-h-[380px] sm:min-h-[420px] flex flex-col justify-end">
+              
+              {/* Backlight shine overlay */}
+              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-500/5 blur-[60px]" />
+              
+              {/* Slideshow background image of orchard (with gradient overlay) */}
+              <div className="absolute inset-0 z-0 overflow-hidden opacity-90 select-none pointer-events-none">
+                <Image
+                  src="/images/durian-hero-new.png"
+                  alt="durian orchard"
+                  fill
+                  className="object-cover object-center scale-105"
+                  sizes="(min-width: 1024px) 46rem, 100vw"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent" />
               </div>
-              <div className="group rounded-2xl bg-[#F2F8F4] dark:bg-[#1D3A29]/50 p-4 text-[#146B3E] dark:text-[#72C08A] border border-[#E7F3EC]/50 dark:border-[#31533D]/20 transition-all hover:scale-[1.03] hover:shadow-md hover:bg-white dark:hover:bg-[#254633] duration-300">
-                <MapPinned size={24} className="transition-transform group-hover:scale-110 group-hover:rotate-3" />
-                <p className="mt-2 text-base font-black">ข้อมูลแปลง</p>
-                <p className="text-xs font-bold text-muted-foreground dark:text-[#B8D1C0]/60 mt-0.5 transition-colors group-hover:text-[#527060] dark:group-hover:text-[#B8D1C0]">แผนที่ ตำแหน่ง สุขภาพต้น</p>
+
+              {/* Center Row: Dynamic Leaf particles inside bento */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 opacity-40">
+                {leafParticles.slice(0, 3).map(p => (
+                  <div
+                    key={`bento-leaf-${p.id}`}
+                    className="absolute"
+                    style={{
+                      right: p.right,
+                      top: p.top,
+                      animation: `hero-leaf-drift ${p.duration} infinite linear`,
+                      animationDelay: p.delay,
+                      width: `${p.size + 4}px`,
+                      height: `${p.size + 4}px`,
+                      opacity: p.opacity,
+                      "--drift-x": p.driftX,
+                      "--drift-y": p.driftY,
+                      "--drift-rotation": p.rotation,
+                      "--leaf-opacity": p.opacity,
+                    } as React.CSSProperties}
+                  >
+                    <Leaf className="text-emerald-500 w-full h-full transform" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Bottom Row: Elegant PWA Installation Badge / Card */}
+              <div className="relative z-10 mt-auto w-full">
+                <div className="w-full rounded-3xl border border-white/12 bg-gradient-to-br from-white/10 to-white/0 p-5 backdrop-blur-lg shadow-xl relative overflow-hidden">
+                  {/* Decorative PWA pulsing dot */}
+                  <div className="absolute right-4 top-4 flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="space-y-1 text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-black ring-1 ring-emerald-500/20">PWA</span>
+                        <h3 className="text-base font-black text-white">ติดตั้งเป็นแอปมือถือ</h3>
+                      </div>
+                      <p className="text-xs font-semibold text-white/70">
+                        ใช้งานสะดวก รวดเร็ว และรองรับโหมดออฟไลน์
+                      </p>
+                    </div>
+                    {!isInstalled && (
+                      <button
+                        onClick={onInstall}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-emerald-500 px-4 py-2.5 text-sm font-black text-white hover:bg-emerald-400 active:scale-95 transition-all shadow-md"
+                      >
+                        <Download size={14} className="animate-bounce" />
+                        <span>ติดตั้งแอป</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -679,79 +681,83 @@ function GuestHome({
               <h2 className="text-2xl font-black leading-tight tracking-tight text-[#143422] dark:text-[#E6F4EA] sm:text-3xl">
                 ฟังก์ชันที่ช่วยให้เริ่มใช้ได้ทันที
               </h2>
+              <p className="text-sm font-semibold text-[#527060] dark:text-[#B8D1C0]/70 mt-1">
+                คลิกเพื่อทดลองใช้งานระบบจำลอง หรืออ่านคู่มือการเริ่มต้นใช้งาน
+              </p>
             </div>
           </div>
 
           <div className="mx-auto grid max-w-5xl grid-cols-2 place-items-center gap-3 sm:gap-5 lg:grid-cols-3">
-          {GUEST_FEATURES.map((feature, idx) => {
-            const Icon = feature.icon
-            const handleClick = () => {
-              if (idx === 5) {
-                onReadArticles()
-              } else {
-                const tabs: ("tasks" | "plots" | "activities" | "finance" | "weather")[] = [
-                  "tasks",
-                  "plots",
-                  "activities",
-                  "finance",
-                  "weather"
-                ]
-                onOpenSandbox(tabs[idx])
+            {GUEST_FEATURES.map((feature, idx) => {
+              const Icon = feature.icon
+              const handleClick = () => {
+                if (idx === 4) {
+                  onLogin()
+                } else if (idx === 5) {
+                  onReadArticles()
+                } else {
+                  const tabs: ("tasks" | "plots" | "activities" | "finance")[] = [
+                    "tasks",
+                    "plots",
+                    "activities",
+                    "finance"
+                  ]
+                  onOpenSandbox(tabs[idx])
+                }
               }
-            }
-            return (
-              <button
-                key={feature.title}
-                onClick={handleClick}
-                className={`group premium-feature-card relative flex min-h-[12rem] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[1.5rem] border border-[#B9DCC8]/50 bg-gradient-to-br ${feature.surface} p-3 text-center shadow-[0_14px_38px_rgba(20,107,62,0.07)] backdrop-blur-md transition-all duration-500 hover:shadow-[0_30px_60px_-15px_var(--hover-glow)] hover:border-[#146B3E]/30 dark:border-[#31533D]/50 dark:shadow-[0_16px_48px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_30px_60px_-15px_var(--hover-glow)] dark:hover:border-[#72C08A]/30 sm:min-h-[15.5rem] sm:max-w-[19rem] sm:rounded-[2rem] sm:p-5`}
-                style={{
-                  "--hover-glow": feature.shadowColor,
-                } as React.CSSProperties}
-              >
-                {/* Large floating background icon for premium feeling */}
-                <div className="pointer-events-none absolute -right-8 -top-8 text-[#146B3E]/5 transition-all duration-700 group-hover:rotate-12 group-hover:scale-125 group-hover:text-[#146B3E]/10 dark:text-[#72C08A]/5 dark:group-hover:text-[#72C08A]/10">
-                  <Icon size={150} strokeWidth={1} />
-                </div>
-                <div className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full opacity-20 blur-2xl transition-opacity duration-500 group-hover:opacity-35" style={{ backgroundColor: feature.themeColor }} />
+              return (
+                <button
+                  key={feature.title}
+                  onClick={handleClick}
+                  className={`group premium-feature-card relative flex min-h-[12rem] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[1.5rem] border border-[#B9DCC8]/50 bg-gradient-to-br ${feature.surface} p-3 text-center shadow-[0_14px_38px_rgba(20,107,62,0.07)] backdrop-blur-md transition-all duration-500 hover:shadow-[0_30px_60px_-15px_var(--hover-glow)] hover:border-[#146B3E]/30 dark:border-[#31533D]/50 dark:shadow-[0_16px_48px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_30px_60px_-15px_var(--hover-glow)] dark:hover:border-[#72C08A]/30 sm:min-h-[15.5rem] sm:max-w-[19rem] sm:rounded-[2rem] sm:p-5`}
+                  style={{
+                    "--hover-glow": feature.shadowColor,
+                  } as React.CSSProperties}
+                >
+                  {/* Large floating background icon for premium feeling */}
+                  <div className="pointer-events-none absolute -right-8 -top-8 text-[#146B3E]/5 transition-all duration-700 group-hover:rotate-12 group-hover:scale-125 group-hover:text-[#146B3E]/10 dark:text-[#72C08A]/5 dark:group-hover:text-[#72C08A]/10">
+                    <Icon size={150} strokeWidth={1} />
+                  </div>
+                  <div className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full opacity-20 blur-2xl transition-opacity duration-500 group-hover:opacity-35" style={{ backgroundColor: feature.themeColor }} />
 
-                <div className="absolute inset-x-6 top-0 h-1.5 rounded-b-full opacity-80 sm:inset-x-10" style={{ backgroundColor: feature.themeColor }} />
+                  <div className="absolute inset-x-6 top-0 h-1.5 rounded-b-full opacity-80 sm:inset-x-10" style={{ backgroundColor: feature.themeColor }} />
 
-                <div className="relative z-10 flex flex-col items-center justify-center">
-                  <div className="relative mt-1 flex h-[4.5rem] w-[4.5rem] items-center justify-center sm:mt-2 sm:h-24 sm:w-24">
-                    <span className="absolute inset-0 rounded-full border border-white/80 bg-white/45 shadow-inner backdrop-blur-sm dark:border-white/10 dark:bg-white/5" />
-                    <span className="absolute inset-3 rounded-full opacity-20 blur-xl transition-all duration-500 group-hover:scale-125 group-hover:opacity-35" style={{ backgroundColor: feature.themeColor }} />
-                    <span className="absolute left-1 top-5 h-3 w-3 rounded-full opacity-70 shadow-sm" style={{ backgroundColor: feature.themeColor }} />
-                    <span className="absolute right-3 top-2 h-5 w-5 rounded-full border-2 border-white/85 bg-white/65 shadow-sm dark:border-white/20 dark:bg-white/10" />
-                    <span className="absolute bottom-3 right-1 h-4 w-4 rounded-full opacity-60 shadow-sm" style={{ backgroundColor: feature.themeColor }} />
-                    <div className={`relative flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-[1.15rem] shadow-[0_18px_36px_var(--hover-glow)] ring-4 ring-white/70 transition-all duration-300 group-hover:rotate-3 group-hover:scale-105 dark:ring-white/10 sm:h-[4.5rem] sm:w-[4.5rem] sm:rounded-[1.5rem] ${feature.tone}`}>
-                      <Icon size={26} strokeWidth={2.25} className={`drop-shadow-[0_1px_4px_rgba(0,0,0,0.25)] sm:size-8 ${feature.hoverClass}`} />
+                  <div className="relative z-10 flex flex-col items-center justify-center">
+                    <div className="relative mt-1 flex h-[4.5rem] w-[4.5rem] items-center justify-center sm:mt-2 sm:h-24 sm:w-24">
+                      <span className="absolute inset-0 rounded-full border border-white/80 bg-white/45 shadow-inner backdrop-blur-sm dark:border-white/10 dark:bg-white/5" />
+                      <span className="absolute inset-3 rounded-full opacity-20 blur-xl transition-all duration-500 group-hover:scale-125 group-hover:opacity-35" style={{ backgroundColor: feature.themeColor }} />
+                      <span className="absolute left-1 top-5 h-3 w-3 rounded-full opacity-70 shadow-sm" style={{ backgroundColor: feature.themeColor }} />
+                      <span className="absolute right-3 top-2 h-5 w-5 rounded-full border-2 border-white/85 bg-white/65 shadow-sm dark:border-white/20 dark:bg-white/10" />
+                      <span className="absolute bottom-3 right-1 h-4 w-4 rounded-full opacity-60 shadow-sm" style={{ backgroundColor: feature.themeColor }} />
+                      <div className={`relative flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-[1.15rem] shadow-[0_18px_36px_var(--hover-glow)] ring-4 ring-white/70 transition-all duration-300 group-hover:rotate-3 group-hover:scale-105 dark:ring-white/10 sm:h-[4.5rem] sm:w-[4.5rem] sm:rounded-[1.5rem] ${feature.tone}`}>
+                        <Icon size={26} strokeWidth={2.25} className={`drop-shadow-[0_1px_4px_rgba(0,0,0,0.25)] sm:size-8 ${feature.hoverClass}`} />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="mt-2 max-w-sm sm:mt-4">
-                    <h3 className="text-base font-black leading-tight text-[#243B2D] transition-colors duration-300 group-hover:text-[#146B3E] dark:text-[#E6F4EA] dark:group-hover:text-[#72C08A] sm:text-xl">
-                      {feature.title}
-                    </h3>
-                    <p className="mx-auto mt-1 line-clamp-2 text-xs font-bold leading-5 text-[#5E7568] dark:text-[#B8D1C0]/72 sm:mt-2 sm:line-clamp-none sm:text-sm sm:leading-6">
-                      {feature.description}
-                    </p>
-                  </div>
+                    <div className="mt-2 max-w-sm sm:mt-4">
+                      <h3 className="text-base font-black leading-tight text-[#243B2D] transition-colors duration-300 group-hover:text-[#146B3E] dark:text-[#E6F4EA] dark:group-hover:text-[#72C08A] sm:text-xl">
+                        {feature.title}
+                      </h3>
+                      <p className="mx-auto mt-1 line-clamp-2 text-xs font-bold leading-5 text-[#5E7568] dark:text-[#B8D1C0]/72 sm:mt-2 sm:line-clamp-none sm:text-sm sm:leading-6">
+                        {feature.description}
+                      </p>
+                    </div>
 
-                  <div className="mt-4 hidden flex-wrap justify-center gap-2 sm:flex">
-                    {feature.details.map(detail => (
-                      <span
-                        key={detail}
-                        className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-black text-[#527060] ring-1 ring-[#B9DCC8]/50 transition-colors group-hover:text-[#146B3E] dark:bg-white/8 dark:text-[#B8D1C0]/80 dark:ring-white/10 dark:group-hover:text-[#72C08A]"
-                      >
-                        {detail}
-                      </span>
-                    ))}
-                  </div>
+                    <div className="mt-4 hidden flex-wrap justify-center gap-2 sm:flex">
+                      {feature.details.map(detail => (
+                        <span
+                          key={detail}
+                          className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-black text-[#527060] ring-1 ring-[#B9DCC8]/50 transition-colors group-hover:text-[#146B3E] dark:bg-white/8 dark:text-[#B8D1C0]/80 dark:ring-white/10 dark:group-hover:text-[#72C08A]"
+                        >
+                          {detail}
+                        </span>
+                      ))}
+                    </div>
 
-                </div>
-              </button>
-            )
-          })}
+                  </div>
+                </button>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -872,10 +878,11 @@ function GuestHome({
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard")
   const [isMounted, setIsMounted] = useState(false)
+  const isSyncingFromHistory = useRef(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const [showSandbox, setShowSandbox] = useState(false)
-  const [sandboxTab, setSandboxTab] = useState<"tasks" | "plots" | "activities" | "finance" | "weather">("tasks")
+  const [sandboxTab, setSandboxTab] = useState<"tasks" | "plots" | "activities" | "finance">("tasks")
   const [authError, setAuthError] = useState<string | null>(null)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [showSupportModal, setShowSupportModal] = useState(false)
@@ -888,6 +895,7 @@ export default function AppShell() {
   const [farmCoverImage, setFarmCoverImage] = useState<string | null>(null)
   const [farmCoverPosition, setFarmCoverPosition] = useState("50% 50%")
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [isInstalled, setIsInstalled] = useState(false)
   const store = useAppData(user?.id ?? null)
   const locationStorageKey = user?.id ? `farm_location_${user.id}` : "farm_location_guest"
   const coverStorageKey = user?.id ? `farm_cover_image_${user.id}` : "farm_cover_image_guest"
@@ -895,7 +903,7 @@ export default function AppShell() {
     setAuthError(null)
     setShowAuth(true)
   }, [])
-  const openSandbox = useCallback((tab: "tasks" | "plots" | "activities" | "finance" | "weather") => {
+  const openSandbox = useCallback((tab: "tasks" | "plots" | "activities" | "finance") => {
     setSandboxTab(tab)
     setShowSandbox(true)
   }, [])
@@ -907,6 +915,18 @@ export default function AppShell() {
       && taskDate.getMonth() === today.getMonth()
       && taskDate.getDate() === today.getDate()
   }).length, [store.data.tasks])
+
+  const syncStateFromUrl = useCallback(() => {
+    const params = new URLSearchParams(window.location.search)
+    const tab = params.get("tab")
+    const articleId = params.get("articleId") || params.get("article")
+    setActiveTab(tab && ["dashboard", "plots", "operations", "finance", "articles", "admin"].includes(tab) ? tab as Tab : articleId ? "articles" : "dashboard")
+
+    const view = params.get("view")
+    setArticleView(view && ["articles", "products"].includes(view) ? view as "articles" | "products" : "articles")
+
+    setSelectedArticleId(articleId)
+  }, [])
 
   const readFarmLocation = useCallback(() => {
     if (!user?.id) {
@@ -956,6 +976,12 @@ export default function AppShell() {
   useEffect(() => {
     setIsMounted(true)
     readFarmLocation()
+    
+    if (typeof window !== "undefined") {
+      const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone
+      setIsInstalled(!!isStandalone)
+    }
+
     const onLocationChange = () => readFarmLocation()
     window.addEventListener("farm_location_changed", onLocationChange)
     return () => window.removeEventListener("farm_location_changed", onLocationChange)
@@ -968,24 +994,19 @@ export default function AppShell() {
     return () => window.removeEventListener("farm_cover_image_changed", onCoverImageChange)
   }, [readFarmCoverImage])
 
-  // Sync URL search parameters to local state on mount
+  // Sync URL search parameters to local state on mount and browser back/forward.
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search)
-      const tab = params.get("tab")
-      if (tab && ["dashboard", "plots", "operations", "finance", "articles", "admin"].includes(tab)) {
-        setActiveTab(tab as Tab)
-      }
-      const view = params.get("view")
-      if (view && ["articles", "products"].includes(view)) {
-        setArticleView(view as "articles" | "products")
-      }
-      const articleId = params.get("articleId")
-      if (articleId) {
-        setSelectedArticleId(articleId)
-      }
+    isSyncingFromHistory.current = true
+    syncStateFromUrl()
+
+    const onPopState = () => {
+      isSyncingFromHistory.current = true
+      syncStateFromUrl()
     }
-  }, [])
+
+    window.addEventListener("popstate", onPopState)
+    return () => window.removeEventListener("popstate", onPopState)
+  }, [syncStateFromUrl])
 
   // Sync local state back to URL search parameters
   useEffect(() => {
@@ -1004,12 +1025,26 @@ export default function AppShell() {
       } else {
         url.searchParams.delete("articleId")
       }
+      url.searchParams.delete("article")
     } else {
       url.searchParams.delete("view")
       url.searchParams.delete("articleId")
+      url.searchParams.delete("article")
     }
 
-    window.history.replaceState({}, "", url.toString())
+    const nextUrl = url.toString()
+    if (nextUrl === window.location.href) {
+      isSyncingFromHistory.current = false
+      return
+    }
+
+    if (isSyncingFromHistory.current) {
+      isSyncingFromHistory.current = false
+      window.history.replaceState({}, "", nextUrl)
+      return
+    }
+
+    window.history.pushState({}, "", nextUrl)
   }, [activeTab, articleView, selectedArticleId, isMounted])
 
   useEffect(() => {
@@ -1097,6 +1132,13 @@ export default function AppShell() {
   }, []) // mount-only — handleLoginSuccess and store are stable refs
 
   useEffect(() => {
+    // Register Service Worker for PWA
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js")
+        .then((reg) => console.log("Service Worker registered successfully:", reg.scope))
+        .catch((err) => console.error("Service Worker registration failed:", err))
+    }
+
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault()
       setInstallPrompt(event as BeforeInstallPromptEvent)
@@ -1105,6 +1147,26 @@ export default function AppShell() {
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt)
     return () => window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt)
   }, [])
+
+  const handleInstallApp = async () => {
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent)
+    if (installPrompt) {
+      await installPrompt.prompt()
+      await installPrompt.userChoice
+      setInstallPrompt(null)
+      return
+    }
+
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      alert("ติดตั้งแอปไว้แล้ว")
+      return
+    }
+
+    alert(isIos
+      ? "บน iPhone/iPad ให้กดปุ่ม Share (แชร์) แล้วเลือก Add to Home Screen (เพิ่มไปยังหน้าจอโฮม)"
+      : "หากเบราว์เซอร์รองรับ ให้ใช้เมนู Install app หรือ Add to Home screen"
+    )
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("durian_current_user")
@@ -1151,6 +1213,9 @@ export default function AppShell() {
           onReadArticles={openArticles}
           onOpenProducts={openProducts}
           onOpenSandbox={openSandbox}
+          installPrompt={installPrompt}
+          onInstall={handleInstallApp}
+          isInstalled={isInstalled}
         />
       )
     }
@@ -1164,6 +1229,9 @@ export default function AppShell() {
           onReadArticles={openArticles}
           onOpenProducts={openProducts}
           onOpenSandbox={openSandbox}
+          installPrompt={installPrompt}
+          onInstall={handleInstallApp}
+          isInstalled={isInstalled}
         />
       )
     }
@@ -1243,7 +1311,7 @@ export default function AppShell() {
                 {logoUrl ? (
                   <img src={logoUrl} alt={siteName} className="h-7 w-7 rounded-xl object-cover" />
                 ) : (
-                  <Leaf size={22} />
+                  <DurianLogo size={26} className="h-7 w-7" />
                 )}
               </span>
               <span className="min-w-0">
@@ -1267,6 +1335,16 @@ export default function AppShell() {
                   สินค้าแนะนำ
                 </button>
               )}
+              {!isInstalled && (
+                <button
+                  onClick={handleInstallApp}
+                  className="relative overflow-hidden md:hidden inline-flex h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl border border-emerald-200/80 bg-emerald-50/70 hover:bg-emerald-100/90 px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-black text-[#146B3E] transition-all hover:scale-105 active:scale-95 dark:border-emerald-800/35 dark:bg-emerald-950/25 dark:text-[#72C08A] dark:hover:bg-emerald-950/50 shadow-sm"
+                >
+                  <Download size={14} className="animate-bounce" />
+                  <span className="hidden xs:inline">ติดตั้งแอป</span>
+                  <span className="inline xs:hidden">ติดตั้ง</span>
+                </button>
+              )}
               <button
                 onClick={() => setShowSupportModal(true)}
                 aria-label="สนับสนุนเว็บนี้"
@@ -1281,7 +1359,6 @@ export default function AppShell() {
                 className="inline-flex h-10 w-auto items-center justify-center gap-2 rounded-2xl bg-[#146B3E] px-4 py-2 text-sm font-black text-white shadow-[0_12px_24px_rgba(20,107,62,0.18)] transition-all hover:bg-[#0F5A34] active:scale-[0.98]"
               >
                 <span>เข้าสู่ระบบ</span>
-                <ArrowRight size={16} className="hidden sm:block" />
               </button>
             </div>
           </div>
@@ -1300,6 +1377,9 @@ export default function AppShell() {
               onReadArticles={openArticles}
               onOpenProducts={openProducts}
               onOpenSandbox={openSandbox}
+              installPrompt={installPrompt}
+              onInstall={handleInstallApp}
+              isInstalled={isInstalled}
             />
           )}
           <AppFooter onContactClick={() => setShowFeedbackModal(true)} />
@@ -1354,7 +1434,7 @@ export default function AppShell() {
             {logoUrl ? (
               <img src={logoUrl} alt={siteName} className="h-5 w-5 sm:h-6 sm:w-6 rounded-lg object-cover" />
             ) : (
-              <Leaf size={22} className="text-[#146B3E] dark:text-[#72C08A]" />
+              <DurianLogo size={22} className="h-5 w-5 sm:h-6 sm:w-6" />
             )}
           </div>
           <div className="min-w-0 text-left">
