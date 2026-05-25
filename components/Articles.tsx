@@ -397,38 +397,38 @@ export default function Articles({
         />
       ) : (
         /* Articles Grid */
-        <div className={guestMobileRail ? "-mx-4 flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3" : "grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3"}>
+        <div className={guestMobileRail ? "grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3" : "grid grid-cols-2 gap-3 sm:gap-8 lg:grid-cols-3"}>
           {filteredArticles.map((article, index) => {
             const excerpt = createExcerpt(article.content, 90)
             return (
               <div
                 key={article.id}
                 onClick={() => setSelectedArticle(article)}
-                className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/70 bg-card/65 shadow-sm backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)] ${guestMobileRail ? "w-[17rem] shrink-0 cursor-pointer sm:w-auto sm:min-w-0" : "cursor-pointer"}`}
+                className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/65 shadow-sm backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] sm:rounded-3xl dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)]"
               >
-                <div className="relative h-52 sm:h-60 overflow-hidden">
+                <div className="relative h-28 overflow-hidden sm:h-60">
                   <img
                     src={article.image}
                     alt={article.imageAlt || article.title}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
                     loading={index === 0 ? "eager" : "lazy"}
                   />
-                  <div className="absolute top-4 left-4">
-                    <span className="px-3.5 py-1.5 rounded-xl bg-background/80 backdrop-blur-md border border-border/40 text-primary text-xs font-black shadow-md">
+                  <div className="absolute left-2 top-2 sm:left-4 sm:top-4">
+                    <span className="inline-flex max-w-[7rem] truncate rounded-lg border border-border/40 bg-background/80 px-2 py-1 text-[10px] font-black text-primary shadow-md backdrop-blur-md sm:max-w-none sm:rounded-xl sm:px-3.5 sm:py-1.5 sm:text-xs">
                       {article.category}
                     </span>
                   </div>
                 </div>
-                <div className="p-5 sm:p-6 flex flex-col flex-1">
-                  <h4 className="text-xl font-black text-foreground mb-2 leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                <div className="flex flex-1 flex-col p-3 sm:p-6">
+                  <h4 className="mb-1 text-sm font-black leading-snug text-foreground transition-colors line-clamp-2 group-hover:text-primary sm:mb-2 sm:text-xl">
                     {article.title}
                   </h4>
-                  <p className="text-sm text-muted-foreground font-semibold line-clamp-2 mt-1 leading-relaxed">
+                  <p className="mt-1 text-xs font-semibold leading-relaxed text-muted-foreground line-clamp-2 sm:text-sm">
                     {excerpt}
                   </p>
-                  <div className="mt-auto pt-5 border-t border-border/40 flex items-center text-primary text-base font-black gap-2">
+                  <div className="mt-auto flex items-center gap-1.5 border-t border-border/40 pt-3 text-xs font-black text-primary sm:gap-2 sm:pt-5 sm:text-base">
                     <span>อ่านต่อ</span>
-                    <ArrowRight size={18} className="transform group-hover:translate-x-1.5 transition-transform duration-300" />
+                    <ArrowRight size={16} className="transform transition-transform duration-300 group-hover:translate-x-1.5 sm:size-[18px]" />
                   </div>
                 </div>
               </div>

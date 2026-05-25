@@ -201,7 +201,7 @@ function rowToProduct(row: Record<string, unknown>): Product {
 
 function rowToSettings(row: Record<string, unknown> | null): SiteSettings {
   return {
-    siteName: (row?.site_name as string) || "DurianFlow",
+    siteName: (row?.site_name as string) || "Durian Flow",
     tagline: (row?.tagline as string) || "Smart Orchard",
     logoUrl: (row?.logo_url as string) || "",
   }

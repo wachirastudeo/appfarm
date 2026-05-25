@@ -1,9 +1,9 @@
-const CACHE_NAME = 'durianflow-v1';
+const CACHE_NAME = 'durianflow-v3';
 const ASSETS = [
   '/',
   '/manifest.webmanifest',
-  '/icon.svg',
-  '/apple-icon.png'
+  '/durian-logo.svg',
+  '/durian-logo.png'
 ];
 
 self.addEventListener('install', (event) => {

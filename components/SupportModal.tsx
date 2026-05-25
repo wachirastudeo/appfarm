@@ -97,7 +97,7 @@ export default function SupportModal({ isOpen, onClose, onOpenContact }: Props) 
                 ) : (
                   <Image
                     src={PROMPTPAY_QR_SRC}
-                    alt="QR พร้อมเพย์สำหรับสนับสนุน DurianFlow"
+                    alt="QR พร้อมเพย์สำหรับสนับสนุน Durian Flow"
                     width={1007}
                     height={1561}
                     className="h-auto max-h-[60vh] w-full rounded-xl object-contain"
@@ -150,7 +150,7 @@ export default function SupportModal({ isOpen, onClose, onOpenContact }: Props) 
               ติดต่อสนับสนุนหรือลงโฆษณา
             </button>
             <a
-              href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("สนับสนุนหรือสอบถามลงโฆษณา DurianFlow")}`}
+              href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("สนับสนุนหรือสอบถามลงโฆษณา Durian Flow")}`}
               className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl border border-[#C9DACD] bg-white px-4 py-3 text-sm font-black text-[#143422] transition-all hover:border-[#146B3E] hover:text-[#146B3E] active:scale-[0.98] dark:border-[#31533D] dark:bg-[#163222] dark:text-[#D3E8DA] dark:hover:border-[#72C08A] dark:hover:text-[#72C08A]"
             >
               <Mail size={16} />

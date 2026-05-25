@@ -1,6 +1,6 @@
 {
-  "name": "DurianFlow",
-  "short_name": "DurianFlow",
+  "name": "Durian Flow",
+  "short_name": "Durian Flow",
   "description": "ระบบบริหารจัดการสวนทุเรียน",
   "start_url": "/",
   "scope": "/",
@@ -9,14 +9,14 @@
   "theme_color": "#146B3E",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "/durian-logo.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "/apple-icon.png",
-      "sizes": "180x180",
+      "src": "/durian-logo.png",
+      "sizes": "1024x1024",
       "type": "image/png"
     }
   ]

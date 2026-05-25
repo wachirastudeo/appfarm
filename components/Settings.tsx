@@ -1,10 +1,11 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
-import { Settings as SettingsIcon, Download, Upload, Trash2, Moon, Sun, Info, ChevronRight, Smartphone, Bell, Shield, X, ImageIcon, MapPin, CheckCircle2, User, LogOut } from "lucide-react"
+import { Settings as SettingsIcon, Download, Upload, Trash2, Moon, Sun, Info, ChevronRight, Bell, Shield, X, ImageIcon, MapPin, CheckCircle2, User, LogOut } from "lucide-react"
 import type { AppUser, SiteSettings } from "@/lib/store"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { validateImageFile, validateText } from "@/lib/form-validation"
 import { Slider } from "./ui/slider"
+import DurianLogo from "./DurianLogo"
 import UserAvatarImage from "./UserAvatarImage"
 
 const STORAGE_KEY_BASE = "durian_orchard_data"
@@ -362,7 +363,7 @@ export default function Settings({
     setNotificationsEnabled(true)
     new Notification("เปิดการแจ้งเตือนแล้ว", {
       body: "แอปจะแจ้งเตือนงานสวนเมื่อเบราว์เซอร์รองรับ",
-      icon: "/icon.svg",
+      icon: "/durian-logo.png",
     })
   }
 
@@ -672,8 +673,8 @@ export default function Settings({
 
           <button onClick={handleInstallApp} className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors rounded-b-xl">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Smartphone size={18} className="text-purple-600" />
+              <div className="rounded-lg bg-[#146B3E] p-1">
+                <DurianLogo size={26} className="h-[26px] w-[26px] object-contain" />
               </div>
               <div className="text-left">
                 <p className="text-sm font-semibold text-foreground">ติดตั้งแอป</p>

@@ -234,6 +234,7 @@ const seedArticles: Article[] = [
   { id: "art5", title: "ปุ๋ยสูตรไหนเหมาะกับระยะขยายขนาดผล", category: "การให้ปุ๋ย", image: "/images/articles/article_fertilizer_1778039300000_1778039705364.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "ในระยะขยายขนาดผล ควรใช้ปุ๋ยที่มีแคลเซียมและโพแทสเซียมสูง เช่น NPK 5:10:20 หรือสูตรเฉพาะสำหรับผลไม้ให้ 2-3 ครั้งต่อเดือน\n\nการใส่ปุ๋ยในช่วงนี้จะช่วยให้เนื้อทุเรียนมีคุณภาพดี รสชาติหวาน และมีน้ำหนักผลที่ได้มาตรฐาน" },
   { id: "art6", title: "การตัดแต่งกิ่งเตรียมพร้อมสำหรับฤดูกาลใหม่", category: "การดูแลรักษา", image: "/images/articles/article_pruning_1778039300000_1778039722927.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "การตัดแต่งกิ่งช่วยกระตุ้นการออกใบและดอกใหม่ ตัดกิ่งที่อ่อนแอหรือเก่า และปล่อยให้พืชมีรูปทรงสวยงาม ลักษณะปิรามิด\n\nการตัดแต่งกิ่งที่ถูกต้องจะช่วยให้แสงแดดส่องถึงโคนต้น ลดการสะสมของโรคและแมลง และช่วยให้พืชใช้สารอาหารได้อย่างมีประสิทธิภาพ" },
   { id: "art7", title: "เลือกใช้สารเคมีในสวนทุเรียนอย่างปลอดภัย", category: "สารเคมี", image: "/images/articles/article_disease_1778037967060.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "การเลือกใช้สารเคมีควรเริ่มจากการสำรวจอาการจริงในสวนก่อนเสมอ แยกให้ชัดว่าเป็นโรค แมลง หรือภาวะขาดธาตุอาหาร เพื่อเลือกกลุ่มสารให้ตรงปัญหาและลดการใช้เกินจำเป็น\n\nอ่านฉลาก อัตราผสม ระยะปลอดภัยก่อนเก็บเกี่ยว และอุปกรณ์ป้องกันทุกครั้ง ควรสลับกลุ่มสารตามคำแนะนำบนฉลากเพื่อลดการดื้อยา และหลีกเลี่ยงการพ่นช่วงลมแรงหรือก่อนฝนตก", affiliateTitle: "เพิ่มชื่อสารเคมีที่แนะนำ", affiliateUrl: "" },
+  { id: "art8", title: "เช็กความพร้อมสวนก่อนเข้าฤดูฝน", category: "การดูแลรักษา", image: "/images/articles/article_pruning_1778039300000_1778039722927.avif", status: "published", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), content: "ก่อนเข้าฤดูฝนควรสำรวจทางน้ำ ร่องระบายน้ำ และพื้นที่ต่ำในสวนให้พร้อม เพราะน้ำขังเป็นปัจจัยสำคัญที่กระตุ้นโรครากเน่าโคนเน่าในทุเรียน โดยเฉพาะต้นที่มีแผลหรือระบบรากอ่อนแอ\n\nควรตัดแต่งกิ่งที่แน่นเกินไป เก็บเศษใบและผลร่วงออกจากโคนต้น และตรวจสภาพดินหลังฝนตกทุกครั้ง หากพบจุดที่น้ำไหลช้าหรือขังนาน ควรปรับร่องระบายทันทีเพื่อลดความเสี่ยงก่อนเกิดปัญหาใหญ่" },
 ]
 
 const seedUsers: AppUser[] = [
@@ -336,7 +337,7 @@ const SEED: AppData = {
   articles: seedArticles,
   products: seedProducts,
   siteSettings: {
-    siteName: "DurianFlow",
+    siteName: "Durian Flow",
     tagline: "Smart Orchard",
     logoUrl: "",
   },

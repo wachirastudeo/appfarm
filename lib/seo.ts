@@ -1,6 +1,6 @@
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://appfarm-main.vercel.app"
-export const SITE_NAME = "DurianFlow"
-export const DEFAULT_TITLE = "DurianFlow - ระบบจัดการสวนทุเรียนและคลังความรู้เกษตรกร"
+export const SITE_NAME = "Durian Flow"
+export const DEFAULT_TITLE = "Durian Flow - ระบบจัดการสวนทุเรียนและคลังความรู้เกษตรกร"
 export const DEFAULT_DESCRIPTION =
   "ระบบบริหารจัดการสวนทุเรียนสำหรับเกษตรกรไทย พร้อมติดตามแปลง งานสวน การเงิน บทความความรู้ และรายการปุ๋ยยาแนะนำ"
 export const DEFAULT_KEYWORDS = [
