@@ -19,13 +19,27 @@ export default function InAppBrowserBanner() {
     const isInstagram = /Instagram/i.test(ua)
     const isLine = /Line/i.test(ua)
     const isMobileInApp = isFacebook || isInstagram || isLine
+    const isAndroidDevice = /android/i.test(ua)
+    const isIosDevice = /iphone|ipad|ipod/i.test(ua)
 
     setIsInApp(isMobileInApp)
-    setIsIos(/iphone|ipad|ipod/i.test(ua))
-    setIsAndroid(/android/i.test(ua))
+    setIsIos(isIosDevice)
+    setIsAndroid(isAndroidDevice)
 
-    // Optional: If they are on Android, we can try to trigger Chrome redirect automatically once on load
-    // but button tap is still safest to avoid loop blocks or bad UX. We will provide buttons for both.
+    // Trigger automatic redirect to external browser on mount
+    if (isMobileInApp) {
+      const currentUrl = window.location.href
+      const urlWithoutProtocol = currentUrl.replace(/^https?:\/\//, "")
+      
+      if (isAndroidDevice) {
+        const fallbackUrl = encodeURIComponent(currentUrl)
+        const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${fallbackUrl};end`
+        window.location.replace(intentUrl)
+      } else if (isIosDevice) {
+        // Attempt redirecting to Chrome on iOS
+        window.location.replace(`googlechromes://${urlWithoutProtocol}`)
+      }
+    }
   }, [])
 
   if (!isInApp || !isVisible) return null
