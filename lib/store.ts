@@ -452,6 +452,13 @@ export function useAppData(currentUserId?: string | null) {
   const [remoteReady, setRemoteReady] = useState(false)
   const initialDataRef = useRef(data)
   const lastRemoteJsonRef = useRef("")
+  const isMockUser = useMemo(() => {
+    if (!currentUserId) return true
+    const user = data.users.find(u => u.id === currentUserId)
+    if (user) return user.provider === "email"
+    return currentUserId === "u-admin" || currentUserId === "u-user" || currentUserId === "u-staff" || !currentUserId.includes("-")
+  }, [data.users, currentUserId])
+
   const isSupabaseMode = appRuntimeConfig.dataMode === "supabase" && isSupabaseConfigured
 
   useEffect(() => {
@@ -489,8 +496,12 @@ export function useAppData(currentUserId?: string | null) {
 
     let active = true
 
+    const structuredDataPromise = currentUserId && !isMockUser
+      ? loadStructuredAppData(currentUserId).catch(() => null)
+      : Promise.resolve(null)
+
     Promise.all([
-      loadStructuredAppData(currentUserId).catch(() => null),
+      structuredDataPromise,
       currentUserId ? Promise.resolve(null) : loadRemoteAppData(),
       fetchArticles().catch(() => null),
       fetchProducts().catch(() => null),
@@ -509,13 +520,15 @@ export function useAppData(currentUserId?: string | null) {
           lastRemoteJsonRef.current = JSON.stringify(normalized)
           setData(normalized)
 
-          if (!structuredData) {
+          if (!structuredData && !isMockUser) {
             void saveStructuredAppData(normalized, currentUserId)
           }
         } else {
           // First run: seed app_data and push seed articles/products to their tables
           const initial = initialDataRef.current
-          void saveRemoteAppData(initial, currentUserId)
+          if (!isMockUser || !currentUserId) {
+            void saveRemoteAppData(initial, currentUserId)
+          }
         }
 
         setRemoteReady(true)
@@ -528,11 +541,11 @@ export function useAppData(currentUserId?: string | null) {
     return () => {
       active = false
     }
-  }, [currentUserId, isSupabaseMode])
+  }, [currentUserId, isSupabaseMode, isMockUser])
 
   // Sync non-articles/products data back to app_data blob
   useEffect(() => {
-    if (!isSupabaseMode || !remoteReady || !currentUserId) return
+    if (!isSupabaseMode || !remoteReady || !currentUserId || isMockUser) return
 
     const nextJson = JSON.stringify(data)
     if (lastRemoteJsonRef.current === nextJson) return
@@ -549,7 +562,7 @@ export function useAppData(currentUserId?: string | null) {
     }, STORAGE_WRITE_DELAY_MS)
 
     return () => window.clearTimeout(timeoutId)
-  }, [currentUserId, data, isSupabaseMode, remoteReady])
+  }, [currentUserId, data, isSupabaseMode, remoteReady, isMockUser])
 
   const updateData = useCallback((updater: (prev: AppData) => AppData) => {
     setData(prev => updater(prev))
@@ -716,11 +729,17 @@ export function useAppData(currentUserId?: string | null) {
 
   const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {
     updateData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, ...changes } : u) }))
-    if (isSupabaseMode) {
+    
+    const userToUpdate = data.users.find(u => u.id === id)
+    const targetIsMock = userToUpdate
+      ? userToUpdate.provider === "email"
+      : (id === "u-admin" || id === "u-user" || id === "u-staff" || !id.includes("-"))
+
+    if (isSupabaseMode && !targetIsMock) {
       const updatedUser = await updateSupabaseUser(id, changes)
       updateData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, ...updatedUser } : u) }))
     }
-  }, [isSupabaseMode, updateData])
+  }, [isSupabaseMode, updateData, data.users])
 
   const deleteUser = useCallback((id: string) => {
     updateData(d => ({ ...d, users: d.users.filter(u => u.id !== id) }))

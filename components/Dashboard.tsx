@@ -330,8 +330,8 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
     try {
       await onUpdateFarmLocation(pendingLocation)
       window.dispatchEvent(new Event("farm_location_changed"))
-    } catch {
-      alert("บันทึกตำแหน่งสวนไม่สำเร็จ กรุณาลองใหม่")
+    } catch (err) {
+      alert("บันทึกตำแหน่งสวนไม่สำเร็จ: " + (err instanceof Error ? err.message : String(err)))
       return
     }
     setShowLocationEditor(false)
