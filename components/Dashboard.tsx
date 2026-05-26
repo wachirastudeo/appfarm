@@ -331,7 +331,8 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       await onUpdateFarmLocation(pendingLocation)
       window.dispatchEvent(new Event("farm_location_changed"))
     } catch (err) {
-      alert("บันทึกตำแหน่งสวนไม่สำเร็จ: " + (err instanceof Error ? err.message : String(err)))
+      const errMsg = err instanceof Error ? err.message : (typeof err === "object" && err !== null && "message" in err ? String((err as any).message) : String(err))
+      alert("บันทึกตำแหน่งสวนไม่สำเร็จ: " + errMsg)
       return
     }
     setShowLocationEditor(false)

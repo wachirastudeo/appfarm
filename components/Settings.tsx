@@ -201,8 +201,9 @@ export default function Settings({
     try {
       await onUpdateFarmProfile({ farmName: nextName.value })
       setIsEditingName(false)
-    } catch {
-      alert("บันทึกชื่อสวนไม่สำเร็จ กรุณาลองใหม่")
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : (typeof err === "object" && err !== null && "message" in err ? String((err as any).message) : String(err))
+      alert("บันทึกชื่อสวนไม่สำเร็จ: " + errMsg)
     }
   }
 
@@ -230,8 +231,9 @@ export default function Settings({
           coverPositionY: undefined,
         })
         window.dispatchEvent(new Event("farm_cover_image_changed"))
-      } catch {
-        alert("บันทึกภาพปกไม่สำเร็จ กรุณาลองใหม่")
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : (typeof err === "object" && err !== null && "message" in err ? String((err as any).message) : String(err))
+        alert("บันทึกภาพปกไม่สำเร็จ: " + errMsg)
       }
     }
     reader.readAsDataURL(checkedFile.value)
@@ -251,8 +253,9 @@ export default function Settings({
         coverPositionY: undefined,
       })
       window.dispatchEvent(new Event("farm_cover_image_changed"))
-    } catch {
-      alert("ลบภาพปกไม่สำเร็จ กรุณาลองใหม่")
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : (typeof err === "object" && err !== null && "message" in err ? String((err as any).message) : String(err))
+      alert("ลบภาพปกไม่สำเร็จ: " + errMsg)
     }
     if (coverInputRef.current) coverInputRef.current.value = ""
   }
@@ -274,8 +277,9 @@ export default function Settings({
         coverPositionY: coverPositionDraft.y,
       })
       window.dispatchEvent(new Event("farm_cover_image_changed"))
-    } catch {
-      alert("บันทึกภาพปกไม่สำเร็จ กรุณาลองใหม่")
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : (typeof err === "object" && err !== null && "message" in err ? String((err as any).message) : String(err))
+      alert("บันทึกภาพปกไม่สำเร็จ: " + errMsg)
     }
   }
 
@@ -324,7 +328,8 @@ export default function Settings({
       localStorage.setItem(locationStorageKey, JSON.stringify(loc))
       window.dispatchEvent(new Event("farm_location_changed"))
     } catch (err) {
-      alert("บันทึกตำแหน่งสวนไม่สำเร็จ: " + (err instanceof Error ? err.message : String(err)))
+      const errMsg = err instanceof Error ? err.message : (typeof err === "object" && err !== null && "message" in err ? String((err as any).message) : String(err))
+      alert("บันทึกตำแหน่งสวนไม่สำเร็จ: " + errMsg)
       return
     }
     setSearchResults([])

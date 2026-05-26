@@ -324,6 +324,16 @@ export async function insertUser(user: AppUser) {
 
 export async function updateUser(userId: string, changes: Partial<AppUser>) {
   const supabase = createClient()
+
+  // Check if the profile exists first
+  const { data: existingProfile, error: selectError } = await supabase
+    .from("profiles")
+    .select("id, email")
+    .eq("id", userId)
+    .maybeSingle()
+
+  if (selectError) throw selectError
+
   const dbChanges: any = {}
   if (changes.name !== undefined) dbChanges.name = changes.name
   if (changes.email !== undefined) dbChanges.email = changes.email
@@ -338,14 +348,52 @@ export async function updateUser(userId: string, changes: Partial<AppUser>) {
   if ("savedArticleIds" in changes) dbChanges.saved_article_ids = changes.savedArticleIds ?? null
   if (changes.passwordHash !== undefined) dbChanges.password_hash = changes.passwordHash
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .update(dbChanges)
-    .eq("id", userId)
-    .select("*")
-    .single()
-  if (error) throw error
-  return rowToUser(data) satisfies AppUser
+  if (existingProfile) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(dbChanges)
+      .eq("id", userId)
+      .select("*")
+      .single()
+    if (error) throw error
+    return rowToUser(data) satisfies AppUser
+  } else {
+    // Auto-heal missing profile row
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+    if (!authUser) {
+      throw new Error("User is not authenticated in Supabase.")
+    }
+
+    const email = authUser.email || changes.email || `${changes.provider || "oauth"}-${authUser.id}@oauth.local`
+    const name = changes.name || authUser.user_metadata?.name || authUser.user_metadata?.full_name || email.split("@")[0]
+
+    const insertPayload = {
+      id: userId,
+      email: email,
+      name: name,
+      role: changes.role || "user",
+      status: changes.status || "active",
+      provider: changes.provider || authUser.app_metadata?.provider || "oauth",
+      password_hash: changes.passwordHash || null,
+      avatar_url: changes.avatar || authUser.user_metadata?.avatar_url || null,
+      cover_image: dbChanges.cover_image || null,
+      cover_position_x: dbChanges.cover_position_x ?? null,
+      cover_position_y: dbChanges.cover_position_y ?? null,
+      farm_name: dbChanges.farm_name || null,
+      farm_location: dbChanges.farm_location || null,
+      saved_article_ids: dbChanges.saved_article_ids || null,
+      created_at: new Date().toISOString(),
+    }
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .insert(insertPayload)
+      .select("*")
+      .single()
+
+    if (error) throw error
+    return rowToUser(data) satisfies AppUser
+  }
 }
 
 export async function deleteUser(userId: string) {
