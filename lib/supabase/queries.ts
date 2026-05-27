@@ -264,6 +264,10 @@ export async function deleteFinanceRecord(recordId: string) {
 }
 
 // ---- Users ----
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase()
+}
+
 function rowToUser(data: Record<string, unknown>): AppUser {
   return {
     id: data.id as string,
@@ -289,7 +293,7 @@ export async function findUserByEmail(email: string) {
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
-    .eq("email", email.trim().toLowerCase())
+    .eq("email", normalizeEmail(email))
     .maybeSingle()
 
   if (error) throw error
@@ -304,7 +308,7 @@ export async function insertUser(user: AppUser) {
     .from("profiles")
     .insert({
       id: user.id,
-      email: user.email,
+      email: normalizeEmail(user.email),
       name: user.name,
       role: user.role,
       status: user.status,
@@ -336,7 +340,7 @@ export async function updateUser(userId: string, changes: Partial<AppUser>) {
 
   const dbChanges: any = {}
   if (changes.name !== undefined) dbChanges.name = changes.name
-  if (changes.email !== undefined) dbChanges.email = changes.email
+  if (changes.email !== undefined) dbChanges.email = normalizeEmail(changes.email)
   if (changes.role !== undefined) dbChanges.role = changes.role
   if (changes.status !== undefined) dbChanges.status = changes.status
   if (changes.avatar !== undefined) dbChanges.avatar_url = changes.avatar || null
@@ -364,7 +368,7 @@ export async function updateUser(userId: string, changes: Partial<AppUser>) {
       throw new Error("User is not authenticated in Supabase.")
     }
 
-    const email = authUser.email || changes.email || `${changes.provider || "oauth"}-${authUser.id}@oauth.local`
+    const email = normalizeEmail(authUser.email || changes.email || `${changes.provider || "oauth"}-${authUser.id}@oauth.local`)
     const name = changes.name || authUser.user_metadata?.name || authUser.user_metadata?.full_name || email.split("@")[0]
 
     const insertPayload = {

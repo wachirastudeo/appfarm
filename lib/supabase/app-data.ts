@@ -327,7 +327,11 @@ async function upsertRows(table: string, rows: Record<string, unknown>[]) {
 }
 
 export async function saveStructuredAppData(appData: AppData, ownerUserId?: string | null) {
-  const users = appData.users.map(user => ({
+  const profileUsers = ownerUserId
+    ? appData.users.filter(user => user.id === ownerUserId)
+    : appData.users
+
+  const users = profileUsers.map(user => ({
     id: user.id,
     email: user.email,
     name: user.name,
