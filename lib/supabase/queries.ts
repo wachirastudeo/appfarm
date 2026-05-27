@@ -268,6 +268,12 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase()
 }
 
+function normalizeProvider(provider: string) {
+  const normalized = provider.replace(/^custom:/, "").toLowerCase()
+  if (normalized === "line" || normalized.includes("line")) return "line"
+  return normalized || "oauth"
+}
+
 function rowToUser(data: Record<string, unknown>): AppUser {
   return {
     id: data.id as string,
@@ -328,6 +334,8 @@ export async function insertUser(user: AppUser) {
 
 export async function updateUser(userId: string, changes: Partial<AppUser>) {
   const supabase = createClient()
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  const authEmail = authUser?.email ? normalizeEmail(authUser.email) : null
 
   // Check if the profile exists first
   const { data: existingProfile, error: selectError } = await supabase
@@ -361,43 +369,64 @@ export async function updateUser(userId: string, changes: Partial<AppUser>) {
       .single()
     if (error) throw error
     return rowToUser(data) satisfies AppUser
-  } else {
-    // Auto-heal missing profile row
-    const { data: { user: authUser } } = await supabase.auth.getUser()
-    if (!authUser) {
-      throw new Error("User is not authenticated in Supabase.")
-    }
+  }
 
-    const email = normalizeEmail(authUser.email || changes.email || `${changes.provider || "oauth"}-${authUser.id}@oauth.local`)
-    const name = changes.name || authUser.user_metadata?.name || authUser.user_metadata?.full_name || email.split("@")[0]
+  if (authEmail) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(dbChanges)
+      .eq("email", authEmail)
+      .select("*")
+      .maybeSingle()
 
-    const insertPayload = {
+    if (error) throw error
+    if (data) return rowToUser(data) satisfies AppUser
+  }
+
+  if (!authUser) {
+    throw new Error("User is not authenticated in Supabase.")
+  }
+
+  const metadata = authUser.user_metadata as Record<string, unknown> | undefined
+  const provider = normalizeProvider(changes.provider
+    || (typeof authUser.app_metadata?.provider === "string" ? authUser.app_metadata.provider : undefined)
+    || "oauth")
+  const email = authEmail || (provider === "line" ? `line-${authUser.id}@oauth.local` : changes.email ? normalizeEmail(changes.email) : `${provider}-${authUser.id}@oauth.local`)
+  const metadataName = typeof metadata?.name === "string"
+    ? metadata.name
+    : typeof metadata?.full_name === "string"
+      ? metadata.full_name
+      : undefined
+  const metadataAvatar = typeof metadata?.avatar_url === "string"
+    ? metadata.avatar_url
+    : typeof metadata?.picture === "string"
+      ? metadata.picture
+      : undefined
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .insert({
       id: userId,
-      email: email,
-      name: name,
+      email,
+      name: changes.name || metadataName || email.split("@")[0],
       role: changes.role || "user",
       status: changes.status || "active",
-      provider: changes.provider || authUser.app_metadata?.provider || "oauth",
+      provider,
       password_hash: changes.passwordHash || null,
-      avatar_url: changes.avatar || authUser.user_metadata?.avatar_url || null,
+      avatar_url: changes.avatar || metadataAvatar || null,
       cover_image: dbChanges.cover_image || null,
       cover_position_x: dbChanges.cover_position_x ?? null,
       cover_position_y: dbChanges.cover_position_y ?? null,
       farm_name: dbChanges.farm_name || null,
-      farm_location: dbChanges.farm_location || null,
-      saved_article_ids: dbChanges.saved_article_ids || null,
+      farm_location: dbChanges.farm_location ?? null,
+      saved_article_ids: dbChanges.saved_article_ids ?? null,
       created_at: new Date().toISOString(),
-    }
+    })
+    .select("*")
+    .single()
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .insert(insertPayload)
-      .select("*")
-      .single()
-
-    if (error) throw error
-    return rowToUser(data) satisfies AppUser
-  }
+  if (error) throw error
+  return rowToUser(data) satisfies AppUser
 }
 
 export async function deleteUser(userId: string) {

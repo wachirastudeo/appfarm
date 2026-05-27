@@ -160,6 +160,7 @@ export interface AppUser {
 }
 
 export type OAuthUserInput = {
+  authId?: string
   email: string
   name?: string
   provider: string
@@ -709,7 +710,7 @@ export function useAppData(currentUserId?: string | null) {
 
     const providerSlug = provider || "oauth"
     const newUser: AppUser = {
-      id: `u-${providerSlug}-${Date.now()}`,
+      id: `u-${providerSlug}-${input.authId || Date.now()}`,
       name: input.name?.trim() || normalized.split("@")[0],
       email: normalized,
       passwordHash: "",
@@ -736,7 +737,7 @@ export function useAppData(currentUserId?: string | null) {
       : (id === "u-admin" || id === "u-user" || id === "u-staff" || !id.includes("-"))
 
     if (isSupabaseMode && !targetIsMock) {
-      const updatedUser = await updateSupabaseUser(id, changes)
+      const updatedUser = await updateSupabaseUser(id, userToUpdate ? { ...userToUpdate, ...changes } : changes)
       updateData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, ...updatedUser } : u) }))
     }
   }, [isSupabaseMode, updateData, data.users])

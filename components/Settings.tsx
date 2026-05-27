@@ -684,8 +684,8 @@ export default function Settings({
 
           <button onClick={handleInstallApp} className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors rounded-b-xl">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-[#146B3E] p-1">
-                <DurianLogo size={26} className="h-[26px] w-[26px] object-contain" />
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <Download size={18} />
               </div>
               <div className="text-left">
                 <p className="text-sm font-semibold text-foreground">ติดตั้งแอป</p>

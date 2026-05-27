@@ -6,7 +6,7 @@ import { useAppData } from "@/lib/store"
 import type { AppUser, Article, Product } from "@/lib/store"
 import { createClient } from "@/lib/supabase/client"
 import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, HeartHandshake, Check, Smartphone } from "lucide-react"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, HeartHandshake, Check, Smartphone, Download } from "lucide-react"
 import DurianIcon from "./DurianIcon"
 import DurianLogo from "./DurianLogo"
 import UserAvatarImage from "./UserAvatarImage"
@@ -661,7 +661,7 @@ function GuestHome({
                         onClick={onInstall}
                         className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-emerald-500 px-4 py-2.5 text-sm font-black text-white hover:bg-emerald-400 active:scale-95 transition-all shadow-md"
                       >
-                        <DurianLogo size={18} className="h-[18px] w-[18px] rounded-md object-cover" />
+                        <Download size={18} />
                         <span>ติดตั้งแอป</span>
                       </button>
                     )}
@@ -1078,8 +1078,15 @@ export default function AppShell() {
 
   const updateCurrentUser = useCallback(async (changes: Partial<AppUser>) => {
     if (!user) return
-    await store.updateUser(user.id, changes)
     setUser(current => current?.id === user.id ? { ...current, ...changes } : current)
+    try {
+      await store.updateUser(user.id, changes)
+    } catch (error) {
+      const code = typeof error === "object" && error !== null && "code" in error ? String((error as { code?: unknown }).code) : null
+      if (code !== "42501") {
+        console.error("Supabase user update failed", error)
+      }
+    }
   }, [store, user])
 
   useEffect(() => {
@@ -1341,7 +1348,7 @@ export default function AppShell() {
                   onClick={handleInstallApp}
                   className="relative overflow-hidden md:hidden inline-flex h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl border border-emerald-200/80 bg-emerald-50/70 hover:bg-emerald-100/90 px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-black text-[#146B3E] transition-all hover:scale-105 active:scale-95 dark:border-emerald-800/35 dark:bg-emerald-950/25 dark:text-[#72C08A] dark:hover:bg-emerald-950/50 shadow-sm"
                 >
-                  <DurianLogo size={18} className="h-[18px] w-[18px] rounded-md object-cover" />
+                  <Download size={16} />
                   <span className="hidden xs:inline">ติดตั้งแอป</span>
                   <span className="inline xs:hidden">ติดตั้ง</span>
                 </button>
@@ -1349,10 +1356,10 @@ export default function AppShell() {
               <button
                 onClick={() => setShowSupportModal(true)}
                 aria-label="สนับสนุนเว็บนี้"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#CFE3D5] bg-white text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] sm:w-auto sm:gap-2 sm:px-3 sm:py-2 dark:border-[#31533D] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:hover:bg-[#244332]"
+                className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#CFE3D5] bg-white text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] gap-1 px-2.5 sm:w-auto sm:gap-2 sm:px-3 sm:py-2 dark:border-[#31533D] dark:bg-[#1D3A29] dark:text-[#72C08A] dark:hover:bg-[#244332]"
               >
                 <HeartHandshake size={16} />
-                <span className="hidden sm:inline">เลี้ยงกาแฟ</span>
+                <span className="text-xs sm:text-sm">สนับสนุน</span>
               </button>
               <button
                 onClick={openAuth}
@@ -1449,10 +1456,10 @@ export default function AppShell() {
           <button
             onClick={() => setShowSupportModal(true)}
             aria-label="สนับสนุนเว็บนี้"
-            className="inline-flex py-2 w-10 items-center justify-center rounded-xl bg-white text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] sm:h-auto sm:w-auto sm:gap-2 sm:px-3 sm:py-2 dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
+            className="inline-flex items-center justify-center rounded-xl bg-white text-[#146B3E] ring-1 ring-[#CFE3D5] transition-colors hover:bg-[#E7F3EC] gap-1 px-2.5 py-2 sm:h-auto sm:w-auto sm:gap-2 sm:px-3 sm:py-2 dark:bg-[#1D3A29] dark:text-[#72C08A] dark:ring-[#31533D] dark:hover:bg-[#244332]"
           >
-            <HeartHandshake size={18} />
-            <span className="hidden text-sm font-black leading-none sm:inline">เลี้ยงกาแฟ</span>
+            <HeartHandshake size={16} className="shrink-0" />
+            <span className="text-xs sm:text-sm font-black leading-none">สนับสนุน</span>
           </button>
           {user && (
             <div className="contents animate-in fade-in duration-300">

@@ -217,29 +217,47 @@ drop policy if exists finance_records_owner on public.finance_records;
 
 create policy app_data_allow_all on public.app_data for all to anon, authenticated using (true) with check (true);
 create policy profiles_owner on public.profiles for all to authenticated
-  using (lower(email) = lower(auth.jwt() ->> 'email'))
-  with check (lower(email) = lower(auth.jwt() ->> 'email'));
+  using (
+    lower(email) = lower(auth.jwt() ->> 'email')
+    or lower(email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+  )
+  with check (
+    lower(email) = lower(auth.jwt() ->> 'email')
+    or lower(email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+  );
 
 create policy plots_owner on public.plots for all to authenticated
   using (exists (
     select 1 from public.profiles p
-    where p.id = plots.user_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where p.id = plots.user_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ))
   with check (exists (
     select 1 from public.profiles p
-    where p.id = plots.user_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where p.id = plots.user_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ));
 
 create policy trees_owner on public.trees for all to authenticated
   using (exists (
     select 1 from public.plots pl
     join public.profiles p on p.id = pl.user_id
-    where pl.id = trees.plot_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where pl.id = trees.plot_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ))
   with check (exists (
     select 1 from public.plots pl
     join public.profiles p on p.id = pl.user_id
-    where pl.id = trees.plot_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where pl.id = trees.plot_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ));
 
 create policy batches_owner on public.batches for all to authenticated
@@ -247,13 +265,19 @@ create policy batches_owner on public.batches for all to authenticated
     select 1 from public.trees tr
     join public.plots pl on pl.id = tr.plot_id
     join public.profiles p on p.id = pl.user_id
-    where tr.id = batches.tree_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where tr.id = batches.tree_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ))
   with check (exists (
     select 1 from public.trees tr
     join public.plots pl on pl.id = tr.plot_id
     join public.profiles p on p.id = pl.user_id
-    where tr.id = batches.tree_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where tr.id = batches.tree_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ));
 
 create policy batch_stages_owner on public.batch_stages for all to authenticated
@@ -262,44 +286,68 @@ create policy batch_stages_owner on public.batch_stages for all to authenticated
     join public.trees tr on tr.id = b.tree_id
     join public.plots pl on pl.id = tr.plot_id
     join public.profiles p on p.id = pl.user_id
-    where b.id = batch_stages.batch_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where b.id = batch_stages.batch_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ))
   with check (exists (
     select 1 from public.batches b
     join public.trees tr on tr.id = b.tree_id
     join public.plots pl on pl.id = tr.plot_id
     join public.profiles p on p.id = pl.user_id
-    where b.id = batch_stages.batch_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where b.id = batch_stages.batch_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ));
 
 create policy tasks_owner on public.tasks for all to authenticated
   using (exists (
     select 1 from public.profiles p
-    where p.id = tasks.user_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where p.id = tasks.user_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ))
   with check (exists (
     select 1 from public.profiles p
-    where p.id = tasks.user_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where p.id = tasks.user_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ));
 
 create policy activities_owner on public.activities for all to authenticated
   using (exists (
     select 1 from public.profiles p
-    where p.id = activities.user_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where p.id = activities.user_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ))
   with check (exists (
     select 1 from public.profiles p
-    where p.id = activities.user_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where p.id = activities.user_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ));
 
 create policy finance_records_owner on public.finance_records for all to authenticated
   using (exists (
     select 1 from public.profiles p
-    where p.id = finance_records.user_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where p.id = finance_records.user_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ))
   with check (exists (
     select 1 from public.profiles p
-    where p.id = finance_records.user_id and lower(p.email) = lower(auth.jwt() ->> 'email')
+    where p.id = finance_records.user_id and (
+      lower(p.email) = lower(auth.jwt() ->> 'email')
+      or lower(p.email) = replace(lower(coalesce(auth.jwt() -> 'app_metadata' ->> 'provider', 'oauth')), 'custom:', '') || '-' || auth.uid()::text || '@oauth.local'
+    )
   ));
 
 create policy articles_all on public.articles for all to anon, authenticated using (true) with check (true);

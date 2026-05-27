@@ -26,6 +26,7 @@ export function normalizeAuthProvider(raw?: string) {
 }
 
 export type ResolvedOAuthProfile = {
+  authId: string
   email: string
   name?: string
   provider: string
@@ -53,6 +54,7 @@ export function resolveOAuthProfileFromAuthUser(authUser: User): ResolvedOAuthPr
   if (!email) return null
 
   return {
+    authId: authUser.id,
     email,
     name: pickString(metadata, NAME_KEYS),
     provider,
