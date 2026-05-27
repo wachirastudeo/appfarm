@@ -16,6 +16,12 @@ import { resolveOAuthProfileFromAuthUser } from "@/lib/oauth-profile"
 import Settings from "./Settings"
 import InAppBrowserBanner from "./InAppBrowserBanner"
 import PwaInstallModal from "./PwaInstallModal"
+import RetroGrid from "./magicui/retro-grid"
+import BorderBeam from "./magicui/border-beam"
+import Marquee from "./magicui/marquee"
+import ShinyButton from "./magicui/shiny-button"
+import InteractiveHoverButton from "./magicui/interactive-hover-button"
+import SparklesText from "./magicui/sparkles-text"
 
 const Dashboard = dynamic(() => import("./Dashboard"), { loading: () => <ContentSkeleton /> })
 const PlotManagement = dynamic(() => import("./PlotManagement"), { loading: () => <ContentSkeleton /> })
@@ -530,6 +536,9 @@ function GuestHome({
         .delay-400 { animation-delay: 400ms; }
       `}</style>
       <section className="guest-hero relative isolate overflow-hidden bg-[#06150D] py-12 sm:py-16 lg:min-h-svh lg:px-8 lg:py-12">
+        {/* Retro Grid Background */}
+        <RetroGrid className="opacity-15 mix-blend-overlay" />
+        
         {/* Pulsing Auroras for immersive depth */}
         <div className="guest-hero-glow pointer-events-none absolute -left-40 top-10 h-[450px] w-[450px] rounded-full bg-[#185333]/25 blur-[120px] animate-pulse-glow" />
         <div className="guest-hero-glow pointer-events-none absolute -right-32 bottom-8 h-[500px] w-[500px] rounded-full bg-[#0a3a20]/35 blur-[140px] animate-pulse-glow" style={{ animationDelay: '3s' }} />
@@ -543,7 +552,7 @@ function GuestHome({
 
 
             <h1 className="text-[clamp(2.4rem,5.5vw,4.5rem)] font-black leading-[1.05] text-white tracking-tight">
-              จัดการสวนทุเรียน
+              <SparklesText text="จัดการสวนทุเรียน" className="p-0 text-white font-black" sparklesCount={4} />
               <br />
               <span className="relative mt-3 inline-block origin-left -rotate-1 text-[1.12em] font-black leading-snug tracking-wide pt-1 pb-4">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D97B18] to-[#F59E0B] dark:from-[#F4D35E] dark:to-[#F59E0B] drop-shadow-[0_10px_22px_rgba(217,123,24,0.22)]">
@@ -572,22 +581,20 @@ function GuestHome({
 
             {/* CTAs */}
             <div className="mt-10 flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
-              <button
+              <ShinyButton
                 onClick={onLogin}
-                className="guest-hero-cta group relative overflow-hidden inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 px-8 py-3.5 text-base font-black text-white shadow-xl shadow-emerald-900/35 transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/25 active:scale-[0.98]"
+                className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white shadow-xl shadow-emerald-900/35 active:scale-[0.98]"
               >
                 <Sparkles size={18} className="text-[#F4D35E] transition-transform duration-500 group-hover:rotate-180" />
                 <span>เข้าสู่ระบบ / สมัครใช้งาน</span>
                 <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
-              </button>
+              </ShinyButton>
 
-              <button
+              <InteractiveHoverButton
                 onClick={() => onOpenSandbox("plots")}
-                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 hover:border-white/25 bg-white/5 hover:bg-white/10 backdrop-blur-md px-8 py-3.5 text-base font-black text-white/90 shadow-sm transition-all duration-300 hover:-translate-y-1 active:scale-[0.98]"
-              >
-                <Smartphone size={18} className="text-emerald-400 group-hover:scale-110" />
-                <span>ทดลองเล่น Demo</span>
-              </button>
+                text="ทดลองเล่น Demo"
+                className="h-auto py-3.5"
+              />
             </div>
           </div>
 
@@ -640,6 +647,7 @@ function GuestHome({
               {/* Bottom Row: Elegant PWA Installation Badge / Card */}
               <div className="relative z-10 mt-auto w-full">
                 <div className="w-full rounded-3xl border border-white/12 bg-gradient-to-br from-white/10 to-white/0 p-5 backdrop-blur-lg shadow-xl relative overflow-hidden">
+                  <BorderBeam duration={8} size={150} colorFrom="#10B981" colorTo="#34D399" />
                   {/* Decorative PWA pulsing dot */}
                   <div className="absolute right-4 top-4 flex h-2.5 w-2.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -774,13 +782,13 @@ function GuestHome({
             ดูบทความทั้งหมด <ArrowRight size={16} />
           </button>
         </div>
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <Marquee pauseOnHover className="[--duration:40s] gap-4" repeat={3}>
           {featuredArticles.map(article => (
             <button
               key={article.id}
               type="button"
               onClick={() => onReadArticles(article.id)}
-              className="group w-[240px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30 sm:w-full sm:min-w-0"
+              className="group w-[240px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30"
             >
               <div className="relative h-24 overflow-hidden sm:h-28">
                 <img src={article.image} alt={article.title} loading="lazy" decoding="async" className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.08]" />
@@ -797,7 +805,7 @@ function GuestHome({
               </div>
             </button>
           ))}
-        </div>
+        </Marquee>
       </section>
 
       {SHOW_RECOMMENDED_PRODUCTS && activeProducts.length > 0 && (
@@ -1275,6 +1283,7 @@ export default function AppShell() {
           data={store.data}
           addTask={store.addTask} updateTask={store.updateTask} deleteTask={store.deleteTask}
           addActivity={store.addActivity} deleteActivity={store.deleteActivity} updateActivity={store.updateActivity}
+          onNavigate={setActiveTab}
         />
       case "finance":
         return <Finance data={store.data} addFinance={store.addFinance} deleteFinance={store.deleteFinance} />
@@ -1311,7 +1320,7 @@ export default function AppShell() {
     if (authChecking) return <AppShellSkeleton />
 
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col">
         <AnimatedBackground />
         <header className="sticky top-0 z-40 border-b border-[#DDEBE1]/50 bg-white/82 px-4 py-3 shadow-[0_8px_30px_rgba(20,107,62,0.06)] backdrop-blur-xl dark:border-[#31533D]/45 dark:bg-[#0F1F17]/82">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
@@ -1373,23 +1382,25 @@ export default function AppShell() {
         </header>
         <InAppBrowserBanner />
 
-        <main className="relative z-10">
+        <main className="relative z-10 flex-1 flex flex-col">
           {activeTab === "articles" ? (
-            <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 md:px-8 md:py-6">
+            <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 md:px-8 md:py-6 flex-1 flex flex-col">
               <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} savedArticlesStorageKey="durian_saved_articles_guest" guestMobileRail onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
             </div>
           ) : (
-            <GuestHome
-              articles={store.data.articles}
-              products={store.data.products}
-              onLogin={openAuth}
-              onReadArticles={openArticles}
-              onOpenProducts={openProducts}
-              onOpenSandbox={openSandbox}
-              installPrompt={installPrompt}
-              onInstall={handleInstallApp}
-              isInstalled={isInstalled}
-            />
+            <div className="flex-1 flex flex-col">
+              <GuestHome
+                articles={store.data.articles}
+                products={store.data.products}
+                onLogin={openAuth}
+                onReadArticles={openArticles}
+                onOpenProducts={openProducts}
+                onOpenSandbox={openSandbox}
+                installPrompt={installPrompt}
+                onInstall={handleInstallApp}
+                isInstalled={isInstalled}
+              />
+            </div>
           )}
           <AppFooter onContactClick={() => setShowFeedbackModal(true)} />
         </main>
@@ -1504,7 +1515,7 @@ export default function AppShell() {
       <InAppBrowserBanner />
 
       {/* Body: Sidebar + Content */}
-      <div className="relative z-10 flex min-w-0 flex-1 overflow-hidden">
+      <div className="relative flex min-w-0 flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
         <nav className="hidden lg:flex flex-col w-56 bg-white/40 dark:bg-black/15 backdrop-blur-md border-r border-[#DDEBE1]/40 dark:border-[#31533D]/25 py-4 px-3 gap-1.5 shrink-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.1),10px_0_30px_rgba(0,0,0,0.02)] relative overflow-hidden">
           <p className="relative px-2 pt-2 text-xs font-black text-muted-foreground uppercase tracking-wider mb-1">เมนูหลัก</p>
@@ -1530,11 +1541,11 @@ export default function AppShell() {
         </nav>
 
         {/* Main Content — full width, no extra card */}
-        <main className="min-w-0 flex-1 overflow-y-auto bg-transparent pb-20 lg:pb-0">
+        <main className="min-w-0 flex-1 overflow-y-auto bg-transparent pb-20 lg:pb-0 flex flex-col">
           <div
-            className="mx-auto w-full min-w-0 max-w-7xl px-3 py-3 sm:px-4 sm:py-4 md:px-8 md:py-6"
+            className="mx-auto w-full min-w-0 max-w-7xl px-3 py-3 sm:px-4 sm:py-4 md:px-8 md:py-6 flex-1 flex flex-col"
           >
-            <div key={activeTab} className="animate-in fade-in duration-200">
+            <div key={activeTab} className="animate-in fade-in duration-200 flex-1 flex flex-col">
               {renderContent()}
             </div>
           </div>

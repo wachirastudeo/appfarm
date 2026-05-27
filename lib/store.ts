@@ -558,7 +558,9 @@ export function useAppData(currentUserId?: string | null) {
         })
         .catch(error => {
           const { message, code, details, hint } = error ?? {}
-          console.error("Supabase data save failed", { message, code, details, hint }, error)
+          if (code !== "42501") {
+            console.error("Supabase data save failed", { message, code, details, hint }, error)
+          }
         })
     }, STORAGE_WRITE_DELAY_MS)
 
@@ -570,8 +572,8 @@ export function useAppData(currentUserId?: string | null) {
   }, [])
 
   // Plots
-  const addPlot = useCallback((plot: Omit<Plot, "id" | "trees">) => {
-    updateData(d => ({ ...d, plots: [...d.plots, { ...plot, userId: currentUserId ?? plot.userId, id: `p${Date.now()}`, trees: [] }] }))
+  const addPlot = useCallback((plot: Omit<Plot, "id" | "trees"> & { trees?: Tree[] }) => {
+    updateData(d => ({ ...d, plots: [...d.plots, { ...plot, userId: currentUserId ?? plot.userId, id: `p${Date.now()}`, trees: plot.trees || [] }] }))
   }, [currentUserId, updateData])
 
   const updatePlot = useCallback((plotId: string, changes: Partial<Plot>) => {

@@ -5,6 +5,7 @@ import { downloadTaskCalendarFile, downloadTasksCalendarFile, getGoogleCalendarU
 import { Task, TaskStatus, useAppData } from "@/lib/store"
 import { validateDate, validateNumber, validateText } from "@/lib/form-validation"
 import { Plus, Check, X, Trash2, ChevronLeft, ChevronRight, CalendarDays, RotateCcw, Pencil, ChevronDown, ChevronUp, CalendarPlus, Download, Sparkles, AlertTriangle } from "lucide-react"
+import Portal from "./Portal"
 
 type AppDataReturn = ReturnType<typeof useAppData>
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
   addTask: AppDataReturn["addTask"]
   updateTask: AppDataReturn["updateTask"]
   deleteTask: AppDataReturn["deleteTask"]
+  onNavigate?: (tab: "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin") => void
 }
 
 const PRIORITY_COLORS = {
@@ -52,7 +54,7 @@ function getLocalDateString(date: Date) {
   return `${year}-${month}-${day}`
 }
 
-export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: Props) {
+export default function TaskPlanner({ data, addTask, updateTask, deleteTask, onNavigate }: Props) {
   const today = new Date()
   const [calYear, setCalYear] = useState(today.getFullYear())
   const [calMonth, setCalMonth] = useState(today.getMonth())
@@ -288,6 +290,15 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
             <p className="text-xs text-muted-foreground font-bold">
               คุณสามารถเพิ่มแปลงใหม่ได้ที่เมนู <span className="font-extrabold text-primary dark:text-[#72C08A]">&quot;จัดการแปลง&quot;</span>
             </p>
+            {onNavigate && (
+              <button
+                type="button"
+                onClick={() => onNavigate("plots")}
+                className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary dark:bg-[#72C08A] px-5 py-2.5 text-xs font-black text-white dark:text-[#0B1B12] shadow-md hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] active:scale-95 transition-all"
+              >
+                จัดการแปลง
+              </button>
+            )}
           </div>
         </div>
       ) : (
@@ -550,7 +561,8 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
       )}
 
       {showForm && (
-        <div ref={formModalRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
+        <Portal>
+          <div ref={formModalRef} data-escapable-layer="true" className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <div className="w-full max-w-lg bg-white dark:bg-[#14291E] rounded-2xl p-5 border border-[#B9DCC8] dark:border-[#31533D]/60 shadow-2xl space-y-4 animate-fade-in-up" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-black text-foreground">เพิ่มแผนงานใหม่</h3>
@@ -683,6 +695,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask }: P
             </div>
           </div>
         </div>
+        </Portal>
       )}
     </div>
   )

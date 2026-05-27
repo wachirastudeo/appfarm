@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
 import DurianIcon from "./DurianIcon"
+import Portal from "./Portal"
 
 type AppDataReturn = ReturnType<typeof useAppData>
 
@@ -115,98 +116,100 @@ function SelectionUpdateModal({ plot, selectedIds, onClose, onUpdate }: {
   }
 
   return (
-    <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
-      <div className="bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-6 w-full max-w-[95%] sm:max-w-md shadow-2xl animate-in zoom-in-95 duration-300 max-h-[90dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]/40 flex items-center justify-center">
-              <RefreshCw size={20} className="text-[#146B3E] dark:text-[#72C08A]" />
-            </div>
-            <div>
-              <h3 className="font-black text-sm text-foreground leading-tight">อัปเดตต้นที่เลือก</h3>
-              <p className="text-xs text-muted-foreground font-black uppercase tracking-wider">{count} ต้นที่เลือก</p>
-            </div>
-          </div>
-          <button onClick={onClose} type="button" className="p-2 hover:bg-muted dark:hover:bg-[#1D3A29] rounded-full transition-colors"><X size={16} className="text-muted-foreground" /></button>
-        </div>
-        <div className="space-y-3">
-          {/* Stage */}
-          <div className={`rounded-2xl p-4 border transition-colors ${updateStage ? "bg-[#F7FAF8] dark:bg-[#0B140F] border-[#B9DCC8] dark:border-[#31533D]" : "bg-muted/10 border-border/20 opacity-60"}`}>
-            <label className="flex items-center gap-2 cursor-pointer mb-3 text-xs font-black text-[#146B3E] dark:text-[#72C08A]">
-              <input type="checkbox" checked={updateStage} onChange={e => setUpdateStage(e.target.checked)} className="h-4 w-4 accent-[#146B3E] dark:accent-[#72C08A] rounded" />
-              <span>ระยะดอก/ผล</span>
-            </label>
-            <select value={stage} onChange={e => setStage(e.target.value as FlowerStage)} disabled={!updateStage}
-              className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400 disabled:opacity-50">
-              {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
-            </select>
-          </div>
-          {/* Health */}
-          <div className={`rounded-2xl p-4 border transition-colors ${updateHealth ? "bg-[#F7FAF8] dark:bg-[#0B140F] border-[#B9DCC8] dark:border-[#31533D]" : "bg-muted/10 border-border/20 opacity-60"}`}>
-            <label className="flex items-center gap-2 cursor-pointer mb-3 text-xs font-black text-[#146B3E] dark:text-[#72C08A]">
-              <input type="checkbox" checked={updateHealth} onChange={e => setUpdateHealth(e.target.checked)} className="h-4 w-4 accent-[#146B3E] dark:accent-[#72C08A] rounded" />
-              <span>สุขภาพต้น</span>
-            </label>
-            <div className="flex gap-2">
-              {(["good", "fair", "poor"] as Tree["health"][]).map(h => (
-                <button key={h} type="button" disabled={!updateHealth} onClick={() => setHealth(h)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-colors disabled:opacity-50 ${health === h && updateHealth ? "bg-primary text-primary-foreground border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A] shadow-md shadow-primary/10 dark:shadow-[#72C08A]/10" : "border-[#B9DCC8] dark:border-[#31533D] text-[#527060] dark:text-[#B8D1C0] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]"}`}>
-                  {HEALTH_LABELS[h]}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Variety */}
-          <div className={`rounded-2xl p-4 border transition-colors ${updateVariety ? "bg-[#F7FAF8] dark:bg-[#0B140F] border-[#B9DCC8] dark:border-[#31533D]" : "bg-muted/10 border-border/20 opacity-60"}`}>
-            <label className="flex items-center gap-2 cursor-pointer mb-3 text-xs font-black text-[#146B3E] dark:text-[#72C08A]">
-              <input type="checkbox" checked={updateVariety} onChange={e => setUpdateVariety(e.target.checked)} className="h-4 w-4 accent-[#146B3E] dark:accent-[#72C08A] rounded" />
-              <span>พันธุ์</span>
-            </label>
-            <select value={variety} onChange={e => setVariety(e.target.value as DurianVariety)} disabled={!updateVariety}
-              className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400 disabled:opacity-50">
-              {VARIETIES.map(v => <option key={v} value={v}>{v}</option>)}
-            </select>
-          </div>
-          {/* Notes */}
-          <div className={`rounded-2xl p-4 border transition-colors ${updateNotes ? "bg-[#F7FAF8] dark:bg-[#0B140F] border-[#B9DCC8] dark:border-[#31533D]" : "bg-muted/10 border-border/20 opacity-60"}`}>
-            <label className="flex items-center gap-2 cursor-pointer mb-3 text-xs font-black text-[#146B3E] dark:text-[#72C08A]">
-              <input type="checkbox" checked={updateNotes} onChange={e => setUpdateNotes(e.target.checked)} className="h-4 w-4 accent-[#146B3E] dark:accent-[#72C08A] rounded" />
-              <span>หมายเหตุ</span>
-            </label>
-            <textarea value={notes} onChange={e => setNotes(e.target.value)} disabled={!updateNotes} rows={2}
-              className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2 text-xs font-bold text-foreground resize-none focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400 disabled:opacity-50"
-              placeholder="บันทึกเพิ่มเติม..." />
-          </div>
-          {/* Batch */}
-          <div className={`rounded-2xl p-4 border transition-colors ${addBatchToo ? "bg-[#E7F3EC]/40 dark:bg-[#1D3A29]/20 border-[#B9DCC8] dark:border-[#31533D]" : "bg-muted/10 border-border/20 opacity-60"}`}>
-            <label className="flex items-center gap-2 cursor-pointer mb-3 text-xs font-black text-[#146B3E] dark:text-[#72C08A]">
-              <input type="checkbox" checked={addBatchToo} onChange={e => setAddBatchToo(e.target.checked)} className="h-4 w-4 accent-[#146B3E] dark:accent-[#72C08A] rounded" />
-              <span>บันทึกรุ่นดอก/ผลด้วย</span>
-            </label>
-            {addBatchToo && (
-              <div className="space-y-2">
-                <input value={batchName} onChange={e => setBatchName(e.target.value)}
-                  className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
-                  placeholder="ชื่อรุ่น เช่น รุ่นที่ 1" />
-                <input type="date" value={batchDate} onChange={e => setBatchDate(e.target.value)}
-                  className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400" />
-                <input value={batchNote} onChange={e => setBatchNote(e.target.value)}
-                  className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
-                  placeholder="บันทึกเพิ่มเติม (ไม่บังคับ)" />
-                <p className="text-[10px] text-muted-foreground font-semibold">ระยะจะใช้ค่าเดียวกับ &quot;ระยะดอก/ผล&quot; ด้านบน</p>
+    <Portal>
+      <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
+        <div className="bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-6 w-full max-w-[95%] sm:max-w-md shadow-2xl animate-in zoom-in-95 duration-300 max-h-[90dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]/40 flex items-center justify-center">
+                <RefreshCw size={20} className="text-[#146B3E] dark:text-[#72C08A]" />
               </div>
-            )}
+              <div>
+                <h3 className="font-black text-sm text-foreground leading-tight">อัปเดตต้นที่เลือก</h3>
+                <p className="text-xs text-muted-foreground font-black uppercase tracking-wider">{count} ต้นที่เลือก</p>
+              </div>
+            </div>
+            <button onClick={onClose} type="button" className="p-2 hover:bg-muted dark:hover:bg-[#1D3A29] rounded-full transition-colors"><X size={16} className="text-muted-foreground" /></button>
           </div>
-        </div>
-        <div className="flex gap-3 mt-6">
-          <button onClick={onClose} type="button" className="flex-1 border border-[#B9DCC8] dark:border-[#31533D] rounded-xl py-2.5 text-xs text-[#527060] dark:text-[#B8D1C0] font-black hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]/50 transition-all active:scale-[0.98]">ยกเลิก</button>
-          <button onClick={handleUpdate} type="button" disabled={!updateStage && !updateHealth && !updateVariety && !updateNotes && !addBatchToo}
-            className="flex-2 bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] rounded-xl py-2.5 text-xs font-black hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] transition-all active:scale-[0.98] shadow-md shadow-primary/10 dark:shadow-[#72C08A]/10 flex items-center justify-center gap-2 disabled:opacity-40">
-            <Check size={14} strokeWidth={3} />อัปเดต {count} ต้น
-          </button>
+          <div className="space-y-3">
+            {/* Stage */}
+            <div className={`rounded-2xl p-4 border transition-colors ${updateStage ? "bg-[#F7FAF8] dark:bg-[#0B140F] border-[#B9DCC8] dark:border-[#31533D]" : "bg-muted/10 border-border/20 opacity-60"}`}>
+              <label className="flex items-center gap-2 cursor-pointer mb-3 text-xs font-black text-[#146B3E] dark:text-[#72C08A]">
+                <input type="checkbox" checked={updateStage} onChange={e => setUpdateStage(e.target.checked)} className="h-4 w-4 accent-[#146B3E] dark:accent-[#72C08A] rounded" />
+                <span>ระยะดอก/ผล</span>
+              </label>
+              <select value={stage} onChange={e => setStage(e.target.value as FlowerStage)} disabled={!updateStage}
+                className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400 disabled:opacity-50">
+                {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
+              </select>
+            </div>
+            {/* Health */}
+            <div className={`rounded-2xl p-4 border transition-colors ${updateHealth ? "bg-[#F7FAF8] dark:bg-[#0B140F] border-[#B9DCC8] dark:border-[#31533D]" : "bg-muted/10 border-border/20 opacity-60"}`}>
+              <label className="flex items-center gap-2 cursor-pointer mb-3 text-xs font-black text-[#146B3E] dark:text-[#72C08A]">
+                <input type="checkbox" checked={updateHealth} onChange={e => setUpdateHealth(e.target.checked)} className="h-4 w-4 accent-[#146B3E] dark:accent-[#72C08A] rounded" />
+                <span>สุขภาพต้น</span>
+              </label>
+              <div className="flex gap-2">
+                {(["good", "fair", "poor"] as Tree["health"][]).map(h => (
+                  <button key={h} type="button" disabled={!updateHealth} onClick={() => setHealth(h)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-colors disabled:opacity-50 ${health === h && updateHealth ? "bg-primary text-primary-foreground border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A] shadow-md shadow-primary/10 dark:shadow-[#72C08A]/10" : "border-[#B9DCC8] dark:border-[#31533D] text-[#527060] dark:text-[#B8D1C0] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]"}`}>
+                    {HEALTH_LABELS[h]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Variety */}
+            <div className={`rounded-2xl p-4 border transition-colors ${updateVariety ? "bg-[#F7FAF8] dark:bg-[#0B140F] border-[#B9DCC8] dark:border-[#31533D]" : "bg-muted/10 border-border/20 opacity-60"}`}>
+              <label className="flex items-center gap-2 cursor-pointer mb-3 text-xs font-black text-[#146B3E] dark:text-[#72C08A]">
+                <input type="checkbox" checked={updateVariety} onChange={e => setUpdateVariety(e.target.checked)} className="h-4 w-4 accent-[#146B3E] dark:accent-[#72C08A] rounded" />
+                <span>พันธุ์</span>
+              </label>
+              <select value={variety} onChange={e => setVariety(e.target.value as DurianVariety)} disabled={!updateVariety}
+                className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400 disabled:opacity-50">
+                {VARIETIES.map(v => <option key={v} value={v}>{v}</option>)}
+              </select>
+            </div>
+            {/* Notes */}
+            <div className={`rounded-2xl p-4 border transition-colors ${updateNotes ? "bg-[#F7FAF8] dark:bg-[#0B140F] border-[#B9DCC8] dark:border-[#31533D]" : "bg-muted/10 border-border/20 opacity-60"}`}>
+              <label className="flex items-center gap-2 cursor-pointer mb-3 text-xs font-black text-[#146B3E] dark:text-[#72C08A]">
+                <input type="checkbox" checked={updateNotes} onChange={e => setUpdateNotes(e.target.checked)} className="h-4 w-4 accent-[#146B3E] dark:accent-[#72C08A] rounded" />
+                <span>หมายเหตุ</span>
+              </label>
+              <textarea value={notes} onChange={e => setNotes(e.target.value)} disabled={!updateNotes} rows={2}
+                className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2 text-xs font-bold text-foreground resize-none focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400 disabled:opacity-50"
+                placeholder="บันทึกเพิ่มเติม..." />
+            </div>
+            {/* Batch */}
+            <div className={`rounded-2xl p-4 border transition-colors ${addBatchToo ? "bg-[#E7F3EC]/40 dark:bg-[#1D3A29]/20 border-[#B9DCC8] dark:border-[#31533D]" : "bg-muted/10 border-border/20 opacity-60"}`}>
+              <label className="flex items-center gap-2 cursor-pointer mb-3 text-xs font-black text-[#146B3E] dark:text-[#72C08A]">
+                <input type="checkbox" checked={addBatchToo} onChange={e => setAddBatchToo(e.target.checked)} className="h-4 w-4 accent-[#146B3E] dark:accent-[#72C08A] rounded" />
+                <span>บันทึกรุ่นดอก/ผลด้วย</span>
+              </label>
+              {addBatchToo && (
+                <div className="space-y-2">
+                  <input value={batchName} onChange={e => setBatchName(e.target.value)}
+                    className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+                    placeholder="ชื่อรุ่น เช่น รุ่นที่ 1" />
+                  <input type="date" value={batchDate} onChange={e => setBatchDate(e.target.value)}
+                    className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400" />
+                  <input value={batchNote} onChange={e => setBatchNote(e.target.value)}
+                    className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+                    placeholder="บันทึกเพิ่มเติม (ไม่บังคับ)" />
+                  <p className="text-[10px] text-muted-foreground font-semibold">ระยะจะใช้ค่าเดียวกับ &quot;ระยะดอก/ผล&quot; ด้านบน</p>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-3 mt-6">
+            <button onClick={onClose} type="button" className="flex-1 border border-[#B9DCC8] dark:border-[#31533D] rounded-xl py-2.5 text-xs text-[#527060] dark:text-[#B8D1C0] font-black hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]/50 transition-all active:scale-[0.98]">ยกเลิก</button>
+            <button onClick={handleUpdate} type="button" disabled={!updateStage && !updateHealth && !updateVariety && !updateNotes && !addBatchToo}
+              className="flex-2 bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] rounded-xl py-2.5 text-xs font-black hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] transition-all active:scale-[0.98] shadow-md shadow-primary/10 dark:shadow-[#72C08A]/10 flex items-center justify-center gap-2 disabled:opacity-40">
+              <Check size={14} strokeWidth={3} />อัปเดต {count} ต้น
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Portal>
   )
 }
 
@@ -219,53 +222,55 @@ function BulkUpdateModal({ plot, onClose, onUpdate }: {
   useEscapeToClose({ enabled: true, onEscape: onClose, containerRef })
 
   return (
-    <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
-      <div className="bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-6 w-full max-w-[95%] sm:max-w-md shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]/40 flex items-center justify-center">
-              <RefreshCw size={20} className="text-[#146B3E] dark:text-[#72C08A]" />
+    <Portal>
+      <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
+        <div className="bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-6 w-full max-w-[95%] sm:max-w-md shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]/40 flex items-center justify-center">
+                <RefreshCw size={20} className="text-[#146B3E] dark:text-[#72C08A]" />
+              </div>
+              <div>
+                <h3 className="font-black text-sm text-foreground leading-tight">อัปเดตทั้งแปลง</h3>
+                <p className="text-xs text-muted-foreground font-black uppercase tracking-wider">{plot.name} • {plot.trees.length} ต้น</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-black text-sm text-foreground leading-tight">อัปเดตทั้งแปลง</h3>
-              <p className="text-xs text-muted-foreground font-black uppercase tracking-wider">{plot.name} • {plot.trees.length} ต้น</p>
+            <button onClick={onClose} type="button" className="p-2 hover:bg-muted dark:hover:bg-[#1D3A29] rounded-full transition-colors"><X size={16} className="text-muted-foreground" /></button>
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-2xl p-4">
+              <label className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-2 block">เลือกระยะที่ต้องการเปลี่ยน</label>
+              <select
+                value={stage}
+                onChange={e => setStage(e.target.value as FlowerStage)}
+                className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+              >
+                {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
+              </select>
+            </div>
+
+            <div className="bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100/50 dark:border-amber-900/30 rounded-2xl p-4 flex gap-3">
+              <div className="shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-amber-950/50 flex items-center justify-center text-amber-700 dark:text-amber-400 font-bold text-sm">!</div>
+              <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed font-semibold">
+                การอัปเดตนี้จะเปลี่ยนระยะของทุเรียน <strong>ทุกต้น</strong> ในแปลงนี้ให้เป็นระยะเดียวกัน
+              </p>
             </div>
           </div>
-          <button onClick={onClose} type="button" className="p-2 hover:bg-muted dark:hover:bg-[#1D3A29] rounded-full transition-colors"><X size={16} className="text-muted-foreground" /></button>
-        </div>
 
-        <div className="space-y-4">
-          <div className="bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-2xl p-4">
-            <label className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-2 block">เลือกระยะที่ต้องการเปลี่ยน</label>
-            <select
-              value={stage}
-              onChange={e => setStage(e.target.value as FlowerStage)}
-              className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+          <div className="flex gap-3 mt-8">
+            <button onClick={onClose} type="button" className="flex-1 border border-[#B9DCC8] dark:border-[#31533D] rounded-xl py-2.5 text-xs text-[#527060] dark:text-[#B8D1C0] font-black hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]/50 transition-all active:scale-[0.98]">ยกเลิก</button>
+            <button
+              onClick={() => { onUpdate(stage); onClose() }}
+              type="button"
+              className="flex-2 bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] rounded-xl py-2.5 text-xs font-black hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] transition-all active:scale-[0.98] shadow-md shadow-primary/10 dark:shadow-[#72C08A]/10 flex items-center justify-center gap-2"
             >
-              {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
-            </select>
+              <Check size={14} strokeWidth={3} />อัปเดตเลย
+            </button>
           </div>
-
-          <div className="bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100/50 dark:border-amber-900/30 rounded-2xl p-4 flex gap-3">
-            <div className="shrink-0 w-8 h-8 rounded-full bg-amber-200 dark:bg-amber-950/50 flex items-center justify-center text-amber-700 dark:text-amber-400 font-bold text-sm">!</div>
-            <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed font-semibold">
-              การอัปเดตนี้นี้จะเปลี่ยนระยะของทุเรียน **ทุกต้น** ในแปลงนี้ให้เป็นระยะเดียวกัน
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-3 mt-8">
-          <button onClick={onClose} type="button" className="flex-1 border border-[#B9DCC8] dark:border-[#31533D] rounded-xl py-2.5 text-xs text-[#527060] dark:text-[#B8D1C0] font-black hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]/50 transition-all active:scale-[0.98]">ยกเลิก</button>
-          <button
-            onClick={() => { onUpdate(stage); onClose() }}
-            type="button"
-            className="flex-2 bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] rounded-xl py-2.5 text-xs font-black hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] transition-all active:scale-[0.98] shadow-md shadow-primary/10 dark:shadow-[#72C08A]/10 flex items-center justify-center gap-2"
-          >
-            <Check size={14} strokeWidth={3} />อัปเดตเลย
-          </button>
         </div>
       </div>
-    </div>
+    </Portal>
   )
 }
 
@@ -276,17 +281,19 @@ function QRModal({ tree, plot, onClose }: { tree: Tree; plot: Plot; onClose: () 
   useEscapeToClose({ enabled: true, onEscape: onClose, containerRef })
 
   return (
-    <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-card border border-border dark:border-[#31533D]/60 rounded-3xl p-6 w-full max-w-xs text-center shadow-2xl orchard-card" onClick={e => e.stopPropagation()}>
-        <h3 className="font-black text-base text-foreground mb-1">QR Code ต้นทุเรียน</h3>
-        <p className="text-muted-foreground text-xs font-bold mb-4">{plot.name} · {tree.treeNumber}</p>
-        <div className="bg-white p-4 rounded-2xl inline-block mb-4 border border-[#B9DCC8] dark:border-[#31533D]/60 shadow-inner">
-          <QRCodeSVG value={qrData} size={180} />
+    <Portal>
+      <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4" onClick={onClose}>
+        <div className="bg-card border border-border dark:border-[#31533D]/60 rounded-3xl p-6 w-full max-w-xs text-center shadow-2xl orchard-card" onClick={e => e.stopPropagation()}>
+          <h3 className="font-black text-base text-foreground mb-1">QR Code ต้นทุเรียน</h3>
+          <p className="text-muted-foreground text-xs font-bold mb-4">{plot.name} · {tree.treeNumber}</p>
+          <div className="bg-white p-4 rounded-2xl inline-block mb-4 border border-[#B9DCC8] dark:border-[#31533D]/60 shadow-inner">
+            <QRCodeSVG value={qrData} size={180} />
+          </div>
+          <p className="text-xs text-muted-foreground font-black">{tree.variety} · อายุทุเรียน {tree.age} ปี</p>
+          <button onClick={onClose} type="button" className="mt-5 w-full border border-[#B9DCC8] dark:border-[#31533D] rounded-xl py-2.5 text-xs text-muted-foreground dark:text-[#B8D1C0] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]/50 hover:text-foreground font-black transition-all">ปิด</button>
         </div>
-        <p className="text-xs text-muted-foreground font-black">{tree.variety} · อายุ {tree.age} ปี</p>
-        <button onClick={onClose} type="button" className="mt-5 w-full border border-[#B9DCC8] dark:border-[#31533D] rounded-xl py-2.5 text-xs text-muted-foreground dark:text-[#B8D1C0] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]/50 hover:text-foreground font-black transition-all">ปิด</button>
       </div>
-    </div>
+    </Portal>
   )
 }
 
@@ -296,7 +303,7 @@ function AllQRModal({ plot, onClose }: { plot: Plot; onClose: () => void }) {
   useEscapeToClose({ enabled: true, onEscape: onClose, containerRef })
 
   return (
-    <>
+    <Portal>
       <style>{`
         @media print {
           body * {
@@ -371,7 +378,7 @@ function AllQRModal({ plot, onClose }: { plot: Plot; onClose: () => void }) {
           </div>
         </div>
       </div>
-    </>
+    </Portal>
   )
 }
 
@@ -1001,9 +1008,31 @@ function PlotDetailView({
   const goodCount = plot.trees.filter(t => t.health === "good").length
   const fairCount = plot.trees.filter(t => t.health === "fair").length
   const poorCount = plot.trees.filter(t => t.health === "poor").length
+  const total = plot.trees.length
+
+  // Growth stage progression: vegetative → (any flower stage) → bloom → harvest
+  const STAGE_PROGRESS: Record<string, number> = {
+    vegetative: 0, dormant: 0,
+    egg_fish: 1, nail: 1, mouse_foot: 1, eggplant: 1,
+    bracelet: 2, white_flower: 2, bloom: 2, rat_tail: 2,
+    chicken_egg: 3, expanding: 3, harvest: 4,
+  }
+  const STAGE_ICONS = ["🌿", "🌸", "🌼", "🍑", "🎯"]
+  const STAGE_NAMES = ["ใบ", "ดอก", "บาน", "ผล", "เก็บ"]
+
+  const HEALTH_GLOW: Record<string, string> = {
+    good: "shadow-[0_0_14px_3px_rgba(16,185,129,0.45)]",
+    fair: "shadow-[0_0_14px_3px_rgba(245,158,11,0.45)]",
+    poor: "shadow-[0_0_14px_3px_rgba(239,68,68,0.45)]",
+  }
+  const HEALTH_DOT: Record<string, string> = {
+    good: "bg-emerald-500",
+    fair: "bg-amber-400",
+    poor: "bg-rose-500",
+  }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {showBulk && <BulkUpdateModal plot={plot} onClose={() => setShowBulk(false)} onUpdate={s => bulkUpdateTrees(plot.id, s)} />}
       {qrTree && <QRModal tree={qrTree} plot={plot} onClose={() => setQrTree(null)} />}
       {showAllQR && <AllQRModal plot={plot} onClose={() => setShowAllQR(false)} />}
@@ -1036,122 +1065,124 @@ function PlotDetailView({
         />
       )}
 
-      {/* Plot Header */}
-      <div className="pb-4 border-b border-border space-y-3">
-        {/* Row 1: back + title + edit/delete */}
-        <div className="flex items-start gap-2">
-          <button onClick={onBack} className="p-2 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors mt-0.5 lg:hidden shrink-0">
+      {/* ── Plot Header ── */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0d5c34] via-[#146B3E] to-[#1a7a48] dark:from-[#0B1B12] dark:via-[#14291E] dark:to-[#1D3A29] p-5 text-white shadow-xl">
+        {/* decorative blob */}
+        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/5 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-6 left-12 h-28 w-28 rounded-full bg-emerald-400/10 blur-xl" />
+
+        <div className="relative flex items-start gap-3">
+          <button onClick={onBack} className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors mt-0.5 lg:hidden shrink-0">
             <ArrowLeft size={18} />
           </button>
+
           {editingPlot ? (
             <div className="flex-1 space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input value={plotForm.name} onChange={e => setPlotForm(f => ({ ...f, name: e.target.value }))} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground font-bold focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="ชื่อแปลง" />
+                <input value={plotForm.name} onChange={e => setPlotForm(f => ({ ...f, name: e.target.value }))} className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white font-bold placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm" placeholder="ชื่อแปลง" />
                 <input
                   type="text"
                   value={plotForm.area}
                   onChange={e => {
                     let val = e.target.value.replace(/[^0-9.]/g, "")
                     const parts = val.split(".")
-                    if (parts.length > 2) {
-                      val = parts[0] + "." + parts.slice(1).join("")
-                    }
+                    if (parts.length > 2) { val = parts[0] + "." + parts.slice(1).join("") }
                     setPlotForm(f => ({ ...f, area: val }))
                   }}
-                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white font-bold placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm"
                   placeholder="พื้นที่ (ไร่)"
                 />
               </div>
-              <input value={plotForm.notes} onChange={e => setPlotForm(f => ({ ...f, notes: e.target.value }))} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="บันทึกเพิ่มเติม" />
+              <input value={plotForm.notes} onChange={e => setPlotForm(f => ({ ...f, notes: e.target.value }))} className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm" placeholder="บันทึกเพิ่มเติม" />
               <div className="flex gap-2">
-                <button onClick={() => setEditingPlot(false)} className="flex-1 border border-border rounded-xl py-2.5 text-muted-foreground font-bold hover:bg-muted/50">ยกเลิก</button>
-                <button onClick={handleSavePlot} className="flex-1 bg-primary text-primary-foreground rounded-xl py-2.5 font-bold hover:opacity-90">บันทึก</button>
+                <button onClick={() => setEditingPlot(false)} className="flex-1 border border-white/30 rounded-xl py-2 text-white/80 font-bold hover:bg-white/10 text-sm transition-all">ยกเลิก</button>
+                <button onClick={handleSavePlot} className="flex-1 bg-white text-[#146B3E] rounded-xl py-2 font-black hover:bg-white/90 text-sm transition-all">บันทึก</button>
               </div>
             </div>
           ) : (
             <>
               <div className="min-w-0 flex-1">
-                <h2 className="text-xl font-black text-foreground">{plot.name}</h2>
-                <p className="text-sm text-muted-foreground font-medium mt-0.5 leading-relaxed">{plot.area} ไร่{plot.notes ? ` · ${plot.notes}` : ""}</p>
+                <h2 className="text-xl font-black text-white leading-tight">{plot.name}</h2>
+                <p className="text-sm text-white/60 font-medium mt-0.5">{plot.area} ไร่{plot.notes ? ` · ${plot.notes}` : ""}</p>
               </div>
-              <button onClick={() => { setPlotForm({ name: plot.name, area: String(plot.area), notes: plot.notes ?? "" }); setEditingPlot(true) }} className="p-2.5 bg-muted text-primary rounded-2xl hover:bg-primary/10 transition-colors shrink-0">
-                <Pencil size={18} />
+              <div className="flex gap-2 shrink-0">
+                <button onClick={() => { setPlotForm({ name: plot.name, area: String(plot.area), notes: plot.notes ?? "" }); setEditingPlot(true) }} className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors">
+                  <Pencil size={16} />
+                </button>
+                <button onClick={() => { if (confirm(`ลบแปลง ${plot.name}? ต้นทุเรียนในแปลงนี้จะถูกลบด้วย`)) deletePlot(plot.id) }} className="p-2 rounded-xl bg-red-500/20 text-red-200 hover:bg-red-500/30 transition-colors">
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Bento stat chips */}
+        {!editingPlot && (
+          <div className="relative mt-4 grid grid-cols-3 gap-2">
+            <div className="rounded-2xl bg-white/10 backdrop-blur-sm p-3 text-center border border-white/10">
+              <p className="text-2xl font-black text-white leading-none">{total}</p>
+              <p className="text-[10px] text-white/60 font-bold mt-1 uppercase tracking-wider">ต้นทั้งหมด</p>
+            </div>
+            <div className="rounded-2xl bg-emerald-500/20 backdrop-blur-sm p-3 text-center border border-emerald-300/20">
+              <p className="text-2xl font-black text-emerald-200 leading-none">{goodCount}</p>
+              <p className="text-[10px] text-emerald-300/80 font-bold mt-1 uppercase tracking-wider">สุขภาพดี</p>
+            </div>
+            <div className="rounded-2xl bg-amber-500/20 backdrop-blur-sm p-3 text-center border border-amber-300/20">
+              <p className="text-2xl font-black text-amber-200 leading-none">{fairCount + poorCount}</p>
+              <p className="text-[10px] text-amber-300/80 font-bold mt-1 uppercase tracking-wider">ต้องดูแล</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Action Toolbar ── */}
+      {!editingPlot && (
+        <div className="flex flex-wrap gap-2">
+          {selectMode ? (
+            <>
+              <button onClick={toggleSelectAll} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-white dark:bg-[#14291E] border-2 border-[#146B3E] dark:border-[#72C08A] text-[#146B3E] dark:text-[#72C08A] rounded-2xl text-xs font-black hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-all">
+                {selectedIds.size === plot.trees.length ? "ยกเลิกทั้งหมด" : `เลือกทั้งหมด (${plot.trees.length})`}
               </button>
-              <button onClick={() => { if (confirm(`ลบแปลง ${plot.name}? ต้นทุเรียนในแปลงนี้จะถูกลบด้วย`)) deletePlot(plot.id) }} className="p-2.5 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition-colors shrink-0">
-                <Trash2 size={18} />
+              <button onClick={() => selectedIds.size > 0 && setShowSelectionUpdate(true)} disabled={selectedIds.size === 0} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-[#146B3E] dark:bg-[#72C08A] text-white dark:text-[#0B1B12] rounded-2xl text-xs font-black hover:bg-[#0F5A34] transition-all shadow-lg active:scale-95 disabled:opacity-40">
+                <RefreshCw size={14} strokeWidth={2.8} />{selectedIds.size > 0 ? `อัปเดต ${selectedIds.size} ต้น` : "อัปเดตที่เลือก"}
+              </button>
+              <button onClick={exitSelectMode} className="p-2.5 bg-muted text-muted-foreground rounded-2xl hover:bg-muted/80 transition-colors shrink-0"><X size={16} /></button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => setSelectMode(true)} className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white dark:bg-[#14291E] border border-[#B9DCC8] dark:border-[#31533D] text-[#146B3E] dark:text-[#72C08A] rounded-2xl text-xs font-black hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-all">
+                <Check size={13} strokeWidth={3} />เลือกต้น
+              </button>
+              <button onClick={() => setShowBulk(true)} className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#146B3E] dark:bg-[#72C08A] text-white dark:text-[#0B1B12] rounded-2xl text-xs font-black hover:bg-[#0F5A34] transition-all shadow-lg active:scale-95">
+                <RefreshCw size={13} strokeWidth={2.8} />อัปเดตทั้งแปลง
+              </button>
+              <button onClick={() => setAddingTree(true)} type="button" className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#E7F3EC] dark:bg-[#72C08A]/10 text-[#146B3E] dark:text-[#72C08A] rounded-2xl text-xs font-black hover:bg-[#D8EEE2] transition-all border border-[#146B3E]/20 dark:border-[#72C08A]/20">
+                <Plus size={13} strokeWidth={2.5} />เพิ่มต้น
+              </button>
+              <button onClick={() => setShowAllQR(true)} type="button" className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white dark:bg-[#14291E] text-foreground rounded-2xl border border-[#B9DCC8] dark:border-[#31533D] hover:bg-[#E7F3EC]/50 dark:hover:bg-[#1D3A29]/50 transition-colors shrink-0">
+                <QrCode size={14} className="text-[#146B3E] dark:text-[#72C08A]" />
               </button>
             </>
           )}
         </div>
-        {/* Row 2: action buttons (only when not editing) */}
-        {!editingPlot && (
-          <div className="flex flex-wrap gap-2 min-[430px]:flex-nowrap">
-            {selectMode ? (
-              <>
-                <button onClick={toggleSelectAll} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border-2 border-[#146B3E] text-[#146B3E] rounded-2xl text-sm font-black hover:bg-[#E7F3EC] transition-all">
-                  {selectedIds.size === plot.trees.length ? "ยกเลิกทั้งหมด" : `เลือกทั้งหมด (${plot.trees.length})`}
-                </button>
-                <button onClick={() => selectedIds.size > 0 && setShowSelectionUpdate(true)} disabled={selectedIds.size === 0} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-[#146B3E] text-white rounded-2xl text-sm font-black hover:bg-[#0F5A34] transition-all shadow-[0_8px_18px_rgba(47,170,98,0.28)] active:scale-95 disabled:opacity-40">
-                  <RefreshCw size={16} strokeWidth={2.8} />{selectedIds.size > 0 ? `อัปเดต ${selectedIds.size} ต้น` : "อัปเดตที่เลือก"}
-                </button>
-                <button onClick={exitSelectMode} className="p-2.5 bg-muted text-muted-foreground rounded-2xl hover:bg-muted/80 transition-colors shrink-0"><X size={18} /></button>
-              </>
-            ) : (
-              <>
-                <button onClick={() => setSelectMode(true)} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-[#146B3E]/40 text-[#146B3E] rounded-2xl text-sm font-black hover:bg-[#E7F3EC] transition-all">
-                  <Check size={15} strokeWidth={3} />เลือกต้น
-                </button>
-                <button onClick={() => setShowBulk(true)} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-[#146B3E] text-white rounded-2xl text-sm font-black hover:bg-[#0F5A34] transition-all shadow-[0_8px_18px_rgba(47,170,98,0.28)] active:scale-95">
-                  <RefreshCw size={16} strokeWidth={2.8} />อัปเดตทั้งแปลง
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+      )}
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="bg-white/50 dark:bg-[#14291E]/30 rounded-2xl p-3 text-center border border-[#B9DCC8]/40 dark:border-[#31533D]/40 shadow-sm">
-          <p className="text-lg sm:text-xl font-black text-foreground leading-none">{plot.trees.length}</p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground font-black mt-1 leading-tight uppercase tracking-wider">ต้นทั้งหมด</p>
+      {/* ── Add Tree Form ── */}
+      {addingTree && (
+        <div className="bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-5 shadow-md animate-in fade-in slide-in-from-top-2 duration-200">
+          <p className="text-sm font-black text-foreground mb-3">เพิ่มต้นทุเรียน</p>
+          <TreeForm plotId={plot.id} existingTrees={plot.trees} onSave={d => { addTree(plot.id, d); setAddingTree(false) }} onSaveMany={items => { items.forEach(item => addTree(plot.id, item)); setAddingTree(false) }} onCancel={() => setAddingTree(false)} />
         </div>
-        <div className="bg-emerald-50/60 dark:bg-emerald-950/20 rounded-2xl p-3 text-center border border-emerald-100/50 dark:border-emerald-900/20 shadow-sm">
-          <p className="text-lg sm:text-xl font-black text-emerald-700 dark:text-[#72C08A] leading-none">{goodCount}</p>
-          <p className="text-[10px] sm:text-xs text-emerald-600 dark:text-[#72C08A]/80 font-black mt-1 leading-tight uppercase tracking-wider">สุขภาพดี</p>
-        </div>
-        <div className="bg-amber-50/60 dark:bg-amber-950/20 rounded-2xl p-3 text-center border border-amber-100/50 dark:border-[#31533D]/20 shadow-sm">
-          <p className="text-lg sm:text-xl font-black text-amber-700 dark:text-amber-400 leading-none">{fairCount + poorCount}</p>
-          <p className="text-[10px] sm:text-xs text-amber-600 dark:text-amber-400/80 font-black mt-1 leading-tight uppercase tracking-wider">ต้องดูแล</p>
-        </div>
-      </div>
+      )}
 
-      {/* Add Tree Button */}
-      <div className="mb-2 flex gap-2 sm:px-2">
-        {addingTree ? (
-          <div className="w-full bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-5 shadow-md">
-            <p className="text-sm font-black text-foreground mb-3">เพิ่มต้นทุเรียน</p>
-            <TreeForm plotId={plot.id} existingTrees={plot.trees} onSave={d => { addTree(plot.id, d); setAddingTree(false) }} onSaveMany={items => { items.forEach(item => addTree(plot.id, item)); setAddingTree(false) }} onCancel={() => setAddingTree(false)} />
-          </div>
-        ) : (
-          <>
-            <button onClick={() => setAddingTree(true)} type="button" className="flex-1 bg-[#E7F3EC] dark:bg-[#72C08A]/10 text-[#146B3E] dark:text-[#72C08A] font-black rounded-2xl px-4 py-3 flex items-center justify-center gap-2 text-xs sm:text-sm hover:bg-[#D8EEE2] dark:hover:bg-[#72C08A]/20 transition-all border border-[#146B3E]/20 dark:border-[#72C08A]/20 shadow-sm">
-              <Plus size={18} strokeWidth={2.5} /> เพิ่มต้นทุเรียน
-            </button>
-            <button onClick={() => setShowAllQR(true)} type="button" className="min-w-20 px-3 sm:px-5 bg-white dark:bg-[#14291E] text-foreground rounded-2xl flex flex-col items-center justify-center border border-[#B9DCC8] dark:border-[#31533D] shadow-sm hover:bg-[#E7F3EC]/50 dark:hover:bg-[#1D3A29]/50 transition-colors">
-              <QrCode size={18} className="mb-0.5 text-[#146B3E] dark:text-[#72C08A]" />
-              <span className="text-[10px] font-black leading-none">พิมพ์ QR</span>
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* Tree list */}
+      {/* ── Tree Grid ── */}
       <div className="grid grid-cols-2 gap-2 sm:gap-3">
         {plot.trees.length === 0 ? (
-          <div className="col-span-2 bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-6 text-center shadow-sm">
-            <DurianIcon className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+          <div className="col-span-2 rounded-3xl p-10 text-center border-2 border-dashed border-[#B9DCC8]/60 dark:border-[#31533D]/40">
+            <DurianIcon className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
             <p className="text-sm font-bold text-muted-foreground">ยังไม่มีต้นทุเรียนในแปลงนี้</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">กดปุ่ม &quot;เพิ่มต้น&quot; เพื่อเริ่มต้น</p>
           </div>
         ) : plot.trees.map(tree => (
           <div key={tree.id} className={editingTree === tree.id ? "col-span-2" : ""}>
@@ -1163,37 +1194,80 @@ function PlotDetailView({
             ) : (
               <div
                 onClick={() => selectMode ? toggleSelectTree(tree.id) : setSelectedTreeId(tree.id)}
-                className={`p-3 flex flex-col gap-2 group cursor-pointer transition-all h-full relative orchard-card rounded-2xl ${selectMode && selectedIds.has(tree.id) ? "border-[#146B3E] dark:border-[#72C08A] border-2 bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/20 shadow-md" : "orchard-card-hover"}`}
+                className={`relative flex flex-col gap-2.5 p-3 sm:p-4 cursor-pointer transition-all duration-200 h-full group rounded-2xl border ${
+                  selectMode && selectedIds.has(tree.id)
+                    ? "border-[#146B3E] dark:border-[#72C08A] border-2 bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/20 shadow-md"
+                    : `bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm border-[#B9DCC8]/50 dark:border-[#31533D]/40 hover:border-[#146B3E]/40 dark:hover:border-[#72C08A]/40 hover:-translate-y-0.5 ${HEALTH_GLOW[tree.health]}`
+                }`}
               >
+                {/* LED health pulse dot */}
+                {!selectMode && (
+                  <span className={`absolute top-2.5 right-2.5 w-2 h-2 rounded-full ${HEALTH_DOT[tree.health]} animate-pulse`} />
+                )}
+
+                {/* Top row: checkbox/icon + actions */}
                 <div className="flex items-start justify-between">
                   {selectMode ? (
-                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0 border-2 transition-colors ${selectedIds.has(tree.id) ? "bg-[#146B3E] border-[#146B3E] dark:bg-[#72C08A] dark:border-[#72C08A]" : "bg-white border-[#B9DCC8] dark:bg-[#0B140F] dark:border-[#31533D]"}`}>
-                      {selectedIds.has(tree.id) && <Check size={16} className="text-white dark:text-[#0B1B12]" strokeWidth={3} />}
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border-2 transition-colors ${selectedIds.has(tree.id) ? "bg-[#146B3E] border-[#146B3E] dark:bg-[#72C08A] dark:border-[#72C08A]" : "bg-white border-[#B9DCC8] dark:bg-[#0B140F] dark:border-[#31533D]"}`}>
+                      {selectedIds.has(tree.id) && <Check size={13} className="text-white dark:text-[#0B1B12]" strokeWidth={3} />}
                     </div>
                   ) : (
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#E7F3EC] dark:bg-[#1D3A29]/40 flex items-center justify-center shrink-0">
-                      <DurianIcon className="h-4 w-4 text-[#146B3E] dark:text-[#72C08A]" />
+                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                      tree.health === "good" ? "bg-emerald-50 dark:bg-emerald-900/20" : tree.health === "fair" ? "bg-amber-50 dark:bg-amber-900/20" : "bg-rose-50 dark:bg-rose-900/20"
+                    }`}>
+                      <DurianIcon className={`h-4 w-4 ${tree.health === "good" ? "text-emerald-600 dark:text-emerald-400" : tree.health === "fair" ? "text-amber-500 dark:text-amber-400" : "text-rose-500 dark:text-rose-400"}`} />
                     </div>
                   )}
+
                   {!selectMode && (
-                    <div className="flex gap-0.5 sm:gap-1" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => setQrTree(tree)} className="p-1.5 text-[#527060] dark:text-[#B8D1C0] hover:text-[#146B3E] dark:hover:text-[#72C08A] rounded-md hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-colors" title="QR Code"><QrCode size={14} /></button>
-                      <button onClick={() => setEditingTree(tree.id)} className="p-1.5 text-[#527060] dark:text-[#B8D1C0] hover:text-[#146B3E] dark:hover:text-[#72C08A] rounded-md hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-colors" title="แก้ไข"><Pencil size={14} /></button>
-                      <button onClick={() => { if (confirm(`ลบต้น ${tree.treeNumber}?`)) deleteTree(plot.id, tree.id) }} className="p-1.5 text-muted-foreground hover:text-destructive dark:hover:text-red-400 rounded-md hover:bg-muted dark:hover:bg-red-950/20 transition-colors" title="ลบ"><Trash2 size={14} /></button>
+                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => setQrTree(tree)} className="p-1.5 text-muted-foreground hover:text-[#146B3E] dark:hover:text-[#72C08A] rounded-lg hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-colors"><QrCode size={12} /></button>
+                      <button onClick={() => setEditingTree(tree.id)} className="p-1.5 text-muted-foreground hover:text-[#146B3E] dark:hover:text-[#72C08A] rounded-lg hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-colors"><Pencil size={12} /></button>
+                      <button onClick={() => { if (confirm(`ลบต้น ${tree.treeNumber}?`)) deleteTree(plot.id, tree.id) }} className="p-1.5 text-muted-foreground hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"><Trash2 size={12} /></button>
                     </div>
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col gap-0.5 mb-2">
-                    <span className="font-bold text-foreground text-sm sm:text-base leading-tight truncate">{tree.treeNumber}</span>
-                    <span className="text-[10px] sm:text-xs text-muted-foreground leading-tight truncate">{tree.variety} · {tree.age} ปี</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1 items-center">
-                    <span className={`text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full font-black leading-tight ${STAGE_BADGE[tree.stage] || "bg-muted text-muted-foreground"}`}>{FLOWER_STAGE_LABELS[tree.stage]}</span>
-                    <span className={`text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full font-black leading-tight ${HEALTH_BG[tree.health]}`}>{HEALTH_LABELS[tree.health]}</span>
-                  </div>
-                  {tree.notes && <p className="text-[10px] sm:text-xs text-muted-foreground mt-2 italic line-clamp-2">{tree.notes}</p>}
+
+                {/* Tree info */}
+                <div className="min-w-0">
+                  <p className="font-black text-foreground text-sm leading-tight truncate">{tree.treeNumber}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{tree.variety} · อายุทุเรียน {tree.age} ปี</p>
                 </div>
+
+                {/* Health + Stage badges */}
+                <div className="flex flex-wrap gap-1">
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${
+                    tree.health === "good" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                    tree.health === "fair" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
+                    "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
+                  }`}>{HEALTH_LABELS[tree.health]}</span>
+                  {tree.stage !== "vegetative" && tree.stage !== "dormant" && (
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${STAGE_BADGE[tree.stage] || "bg-muted text-muted-foreground"}`}>
+                      {FLOWER_STAGE_LABELS[tree.stage]}
+                    </span>
+                  )}
+                </div>
+
+                {/* Growth stage progress timeline */}
+                <div className="mt-1">
+                  <div className="flex items-center justify-between gap-0.5">
+                    {STAGE_NAMES.map((label, idx) => {
+                      const currentProgress = STAGE_PROGRESS[tree.stage] ?? 0
+                      const isActive = idx === currentProgress
+                      const isPast = idx < currentProgress
+                      return (
+                        <div key={idx} className="flex flex-1 flex-col items-center gap-0.5">
+                          <div className={`h-1 w-full rounded-full transition-all duration-500 ${isPast ? "bg-[#146B3E] dark:bg-[#72C08A]" : isActive ? "bg-[#146B3E]/60 dark:bg-[#72C08A]/60" : "bg-[#B9DCC8]/40 dark:bg-[#31533D]/30"}`} />
+                          <span className={`text-[8px] font-bold leading-none ${isActive ? "text-[#146B3E] dark:text-[#72C08A]" : isPast ? "text-[#146B3E]/70 dark:text-[#72C08A]/70" : "text-muted-foreground/40"}`}>
+                            {STAGE_ICONS[idx]}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {tree.notes && <p className="text-[9px] sm:text-[10px] text-muted-foreground italic line-clamp-1">{tree.notes}</p>}
               </div>
             )}
           </div>

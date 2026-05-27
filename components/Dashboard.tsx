@@ -13,6 +13,8 @@ import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
 import { TaskCard } from "./TaskPlanner"
 import DurianIcon from "./DurianIcon"
 import { Skeleton } from "./ui/skeleton"
+import SparklesText from "./magicui/sparkles-text"
+import BorderBeam from "./magicui/border-beam"
 
 interface Props {
   data: AppData
@@ -359,7 +361,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
           <p className="mb-1 max-w-full text-sm font-semibold leading-tight text-[#E7F3EC] break-words">{new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long" })}</p>
           <div className="flex items-center gap-2 mb-3">
             <h1 className="text-white text-xl sm:text-2xl lg:text-3xl font-black drop-shadow-lg leading-tight">
-              สวัสดีคุณ{userName?.trim() || "ชาวสวน"}
+              สวัสดีคุณ<SparklesText text={userName?.trim() || "ชาวสวน"} className="p-0 text-white font-black inline-block" sparklesCount={3} />
             </h1>
             <button
               onClick={() => setShowLocationEditor(true)}
@@ -369,7 +371,8 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
               <MapPin size={16} className="text-white/80" />
             </button>
           </div>
-          <div className="w-full max-w-[29rem] rounded-2xl bg-white/16 p-3 text-white shadow-lg ring-1 ring-white/20 backdrop-blur-md sm:p-4">
+          <div className="w-full max-w-[29rem] rounded-2xl bg-white/16 p-3 text-white shadow-lg ring-1 ring-white/20 backdrop-blur-md sm:p-4 relative overflow-hidden">
+            <BorderBeam duration={10} size={120} colorFrom="#10B981" colorTo="#F59E0B" />
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/18 ring-1 ring-white/18">

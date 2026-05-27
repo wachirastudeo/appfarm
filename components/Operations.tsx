@@ -14,9 +14,10 @@ interface Props {
   addActivity: AppDataReturn["addActivity"]
   deleteActivity: AppDataReturn["deleteActivity"]
   updateActivity: AppDataReturn["updateActivity"]
+  onNavigate?: (tab: "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin") => void
 }
 
-export default function Operations({ data, addTask, updateTask, deleteTask, addActivity, deleteActivity, updateActivity }: Props) {
+export default function Operations({ data, addTask, updateTask, deleteTask, addActivity, deleteActivity, updateActivity, onNavigate }: Props) {
   const [activeTab, setActiveTab] = useState<"tasks" | "activities">("tasks")
 
   useEffect(() => {
@@ -53,7 +54,7 @@ export default function Operations({ data, addTask, updateTask, deleteTask, addA
 
       {/* Content — no extra wrapper card */}
       {activeTab === "tasks" && (
-        <TaskPlanner data={data} addTask={addTask} updateTask={updateTask} deleteTask={deleteTask} />
+        <TaskPlanner data={data} addTask={addTask} updateTask={updateTask} deleteTask={deleteTask} onNavigate={onNavigate} />
       )}
       {activeTab === "activities" && (
         <ActivityLog data={data} addActivity={addActivity} deleteActivity={deleteActivity} updateActivity={updateActivity} />
