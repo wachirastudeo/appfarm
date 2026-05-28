@@ -1,5 +1,5 @@
 "use client"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   Plot, Tree, FlowerStage, DurianVariety,
   FLOWER_STAGE_LABELS, FLOWER_STAGES, VARIETIES,
@@ -10,11 +10,13 @@ import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import {
   Plus, Pencil, Trash2, QrCode, RefreshCw, X, Check,
   ChevronRight, ArrowLeft,
-  History, CalendarDays, Printer
+  History, CalendarDays, Printer, Sparkles,
+  Search
 } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
 import DurianIcon from "./DurianIcon"
 import Portal from "./Portal"
+import BorderBeam from "./magicui/border-beam"
 
 type AppDataReturn = ReturnType<typeof useAppData>
 
@@ -443,7 +445,7 @@ function TreeForm({ tree, existingTrees = [], onSave, onSaveMany, onCancel }: {
           {isAdding && <p className="mt-1 text-[9px] font-semibold text-muted-foreground">เว้นว่างเพื่อรันเลขต่ออัตโนมัติ</p>}
         </div>
         <div>
-          <label className="text-[10px] font-black text-muted-foreground mb-1 block">อายุ (ปี)</label>
+          <label className="text-[10px] font-black text-muted-foreground mb-1 block">อายุทุเรียน (ปี)</label>
           <input
             type="text"
             value={form.age === "0" ? "" : form.age}
@@ -510,13 +512,52 @@ function TreeForm({ tree, existingTrees = [], onSave, onSaveMany, onCancel }: {
   )
 }
 
+function AddTreeModal({ plot, existingTrees, onClose, onSave, onSaveMany }: {
+  plot: Plot; existingTrees: Tree[]; onClose: () => void;
+  onSave: (data: Omit<Tree, "id" | "lastUpdated">) => void;
+  onSaveMany: (items: Omit<Tree, "id" | "lastUpdated">[]) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  useEscapeToClose({ enabled: true, onEscape: onClose, containerRef })
+
+  return (
+    <Portal>
+      <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
+        <div className="bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-6 w-full max-w-[95%] sm:max-w-md shadow-2xl animate-in zoom-in-95 duration-300 max-h-[90dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]/40 flex items-center justify-center">
+                <Plus size={20} className="text-[#146B3E] dark:text-[#72C08A]" />
+              </div>
+              <div>
+                <h3 className="font-black text-sm text-foreground leading-tight">เพิ่มต้นทุเรียนใหม่</h3>
+                <p className="text-xs text-muted-foreground font-semibold">แปลง: {plot.name}</p>
+              </div>
+            </div>
+            <button onClick={onClose} type="button" className="p-2 hover:bg-muted dark:hover:bg-[#1D3A29] rounded-full transition-colors"><X size={16} className="text-muted-foreground" /></button>
+          </div>
+          <TreeForm
+            plotId={plot.id}
+            existingTrees={existingTrees}
+            onSave={onSave}
+            onSaveMany={onSaveMany}
+            onCancel={onClose}
+          />
+        </div>
+      </div>
+    </Portal>
+  )
+}
+
 // ---- Tree Detail View ----
 function TreeDetailView({
-  tree, plot, activities, onBack, updateTree, addActivity,
+  tree, plot, activities, onBack, updateTree, deleteTree, setQrTree, addActivity,
   addBatch, addBatchStage, updateBatch, deleteBatch
 }: {
   tree: Tree; plot: Plot; activities: any[]; onBack: () => void;
   updateTree: (pId: string, tId: string, changes: Partial<Tree>) => void
+  deleteTree: (pId: string, tId: string) => void
+  setQrTree: (tree: Tree) => void
   addActivity: (act: any) => void
   addBatch: AppDataReturn["addBatch"]
   addBatchStage: AppDataReturn["addBatchStage"]
@@ -614,24 +655,32 @@ function TreeDetailView({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-6">
       {/* Tree Header */}
       <div className="flex items-start justify-between gap-3 pb-4 border-b border-border">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} type="button" className="p-2.5 rounded-xl bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary dark:hover:bg-[#72C08A]/10 dark:hover:text-[#72C08A] transition-colors shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <button onClick={onBack} type="button" className="p-2.5 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29] text-[#146B3E] dark:text-[#72C08A] hover:opacity-90 transition-colors shrink-0">
             <ArrowLeft size={18} />
           </button>
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 dark:bg-[#72C08A]/10 flex items-center justify-center shrink-0">
-            <DurianIcon className="h-7 w-7 text-primary dark:text-[#72C08A]" />
+          <div className="w-11 h-11 rounded-xl bg-primary/10 dark:bg-[#72C08A]/10 flex items-center justify-center shrink-0">
+            <DurianIcon className="h-5 w-5 text-primary dark:text-[#72C08A]" />
           </div>
-          <div>
-            <h2 className="text-lg font-black text-foreground leading-tight">ต้น {tree.treeNumber}</h2>
-            <p className="text-muted-foreground text-xs font-bold mt-0.5">{plot.name} · {tree.variety} · อายุ {tree.age} ปี</p>
+          <div className="min-w-0 text-left">
+            <h2 className="text-sm font-black text-foreground leading-tight truncate">ต้น {tree.treeNumber}</h2>
+            <p className="text-muted-foreground text-[10px] font-bold mt-0.5 truncate">{plot.name} · {tree.variety} · อายุทุเรียน {tree.age} ปี</p>
           </div>
         </div>
-        <button onClick={() => setShowEdit(!showEdit)} type="button" className={`p-2.5 rounded-xl transition-colors ${showEdit ? 'bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12]' : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary dark:hover:bg-[#72C08A]/10 dark:hover:text-[#72C08A]'}`}>
-          <Pencil size={16} />
-        </button>
+        <div className="flex gap-1 shrink-0">
+          <button onClick={() => setQrTree(tree)} type="button" className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-foreground transition-colors" title="ดู QR Code">
+            <QrCode size={14} />
+          </button>
+          <button onClick={() => setShowEdit(!showEdit)} type="button" className={`p-2 rounded-xl transition-colors ${showEdit ? 'bg-[#146B3E] text-white dark:bg-[#72C08A] dark:text-[#0B1B12]' : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'}`} title="แก้ไขข้อมูล">
+            <Pencil size={14} />
+          </button>
+          <button onClick={() => { if (confirm(`ลบต้น ${tree.treeNumber}?`)) { deleteTree(plot.id, tree.id); onBack() } }} type="button" className="p-2 rounded-xl bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 transition-colors" title="ลบต้นทุเรียน">
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Stats row */}
@@ -950,6 +999,9 @@ function PlotDetailView({
   const [selectMode, setSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [showSelectionUpdate, setShowSelectionUpdate] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedHealth, setSelectedHealth] = useState<"all" | "good" | "fair" | "poor">("all")
+  const [selectedStage, setSelectedStage] = useState<"all" | FlowerStage>("all")
 
   const toggleSelectTree = (id: string) => {
     setSelectedIds(prev => {
@@ -996,6 +1048,8 @@ function PlotDetailView({
         activities={activities}
         onBack={() => setSelectedTreeId(null)}
         updateTree={updateTree}
+        deleteTree={deleteTree}
+        setQrTree={setQrTree}
         addActivity={addActivity}
         addBatch={addBatch}
         addBatchStage={addBatchStage}
@@ -1009,6 +1063,8 @@ function PlotDetailView({
   const fairCount = plot.trees.filter(t => t.health === "fair").length
   const poorCount = plot.trees.filter(t => t.health === "poor").length
   const total = plot.trees.length
+
+
 
   // Growth stage progression: vegetative → (any flower stage) → bloom → harvest
   const STAGE_PROGRESS: Record<string, number> = {
@@ -1031,8 +1087,15 @@ function PlotDetailView({
     poor: "bg-rose-500",
   }
 
+  const filteredTrees = plot.trees.filter(t => {
+    const matchesSearch = t.treeNumber.toLowerCase().includes(searchQuery.toLowerCase()) || t.variety.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesHealth = selectedHealth === "all" || t.health === selectedHealth
+    const matchesStage = selectedStage === "all" || t.stage === selectedStage
+    return matchesSearch && matchesHealth && matchesStage
+  })
+
   return (
-    <div className="space-y-5">
+    <div className="flex-1 flex flex-col min-h-0 relative">
       {showBulk && <BulkUpdateModal plot={plot} onClose={() => setShowBulk(false)} onUpdate={s => bulkUpdateTrees(plot.id, s)} />}
       {qrTree && <QRModal tree={qrTree} plot={plot} onClose={() => setQrTree(null)} />}
       {showAllQR && <AllQRModal plot={plot} onClose={() => setShowAllQR(false)} />}
@@ -1065,6 +1128,9 @@ function PlotDetailView({
         />
       )}
 
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
+
       {/* ── Plot Header ── */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0d5c34] via-[#146B3E] to-[#1a7a48] dark:from-[#0B1B12] dark:via-[#14291E] dark:to-[#1D3A29] p-5 text-white shadow-xl">
         {/* decorative blob */}
@@ -1072,7 +1138,7 @@ function PlotDetailView({
         <div className="pointer-events-none absolute -bottom-6 left-12 h-28 w-28 rounded-full bg-emerald-400/10 blur-xl" />
 
         <div className="relative flex items-start gap-3">
-          <button onClick={onBack} className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors mt-0.5 lg:hidden shrink-0">
+          <button onClick={onBack} className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors mt-0.5 shrink-0">
             <ArrowLeft size={18} />
           </button>
 
@@ -1101,11 +1167,17 @@ function PlotDetailView({
             </div>
           ) : (
             <>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 text-left">
                 <h2 className="text-xl font-black text-white leading-tight">{plot.name}</h2>
                 <p className="text-sm text-white/60 font-medium mt-0.5">{plot.area} ไร่{plot.notes ? ` · ${plot.notes}` : ""}</p>
               </div>
-              <div className="flex gap-2 shrink-0">
+              <div className="flex gap-1.5 sm:gap-2 shrink-0 flex-wrap justify-end">
+                <button
+                  onClick={() => setAddingTree(true)}
+                  className="px-3 py-2 rounded-xl bg-white text-[#146B3E] dark:bg-[#72C08A] dark:text-[#0B1B12] hover:scale-105 active:scale-95 shadow-md font-black text-xs transition-all flex items-center gap-1"
+                >
+                  <Plus size={13} strokeWidth={3} /> เพิ่มต้นทุเรียน
+                </button>
                 <button onClick={() => { setPlotForm({ name: plot.name, area: String(plot.area), notes: plot.notes ?? "" }); setEditingPlot(true) }} className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors">
                   <Pencil size={16} />
                 </button>
@@ -1138,53 +1210,160 @@ function PlotDetailView({
 
       {/* ── Action Toolbar ── */}
       {!editingPlot && (
-        <div className="flex flex-wrap gap-2">
-          {selectMode ? (
-            <>
-              <button onClick={toggleSelectAll} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-white dark:bg-[#14291E] border-2 border-[#146B3E] dark:border-[#72C08A] text-[#146B3E] dark:text-[#72C08A] rounded-2xl text-xs font-black hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-all">
-                {selectedIds.size === plot.trees.length ? "ยกเลิกทั้งหมด" : `เลือกทั้งหมด (${plot.trees.length})`}
-              </button>
-              <button onClick={() => selectedIds.size > 0 && setShowSelectionUpdate(true)} disabled={selectedIds.size === 0} className="flex-1 min-h-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-[#146B3E] dark:bg-[#72C08A] text-white dark:text-[#0B1B12] rounded-2xl text-xs font-black hover:bg-[#0F5A34] transition-all shadow-lg active:scale-95 disabled:opacity-40">
-                <RefreshCw size={14} strokeWidth={2.8} />{selectedIds.size > 0 ? `อัปเดต ${selectedIds.size} ต้น` : "อัปเดตที่เลือก"}
-              </button>
-              <button onClick={exitSelectMode} className="p-2.5 bg-muted text-muted-foreground rounded-2xl hover:bg-muted/80 transition-colors shrink-0"><X size={16} /></button>
-            </>
-          ) : (
-            <>
-              <button onClick={() => setSelectMode(true)} className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white dark:bg-[#14291E] border border-[#B9DCC8] dark:border-[#31533D] text-[#146B3E] dark:text-[#72C08A] rounded-2xl text-xs font-black hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-all">
-                <Check size={13} strokeWidth={3} />เลือกต้น
-              </button>
-              <button onClick={() => setShowBulk(true)} className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#146B3E] dark:bg-[#72C08A] text-white dark:text-[#0B1B12] rounded-2xl text-xs font-black hover:bg-[#0F5A34] transition-all shadow-lg active:scale-95">
-                <RefreshCw size={13} strokeWidth={2.8} />อัปเดตทั้งแปลง
-              </button>
-              <button onClick={() => setAddingTree(true)} type="button" className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#E7F3EC] dark:bg-[#72C08A]/10 text-[#146B3E] dark:text-[#72C08A] rounded-2xl text-xs font-black hover:bg-[#D8EEE2] transition-all border border-[#146B3E]/20 dark:border-[#72C08A]/20">
-                <Plus size={13} strokeWidth={2.5} />เพิ่มต้น
-              </button>
-              <button onClick={() => setShowAllQR(true)} type="button" className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white dark:bg-[#14291E] text-foreground rounded-2xl border border-[#B9DCC8] dark:border-[#31533D] hover:bg-[#E7F3EC]/50 dark:hover:bg-[#1D3A29]/50 transition-colors shrink-0">
-                <QrCode size={14} className="text-[#146B3E] dark:text-[#72C08A]" />
-              </button>
-            </>
-          )}
+        <div className="flex items-center justify-between mb-4 mt-2">
+          <h3 className="text-sm font-black text-foreground uppercase tracking-wider">รายการต้นทุเรียน</h3>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                if (selectMode) {
+                  exitSelectMode()
+                } else {
+                  setSelectMode(true)
+                }
+              }}
+              type="button"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black transition-all ${
+                selectMode
+                  ? "bg-[#146B3E] text-white dark:bg-[#72C08A] dark:text-[#0B1B12]"
+                  : "bg-white dark:bg-[#14291E] border border-[#B9DCC8] dark:border-[#31533D] text-[#146B3E] dark:text-[#72C08A] hover:bg-[#E7F3EC]"
+              }`}
+            >
+              <Check size={12} strokeWidth={3} /> {selectMode ? "เสร็จสิ้น" : "เลือกต้น"}
+            </button>
+            <button
+              onClick={() => setShowBulk(true)}
+              type="button"
+              className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-[#14291E] border border-[#B9DCC8] dark:border-[#31533D] text-[#146B3E] dark:text-[#72C08A] rounded-xl text-xs font-black hover:bg-[#E7F3EC] transition-all"
+            >
+              <RefreshCw size={12} strokeWidth={2.8} /> อัปเดตทั้งแปลง
+            </button>
+            <button
+              onClick={() => setShowAllQR(true)}
+              type="button"
+              className="p-2 bg-white dark:bg-[#14291E] border border-[#B9DCC8] dark:border-[#31533D] text-muted-foreground hover:text-foreground rounded-xl transition-colors shrink-0"
+              title="พิมพ์ QR Code ทั้งหมด"
+            >
+              <QrCode size={13} />
+            </button>
+          </div>
         </div>
       )}
 
-      {/* ── Add Tree Form ── */}
-      {addingTree && (
-        <div className="bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-5 shadow-md animate-in fade-in slide-in-from-top-2 duration-200">
-          <p className="text-sm font-black text-foreground mb-3">เพิ่มต้นทุเรียน</p>
-          <TreeForm plotId={plot.id} existingTrees={plot.trees} onSave={d => { addTree(plot.id, d); setAddingTree(false) }} onSaveMany={items => { items.forEach(item => addTree(plot.id, item)); setAddingTree(false) }} onCancel={() => setAddingTree(false)} />
+      {/* ── Search & Filters ── */}
+      {!editingPlot && (
+        <div className="space-y-3 bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/10 rounded-2xl p-3 border border-[#B9DCC8]/30 dark:border-[#31533D]/25">
+          {/* Search Input */}
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="ค้นหาเลขต้น หรือพันธุ์..."
+              className="w-full bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-xl pl-9 pr-8 py-2 text-[11px] font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+            />
+            <Search size={12} className="absolute left-3 top-2.5 text-muted-foreground" />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-2.5 p-0.5 rounded-full hover:bg-muted text-muted-foreground"
+              >
+                <X size={10} />
+              </button>
+            )}
+          </div>
+
+          {/* Health Filters */}
+          <div className="flex gap-1 overflow-x-auto scrollbar-hide py-0.5">
+            <button
+              onClick={() => setSelectedHealth("all")}
+              className={`px-2.5 py-1 rounded-lg text-[9px] font-black border whitespace-nowrap transition-all ${
+                selectedHealth === "all"
+                  ? "bg-primary text-white border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A]"
+                  : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground"
+              }`}
+            >
+              สุขภาพทั้งหมด
+            </button>
+            {(["good", "fair", "poor"] as const).map(h => (
+              <button
+                key={h}
+                onClick={() => setSelectedHealth(h)}
+                className={`px-2.5 py-1 rounded-lg text-[9px] font-black border whitespace-nowrap transition-all ${
+                  selectedHealth === h
+                    ? h === "good"
+                      ? "bg-emerald-500 text-white border-emerald-500 dark:bg-emerald-600 dark:border-emerald-600"
+                      : h === "fair"
+                      ? "bg-amber-500 text-white border-amber-500 dark:bg-amber-600 dark:border-amber-600"
+                      : "bg-rose-500 text-white border-rose-500 dark:bg-rose-600 dark:border-rose-600"
+                    : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground"
+                }`}
+              >
+                {HEALTH_LABELS[h]}
+              </button>
+            ))}
+          </div>
+
+          {/* Stage Filters (Horizontal Scroll) */}
+          <div className="flex gap-1 overflow-x-auto scrollbar-hide pt-2 border-t border-[#B9DCC8]/20 dark:border-[#31533D]/10">
+            <button
+              onClick={() => setSelectedStage("all")}
+              className={`px-2.5 py-1 rounded-lg text-[9px] font-black border whitespace-nowrap transition-all shrink-0 ${
+                selectedStage === "all"
+                  ? "bg-primary text-white border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A]"
+                  : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground"
+              }`}
+            >
+              ระยะทั้งหมด
+            </button>
+            {FLOWER_STAGES.map(st => {
+              const isActive = selectedStage === st
+              return (
+                <button
+                  key={st}
+                  onClick={() => setSelectedStage(st)}
+                  className={`px-2.5 py-1 rounded-lg text-[9px] font-black border whitespace-nowrap transition-all shrink-0 flex items-center gap-1 ${
+                    isActive
+                      ? "bg-primary text-white border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A]"
+                      : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground"
+                  }`}
+                >
+                  <span>{FLOWER_STAGE_LABELS[st]}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
+      )}
+
+      {/* ── Add Tree Modal ── */}
+      {addingTree && (
+        <AddTreeModal
+          plot={plot}
+          existingTrees={plot.trees}
+          onClose={() => setAddingTree(false)}
+          onSave={d => { addTree(plot.id, d); setAddingTree(false) }}
+          onSaveMany={items => { items.forEach(item => addTree(plot.id, item)); setAddingTree(false) }}
+        />
       )}
 
       {/* ── Tree Grid ── */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3">
-        {plot.trees.length === 0 ? (
-          <div className="col-span-2 rounded-3xl p-10 text-center border-2 border-dashed border-[#B9DCC8]/60 dark:border-[#31533D]/40">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 relative">
+        {filteredTrees.length === 0 ? (
+          <div className="col-span-2 rounded-3xl p-10 text-center border-2 border-dashed border-[#B9DCC8]/40 dark:border-[#31533D]/25 bg-white/20 dark:bg-black/5 flex flex-col items-center justify-center">
             <DurianIcon className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
-            <p className="text-sm font-bold text-muted-foreground">ยังไม่มีต้นทุเรียนในแปลงนี้</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">กดปุ่ม &quot;เพิ่มต้น&quot; เพื่อเริ่มต้น</p>
+            <p className="text-sm font-bold text-muted-foreground">ไม่พบต้นทุเรียน</p>
+            <p className="text-xs text-muted-foreground/50 mt-1">ลองล้างตัวกรองหรือเพิ่มต้นทุเรียนใหม่</p>
+            {plot.trees.length === 0 && (
+              <button
+                onClick={() => setAddingTree(true)}
+                type="button"
+                className="mt-4 bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] px-4 py-2.5 rounded-xl text-xs font-black hover:scale-105 active:scale-95 transition-all shadow-md flex items-center gap-1"
+              >
+                <Plus size={14} strokeWidth={3} /> เพิ่มต้นทุเรียนต้นแรก
+              </button>
+            )}
           </div>
-        ) : plot.trees.map(tree => (
+        ) : filteredTrees.map(tree => (
           <div key={tree.id} className={editingTree === tree.id ? "col-span-2" : ""}>
             {editingTree === tree.id ? (
               <div className="bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-5 shadow-md">
@@ -1194,7 +1373,7 @@ function PlotDetailView({
             ) : (
               <div
                 onClick={() => selectMode ? toggleSelectTree(tree.id) : setSelectedTreeId(tree.id)}
-                className={`relative flex flex-col gap-2.5 p-3 sm:p-4 cursor-pointer transition-all duration-200 h-full group rounded-2xl border ${
+                className={`relative flex flex-col gap-2 p-3 cursor-pointer transition-all duration-200 h-full group rounded-2xl border ${
                   selectMode && selectedIds.has(tree.id)
                     ? "border-[#146B3E] dark:border-[#72C08A] border-2 bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/20 shadow-md"
                     : `bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm border-[#B9DCC8]/50 dark:border-[#31533D]/40 hover:border-[#146B3E]/40 dark:hover:border-[#72C08A]/40 hover:-translate-y-0.5 ${HEALTH_GLOW[tree.health]}`
@@ -1202,47 +1381,39 @@ function PlotDetailView({
               >
                 {/* LED health pulse dot */}
                 {!selectMode && (
-                  <span className={`absolute top-2.5 right-2.5 w-2 h-2 rounded-full ${HEALTH_DOT[tree.health]} animate-pulse`} />
+                  <span className={`absolute top-3 right-3 w-2 h-2 rounded-full ${HEALTH_DOT[tree.health]} animate-pulse`} />
                 )}
 
-                {/* Top row: checkbox/icon + actions */}
+                {/* Top row: checkbox/icon */}
                 <div className="flex items-start justify-between">
                   {selectMode ? (
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border-2 transition-colors ${selectedIds.has(tree.id) ? "bg-[#146B3E] border-[#146B3E] dark:bg-[#72C08A] dark:border-[#72C08A]" : "bg-white border-[#B9DCC8] dark:bg-[#0B140F] dark:border-[#31533D]"}`}>
-                      {selectedIds.has(tree.id) && <Check size={13} className="text-white dark:text-[#0B1B12]" strokeWidth={3} />}
+                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border-2 transition-colors ${selectedIds.has(tree.id) ? "bg-[#146B3E] border-[#146B3E] dark:bg-[#72C08A] dark:border-[#72C08A]" : "bg-white border-[#B9DCC8] dark:bg-[#0B140F] dark:border-[#31533D]"}`}>
+                      {selectedIds.has(tree.id) && <Check size={11} className="text-white dark:text-[#0B1B12]" strokeWidth={3.5} />}
                     </div>
                   ) : (
-                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                       tree.health === "good" ? "bg-emerald-50 dark:bg-emerald-900/20" : tree.health === "fair" ? "bg-amber-50 dark:bg-amber-900/20" : "bg-rose-50 dark:bg-rose-900/20"
                     }`}>
                       <DurianIcon className={`h-4 w-4 ${tree.health === "good" ? "text-emerald-600 dark:text-emerald-400" : tree.health === "fair" ? "text-amber-500 dark:text-amber-400" : "text-rose-500 dark:text-rose-400"}`} />
                     </div>
                   )}
-
-                  {!selectMode && (
-                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => setQrTree(tree)} className="p-1.5 text-muted-foreground hover:text-[#146B3E] dark:hover:text-[#72C08A] rounded-lg hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-colors"><QrCode size={12} /></button>
-                      <button onClick={() => setEditingTree(tree.id)} className="p-1.5 text-muted-foreground hover:text-[#146B3E] dark:hover:text-[#72C08A] rounded-lg hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-colors"><Pencil size={12} /></button>
-                      <button onClick={() => { if (confirm(`ลบต้น ${tree.treeNumber}?`)) deleteTree(plot.id, tree.id) }} className="p-1.5 text-muted-foreground hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"><Trash2 size={12} /></button>
-                    </div>
-                  )}
                 </div>
 
                 {/* Tree info */}
-                <div className="min-w-0">
-                  <p className="font-black text-foreground text-sm leading-tight truncate">{tree.treeNumber}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{tree.variety} · อายุทุเรียน {tree.age} ปี</p>
+                <div className="min-w-0 text-left">
+                  <p className="font-black text-foreground text-xs sm:text-sm leading-tight truncate">{tree.treeNumber}</p>
+                  <p className="text-[9px] text-muted-foreground mt-0.5 truncate">{tree.variety} · อายุทุเรียน {tree.age} ปี</p>
                 </div>
 
                 {/* Health + Stage badges */}
                 <div className="flex flex-wrap gap-1">
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${
+                  <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-black ${
                     tree.health === "good" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
                     tree.health === "fair" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
                     "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
                   }`}>{HEALTH_LABELS[tree.health]}</span>
                   {tree.stage !== "vegetative" && tree.stage !== "dormant" && (
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${STAGE_BADGE[tree.stage] || "bg-muted text-muted-foreground"}`}>
+                    <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-black ${STAGE_BADGE[tree.stage] || "bg-muted text-muted-foreground"}`}>
                       {FLOWER_STAGE_LABELS[tree.stage]}
                     </span>
                   )}
@@ -1258,7 +1429,7 @@ function PlotDetailView({
                       return (
                         <div key={idx} className="flex flex-1 flex-col items-center gap-0.5">
                           <div className={`h-1 w-full rounded-full transition-all duration-500 ${isPast ? "bg-[#146B3E] dark:bg-[#72C08A]" : isActive ? "bg-[#146B3E]/60 dark:bg-[#72C08A]/60" : "bg-[#B9DCC8]/40 dark:bg-[#31533D]/30"}`} />
-                          <span className={`text-[8px] font-bold leading-none ${isActive ? "text-[#146B3E] dark:text-[#72C08A]" : isPast ? "text-[#146B3E]/70 dark:text-[#72C08A]/70" : "text-muted-foreground/40"}`}>
+                          <span className={`text-[8px] font-bold leading-none ${isActive ? "text-[#146B3E] dark:text-[#72C08A]" : isPast ? "text-[#146B3E]/70 dark:text-[#72C08A]/70" : "text-muted-foreground/30"}`}>
                             {STAGE_ICONS[idx]}
                           </span>
                         </div>
@@ -1267,15 +1438,311 @@ function PlotDetailView({
                   </div>
                 </div>
 
-                {tree.notes && <p className="text-[9px] sm:text-[10px] text-muted-foreground italic line-clamp-1">{tree.notes}</p>}
+                {tree.notes && <p className="text-[9px] text-muted-foreground italic line-clamp-1 text-left">📝 {tree.notes}</p>}
               </div>
             )}
           </div>
         ))}
       </div>
     </div>
+
+      {/* Multi-Select Action panel */}
+      {selectMode && (
+        <div className="absolute bottom-4 left-4 right-4 z-30 bg-white/95 dark:bg-[#14291E]/95 backdrop-blur-md border border-[#B9DCC8]/40 dark:border-[#31533D]/40 rounded-2xl p-3 shadow-xl flex items-center justify-between gap-2 animate-in slide-in-from-bottom-5 duration-300">
+          <div className="text-xs font-black text-[#146B3E] dark:text-[#72C08A] pl-1">
+            เลือก {selectedIds.size} ต้น
+          </div>
+          <div className="flex gap-1.5">
+            <button
+              onClick={toggleSelectAll}
+              type="button"
+              className="px-2.5 py-1.5 bg-muted text-muted-foreground rounded-xl text-[10px] font-black hover:bg-muted/80 transition-all"
+            >
+              {selectedIds.size === plot.trees.length ? "เคลียร์" : "ทั้งหมด"}
+            </button>
+            <button
+              onClick={() => selectedIds.size > 0 && setShowSelectionUpdate(true)}
+              disabled={selectedIds.size === 0}
+              type="button"
+              className="px-3 py-1.5 bg-[#146B3E] dark:bg-[#72C08A] text-white dark:text-[#0B1B12] rounded-xl text-[10px] font-black hover:opacity-90 transition-all disabled:opacity-40 flex items-center gap-1"
+            >
+              <RefreshCw size={10} strokeWidth={3} /> อัปเดต {selectedIds.size} ต้น
+            </button>
+            <button
+              onClick={exitSelectMode}
+              type="button"
+              className="p-1.5 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 rounded-xl hover:opacity-85 transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
+
+// ---- Add Plot Modal ----
+function AddPlotModal({ onClose, onSave }: { onClose: () => void; onSave: (data: { name: string; area: number; notes: string }) => void }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [name, setName] = useState("")
+  const [area, setArea] = useState("1")
+  const [notes, setNotes] = useState("")
+
+  useEscapeToClose({ enabled: true, onEscape: onClose, containerRef })
+
+  const handleSave = () => {
+    const checkedName = validateText("ชื่อแปลง", name, { required: true, maxLength: 120 })
+    const areaVal = area === "" ? 0 : Number(area)
+    const checkedArea = validateNumber("พื้นที่", areaVal, { min: 0.5, max: 100000 })
+    const checkedNotes = validateText("บันทึก", notes, { maxLength: 500 })
+    
+    if (!checkedName.ok || !checkedArea.ok || !checkedNotes.ok) {
+      const invalid = !checkedName.ok ? checkedName : !checkedArea.ok ? checkedArea : checkedNotes
+      alert(invalid.message)
+      return
+    }
+    
+    onSave({ name: checkedName.value, area: checkedArea.value, notes: checkedNotes.value })
+  }
+
+  return (
+    <Portal>
+      <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
+        <div className="bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-6 w-full max-w-[95%] sm:max-w-md shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]/40 flex items-center justify-center">
+                <Plus size={20} className="text-[#146B3E] dark:text-[#72C08A]" />
+              </div>
+              <div>
+                <h3 className="font-black text-sm text-foreground leading-tight">เพิ่มแปลงทุเรียนใหม่</h3>
+                <p className="text-xs text-muted-foreground font-semibold">กรอกข้อมูลแปลงในสวนของคุณ</p>
+              </div>
+            </div>
+            <button onClick={onClose} type="button" className="p-2 hover:bg-muted dark:hover:bg-[#1D3A29] rounded-full transition-colors"><X size={16} className="text-muted-foreground" /></button>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-[10px] font-black text-muted-foreground mb-1 block uppercase tracking-wider">ชื่อแปลง</label>
+              <input value={name} onChange={e => setName(e.target.value)}
+                className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+                placeholder="เช่น แปลง A, แปลงหน้าบ้าน" />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-black text-muted-foreground mb-1 block uppercase tracking-wider">พื้นที่ (ไร่)</label>
+              <input
+                type="text"
+                value={area === "0" ? "" : area}
+                onChange={e => {
+                  let val = e.target.value.replace(/[^0-9.]/g, "")
+                  const parts = val.split(".")
+                  if (parts.length > 2) {
+                    val = parts[0] + "." + parts.slice(1).join("")
+                  }
+                  setArea(val)
+                }}
+                className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+                placeholder="เช่น 1.5"
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-black text-muted-foreground mb-1 block uppercase tracking-wider">บันทึกเพิ่มเติม (ไม่บังคับ)</label>
+              <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
+                className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2 text-xs font-bold text-foreground resize-none focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+                placeholder="ข้อมูลเพิ่มเติม เช่น ปีที่เริ่มปลูก แหล่งน้ำ..." />
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <button onClick={onClose} type="button" className="flex-1 border border-[#B9DCC8] dark:border-[#31533D] rounded-xl py-2.5 text-xs text-[#527060] dark:text-[#B8D1C0] font-black hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]/50 transition-all active:scale-[0.98]">ยกเลิก</button>
+            <button onClick={handleSave} type="button" className="flex-1 bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] rounded-xl py-2.5 text-xs font-black hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] active:scale-[0.98] transition-all shadow-md">บันทึกแปลง</button>
+          </div>
+        </div>
+      </div>
+    </Portal>
+  )
+}
+
+// ---- All Plots Overview Dashboard ----
+function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick }: {
+  data: AppDataReturn["data"]
+  setSelectedPlotId: (id: string) => void
+  onAddPlotClick: () => void
+}) {
+  const totalPlots = data.plots.length
+  const totalArea = data.plots.reduce((acc, p) => acc + p.area, 0)
+  const totalTrees = data.plots.reduce((acc, p) => acc + p.trees.length, 0)
+  const goodTreesCount = data.plots.reduce((acc, p) => acc + p.trees.filter(t => t.health === "good").length, 0)
+  const fairTreesCount = data.plots.reduce((acc, p) => acc + p.trees.filter(t => t.health === "fair").length, 0)
+  const poorTreesCount = data.plots.reduce((acc, p) => acc + p.trees.filter(t => t.health === "poor").length, 0)
+  const healthyPercent = totalTrees > 0 ? Math.round((goodTreesCount / totalTrees) * 100) : 0
+
+  return (
+    <div className="flex-1 flex flex-col min-h-0 relative">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-6">
+        {/* Overview Banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0d5c34] via-[#146B3E] to-[#1a7a48] dark:from-[#0B1B12] dark:via-[#14291E] dark:to-[#1D3A29] p-6 text-white shadow-xl">
+          <div className="pointer-events-none absolute -right-8 -top-8 h-48 w-48 rounded-full bg-white/5 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-6 left-12 h-32 w-32 rounded-full bg-emerald-400/10 blur-2xl" />
+
+          <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-black text-white leading-tight flex items-center gap-2">
+                <Sparkles className="text-yellow-300 animate-pulse" size={20} />
+                ระบบจัดการแปลงทุเรียนอัจฉริยะ
+              </h2>
+              <p className="text-xs text-white/70 font-semibold mt-1">
+                ติดตามสุขภาพต้นทุเรียน การเติบโต และพยากรณ์การเก็บเกี่ยวของสวนคุณทั้งหมด
+              </p>
+            </div>
+            {totalPlots > 0 && (
+              <button
+                onClick={onAddPlotClick}
+                className="self-start md:self-auto bg-white text-[#146B3E] dark:bg-[#72C08A] dark:text-[#0B1B12] px-4 py-2.5 rounded-2xl text-xs font-black hover:scale-105 active:scale-95 shadow-md transition-all flex items-center gap-1.5 shrink-0"
+              >
+                <Plus size={14} strokeWidth={3} /> เพิ่มแปลงทุเรียน
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Bento Stats Grid */}
+        {totalPlots > 0 && (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm p-4 border border-[#B9DCC8]/30 dark:border-[#31533D]/40 shadow-sm text-center">
+              <p className="text-2xl font-black text-[#146B3E] dark:text-[#72C08A] leading-none">{totalPlots}</p>
+              <p className="text-[10px] text-muted-foreground font-bold mt-1.5 uppercase tracking-wider">แปลงทั้งหมด</p>
+            </div>
+            <div className="rounded-2xl bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm p-4 border border-[#B9DCC8]/30 dark:border-[#31533D]/40 shadow-sm text-center">
+              <p className="text-2xl font-black text-[#146B3E] dark:text-[#72C08A] leading-none">{totalArea.toFixed(1)}</p>
+              <p className="text-[10px] text-muted-foreground font-bold mt-1.5 uppercase tracking-wider">พื้นที่รวม (ไร่)</p>
+            </div>
+            <div className="rounded-2xl bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm p-4 border border-[#B9DCC8]/30 dark:border-[#31533D]/40 shadow-sm text-center">
+              <p className="text-2xl font-black text-[#146B3E] dark:text-[#72C08A] leading-none">{totalTrees}</p>
+              <p className="text-[10px] text-muted-foreground font-bold mt-1.5 uppercase tracking-wider">ต้นทุเรียนรวม</p>
+            </div>
+            <div className="rounded-2xl bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm p-4 border border-[#B9DCC8]/30 dark:border-[#31533D]/40 shadow-sm text-center relative overflow-hidden">
+              <div className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </div>
+              <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-none">{healthyPercent}%</p>
+              <p className="text-[10px] text-muted-foreground font-bold mt-1.5 uppercase tracking-wider">สุขภาพดีเฉลี่ย</p>
+            </div>
+          </div>
+        )}
+
+        {/* Plots List Panel */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-black text-foreground uppercase tracking-widest">รายการแปลงทุเรียน</h3>
+          {totalPlots === 0 ? (
+            <div className="relative overflow-hidden rounded-[2.5rem] p-8 md:p-12 text-center bg-gradient-to-br from-[#0d5c34] via-[#146B3E] to-[#1D5C3A] dark:from-[#0B1B12] dark:via-[#14291E] dark:to-[#173021] text-white shadow-2xl flex flex-col items-center justify-center border border-white/10">
+              {/* decorative glowing circle blobs */}
+              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
+              <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
+              
+              {/* BorderBeam outline animation */}
+              <BorderBeam size={350} duration={8} borderWidth={1.5} colorFrom="#ffffff" colorTo="#84CC16" />
+
+              <div className="relative z-10 w-20 h-20 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 shadow-inner border border-white/20 animate-bounce">
+                <DurianIcon className="h-10 w-10 text-white" />
+              </div>
+
+              <h3 className="relative z-10 text-xl md:text-2xl font-black text-white leading-tight tracking-tight">
+                ยังไม่มีแปลงทุเรียนในสวนของคุณ
+              </h3>
+              <p className="relative z-10 text-xs md:text-sm text-white/70 font-medium max-w-md mx-auto mt-2.5 mb-8 leading-relaxed">
+                ก้าวแรกสู่การทำสวนทุเรียนอัจฉริยะ! เริ่มบันทึกข้อมูลแปลง ติดตามระยะการเจริญเติบโตของผล และวิเคราะห์ข้อมูลในแบบเรียลไทม์ได้ทันที
+              </p>
+
+              <button
+                onClick={onAddPlotClick}
+                className="group relative overflow-hidden bg-white text-[#146B3E] dark:bg-[#72C08A] dark:text-[#0B1B12] px-8 py-4 rounded-2xl font-black text-sm shadow-2xl hover:shadow-white/10 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+              >
+                <span className="absolute inset-0 block rounded-[inherit] bg-[linear-gradient(to_right,transparent_20%,rgba(20,107,62,0.15)_50%,transparent_80%)] dark:bg-[linear-gradient(to_right,transparent_20%,rgba(255,255,255,0.3)_50%,transparent_80%)] bg-[length:200%_100%] bg-no-repeat transition-[background-position] duration-1000 [background-position:100%_0%] group-hover:[background-position:-100%_0%]" />
+                <Plus size={16} strokeWidth={3} />
+                <span className="relative z-10">สร้างแปลงทุเรียนแรก</span>
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3.5">
+              {data.plots.map(plot => {
+                const pGood = plot.trees.filter(t => t.health === "good").length
+                const pFair = plot.trees.filter(t => t.health === "fair").length
+                const pPoor = plot.trees.filter(t => t.health === "poor").length
+                const pTotal = plot.trees.length
+
+                const goodPct = pTotal > 0 ? (pGood / pTotal) * 100 : 0
+                const fairPct = pTotal > 0 ? (pFair / pTotal) * 100 : 0
+                const poorPct = pTotal > 0 ? (pPoor / pTotal) * 100 : 0
+
+                const vCounts = plot.trees.reduce((acc, t) => {
+                  acc[t.variety] = (acc[t.variety] || 0) + 1
+                  return acc
+                }, {} as Record<string, number>)
+                const vString = Object.entries(vCounts)
+                  .map(([name, count]) => `${name} (${count})`)
+                  .join(", ")
+
+                return (
+                  <div
+                    key={plot.id}
+                    onClick={() => setSelectedPlotId(plot.id)}
+                    className="group cursor-pointer rounded-[2rem] p-5 bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm border border-[#B9DCC8]/50 dark:border-[#31533D]/40 shadow-sm hover:border-[#146B3E] dark:hover:border-[#72C08A] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
+                  >
+                    <BorderBeam className="opacity-0 group-hover:opacity-100 transition-opacity" size={150} duration={8} />
+
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] text-[#146B3E] dark:bg-[#1D3A29]/40 dark:text-[#72C08A] flex items-center justify-center">
+                          <DurianIcon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-black text-sm text-foreground group-hover:text-[#146B3E] dark:group-hover:text-[#72C08A] transition-colors">{plot.name}</h4>
+                          <p className="text-[10px] text-muted-foreground font-bold mt-0.5">{plot.area} ไร่ · ต้นทุเรียน {pTotal} ต้น</p>
+                        </div>
+                      </div>
+                      <div className="w-7 h-7 rounded-full bg-[#F7FAF8] dark:bg-[#0B140F] text-[#527060] dark:text-[#B8D1C0] flex items-center justify-center group-hover:bg-[#146B3E] group-hover:text-white dark:group-hover:bg-[#72C08A] dark:group-hover:text-[#0B1B12] transition-all">
+                        <ChevronRight size={14} />
+                      </div>
+                    </div>
+
+                    {/* Varieties list */}
+                    <div className="text-[10px] text-muted-foreground font-semibold mb-3.5 leading-relaxed min-h-[1.5rem]">
+                      {vString ? `สายพันธุ์: ${vString}` : "ยังไม่มีข้อมูลต้นไม้"}
+                    </div>
+
+                    {/* Health summary status line */}
+                    {pTotal > 0 ? (
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[9px] font-black text-muted-foreground">
+                          <span>สุขภาพต้นไม้</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">{Math.round(goodPct)}% ดี</span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-[#B9DCC8]/20 dark:bg-[#31533D]/20 overflow-hidden flex">
+                          {goodPct > 0 && <div className="h-full bg-emerald-500" style={{ width: `${goodPct}%` }} />}
+                          {fairPct > 0 && <div className="h-full bg-amber-400" style={{ width: `${fairPct}%` }} />}
+                          {poorPct > 0 && <div className="h-full bg-rose-500" style={{ width: `${poorPct}%` }} />}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-2 w-full rounded-full bg-[#B9DCC8]/10 dark:bg-[#31533D]/10" />
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 
 // ---- Main Component ----
 export default function PlotManagement({
@@ -1285,136 +1752,26 @@ export default function PlotManagement({
 }: Props) {
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null)
   const [showAddPlot, setShowAddPlot] = useState(false)
-  const [plotForm, setPlotForm] = useState({ name: "", area: "1", notes: "" })
-
-  const handleAddPlot = () => {
-    const name = validateText("ชื่อแปลง", plotForm.name, { required: true, maxLength: 120 })
-    const areaVal = plotForm.area === "" ? 0 : Number(plotForm.area)
-    const area = validateNumber("พื้นที่", areaVal, { min: 0.5, max: 100000 })
-    const notes = validateText("บันทึก", plotForm.notes, { maxLength: 500 })
-    if (!name.ok || !area.ok || !notes.ok) {
-      const invalid = !name.ok ? name : !area.ok ? area : notes
-      alert(invalid.message)
-      return
-    }
-    addPlot({ name: name.value, area: area.value, notes: notes.value })
-    setPlotForm({ name: "", area: "1", notes: "" })
-    setShowAddPlot(false)
-  }
 
   const selectedPlot = data.plots.find(p => p.id === selectedPlotId)
 
   return (
-    <div className="flex min-w-0 flex-col items-start gap-6 lg:min-h-[600px] lg:flex-row animate-slide-up">
-      {/* Left Column: Plot List (Sticky on desktop) */}
-      <div className={`w-full lg:w-64 shrink-0 space-y-3 lg:sticky lg:top-4 ${selectedPlotId ? 'hidden lg:block' : 'block'}`}>
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#146B3E] to-[#1D5C3A] dark:from-[#1D3A29] dark:to-[#14291E] p-4 text-white shadow-md border border-[#146B3E]/30 dark:border-[#31533D]/60">
-          <div className="relative flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/12 ring-1 ring-white/15">
-                <DurianIcon className="h-4 w-4 text-[#E7F3EC]" />
-              </div>
-              <div>
-                <h2 className="text-sm font-black leading-tight text-white">แปลงทุเรียน</h2>
-                <p className="text-[11px] font-semibold text-white/58">{data.plots.length} แปลงในสวน</p>
-              </div>
-            </div>
-            <button onClick={() => setShowAddPlot(v => !v)} type="button"
-              className="flex items-center gap-1 bg-[#E7F3EC] text-[#146B3E] px-2.5 py-1.5 rounded-xl text-[10px] font-black hover:bg-white transition-all active:scale-[0.98] shadow-sm">
-              {showAddPlot ? <X size={12} /> : <Plus size={12} />}
-              {showAddPlot ? "ยกเลิก" : "เพิ่มแปลง"}
-            </button>
-          </div>
-        </div>
+    <div className="w-full min-w-0 animate-slide-up">
+      {showAddPlot && (
+        <AddPlotModal
+          onClose={() => setShowAddPlot(false)}
+          onSave={(plotData) => {
+            addPlot(plotData)
+            setShowAddPlot(false)
+          }}
+        />
+      )}
 
-        {showAddPlot && (
-          <div className="bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-2xl p-4 space-y-3 shadow-md backdrop-blur-sm animate-fade-in-up">
-            <h3 className="font-semibold text-foreground text-sm">เพิ่มแปลงใหม่</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div>
-                <label className="text-[10px] font-black text-muted-foreground mb-1 block">ชื่อแปลง</label>
-                <input value={plotForm.name} onChange={e => setPlotForm(f => ({ ...f, name: e.target.value }))}
-                  className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3 py-2 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" placeholder="เช่น แปลง A" />
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-muted-foreground mb-1 block">พื้นที่ (ไร่)</label>
-                <input
-                  type="text"
-                  value={plotForm.area}
-                  onChange={e => {
-                    let val = e.target.value.replace(/[^0-9.]/g, "")
-                    const parts = val.split(".")
-                    if (parts.length > 2) {
-                      val = parts[0] + "." + parts.slice(1).join("")
-                    }
-                    setPlotForm(f => ({ ...f, area: val }))
-                  }}
-                  className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
-                  placeholder="พื้นที่ (ไร่)"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-[10px] font-black text-muted-foreground mb-1 block">บันทึก</label>
-              <input value={plotForm.notes} onChange={e => setPlotForm(f => ({ ...f, notes: e.target.value }))}
-                className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" placeholder="บันทึกเพิ่มเติม..." />
-            </div>
-            <button onClick={handleAddPlot} type="button" className="w-full bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] rounded-xl py-2 font-black text-xs shadow-md hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] active:scale-95 transition-all">บันทึกแปลงใหม่</button>
-          </div>
-        )}
-
-        {data.plots.length === 0 ? (
-          <div className="bg-white dark:bg-[#14291E] border border-[#B9DCC8] dark:border-[#31533D]/60 rounded-2xl p-6 text-center shadow-sm">
-            <DurianIcon className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground font-bold">ยังไม่มีแปลงทุเรียน กดเพิ่มแปลงเพื่อเริ่มต้น</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3">
-            {data.plots.map(plot => {
-              const goodCount = plot.trees.filter(t => t.health === "good").length
-              const issueCount = plot.trees.filter(t => t.health !== "good").length
-              const isActive = selectedPlotId === plot.id
-              return (
-                <button
-                  key={plot.id}
-                  onClick={() => setSelectedPlotId(plot.id)}
-                  className={`min-h-[5.75rem] w-full rounded-2xl p-4 text-left transition-all group relative overflow-hidden orchard-card ${isActive
-                    ? "border-[#146B3E] dark:border-[#72C08A] ring-1 ring-[#146B3E] dark:ring-[#72C08A] bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/20"
-                    : "orchard-card-hover cursor-pointer"
-                    }`}
-                >
-                  <div className="relative flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isActive ? 'bg-[#146B3E] text-white dark:bg-[#72C08A] dark:text-[#0B1B12]' : 'bg-[#E7F3EC] text-[#146B3E] dark:bg-[#1D3A29]/40 dark:text-[#72C08A]'}`}>
-                        <DurianIcon className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className={`font-black text-sm leading-tight ${isActive ? 'text-[#146B3E] dark:text-[#72C08A]' : 'text-foreground'}`}>{plot.name}</p>
-                        <p className="mt-0.5 text-[10px] text-muted-foreground font-bold">{plot.area} ไร่ · {plot.trees.length} ต้น</p>
-                      </div>
-                    </div>
-                    <div className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full ${isActive ? "bg-[#146B3E] dark:bg-[#72C08A] text-white dark:text-[#0B1B12]" : "bg-[#F7FAF8] dark:bg-[#0B140F] text-[#527060] dark:text-[#B8D1C0] group-hover:bg-[#146B3E] group-hover:text-white dark:group-hover:bg-[#72C08A] dark:group-hover:text-[#0B1B12]"} transition-colors`}>
-                      <ChevronRight size={14} />
-                    </div>
-                  </div>
-
-                  <div className="relative flex items-center gap-2 mt-2 overflow-x-auto scrollbar-hide">
-                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-black border border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30">ดี {goodCount}</span>
-                    {issueCount > 0 && (
-                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 font-black border border-amber-100 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30">ดูแล {issueCount}</span>
-                    )}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Right Column: Plot Detail or Tree Detail */}
-      <div className={`flex-1 w-full min-w-0 ${selectedPlotId ? 'block' : 'hidden lg:block'}`}>
-        {selectedPlot ? (
-          <div className="orchard-card rounded-[2rem] p-4 sm:p-6 md:p-8">
+      {/* Smartphone Mockup Container (Desktop only decoration, disappears on mobile) */}
+      <div className="bg-[#F4F9F6] dark:bg-[#0A100C] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col min-h-[82vh] relative">
+        {/* Device Screen Pane */}
+        <div className="flex-1 relative flex flex-col min-h-0 overflow-hidden">
+          {selectedPlot ? (
             <PlotDetailView
               plot={selectedPlot}
               activities={data.activities}
@@ -1431,18 +1788,14 @@ export default function PlotManagement({
               updateBatch={updateBatch}
               deleteBatch={deleteBatch}
             />
-          </div>
-        ) : (
-          <div className="h-full min-h-[500px] flex flex-col items-center justify-center orchard-card border-dashed rounded-[2.5rem] p-12 text-center">
-            <div className="w-20 h-20 rounded-3xl bg-muted dark:bg-[#1D3A29]/20 flex items-center justify-center mb-6">
-              <DurianIcon className="h-10 w-10 text-muted-foreground/40 dark:text-[#72C08A]/40" />
-            </div>
-            <h3 className="text-xl font-black text-foreground">เลือกแปลงเพื่อดูข้อมูล</h3>
-            <p className="text-base text-muted-foreground font-medium max-w-xs mx-auto mt-2">
-              เลือกแปลงจากรายการด้านซ้ายเพื่อจัดการต้นทุเรียน กิจกรรม และพยากรณ์วันเก็บเกี่ยว
-            </p>
-          </div>
-        )}
+          ) : (
+            <AllPlotsOverview
+              data={data}
+              setSelectedPlotId={setSelectedPlotId}
+              onAddPlotClick={() => setShowAddPlot(true)}
+            />
+          )}
+        </div>
       </div>
     </div>
   )
