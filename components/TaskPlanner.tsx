@@ -346,7 +346,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask, onN
 
       {/* Calendar Card (Mobile/Tablet only) */}
       <div className="lg:hidden bg-white dark:bg-[#14291E] rounded-2xl p-4 border border-[#B9DCC8] dark:border-[#31533D]/60 shadow-[0_4px_20px_rgba(20,107,62,0.04)] orchard-card">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div className="flex flex-col min-[380px]:flex-row items-center justify-between gap-2.5 mb-3">
           <div className="flex items-center gap-1">
             <button onClick={prevMonth} className="p-2 text-[#527060] dark:text-[#B8D1C0] hover:text-primary dark:hover:text-[#72C08A] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] rounded-xl transition-all"><ChevronLeft size={18} /></button>
             <span className="font-extrabold text-foreground text-base sm:text-lg">{MONTHS_TH[calMonth]} {calYear + 543}</span>

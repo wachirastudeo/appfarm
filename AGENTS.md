@@ -46,6 +46,7 @@ At the end, summarize only:
 - Keep changes small.
 - Do not edit unrelated files.
 - Do not delete files unless asked.
+- When browser access needs Gmail or Google Login, use the user's existing logged-in `Google Chrome` profile; do not use a test/dev browser profile.
 - Explain what changed.
 - Run tests when relevant.
 - Preserve existing UI patterns, component structure, and TypeScript types.
@@ -59,6 +60,7 @@ At the end, summarize only:
 ## Browser testing
 
 - When the user asks to test in a browser, use the user's normal `Google Chrome` browser/profile unless they explicitly ask for another browser.
+- When a flow needs Gmail or Google Login, use the user's existing logged-in `Google Chrome` profile; do not use a test/dev browser profile.
 - Reuse the currently open app tab when possible. Do not open a new tab, new window, or alternate browser unless the user explicitly asks or the current tab is unusable.
 - For logged-in flows, test through the real visible browser UI first. If a login method is only a demo button or not wired to real OAuth, state that clearly before using a dev email login.
 - If browser automation accidentally opens a new tab/window or triggers an app install dialog, explain it briefly and return to the existing app tab before continuing.

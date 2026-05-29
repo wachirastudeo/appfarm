@@ -429,7 +429,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
               ) : (
                 <button
                   onClick={() => setShowLocationEditor(true)}
-                  className="inline-flex min-h-10 w-fit max-w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-3 py-2 text-sm font-black text-white shadow-lg shadow-red-950/20 ring-1 ring-red-200/50 transition-colors hover:bg-red-700 sm:px-4"
+                  className="inline-flex min-h-10 w-fit max-w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-black text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-white/10 transition-all hover:bg-[#0F5A34] active:scale-95 sm:px-4"
                 >
                   <MapPin size={16} />
                   <span className="sm:hidden">ตั้งสถานที่สวน</span>
@@ -596,12 +596,15 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
           {/* Tasks card — always visible */}
           <div className="orchard-card rounded-[32px] p-5 sm:p-6 xl:p-7 flex h-full min-h-[18rem] flex-col">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <h3 className="font-bold text-foreground flex items-center gap-2"><span className="rounded-lg bg-amber-100 p-1.5"><ListTodo size={18} className="text-amber-600" /></span>งานที่ต้องทำ</h3>
+              <h3 className="font-bold text-foreground flex items-center gap-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-100 text-amber-600"><ListTodo size={18} /></span>งานที่ต้องทำ</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowAddTask(v => !v)}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-black transition-all ${showAddTask ? "bg-amber-100 text-amber-700 shadow-[0_8px_18px_rgba(245,158,11,0.12)]" : "bg-[#E7F3EC] text-[#146B3E] hover:bg-[#D8EEE2] hover:shadow-[0_8px_18px_rgba(20,107,62,0.08)]"
-                    }`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-black transition-all ${
+                    showAddTask
+                      ? "bg-muted text-muted-foreground hover:bg-muted/80 shadow-sm"
+                      : "bg-primary text-primary-foreground shadow-[0_10px_24px_rgba(20,107,62,0.12)] hover:bg-[#0F5A34]"
+                  }`}
                 >
                   {showAddTask ? <X size={14} /> : <Plus size={14} />}
                   {showAddTask ? "ยกเลิก" : "เพิ่ม"}
@@ -675,11 +678,11 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
 
           {/* Activities — desktop only (inside 2-col grid) */}
           <div
-            className="hidden lg:block orchard-card orchard-card-hover rounded-[32px] p-5 xl:p-6 cursor-pointer h-full min-h-[18rem]"
+            className="hidden lg:block orchard-card orchard-card-hover rounded-[32px] p-5 sm:p-6 xl:p-7 cursor-pointer h-full min-h-[18rem]"
             onClick={() => onNavigate?.("operations")}
           >
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-foreground flex items-center gap-2"><span className="rounded-lg bg-[#E7F3EC] p-1.5"><ClipboardList size={18} className="text-primary" /></span>บันทึกสวน</h3>
+              <h3 className="font-bold text-foreground flex items-center gap-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E7F3EC] text-primary"><ClipboardList size={18} /></span>บันทึกสวน</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={(e) => {
@@ -725,11 +728,11 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
 
         {/* Activities — mobile only (order-3, after Stats) */}
         <div
-          className="lg:hidden orchard-card orchard-card-hover rounded-xl p-3 sm:p-4 cursor-pointer order-3"
+          className="lg:hidden orchard-card orchard-card-hover rounded-[32px] p-5 sm:p-6 cursor-pointer order-3"
           onClick={() => onNavigate?.("operations")}
         >
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <h3 className="font-bold text-foreground flex items-center gap-2"><span className="rounded-lg bg-[#E7F3EC] p-1.5"><ClipboardList size={18} className="text-primary" /></span>บันทึกสวน</h3>
+            <h3 className="font-bold text-foreground flex items-center gap-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E7F3EC] text-primary"><ClipboardList size={18} /></span>บันทึกสวน</h3>
             <div className="flex items-center gap-2">
               <button
                 onClick={(e) => {

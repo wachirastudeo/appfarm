@@ -178,11 +178,40 @@ const GUEST_HERO_IMAGES = [
 
 function ContentSkeleton() {
   return (
-    <div className="space-y-4">
-      <Skeleton className="h-56 rounded-2xl bg-[#E7F3EC]" />
+    <div className="space-y-4" role="status" aria-label="กำลังโหลดข้อมูล">
+      <div className="relative overflow-hidden rounded-2xl border border-[#B9DCC8]/70 bg-gradient-to-br from-white via-[#F4F9F6] to-[#DFF0E6] p-5 shadow-sm dark:border-[#31533D]/80 dark:from-[#14291E] dark:via-[#102619] dark:to-[#1D3A29]">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#146B3E] via-[#F4B942] to-[#72C08A]" />
+        <div className="absolute -right-14 -top-16 h-40 w-40 rounded-full bg-[#72C08A]/20 blur-3xl" />
+        <div className="relative flex min-h-44 flex-col justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#146B3E] text-white shadow-lg shadow-[#146B3E]/20 dark:bg-[#72C08A] dark:text-[#0B1B12]">
+              <DurianIcon size={28} />
+            </div>
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-4 w-36 rounded-full bg-[#B9DCC8]/80 dark:bg-[#31533D]" />
+              <Skeleton className="h-3 w-56 max-w-full rounded-full bg-[#DDEBE1] dark:bg-[#274936]" />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {[1, 2, 3].map(item => (
+              <div key={item} className="rounded-xl border border-[#CFE3D5]/80 bg-white/75 p-3 dark:border-[#31533D]/70 dark:bg-[#14291E]/70">
+                <Skeleton className="mb-3 h-8 w-8 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]" />
+                <Skeleton className="h-3 w-full rounded-full bg-[#DDEBE1] dark:bg-[#274936]" />
+              </div>
+            ))}
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-[#DDEBE1] dark:bg-[#1D3A29]">
+            <div className="h-full w-2/3 rounded-full bg-gradient-to-r from-[#146B3E] via-[#F4B942] to-[#72C08A] animate-pulse" />
+          </div>
+        </div>
+      </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[1, 2, 3, 4].map(item => (
-          <Skeleton key={item} className="h-24 rounded-xl bg-[#E7F3EC]" />
+          <div key={item} className="rounded-xl border border-[#CFE3D5]/70 bg-white/70 p-4 dark:border-[#31533D]/70 dark:bg-[#14291E]/65">
+            <Skeleton className="mb-4 h-8 w-8 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]" />
+            <Skeleton className="mb-2 h-3 w-20 rounded-full bg-[#DDEBE1] dark:bg-[#274936]" />
+            <Skeleton className="h-5 w-14 rounded-full bg-[#B9DCC8]/80 dark:bg-[#31533D]" />
+          </div>
         ))}
       </div>
     </div>
@@ -269,32 +298,63 @@ function AppFooter({ onContactClick }: { onContactClick: () => void }) {
 
 function AppShellSkeleton() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="relative z-20 bg-white px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1]">
+    <div className="min-h-screen bg-background flex flex-col" role="status" aria-label="กำลังเตรียมแอป">
+      <header className="relative z-20 bg-white/90 px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1] backdrop-blur dark:border-[#31533D] dark:bg-[#14291E]/90">
         <div className="flex min-w-0 items-center gap-3">
-          <Skeleton className="h-10 w-10 rounded-xl bg-[#E7F3EC]" />
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#146B3E] text-white shadow-sm dark:bg-[#72C08A] dark:text-[#0B1B12]">
+            <DurianIcon size={23} />
+          </div>
           <div className="space-y-2">
-            <Skeleton className="h-4 w-32 bg-[#E7F3EC]" />
-            <Skeleton className="h-3 w-20 bg-[#E7F3EC]" />
+            <Skeleton className="h-4 w-32 rounded-full bg-[#E7F3EC] dark:bg-[#1D3A29]" />
+            <Skeleton className="h-3 w-20 rounded-full bg-[#DDEBE1] dark:bg-[#274936]" />
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Skeleton className="h-9 w-9 rounded-xl bg-[#E7F3EC]" />
-          <Skeleton className="h-9 w-9 rounded-xl bg-[#E7F3EC]" />
+          <Skeleton className="h-9 w-9 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]" />
+          <Skeleton className="h-9 w-9 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]" />
         </div>
       </header>
       <div className="flex flex-1 overflow-hidden">
-        <aside className="hidden lg:flex w-56 shrink-0 flex-col gap-2 bg-[#146B3E] p-3">
-          <Skeleton className="mb-2 h-4 w-24 bg-white/20" />
+        <aside className="hidden lg:flex w-56 shrink-0 flex-col gap-2 bg-gradient-to-b from-[#146B3E] to-[#0F5A34] p-3 dark:from-[#102619] dark:to-[#0B1B12]">
+          <Skeleton className="mb-2 h-4 w-24 rounded-full bg-white/20" />
           {[1, 2, 3, 4, 5].map(item => (
             <Skeleton key={item} className="h-14 rounded-xl bg-white/18" />
           ))}
         </aside>
         <main className="flex-1 overflow-hidden p-3 sm:p-4 md:p-8">
-          <Skeleton className="h-72 rounded-2xl bg-[#E7F3EC]" />
+          <div className="relative overflow-hidden rounded-2xl border border-[#B9DCC8]/70 bg-gradient-to-br from-white via-[#F4F9F6] to-[#DFF0E6] p-5 shadow-sm dark:border-[#31533D]/80 dark:from-[#14291E] dark:via-[#102619] dark:to-[#1D3A29]">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#146B3E] via-[#F4B942] to-[#72C08A]" />
+            <div className="absolute -right-16 -top-20 h-52 w-52 rounded-full bg-[#72C08A]/20 blur-3xl" />
+            <div className="relative flex h-60 flex-col justify-between">
+              <div className="flex items-center gap-3">
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#146B3E] text-white shadow-lg shadow-[#146B3E]/20 dark:bg-[#72C08A] dark:text-[#0B1B12]">
+                  <Leaf size={27} />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-44 rounded-full bg-[#B9DCC8]/80 dark:bg-[#31533D]" />
+                  <Skeleton className="h-3 w-64 max-w-full rounded-full bg-[#DDEBE1] dark:bg-[#274936]" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {[1, 2, 3].map(item => (
+                  <div key={item} className="rounded-xl border border-[#CFE3D5]/80 bg-white/75 p-3 dark:border-[#31533D]/70 dark:bg-[#14291E]/70">
+                    <Skeleton className="mb-3 h-8 w-8 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]" />
+                    <Skeleton className="h-3 w-full rounded-full bg-[#DDEBE1] dark:bg-[#274936]" />
+                  </div>
+                ))}
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-[#DDEBE1] dark:bg-[#1D3A29]">
+                <div className="h-full w-2/3 rounded-full bg-gradient-to-r from-[#146B3E] via-[#F4B942] to-[#72C08A] animate-pulse" />
+              </div>
+            </div>
+          </div>
           <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[1, 2, 3, 4].map(item => (
-              <Skeleton key={item} className="h-24 rounded-xl bg-[#E7F3EC]" />
+              <div key={item} className="rounded-xl border border-[#CFE3D5]/70 bg-white/70 p-4 dark:border-[#31533D]/70 dark:bg-[#14291E]/65">
+                <Skeleton className="mb-4 h-8 w-8 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]" />
+                <Skeleton className="mb-2 h-3 w-20 rounded-full bg-[#DDEBE1] dark:bg-[#274936]" />
+                <Skeleton className="h-5 w-14 rounded-full bg-[#B9DCC8]/80 dark:bg-[#31533D]" />
+              </div>
             ))}
           </div>
         </main>
@@ -1562,11 +1622,11 @@ export default function AppShell() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`min-w-[4.25rem] flex-1 flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl transition-all ${isActive ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground/70 dark:text-foreground/60 hover:bg-black/5 dark:hover:bg-white/10"
+              className={`min-w-[3.5rem] min-[360px]:min-w-[4.25rem] flex-1 flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl transition-all ${isActive ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground/70 dark:text-foreground/60 hover:bg-black/5 dark:hover:bg-white/10"
                 }`}
             >
-              <Icon size={20} />
-              <span className="text-xs font-semibold">{tab.label}</span>
+              <Icon size={20} className="shrink-0" />
+              <span className="text-[10px] min-[360px]:text-xs font-semibold truncate max-w-full px-1">{tab.label}</span>
             </button>
           )
         })}

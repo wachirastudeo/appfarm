@@ -1166,12 +1166,12 @@ function PlotDetailView({
               </div>
             </div>
           ) : (
-            <>
-              <div className="min-w-0 flex-1 text-left">
+            <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
+              <div className="min-w-0 text-left">
                 <h2 className="text-xl font-black text-white leading-tight">{plot.name}</h2>
                 <p className="text-sm text-white/60 font-medium mt-0.5">{plot.area} ไร่{plot.notes ? ` · ${plot.notes}` : ""}</p>
               </div>
-              <div className="flex gap-1.5 sm:gap-2 shrink-0 flex-wrap justify-end">
+              <div className="flex gap-1.5 sm:gap-2 flex-wrap sm:justify-end">
                 <button
                   onClick={() => setAddingTree(true)}
                   className="px-3 py-2 rounded-xl bg-white text-[#146B3E] dark:bg-[#72C08A] dark:text-[#0B1B12] hover:scale-105 active:scale-95 shadow-md font-black text-xs transition-all flex items-center gap-1"
@@ -1185,7 +1185,7 @@ function PlotDetailView({
                   <Trash2 size={16} />
                 </button>
               </div>
-            </>
+            </div>
           )}
         </div>
 
@@ -1210,7 +1210,7 @@ function PlotDetailView({
 
       {/* ── Action Toolbar ── */}
       {!editingPlot && (
-        <div className="flex items-center justify-between mb-4 mt-2">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 mb-4 mt-2">
           <h3 className="text-sm font-black text-foreground uppercase tracking-wider">รายการต้นทุเรียน</h3>
           <div className="flex gap-2">
             <button

@@ -147,7 +147,7 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
               <item.icon size={20} />
             </div>
             <p className="text-sm font-bold opacity-90">{item.label}</p>
-            <p className="mt-1 truncate text-base sm:text-xl font-black">{typeof item.value === "number" ? formatCurrency(item.value) : item.value}</p>
+            <p className="mt-1 text-[11px] min-[360px]:text-xs sm:text-base md:text-xl font-black leading-tight break-all">{typeof item.value === "number" ? formatCurrency(item.value) : item.value}</p>
           </div>
         ))}
       </div>
