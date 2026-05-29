@@ -594,12 +594,15 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
         {/* Tasks (mobile: order-1 / desktop: order-2 inside 2-col grid with Activities) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 xl:gap-6 items-stretch order-1 lg:order-2">
           {/* Tasks card — always visible */}
-          <div className="orchard-card rounded-[32px] p-5 sm:p-6 xl:p-7 flex h-full min-h-[18rem] flex-col">
+          <div
+            onClick={() => onNavigate?.("operations")}
+            className="orchard-card orchard-card-hover rounded-[32px] p-5 sm:p-6 xl:p-7 flex h-full min-h-[18rem] flex-col cursor-pointer"
+          >
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h3 className="font-bold text-foreground flex items-center gap-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-100 text-amber-600"><ListTodo size={18} /></span>งานที่ต้องทำ</h3>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setShowAddTask(v => !v)}
+                  onClick={(e) => { e.stopPropagation(); setShowAddTask(v => !v); }}
                   className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-black transition-all ${
                     showAddTask
                       ? "bg-muted text-muted-foreground hover:bg-muted/80 shadow-sm"
@@ -610,7 +613,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
                   {showAddTask ? "ยกเลิก" : "เพิ่ม"}
                 </button>
                 <button
-                  onClick={() => onNavigate?.("operations")}
+                  onClick={(e) => { e.stopPropagation(); onNavigate?.("operations"); }}
                   className="inline-flex items-center rounded-full px-4 py-2 text-sm font-black text-primary transition-colors hover:bg-[#E7F3EC]"
                 >
                   ดูทั้งหมด
@@ -620,7 +623,10 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
 
             {/* Quick Add Form */}
             {showAddTask && (
-              <div className="mb-3 bg-[#fff8e8] border border-amber-200 rounded-xl p-3 space-y-2 shadow-inner">
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="mb-3 bg-[#fff8e8] border border-amber-200 rounded-xl p-3 space-y-2 shadow-inner"
+              >
                 <input
                   autoFocus
                   value={quickForm.title}
@@ -663,7 +669,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
             )}
 
             {upcomingTasks.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
                 {upcomingTasks.map(t => (
                   <TaskCard key={t.id} task={t} plotName={plotName(t.plotId)} plots={data.plots} updateTask={updateTask} deleteTask={deleteTask} />
                 ))}
@@ -681,7 +687,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
             className="hidden lg:block orchard-card orchard-card-hover rounded-[32px] p-5 sm:p-6 xl:p-7 cursor-pointer h-full min-h-[18rem]"
             onClick={() => onNavigate?.("operations")}
           >
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h3 className="font-bold text-foreground flex items-center gap-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E7F3EC] text-primary"><ClipboardList size={18} /></span>บันทึกสวน</h3>
               <div className="flex items-center gap-2">
                 <button
@@ -720,6 +726,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
               </div>
             ) : (
               <div className="py-8 text-center">
+                <ClipboardList size={32} className="text-muted-foreground/30 mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground">ไม่มีบันทึกสวน</p>
               </div>
             )}
@@ -770,6 +777,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
             </div>
           ) : (
             <div className="py-8 text-center">
+              <ClipboardList size={32} className="text-muted-foreground/30 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">ไม่มีบันทึกสวน</p>
             </div>
           )}
