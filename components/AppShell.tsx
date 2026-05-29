@@ -851,6 +851,7 @@ function GuestHome({
               className="group w-[240px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30"
             >
               <div className="relative h-24 overflow-hidden sm:h-28">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={article.image} alt={article.title} loading="lazy" decoding="async" className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.08]" />
               </div>
               <div className="p-4">
@@ -918,6 +919,7 @@ function GuestHome({
                   className="group flex h-[18.5rem] w-[190px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30 sm:h-[19rem] sm:w-[220px]"
                 >
                   <div className="h-24 overflow-hidden sm:h-28 relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={product.image} alt={product.name} loading="lazy" decoding="async" className="block h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]" />
                   </div>
                   <div className="flex flex-1 flex-col p-4">

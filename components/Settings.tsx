@@ -512,6 +512,7 @@ export default function Settings({
             {/* Preview */}
             {coverImage ? (
               <div className="relative h-36 w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={coverImage} alt="ภาพปกสวน" className="w-full h-full object-cover" style={{ objectPosition: `${coverPositionDraft.x}% ${coverPositionDraft.y}%` }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <button

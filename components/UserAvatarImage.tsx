@@ -8,6 +8,7 @@ type Props = {
 /** External OAuth avatars (LINE, Google) often require no-referrer to load in the browser. */
 export default function UserAvatarImage({ src, alt, className, onError }: Props) {
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt={alt}

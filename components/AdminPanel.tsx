@@ -4,7 +4,7 @@ import type { AppUser, Article, NewUserInput, Product, SiteSettings } from "@/li
 import { appRuntimeConfig, getDataModeLabel, isSupabaseConfigured } from "@/lib/runtime-config"
 import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "@/lib/seo"
 import { validateEmail, validateHttpUrl, validateImageFile, validateText } from "@/lib/form-validation"
-import { BookOpen, Edit3, Image, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users, MessageSquare } from "lucide-react"
+import { BookOpen, Edit3, Image as ImageIcon, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users, MessageSquare } from "lucide-react"
 
 interface Props {
   users: AppUser[]
@@ -362,11 +362,12 @@ export default function AdminPanel({
           <div className="space-y-4">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="mb-4 flex items-center gap-2">
-              <Image className="text-primary" size={20} />
+              <ImageIcon className="text-primary" size={20} />
               <h3 className="text-lg font-black">ตัวอย่างหัวเว็บ</h3>
             </div>
             <div className="flex items-center gap-4 rounded-2xl bg-[#146B3E] p-5 text-white">
               {settingsDraft.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={settingsDraft.logoUrl} alt="Logo preview" className="h-14 w-14 rounded-2xl object-cover ring-1 ring-white/20" />
               ) : (
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/16 text-xl font-black">ท</div>
@@ -440,6 +441,7 @@ export default function AdminPanel({
                   />
                 </label>
                 {articleDraft.image && (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={articleDraft.image} alt="Article preview" className="h-12 w-16 rounded-lg object-cover ring-1 ring-border" />
                 )}
               </div>
@@ -458,6 +460,7 @@ export default function AdminPanel({
           <div className="space-y-2">
             {articles.map(article => (
               <div key={article.id} className="flex gap-3 rounded-xl border border-border p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={article.image} alt={article.title} className="h-16 w-20 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-black">{article.title}</p>
@@ -514,6 +517,7 @@ export default function AdminPanel({
                   />
                 </label>
                 {productDraft.image && (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={productDraft.image} alt="Product preview" className="h-12 w-16 rounded-lg object-cover ring-1 ring-border" />
                 )}
               </div>
@@ -532,6 +536,7 @@ export default function AdminPanel({
           <div className="space-y-2">
             {products.map(product => (
               <div key={product.id} className="flex gap-3 rounded-xl border border-border p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={product.image} alt={product.imageAlt || product.name} className="h-16 w-20 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-black">{product.name}</p>

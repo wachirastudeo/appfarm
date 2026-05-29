@@ -159,6 +159,7 @@ export default function Products({
             className={`group relative overflow-hidden rounded-2xl border border-border/70 bg-card/65 backdrop-blur-md shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)] ${compact ? "min-h-[24rem]" : "min-h-[28rem] sm:min-h-[30rem]"} ${mobileRail ? "w-[17rem] shrink-0 sm:w-auto sm:min-w-0" : ""}`}
           >
             <div className="absolute inset-0 overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={product.image}
                 alt={product.imageAlt || product.name}

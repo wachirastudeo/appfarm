@@ -269,6 +269,7 @@ export default function Articles({
               {selectedArticle.title}
             </h1>
             <div className="relative h-[220px] sm:h-[280px] lg:h-[450px] rounded-2xl overflow-hidden shadow-xl border border-border">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={selectedArticle.image} alt={selectedArticle.imageAlt || selectedArticle.title} className="w-full h-full object-cover" />
             </div>
           </div>
@@ -407,6 +408,7 @@ export default function Articles({
                 className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/65 shadow-sm backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] sm:rounded-3xl dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)]"
               >
                 <div className="relative h-28 overflow-hidden sm:h-60">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={article.image}
                     alt={article.imageAlt || article.title}
