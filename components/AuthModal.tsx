@@ -135,18 +135,29 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
     }
     setLoading("email")
     setTimeout(async () => {
-      const user = isSignUp
-        ? addUser({ name: checkedName.value, email: checkedEmail.value, password: checkedPassword.value, role: "user", status: "active", provider: "email" })
-        : authenticateUser(checkedEmail.value, checkedPassword.value)
-      const result = await user
-      if (!result) {
-        setError(isSignUp ? "อีเมลนี้มีผู้ใช้งานแล้ว" : "อีเมลหรือรหัสผ่านไม่ถูกต้อง")
+      try {
+        const user = isSignUp
+          ? addUser({ name: checkedName.value, email: checkedEmail.value, password: checkedPassword.value, role: "user", status: "active", provider: "email" })
+          : authenticateUser(checkedEmail.value, checkedPassword.value)
+        const result = await user
+        if (!result) {
+          setError(isSignUp ? "อีเมลนี้มีผู้ใช้งานแล้ว" : "อีเมลหรือรหัสผ่านไม่ถูกต้อง")
+          setLoading(null)
+          return
+        }
+        onLoginSuccess(result)
         setLoading(null)
-        return
+        onClose()
+      } catch (err: any) {
+        if (err.message === "confirmation_required") {
+          setSuccess("สมัครสมาชิกสำเร็จ! กรุณาตรวจสอบอีเมลของคุณเพื่อยืนยันบัญชีก่อนเข้าสู่ระบบ")
+          setError("")
+        } else {
+          setError(err.message || "เกิดข้อผิดพลาดในการลงทะเบียน/เข้าสู่ระบบ")
+          setSuccess("")
+        }
+        setLoading(null)
       }
-      onLoginSuccess(result)
-      setLoading(null)
-      onClose()
     }, 1000)
   }
 
@@ -162,18 +173,23 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
     }
     setLoading("reset")
     setTimeout(async () => {
-      const result = await resetPassword(checkedEmail.value, checkedPassword.value)
-      if (!result) {
-        setError("ไม่พบบัญชีอีเมลนี้ในระบบ")
+      try {
+        const result = await resetPassword(checkedEmail.value, checkedPassword.value)
+        if (!result) {
+          setError("ไม่พบบัญชีอีเมลนี้ในระบบ")
+          setLoading(null)
+          return
+        }
+        setPassword(checkedPassword.value)
+        setNewPassword("")
+        setIsSignUp(false)
+        setMode("email")
+        setSuccess("เปลี่ยนรหัสผ่านแล้ว กรุณาเข้าสู่ระบบด้วยรหัสใหม่")
         setLoading(null)
-        return
+      } catch (err: any) {
+        setError(err.message || "เกิดข้อผิดพลาดในการรีเซ็ตรหัสผ่าน")
+        setLoading(null)
       }
-      setPassword(checkedPassword.value)
-      setNewPassword("")
-      setIsSignUp(false)
-      setMode("email")
-      setSuccess("เปลี่ยนรหัสผ่านแล้ว กรุณาเข้าสู่ระบบด้วยรหัสใหม่")
-      setLoading(null)
     }, 700)
   }
 

@@ -8,7 +8,8 @@ import {
   fetchProducts, upsertProduct, removeProduct,
 } from "./supabase/articles"
 import { findUserByEmail as findSupabaseUserByEmail, insertUser as insertSupabaseUser, updateUser as updateSupabaseUser } from "./supabase/queries"
-import { normalizeAuthProvider } from "./oauth-profile"
+import { normalizeAuthProvider, resolveOAuthProfileFromAuthUser } from "./oauth-profile"
+import { createClient } from "./supabase/client"
 
 // ---- Types ----
 export type FlowerStage =
@@ -212,6 +213,8 @@ export interface SiteSettings {
   siteName: string
   tagline: string
   logoUrl: string
+  googleVerification?: string
+  googleAnalytics?: string
 }
 
 export type NewUserInput = Omit<AppUser, "id" | "createdAt" | "passwordHash" | "password"> & { password: string }
@@ -341,6 +344,8 @@ const SEED: AppData = {
     siteName: "Durian Flow",
     tagline: "Smart Orchard",
     logoUrl: "",
+    googleVerification: "",
+    googleAnalytics: "",
   },
 }
 
@@ -648,40 +653,6 @@ export function useAppData(currentUserId?: string | null) {
   }, [updateData])
 
   // Users
-  const authenticateUser = useCallback(async (email: string, password: string) => {
-    const normalized = email.trim().toLowerCase()
-    const passwordHash = await hashPassword(normalized, password)
-    return data.users.find(u => u.email.toLowerCase() === normalized && u.passwordHash === passwordHash && u.status === "active") ?? null
-  }, [data.users])
-
-  const addUser = useCallback(async (user: NewUserInput) => {
-    const normalized = user.email.trim().toLowerCase()
-    const exists = data.users.some(u => u.email.toLowerCase() === normalized)
-    if (exists) return null
-    const { password, ...safeUser } = user
-    const newUser: AppUser = {
-      ...safeUser,
-      email: normalized,
-      passwordHash: await hashPassword(normalized, password),
-      id: `u${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    }
-    updateData(d => ({ ...d, users: [newUser, ...d.users] }))
-    return newUser
-  }, [data.users, updateData])
-
-  const resetPassword = useCallback(async (email: string, password: string) => {
-    const normalized = email.trim().toLowerCase()
-    const user = data.users.find(u => u.email.toLowerCase() === normalized && u.provider === "email")
-    if (!user) return null
-    const passwordHash = await hashPassword(normalized, password)
-    updateData(d => ({
-      ...d,
-      users: d.users.map(u => u.id === user.id ? { ...u, passwordHash } : u),
-    }))
-    return { ...user, passwordHash }
-  }, [data.users, updateData])
-
   const upsertOAuthUser = useCallback(async (input: OAuthUserInput) => {
     const normalized = input.email.trim().toLowerCase()
     if (!normalized) return null
@@ -728,6 +699,107 @@ export function useAppData(currentUserId?: string | null) {
       await insertSupabaseUser(newUser).catch(() => undefined)
     }
     return newUser
+  }, [data.users, isSupabaseMode, updateData])
+
+  const authenticateUser = useCallback(async (email: string, password: string) => {
+    const normalized = email.trim().toLowerCase()
+
+    if (isSupabaseMode) {
+      const supabase = createClient()
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: normalized,
+        password,
+      })
+      if (authError) {
+        throw new Error(authError.message === "Invalid login credentials" ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : authError.message)
+      }
+      if (!authData.user) {
+        throw new Error("เข้าสู่ระบบไม่สำเร็จ")
+      }
+      
+      const identity = resolveOAuthProfileFromAuthUser(authData.user)
+      if (!identity) {
+        throw new Error("ดึงข้อมูลโปรไฟล์ล้มเหลว")
+      }
+      const appUser = await upsertOAuthUser(identity)
+      if (!appUser) {
+        throw new Error("บัญชีนี้ถูกระงับการใช้งาน")
+      }
+      return appUser
+    }
+
+    const passwordHash = await hashPassword(normalized, password)
+    return data.users.find(u => u.email.toLowerCase() === normalized && u.passwordHash === passwordHash && u.status === "active") ?? null
+  }, [data.users, isSupabaseMode, upsertOAuthUser])
+
+  const addUser = useCallback(async (user: NewUserInput) => {
+    const normalized = user.email.trim().toLowerCase()
+
+    if (isSupabaseMode) {
+      const supabase = createClient()
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: normalized,
+        password: user.password,
+        options: {
+          data: {
+            name: user.name,
+          },
+        },
+      })
+      if (authError) {
+        if (authError.message.includes("already registered") || authError.status === 422) {
+          throw new Error("อีเมลนี้มีผู้ใช้งานแล้ว")
+        }
+        throw new Error(authError.message)
+      }
+      
+      // If email confirmation is enabled, session will be null
+      if (authData.user && !authData.session) {
+        throw new Error("confirmation_required")
+      }
+      
+      if (authData.user) {
+        const identity = resolveOAuthProfileFromAuthUser(authData.user)
+        if (!identity) {
+          throw new Error("สร้างบัญชีสำเร็จ แต่ไม่สามารถดึงข้อมูลโปรไฟล์ได้")
+        }
+        const appUser = await upsertOAuthUser(identity)
+        if (!appUser) {
+          throw new Error("สร้างบัญชีสำเร็จ แต่บัญชีถูกระงับ")
+        }
+        return appUser
+      }
+      throw new Error("ลงทะเบียนไม่สำเร็จ")
+    }
+
+    const exists = data.users.some(u => u.email.toLowerCase() === normalized)
+    if (exists) return null
+    const { password, ...safeUser } = user
+    const newUser: AppUser = {
+      ...safeUser,
+      email: normalized,
+      passwordHash: await hashPassword(normalized, password),
+      id: `u${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    }
+    updateData(d => ({ ...d, users: [newUser, ...d.users] }))
+    return newUser
+  }, [data.users, isSupabaseMode, updateData, upsertOAuthUser])
+
+  const resetPassword = useCallback(async (email: string, password: string) => {
+    if (isSupabaseMode) {
+      throw new Error("การเปลี่ยนรหัสผ่านโดยตรงไม่รองรับในโหมด Supabase กรุณาติดต่อผู้ดูแลระบบเพื่อขอรีเซ็ตรหัสผ่านผ่าน Supabase Dashboard")
+    }
+
+    const normalized = email.trim().toLowerCase()
+    const user = data.users.find(u => u.email.toLowerCase() === normalized && u.provider === "email")
+    if (!user) return null
+    const passwordHash = await hashPassword(normalized, password)
+    updateData(d => ({
+      ...d,
+      users: d.users.map(u => u.id === user.id ? { ...u, passwordHash } : u),
+    }))
+    return { ...user, passwordHash }
   }, [data.users, isSupabaseMode, updateData])
 
   const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {

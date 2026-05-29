@@ -165,8 +165,6 @@ create table if not exists public.products (
   brand_name text,
   sku text,
   status text not null default 'active',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
 );
 
 -- ---- Site settings ----
@@ -175,9 +173,18 @@ create table if not exists public.site_settings (
   site_name text not null default 'DurianFlow',
   tagline text not null default 'Smart Orchard',
   logo_url text,
+  google_verification text,
+  google_analytics text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Ensure existing table site_settings has SEO columns
+alter table public.site_settings
+  add column if not exists google_verification text,
+  add column if not exists google_analytics text;
+
+
 
 -- ---- Enable RLS ----
 alter table public.app_data enable row level security;

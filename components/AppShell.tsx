@@ -1234,6 +1234,55 @@ export default function AppShell() {
     return () => window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt)
   }, [])
 
+  // Google Search Console (Verification Meta Tag) Injection
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const verificationCode = store.data.siteSettings?.googleVerification
+    if (verificationCode) {
+      let tag = document.querySelector('meta[name="google-site-verification"]')
+      if (!tag) {
+        tag = document.createElement('meta')
+        tag.setAttribute('name', 'google-site-verification')
+        document.head.appendChild(tag)
+      }
+      tag.setAttribute('content', verificationCode)
+    } else {
+      document.querySelector('meta[name="google-site-verification"]')?.remove()
+    }
+  }, [store.data.siteSettings?.googleVerification])
+
+  // Google Analytics Injection
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const trackingId = store.data.siteSettings?.googleAnalytics
+    const scriptId = 'google-analytics-script'
+    const configId = 'google-analytics-config'
+
+    if (trackingId) {
+      document.getElementById(scriptId)?.remove()
+      document.getElementById(configId)?.remove()
+
+      const script = document.createElement('script')
+      script.id = scriptId
+      script.async = true
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${trackingId}`
+      document.head.appendChild(script)
+
+      const configScript = document.createElement('script')
+      configScript.id = configId
+      configScript.innerHTML = `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '${trackingId}');
+      `
+      document.head.appendChild(configScript)
+    } else {
+      document.getElementById(scriptId)?.remove()
+      document.getElementById(configId)?.remove()
+    }
+  }, [store.data.siteSettings?.googleAnalytics])
+
   const handleInstallApp = async () => {
     const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent)
     if (installPrompt) {

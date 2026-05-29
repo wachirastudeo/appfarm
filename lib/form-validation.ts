@@ -80,3 +80,50 @@ export function validateImageFile(file: File, maxBytes: number): ValidationResul
   if (file.size > maxBytes) return invalid(`ไฟล์รูปภาพต้องไม่เกิน ${Math.round(maxBytes / 1024 / 1024)}MB`)
   return { ok: true, value: file, message: "" }
 }
+
+export async function resizeAndCompressImage(file: File, maxDimension: number, quality = 0.82): Promise<string> {
+  if (typeof window === "undefined") return ""
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        const scale = Math.min(1, maxDimension / Math.max(img.naturalWidth, img.naturalHeight))
+        canvas.width = Math.max(1, Math.round(img.naturalWidth * scale))
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale))
+        const ctx = canvas.getContext("2d")
+        if (!ctx) {
+          resolve(reader.result as string)
+          return
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        
+        const tryEncode = (mimeType: string) => {
+          canvas.toBlob(
+            (blob) => {
+              if (blob && (blob.type === mimeType || mimeType === "image/jpeg")) {
+                const blobReader = new FileReader()
+                blobReader.onload = () => resolve(blobReader.result as string)
+                blobReader.onerror = () => resolve(reader.result as string)
+                blobReader.readAsDataURL(blob)
+              } else if (mimeType === "image/webp") {
+                tryEncode("image/jpeg")
+              } else {
+                resolve(reader.result as string)
+              }
+            },
+            mimeType,
+            quality
+          )
+        }
+        tryEncode("image/webp")
+      }
+      img.onerror = () => reject(new Error("Failed to load image for resizing"))
+      img.src = reader.result as string
+    }
+    reader.onerror = () => reject(new Error("Failed to read image file"))
+    reader.readAsDataURL(file)
+  })
+}
+

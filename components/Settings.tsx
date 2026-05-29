@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { Settings as SettingsIcon, Download, Upload, Trash2, Moon, Sun, Info, ChevronRight, Bell, Shield, X, ImageIcon, MapPin, CheckCircle2, User, LogOut } from "lucide-react"
 import type { AppUser, SiteSettings } from "@/lib/store"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
-import { validateImageFile, validateText } from "@/lib/form-validation"
+import { validateImageFile, validateText, resizeAndCompressImage } from "@/lib/form-validation"
 import { Slider } from "./ui/slider"
 import DurianLogo from "./DurianLogo"
 import UserAvatarImage from "./UserAvatarImage"
@@ -207,7 +207,7 @@ export default function Settings({
     }
   }
 
-  const handleCoverImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     const checkedFile = validateImageFile(file, 5 * 1024 * 1024)
@@ -215,9 +215,8 @@ export default function Settings({
       alert(checkedFile.message)
       return
     }
-    const reader = new FileReader()
-    reader.onload = async (ev) => {
-      const result = ev.target?.result as string
+    try {
+      const result = await resizeAndCompressImage(checkedFile.value, 1400, 0.82)
       setCoverImage(result)
       setCoverPosition({ x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION })
       setCoverPositionDraft({ x: DEFAULT_COVER_POSITION, y: DEFAULT_COVER_POSITION })
@@ -235,8 +234,9 @@ export default function Settings({
         const errMsg = err instanceof Error ? err.message : (typeof err === "object" && err !== null && "message" in err ? String((err as any).message) : String(err))
         alert("บันทึกภาพปกไม่สำเร็จ: " + errMsg)
       }
+    } catch {
+      alert("อัปโหลดภาพปกไม่สำเร็จ")
     }
-    reader.readAsDataURL(checkedFile.value)
   }
 
   const handleRemoveCover = async () => {

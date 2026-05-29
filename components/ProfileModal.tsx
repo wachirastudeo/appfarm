@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react"
 import type { AppUser } from "@/lib/store"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
-import { validateImageFile, validateText } from "@/lib/form-validation"
+import { validateImageFile, validateText, resizeAndCompressImage } from "@/lib/form-validation"
 import { X, User, LogOut, ChevronRight, Shield, Bell, Leaf, Camera, CheckCircle2 } from "lucide-react"
 import UserAvatarImage from "./UserAvatarImage"
 
@@ -58,18 +58,19 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout, onLogin,
     setEditName(false)
   }
 
-  const handleAvatarChange = (file?: File) => {
+  const handleAvatarChange = async (file?: File) => {
     if (!file) return
     const checkedFile = validateImageFile(file, 5 * 1024 * 1024)
     if (!checkedFile.ok) {
       alert(checkedFile.message)
       return
     }
-    const reader = new FileReader()
-    reader.onload = () => {
-      if (typeof reader.result === "string") onUpdateUser({ avatar: reader.result })
+    try {
+      const dataUrl = await resizeAndCompressImage(checkedFile.value, 250, 0.82)
+      onUpdateUser({ avatar: dataUrl })
+    } catch {
+      alert("อัปโหลดรูปภาพไม่สำเร็จ")
     }
-    reader.readAsDataURL(checkedFile.value)
   }
 
   const initials = user?.name

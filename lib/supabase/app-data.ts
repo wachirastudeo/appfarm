@@ -204,6 +204,8 @@ function rowToSettings(row: Record<string, unknown> | null): SiteSettings {
     siteName: (row?.site_name as string) || "Durian Flow",
     tagline: (row?.tagline as string) || "Smart Orchard",
     logoUrl: (row?.logo_url as string) || "",
+    googleVerification: (row?.google_verification as string) || "",
+    googleAnalytics: (row?.google_analytics as string) || "",
   }
 }
 
@@ -477,6 +479,8 @@ export async function saveStructuredAppData(appData: AppData, ownerUserId?: stri
     site_name: appData.siteSettings.siteName,
     tagline: appData.siteSettings.tagline,
     logo_url: appData.siteSettings.logoUrl,
+    google_verification: appData.siteSettings.googleVerification || null,
+    google_analytics: appData.siteSettings.googleAnalytics || null,
     updated_at: new Date().toISOString(),
   })
   if (settingsError) throw settingsError

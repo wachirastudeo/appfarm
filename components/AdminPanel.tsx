@@ -3,8 +3,9 @@ import { useId, useState } from "react"
 import type { AppUser, Article, NewUserInput, Product, SiteSettings } from "@/lib/store"
 import { appRuntimeConfig, getDataModeLabel, isSupabaseConfigured } from "@/lib/runtime-config"
 import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "@/lib/seo"
-import { validateEmail, validateHttpUrl, validateImageFile, validateText } from "@/lib/form-validation"
-import { BookOpen, Edit3, Image as ImageIcon, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users, MessageSquare } from "lucide-react"
+import { validateEmail, validateHttpUrl, validateImageFile, validateText, resizeAndCompressImage } from "@/lib/form-validation"
+import { BookOpen, Edit3, Image as ImageIcon, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users, MessageSquare, Sparkles, Globe, FileText, Eye, ArrowRight } from "lucide-react"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 interface Props {
   users: AppUser[]
@@ -59,6 +60,20 @@ const emptyProduct = {
   status: "active" as const,
 }
 
+const getTitleLengthBadge = (len: number) => {
+  if (len === 0) return { label: "ไม่มีหัวข้อ", color: "text-muted-foreground bg-muted" }
+  if (len >= 50 && len <= 60) return { label: "ยอดเยี่ยม (50-60 อักษร)", color: "text-emerald-700 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-950/30" }
+  if (len < 50) return { label: "สั้นเกินไป (แนะนำ 50-60)", color: "text-amber-700 bg-amber-50 dark:text-amber-300 dark:bg-amber-950/30" }
+  return { label: "ยาวเกินไป (แนะนำ 50-60)", color: "text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-950/30" }
+}
+
+const getDescLengthBadge = (len: number) => {
+  if (len === 0) return { label: "ไม่มีคำอธิบาย", color: "text-muted-foreground bg-muted" }
+  if (len >= 120 && len <= 160) return { label: "ยอดเยี่ยม (120-160 อักษร)", color: "text-emerald-700 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-950/30" }
+  if (len < 120) return { label: "สั้นเกินไป (แนะนำ 120-160)", color: "text-amber-700 bg-amber-50 dark:text-amber-300 dark:bg-amber-950/30" }
+  return { label: "ยาวเกินไป (แนะนำ 120-160)", color: "text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-950/30" }
+}
+
 export default function AdminPanel({
   users,
   articles,
@@ -108,7 +123,7 @@ export default function AdminPanel({
       return
     }
     try {
-      const dataUrl = await convertImageToAvifDataUrl(checkedFile.value)
+      const dataUrl = await resizeAndCompressImage(checkedFile.value, 1400, 0.82)
       onDone(dataUrl)
       setMessage(`อัปโหลด${label}แล้ว กดบันทึกเพื่อนำไปใช้`)
     } catch {
@@ -119,12 +134,53 @@ export default function AdminPanel({
   const saveSettings = () => {
     const siteName = validateText("ชื่อเว็บ", settingsDraft.siteName, { required: true, maxLength: 120 })
     const tagline = validateText("คำโปรย", settingsDraft.tagline, { required: true, maxLength: 160 })
-    if (!siteName.ok || !tagline.ok) {
-      setMessage(!siteName.ok ? siteName.message : tagline.message)
+    const googleVerification = validateText("Google Verification Key", settingsDraft.googleVerification ?? "", { maxLength: 200 })
+    const googleAnalytics = validateText("Google Analytics ID", settingsDraft.googleAnalytics ?? "", { maxLength: 50 })
+    
+    if (!siteName.ok || !tagline.ok || !googleVerification.ok || !googleAnalytics.ok) {
+      setMessage(!siteName.ok ? siteName.message : !tagline.ok ? tagline.message : !googleVerification.ok ? googleVerification.message : googleAnalytics.message)
       return
     }
-    updateSiteSettings({ ...settingsDraft, siteName: siteName.value, tagline: tagline.value })
+    
+    updateSiteSettings({ 
+      ...settingsDraft, 
+      siteName: siteName.value, 
+      tagline: tagline.value,
+      googleVerification: googleVerification.value,
+      googleAnalytics: googleAnalytics.value
+    })
     setMessage("บันทึกตั้งค่าเว็บแล้ว")
+  }
+
+  const handleAutoPopulateSEO = () => {
+    if (!articleDraft.title) {
+      setMessage("กรุณากรอกหัวข้อก่อนเพื่อเจนข้อมูล SEO")
+      return
+    }
+    const generatedSlug = createSlug(articleDraft.title)
+    const generatedMetaTitle = articleDraft.title
+    const generatedMetaDesc = createExcerpt(articleDraft.content || "")
+    const generatedKeywords = uniqueKeywords([
+      articleDraft.keywords,
+      articleDraft.category,
+      articleDraft.title,
+      "ทุเรียน"
+    ]).join(", ")
+    const generatedGeoSummary = createGeoSummary(articleDraft.title, articleDraft.content || "")
+    const generatedImageAlt = articleDraft.title
+    const generatedAuthor = articleDraft.authorName || "ทีมสวนทุเรียน"
+
+    setArticleDraft(prev => ({
+      ...prev,
+      slug: prev.slug || generatedSlug,
+      metaTitle: prev.metaTitle || generatedMetaTitle,
+      metaDescription: prev.metaDescription || generatedMetaDesc,
+      keywords: prev.keywords || generatedKeywords,
+      geoSummary: prev.geoSummary || generatedGeoSummary,
+      imageAlt: prev.imageAlt || generatedImageAlt,
+      authorName: prev.authorName || generatedAuthor,
+    }))
+    setMessage("เจนข้อมูล SEO อัตโนมัติเรียบร้อย!")
   }
 
   const saveArticle = () => {
@@ -352,6 +408,24 @@ export default function AdminPanel({
                   )}
                 </div>
               </label>
+              <div className="rounded-xl border border-border bg-muted/40 p-3.5 space-y-2">
+                <p className="text-xs font-black text-[#0F4A2E] dark:text-[#E7F3EC] flex items-center gap-1.5">
+                  <Globe size={14} />
+                  การเชื่อมต่อ SEO & เครื่องมือผู้ดูแลเว็บ
+                </p>
+                <AdminInput 
+                  label="รหัสยืนยัน Google Search Console (google-site-verification)" 
+                  value={settingsDraft.googleVerification ?? ""} 
+                  onChange={googleVerification => setSettingsDraft(v => ({ ...v, googleVerification }))} 
+                  placeholder="เช่น google-site-verification=xxxx..." 
+                />
+                <AdminInput 
+                  label="รหัส Google Analytics (Measurement ID)" 
+                  value={settingsDraft.googleAnalytics ?? ""} 
+                  onChange={googleAnalytics => setSettingsDraft(v => ({ ...v, googleAnalytics }))} 
+                  placeholder="เช่น G-XXXXXXXXXX" 
+                />
+              </div>
               <button onClick={saveSettings} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground">
                 <Save size={16} />
                 บันทึกตั้งค่า
@@ -403,80 +477,278 @@ export default function AdminPanel({
         </section>
       )}
 
-      {activeSection === "articles" && (
-      <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <div className="mb-4 flex items-center gap-2">
-          <BookOpen className="text-primary" size={20} />
-          <h3 className="text-lg font-black">จัดการบทความ</h3>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="space-y-3">
-            <AdminInput label="หัวข้อ" value={articleDraft.title} onChange={title => setArticleDraft(v => ({ ...v, title }))} required />
-            <AdminInput label="หมวดหมู่" value={articleDraft.category} onChange={category => setArticleDraft(v => ({ ...v, category }))} required />
-            <div className="rounded-xl border border-border bg-muted/40 p-3">
-              <p className="mb-2 text-xs font-black text-muted-foreground">SEO / AI Search บทความ</p>
+      {activeSection === "articles" && (() => {
+        const displaySlug = articleDraft.slug || createSlug(articleDraft.title || "หัวข้อบทความ")
+        const displayMetaTitle = articleDraft.metaTitle || articleDraft.title || "หัวข้อบทความ"
+        const displayMetaDescription = articleDraft.metaDescription || createExcerpt(articleDraft.content || "กรุณากรอกเนื้อหาบทความ...")
+        return (
+          <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <BookOpen className="text-primary" size={20} />
+              <h3 className="text-lg font-black">จัดการบทความ</h3>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+              <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-border pb-3 mb-2">
+                  <div>
+                    <h4 className="text-base font-black text-foreground">
+                      {editingArticleId ? "แก้ไขบทความ" : "เขียนบทความใหม่"}
+                    </h4>
+                    <p className="text-xs font-semibold text-muted-foreground">
+                      {editingArticleId ? "กำลังแก้ไขบทความที่เลือก" : "ใส่เนื้อหาและตั้งค่า SEO"}
+                    </p>
+                  </div>
+                  {editingArticleId && (
+                    <button
+                      onClick={() => {
+                        setEditingArticleId(null)
+                        setArticleDraft(emptyArticle)
+                        setMessage("ยกเลิกการแก้ไขแล้ว")
+                      }}
+                      className="rounded-xl border border-border px-3 py-1.5 text-xs font-black text-muted-foreground hover:bg-muted"
+                    >
+                      ยกเลิกแก้ไข
+                    </button>
+                  )}
+                </div>
+
+                <Tabs defaultValue="content" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 mb-4 bg-muted/70 p-1 rounded-xl">
+                    <TabsTrigger value="content" className="text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 py-2">
+                      <FileText size={14} className="text-primary" />
+                      เนื้อหาบทความ
+                    </TabsTrigger>
+                    <TabsTrigger value="seo" className="text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 py-2">
+                      <Globe size={14} className="text-primary" />
+                      การตั้งค่า SEO
+                    </TabsTrigger>
+                    <TabsTrigger value="preview" className="text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 py-2">
+                      <Eye size={14} className="text-primary" />
+                      SEO Preview
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* CONTENT TAB */}
+                  <TabsContent value="content" className="space-y-3.5 focus-visible:outline-none focus:outline-none">
+                    <AdminInput label="หัวข้อ" value={articleDraft.title} onChange={title => setArticleDraft(v => ({ ...v, title }))} required />
+                    
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <AdminInput label="หมวดหมู่" value={articleDraft.category} onChange={category => setArticleDraft(v => ({ ...v, category }))} required />
+                      <label className="block space-y-1.5">
+                        <span className="text-xs font-black text-muted-foreground">รูปภาพบทความ</span>
+                        <div className="flex items-center gap-2">
+                          <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 px-3 py-2.5 text-xs font-black text-primary transition-colors hover:bg-primary/10">
+                            <Upload size={14} />
+                            อัปโหลดรูป
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={e => uploadImage(e.target.files?.[0], image => setArticleDraft(v => ({ ...v, image })), "รูปบทความ")}
+                            />
+                          </label>
+                          {articleDraft.image && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={articleDraft.image} alt="Article preview" className="h-10 w-14 rounded-lg object-cover ring-1 ring-border shrink-0" />
+                          )}
+                        </div>
+                      </label>
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-muted/20 p-3.5 space-y-3">
+                      <p className="text-xs font-black text-[#0F4A2E] dark:text-[#E7F3EC] flex items-center gap-1.5">
+                        <ShoppingBag size={14} />
+                        แนะนำปุ๋ย/ยา (Affiliate)
+                      </p>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <AdminInput label="ชื่อปุ๋ย/ยาแนะนำ" value={articleDraft.affiliateTitle ?? ""} onChange={affiliateTitle => setArticleDraft(v => ({ ...v, affiliateTitle }))} placeholder="เช่น สารป้องกันเชื้อรา..." />
+                        <AdminInput label="Affiliate link" value={articleDraft.affiliateUrl ?? ""} onChange={affiliateUrl => setArticleDraft(v => ({ ...v, affiliateUrl }))} placeholder="https://..." />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-black text-muted-foreground mb-1.5">เนื้อหาบทความ *</label>
+                      <textarea 
+                        value={articleDraft.content} 
+                        onChange={e => setArticleDraft(v => ({ ...v, content: e.target.value }))} 
+                        required 
+                        placeholder="เขียนเนื้อหาบทความที่นี่..." 
+                        className="min-h-52 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary font-semibold leading-relaxed" 
+                      />
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <select 
+                        value={articleDraft.status} 
+                        onChange={e => setArticleDraft(v => ({ ...v, status: e.target.value as Article["status"] }))} 
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-bold outline-none"
+                      >
+                        <option value="published">เผยแพร่ (แสดงทันที)</option>
+                        <option value="draft">ฉบับร่าง (ซ่อนไว้ก่อน)</option>
+                      </select>
+                      <button onClick={saveArticle} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-black text-primary-foreground transition-transform active:scale-95 shadow-md">
+                        {editingArticleId ? <Save size={16} /> : <Plus size={16} />}
+                        {editingArticleId ? "บันทึกการแก้ไข" : "เพิ่มบทความ"}
+                      </button>
+                    </div>
+                  </TabsContent>
+
+                  {/* SEO TAB */}
+                  <TabsContent value="seo" className="space-y-3.5 focus-visible:outline-none focus:outline-none">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <button
+                        type="button"
+                        onClick={handleAutoPopulateSEO}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-primary py-2.5 px-4 text-xs font-black text-white hover:opacity-90 transition-opacity shadow-sm"
+                      >
+                        <Sparkles size={14} />
+                        ดึงข้อมูลและเจน SEO อัตโนมัติ
+                      </button>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <AdminInput label="Slug" value={articleDraft.slug ?? ""} onChange={slug => setArticleDraft(v => ({ ...v, slug }))} placeholder="เว้นว่างเพื่อสร้างอัตโนมัติ" />
+                        <span className="text-[10px] font-semibold text-muted-foreground block mt-1">ส่วนของ URL ที่ต้องการให้อ่านง่าย เช่น <code>kan-pluk-durian</code></span>
+                      </div>
+                      <div>
+                        <AdminInput label="ผู้เขียน/ผู้ให้คำแนะนำ" value={articleDraft.authorName ?? ""} onChange={authorName => setArticleDraft(v => ({ ...v, authorName }))} placeholder="ทีมสวนทุเรียน" />
+                        <span className="text-[10px] font-semibold text-muted-foreground block mt-1">ชื่อผู้แต่งแสดงใน Metadata (Schema.org)</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-black text-muted-foreground">Meta title</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-muted-foreground">{articleDraft.metaTitle?.length || 0} อักษร</span>
+                          {(() => {
+                            const badge = getTitleLengthBadge(articleDraft.metaTitle?.length || 0)
+                            return <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${badge.color}`}>{badge.label}</span>
+                          })()}
+                        </div>
+                      </div>
+                      <input
+                        type="text"
+                        value={articleDraft.metaTitle ?? ""}
+                        onChange={e => setArticleDraft(v => ({ ...v, metaTitle: e.target.value }))}
+                        placeholder="ความยาวที่แนะนำ: 50-60 อักษร (เว้นว่างไว้จะใช้ชื่อหัวข้อ)"
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold outline-none transition-colors focus:border-primary"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-black text-muted-foreground">Meta description</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-muted-foreground">{articleDraft.metaDescription?.length || 0} อักษร</span>
+                          {(() => {
+                            const badge = getDescLengthBadge(articleDraft.metaDescription?.length || 0)
+                            return <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${badge.color}`}>{badge.label}</span>
+                          })()}
+                        </div>
+                      </div>
+                      <textarea
+                        value={articleDraft.metaDescription ?? ""}
+                        onChange={e => setArticleDraft(v => ({ ...v, metaDescription: e.target.value }))}
+                        placeholder="ความยาวที่แนะนำ: 120-160 อักษร (เว้นว่างไว้จะตัดทอนจากเนื้อหาบทความ)"
+                        rows={2}
+                        className="w-full resize-y rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold leading-6 outline-none transition-colors focus:border-primary"
+                      />
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <AdminInput label="Keywords" value={articleDraft.keywords ?? ""} onChange={keywords => setArticleDraft(v => ({ ...v, keywords }))} placeholder="เช่น ปุ๋ยทุเรียน, โรคทุเรียน" />
+                      <AdminInput label="Alt รูปภาพ" value={articleDraft.imageAlt ?? ""} onChange={imageAlt => setArticleDraft(v => ({ ...v, imageAlt }))} placeholder="เว้นว่างเพื่อใช้ชื่อหัวข้อ" />
+                    </div>
+
+                    <AdminTextarea label="สรุปสั้นบทความ (Geo Summary / Abstract)" value={articleDraft.geoSummary ?? ""} onChange={geoSummary => setArticleDraft(v => ({ ...v, geoSummary }))} placeholder="สรุปเนื้อหาสั้นกระชับ เพื่อให้อ่านง่ายและส่งเสริมการค้นหาทางภูมิศาสตร์" rows={2} />
+                  </TabsContent>
+
+                  {/* PREVIEW TAB */}
+                  <TabsContent value="preview" className="space-y-4 focus-visible:outline-none focus:outline-none">
+                    {/* Google Search Mockup */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-black text-muted-foreground flex items-center gap-1">
+                        <Globe size={14} className="text-[#1a73e8]" />
+                        ตัวอย่างผลลัพธ์บน Google Search
+                      </p>
+                      <div className="rounded-2xl border border-border bg-[#f8f9fa] dark:bg-muted/10 p-4 font-sans text-left shadow-inner transition-colors">
+                        <div className="flex items-center gap-2 text-xs text-[#202124] dark:text-muted-foreground mb-1 font-sans">
+                          <div className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white dark:bg-card border border-border/80 text-primary font-black shrink-0 shadow-sm text-sm">ท</div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 font-sans">
+                              <span className="font-semibold text-foreground text-xs leading-none">Durian Flow</span>
+                              <span className="text-[#5f6368] text-[10px] leading-none">&gt;</span>
+                              <span className="truncate max-w-[120px] text-muted-foreground text-[10px] leading-none">{articleDraft.category || "การดูแลรักษา"}</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground font-medium leading-none truncate max-w-[200px] mt-0.5 font-sans">https://appfarm-main.vercel.app/?article={displaySlug}</p>
+                          </div>
+                        </div>
+                        <h4 className="text-[19px] leading-[1.3] text-[#1a0dab] dark:text-[#8ab4f8] hover:underline font-normal font-sans mb-1 cursor-pointer truncate">
+                          {displayMetaTitle}
+                        </h4>
+                        <p className="text-[13px] leading-[1.4] text-[#4d5156] dark:text-muted-foreground font-sans line-clamp-2">
+                          {displayMetaDescription}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Visual Excerpt Card Preview */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-black text-muted-foreground flex items-center gap-1">
+                        <ImageIcon size={14} className="text-primary" />
+                        ตัวอย่างการ์ดแสดงบนหน้าเว็บ
+                      </p>
+                      <div className="mx-auto max-w-[280px] rounded-2xl border border-border/70 bg-card overflow-hidden shadow-md">
+                        <div className="relative h-32 overflow-hidden bg-muted">
+                          {articleDraft.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={articleDraft.image} alt={articleDraft.title || "Preview"} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground"><ImageIcon size={24} /></div>
+                          )}
+                          <span className="absolute left-2 top-2 rounded-lg bg-background/80 px-2 py-0.5 text-[9px] font-black text-primary shadow-sm backdrop-blur-md">
+                            {articleDraft.category || "หมวดหมู่"}
+                          </span>
+                        </div>
+                        <div className="p-3.5 space-y-1.5">
+                          <h5 className="text-sm font-black text-foreground line-clamp-2">{articleDraft.title || "หัวข้อบทความ"}</h5>
+                          <p className="text-xs text-muted-foreground line-clamp-2 font-semibold">
+                            {articleDraft.content ? createExcerpt(articleDraft.content, 90) : "เนื้อหาของบทความจะจำลองแสดงตรงนี้..."}
+                          </p>
+                          <div className="pt-2 text-xs font-black text-primary flex items-center gap-1">
+                            <span>อ่านต่อ</span>
+                            <ArrowRight size={12} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+
               <div className="space-y-2">
-                <AdminInput label="Slug" value={articleDraft.slug ?? ""} onChange={slug => setArticleDraft(v => ({ ...v, slug }))} placeholder="เว้นว่างเพื่อสร้างอัตโนมัติ" />
-                <AdminInput label="Meta title" value={articleDraft.metaTitle ?? ""} onChange={metaTitle => setArticleDraft(v => ({ ...v, metaTitle }))} placeholder="เว้นว่างเพื่อใช้หัวข้อ" />
-                <AdminTextarea label="Meta description" value={articleDraft.metaDescription ?? ""} onChange={metaDescription => setArticleDraft(v => ({ ...v, metaDescription }))} placeholder="เว้นว่างเพื่อสรุปจากเนื้อหา" rows={3} />
-                <AdminInput label="Keywords" value={articleDraft.keywords ?? ""} onChange={keywords => setArticleDraft(v => ({ ...v, keywords }))} placeholder="เช่น ปุ๋ยทุเรียน, โรคทุเรียน" />
-                <AdminInput label="Alt รูปภาพ" value={articleDraft.imageAlt ?? ""} onChange={imageAlt => setArticleDraft(v => ({ ...v, imageAlt }))} placeholder="เว้นว่างเพื่อใช้หัวข้อบทความ" />
-                <AdminInput label="ผู้เขียน/ผู้ให้คำแนะนำ" value={articleDraft.authorName ?? ""} onChange={authorName => setArticleDraft(v => ({ ...v, authorName }))} placeholder="เว้นว่างเพื่อใช้ ทีมสวนทุเรียน" />
-                <AdminTextarea label="สรุปสั้น" value={articleDraft.geoSummary ?? ""} onChange={geoSummary => setArticleDraft(v => ({ ...v, geoSummary }))} placeholder="เว้นว่างเพื่อสรุปอัตโนมัติ" rows={3} />
+                {articles.map(article => (
+                  <div key={article.id} className="flex gap-3 rounded-xl border border-border p-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={article.image} alt={article.title} className="h-16 w-20 rounded-lg object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-black">{article.title}</p>
+                      <p className="text-xs font-semibold text-muted-foreground">
+                        {article.category} · {article.status === "published" ? "เผยแพร่" : "ฉบับร่าง"}
+                        {article.affiliateUrl ? " · มี affiliate" : ""}
+                      </p>
+                    </div>
+                    <button onClick={() => editArticle(article)} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16}/></button>
+                    <button onClick={() => deleteArticle(article.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16}/></button>
+                  </div>
+                ))}
               </div>
             </div>
-            <AdminInput label="ชื่อปุ๋ย/ยาแนะนำ" value={articleDraft.affiliateTitle ?? ""} onChange={affiliateTitle => setArticleDraft(v => ({ ...v, affiliateTitle }))} placeholder="เช่น สารป้องกันเชื้อรา..." />
-            <AdminInput label="Affiliate link" value={articleDraft.affiliateUrl ?? ""} onChange={affiliateUrl => setArticleDraft(v => ({ ...v, affiliateUrl }))} placeholder="https://..." />
-            <label className="block space-y-1.5">
-              <span className="text-xs font-black text-muted-foreground">รูปภาพบทความ</span>
-              <div className="flex items-center gap-3">
-                <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 px-4 py-3 text-sm font-black text-primary transition-colors hover:bg-primary/10">
-                  <Upload size={16} />
-                  อัปโหลดรูปบทความ
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={e => uploadImage(e.target.files?.[0], image => setArticleDraft(v => ({ ...v, image })), "รูปบทความ")}
-                  />
-                </label>
-                {articleDraft.image && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={articleDraft.image} alt="Article preview" className="h-12 w-16 rounded-lg object-cover ring-1 ring-border" />
-                )}
-              </div>
-            </label>
-            <label className="block text-xs font-black text-muted-foreground">เนื้อหา *</label>
-            <textarea value={articleDraft.content} onChange={e => setArticleDraft(v => ({ ...v, content: e.target.value }))} required placeholder="กรอกเนื้อหาบทความ" className="min-h-40 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" />
-            <select value={articleDraft.status} onChange={e => setArticleDraft(v => ({ ...v, status: e.target.value as Article["status"] }))} className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-bold outline-none">
-              <option value="published">เผยแพร่</option>
-              <option value="draft">ฉบับร่าง</option>
-            </select>
-            <button onClick={saveArticle} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground">
-              {editingArticleId ? <Save size={16} /> : <Plus size={16} />}
-              {editingArticleId ? "บันทึกการแก้ไข" : "เพิ่มบทความ"}
-            </button>
-          </div>
-          <div className="space-y-2">
-            {articles.map(article => (
-              <div key={article.id} className="flex gap-3 rounded-xl border border-border p-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={article.image} alt={article.title} className="h-16 w-20 rounded-lg object-cover" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-black">{article.title}</p>
-                  <p className="text-xs font-semibold text-muted-foreground">
-                    {article.category} · {article.status === "published" ? "เผยแพร่" : "ฉบับร่าง"}
-                    {article.affiliateUrl ? " · มี affiliate" : ""}
-                  </p>
-                </div>
-                <button onClick={() => editArticle(article)} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16} /></button>
-                <button onClick={() => deleteArticle(article.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16} /></button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      )}
+          </section>
+        )
+      })()}
 
       {activeSection === "products" && (
       <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -702,36 +974,4 @@ function AdminTextarea({ label, value, onChange, placeholder, rows = 3 }: { labe
       />
     </label>
   )
-}
-
-function readFileAsDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result))
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
-
-async function convertImageToAvifDataUrl(file: File) {
-  const originalDataUrl = await readFileAsDataUrl(file)
-  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const img = document.createElement("img")
-    img.onload = () => resolve(img)
-    img.onerror = reject
-    img.src = originalDataUrl
-  })
-
-  const maxSize = 1400
-  const scale = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight))
-  const canvas = document.createElement("canvas")
-  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale))
-  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale))
-  const context = canvas.getContext("2d")
-  if (!context) return originalDataUrl
-  context.drawImage(image, 0, 0, canvas.width, canvas.height)
-
-  const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/avif", 0.82))
-  if (!blob || blob.type !== "image/avif") return originalDataUrl
-  return readFileAsDataUrl(new File([blob], "upload.avif", { type: "image/avif" }))
 }
