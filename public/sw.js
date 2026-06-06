@@ -1,4 +1,4 @@
-const CACHE_NAME = 'durianflow-v3';
+const CACHE_NAME = 'durianflow-v4';
 const ASSETS = [
   '/',
   '/manifest.webmanifest',
@@ -31,10 +31,39 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Let browser make standard network requests. Fallback to cache if offline
+  if (event.request.method !== 'GET') return;
+
+  const requestUrl = new URL(event.request.url);
+
+  if (requestUrl.origin !== self.location.origin) {
+    return;
+  }
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(async () => {
+        const cachedPage = await caches.match(event.request, { ignoreSearch: true });
+        const cachedHome = await caches.match('/');
+        if (cachedPage || cachedHome) return cachedPage || cachedHome;
+        throw new Error('No cached page available');
+      })
+    );
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    })
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+        }
+        return response;
+      })
+      .catch(async () => {
+        const cachedResponse = await caches.match(event.request);
+        if (cachedResponse) return cachedResponse;
+        throw new Error('No cached response available');
+      })
   );
 });

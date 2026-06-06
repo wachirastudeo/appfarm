@@ -118,7 +118,7 @@ export default function SupportModal({ isOpen, onClose, onOpenContact }: Props) 
           </div>
 
           <div className="mt-4 rounded-2xl border border-[#B9DCC8]/55 bg-gradient-to-br from-[#F7FBF8] to-[#EAF5EE] p-4 dark:border-[#31533D]/45 dark:from-[#13251B] dark:to-[#102118]">
-            <p className="text-xs font-black uppercase tracking-wider text-[#527060] dark:text-[#B8D1C0]">ช่องทางติดต่อสนับสนุนและลงโฆษณา</p>
+            <p className="text-xs font-black uppercase tracking-wider text-[#527060] dark:text-[#B8D1C0]">ติดต่อ / ลงโฆษณา</p>
             <div className="mt-3 space-y-2">
               <button
                 type="button"
@@ -147,7 +147,7 @@ export default function SupportModal({ isOpen, onClose, onOpenContact }: Props) 
               className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#146B3E] px-4 py-3 text-sm font-black text-white transition-all hover:bg-[#0F5A34] active:scale-[0.98] dark:bg-[#72C08A] dark:text-[#0B1B12] dark:hover:bg-[#60B979]"
             >
               <MessageSquare size={16} />
-              ติดต่อสนับสนุนหรือลงโฆษณา
+              ติดต่อ / ลงโฆษณา
             </button>
             <a
               href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("สนับสนุนหรือสอบถามลงโฆษณา Durian Flow")}`}

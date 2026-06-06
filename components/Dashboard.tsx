@@ -44,7 +44,7 @@ function StatCard({ icon: Icon, label, value, sub, color = "text-primary", bgCol
       <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#E7F3EC]/55" />
       <div className={`relative p-3 rounded-xl ${bgColor} ring-1 ring-black/5`}><Icon size={22} className={color} /></div>
       <div className="min-w-0">
-        <p className="text-muted-foreground text-sm font-medium truncate">{label}</p>
+        <p className="text-muted-foreground text-sm font-medium leading-tight">{label}</p>
         <p className={`text-lg font-bold leading-tight ${color}`}>{value}</p>
         {sub && <p className="text-muted-foreground text-xs mt-0.5">{sub}</p>}
       </div>
@@ -584,7 +584,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       */}
       <div className="flex flex-col gap-5">
         {/* Stats Grid — order-2 on mobile, order-1 on desktop */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 order-2 lg:order-1">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 order-2 lg:order-1">
           <StatCard onClick={() => onNavigate?.("plots")} icon={DurianIcon} label="ต้นทั้งหมด" value={`${totalTrees} ต้น`} color="text-primary" bgColor="bg-primary/10" />
           <StatCard onClick={() => onNavigate?.("operations")} icon={ListTodo} label="งานต้องทำ" value={`${pendingTasks} งาน`} color="text-amber-600" bgColor="bg-amber-100" />
           <StatCard onClick={() => onNavigate?.("finance")} icon={TrendingUp} label="รายรับเดือนนี้" value={`฿${thisMonthIncome.toLocaleString()}`} color="text-emerald-600" bgColor="bg-emerald-100" />

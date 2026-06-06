@@ -1347,7 +1347,7 @@ function PlotDetailView({
       )}
 
       {/* ── Tree Grid ── */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 relative">
+      <div className="grid grid-cols-2 items-start gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 relative">
         {filteredTrees.length === 0 ? (
           <div className="col-span-2 rounded-3xl p-10 text-center border-2 border-dashed border-[#B9DCC8]/40 dark:border-[#31533D]/25 bg-white/20 dark:bg-black/5 flex flex-col items-center justify-center">
             <DurianIcon className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
@@ -1373,7 +1373,7 @@ function PlotDetailView({
             ) : (
               <div
                 onClick={() => selectMode ? toggleSelectTree(tree.id) : setSelectedTreeId(tree.id)}
-                className={`relative flex flex-col gap-2 p-3 cursor-pointer transition-all duration-200 h-full group rounded-2xl border ${
+                className={`relative flex min-h-[8.25rem] flex-col gap-2 p-3 cursor-pointer transition-all duration-200 group rounded-2xl border ${
                   selectMode && selectedIds.has(tree.id)
                     ? "border-[#146B3E] dark:border-[#72C08A] border-2 bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/20 shadow-md"
                     : `bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm border-[#B9DCC8]/50 dark:border-[#31533D]/40 hover:border-[#146B3E]/40 dark:hover:border-[#72C08A]/40 hover:-translate-y-0.5 ${HEALTH_GLOW[tree.health]}`

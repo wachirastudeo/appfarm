@@ -1,15 +1,31 @@
 "use client"
 
-import { X, Plus, Sparkles, Smartphone } from "lucide-react"
+import { useState } from "react"
+import { Download, X, Plus, Sparkles, Smartphone } from "lucide-react"
 
 interface Props {
   isOpen: boolean
   onClose: () => void
   isIos: boolean
+  canInstallDirectly?: boolean
+  onInstall?: () => Promise<void>
 }
 
-export default function PwaInstallModal({ isOpen, onClose, isIos }: Props) {
+export default function PwaInstallModal({ isOpen, onClose, isIos, canInstallDirectly = false, onInstall }: Props) {
+  const [installing, setInstalling] = useState(false)
+
   if (!isOpen) return null
+
+  const handleInstall = async () => {
+    if (!onInstall || installing) return
+    setInstalling(true)
+    try {
+      await onInstall()
+      onClose()
+    } finally {
+      setInstalling(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -33,7 +49,7 @@ export default function PwaInstallModal({ isOpen, onClose, isIos }: Props) {
             </span>
             <div>
               <h3 className="text-base font-black text-foreground">ติดตั้งแอปพลิเคชัน</h3>
-              <p className="text-xs font-bold text-muted-foreground">ติดตั้งบนหน้าจอมือถือเพื่อการใช้งานที่สะดวก</p>
+              <p className="text-xs font-bold text-muted-foreground">ติดตั้งบนมือถือหรือคอมพิวเตอร์เพื่อใช้งานสะดวกขึ้น</p>
             </div>
           </div>
           <button
@@ -86,20 +102,31 @@ export default function PwaInstallModal({ isOpen, onClose, isIos }: Props) {
               </div>
             </div>
           ) : (
-            // Android Instructions
+            // Browser install instructions
             <div className="space-y-4">
               <p className="text-xs font-bold text-[#146B3E] dark:text-[#72C08A] bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 rounded-xl">
-                วิธีติดตั้งแอปพลิเคชันบน Android:
+                {canInstallDirectly ? "เบราว์เซอร์นี้ติดตั้งได้ทันที:" : "วิธีติดตั้งบน Chrome, Edge หรือ Android:"}
               </p>
 
-              <div className="space-y-3.5">
+              {canInstallDirectly ? (
+                <button
+                  type="button"
+                  onClick={handleInstall}
+                  disabled={installing}
+                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#146B3E] px-4 py-3 text-sm font-black text-white shadow-sm transition-all hover:bg-[#0F5A34] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  <Download size={16} />
+                  {installing ? "กำลังเปิดหน้าติดตั้ง..." : "ติดตั้งทันที"}
+                </button>
+              ) : (
+                <div className="space-y-3.5">
                 {/* Step 1 */}
                 <div className="flex gap-3">
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-black text-primary">
                     1
                   </div>
                   <div className="text-xs font-bold text-foreground">
-                    แตะที่ปุ่มเมนู <span className="bg-muted px-2 py-0.5 rounded-md font-black border border-border/80">จุด 3 จุด (⋮)</span> ของเบราว์เซอร์ที่มุมบนหรือล่าง
+                    แตะหรือคลิกเมนู <span className="bg-muted px-2 py-0.5 rounded-md font-black border border-border/80">จุด 3 จุด (⋮)</span> ของเบราว์เซอร์
                   </div>
                 </div>
 
@@ -109,10 +136,11 @@ export default function PwaInstallModal({ isOpen, onClose, isIos }: Props) {
                     2
                   </div>
                   <div className="text-xs font-bold text-foreground">
-                    แตะเลือกเมนู <span className="bg-muted px-2 py-0.5 rounded-md font-black border border-border/80">ติดตั้งแอป (Install App)</span> หรือ <span className="bg-muted px-2 py-0.5 rounded-md font-black border border-border/80">เพิ่มไปยังหน้าจอหลัก (Add to Home screen)</span>
+                    เลือกเมนู <span className="bg-muted px-2 py-0.5 rounded-md font-black border border-border/80">ติดตั้งแอป (Install App)</span> หรือ <span className="bg-muted px-2 py-0.5 rounded-md font-black border border-border/80">เพิ่มไปยังหน้าจอหลัก (Add to Home screen)</span>
                   </div>
                 </div>
               </div>
+              )}
             </div>
           )}
 
@@ -122,16 +150,18 @@ export default function PwaInstallModal({ isOpen, onClose, isIos }: Props) {
               <Sparkles size={14} />
             </span>
             <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 leading-normal">
-              เมื่อติดตั้งแล้ว คุณจะสามารถเข้าถึงและใช้งานระบบจัดการสวนทุเรียนนี้ได้รวดเร็วขึ้นผ่านทางไอคอนบนหน้าจอโทรศัพท์โดยตรง เหมือนเป็นแอปพลิเคชันหนึ่งในมือถือ
+              เมื่อติดตั้งแล้ว คุณจะเปิดใช้งานได้เร็วขึ้นจากไอคอนบนหน้าจอมือถือหรือคอมพิวเตอร์ เหมือนเป็นแอปหนึ่งในเครื่อง
             </p>
           </div>
 
-          <button
-            onClick={onClose}
-            className="w-full mt-2 py-2.5 bg-[#146B3E] hover:bg-[#0F5A34] text-white rounded-xl text-xs font-black shadow-sm transition-all hover:scale-[1.02] active:scale-95"
-          >
-            เข้าใจแล้ว
-          </button>
+          {!canInstallDirectly && (
+            <button
+              onClick={onClose}
+              className="w-full mt-2 py-2.5 bg-[#146B3E] hover:bg-[#0F5A34] text-white rounded-xl text-xs font-black shadow-sm transition-all hover:scale-[1.02] active:scale-95"
+            >
+              เข้าใจแล้ว
+            </button>
+          )}
         </div>
       </div>
     </div>

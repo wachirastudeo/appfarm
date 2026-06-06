@@ -41,6 +41,21 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>
 }
 
+function warmPwaChunks() {
+  void Promise.allSettled([
+    import("./Dashboard"),
+    import("./PlotManagement"),
+    import("./Operations"),
+    import("./Finance"),
+    import("./Articles"),
+    import("./AdminPanel"),
+    import("./AuthModal"),
+    import("./FeedbackModal"),
+    import("./SupportModal"),
+    import("./SandboxModal"),
+  ])
+}
+
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "dashboard", label: "หน้าหลัก", icon: DurianIcon },
   { id: "plots", label: "แปลง", icon: TreePine },
@@ -1193,13 +1208,14 @@ export default function AppShell() {
       })
     })
 
-    // Also sync immediately in case session already exists (e.g. after OAuth redirect)
-    void supabase.auth.getUser().then(({ data }) => {
-      if (!active || !data.user) {
+    // Also sync immediately from local session in case OAuth already completed.
+    void supabase.auth.getSession().then(({ data }) => {
+      const sessionUser = data.session?.user
+      if (!active || !sessionUser) {
         setAuthChecking(false)
         return
       }
-      const identity = resolveOAuthProfileFromAuthUser(data.user)
+      const identity = resolveOAuthProfileFromAuthUser(sessionUser)
       if (!identity) {
         setAuthChecking(false)
         return
@@ -1218,19 +1234,33 @@ export default function AppShell() {
   }, []) // mount-only — handleLoginSuccess and store are stable refs
 
   useEffect(() => {
-    // Register Service Worker for PWA
-    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js")
-        .then((reg) => console.log("Service Worker registered successfully:", reg.scope))
-        .catch((err) => console.error("Service Worker registration failed:", err))
-    }
-
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault()
       setInstallPrompt(event as BeforeInstallPromptEvent)
     }
 
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt)
+
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      if (process.env.NODE_ENV !== "production") {
+        void navigator.serviceWorker.getRegistrations()
+          .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+          .then(() => ("caches" in window ? window.caches.keys() : []))
+          .then((keys) => Promise.all(keys.map((key) => window.caches.delete(key))))
+          .catch(() => undefined)
+        return () => window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt)
+      }
+
+      // Register Service Worker for PWA
+      navigator.serviceWorker.register("/sw.js")
+        .then((reg) => {
+          console.log("Service Worker registered successfully:", reg.scope)
+          return navigator.serviceWorker.ready
+        })
+        .then(() => warmPwaChunks())
+        .catch((err) => console.error("Service Worker registration failed:", err))
+    }
+
     return () => window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt)
   }, [])
 
@@ -1284,7 +1314,6 @@ export default function AppShell() {
   }, [store.data.siteSettings?.googleAnalytics])
 
   const handleInstallApp = async () => {
-    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent)
     if (installPrompt) {
       await installPrompt.prompt()
       await installPrompt.userChoice
@@ -1442,7 +1471,7 @@ export default function AppShell() {
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#146B3E] text-white ring-1 ring-[#CFE3D5] dark:bg-[#146B3E] dark:text-white dark:ring-[#31533D]">
                 <DurianLogo size={26} className="h-7 w-7" />
               </span>
-              <span className="min-w-0">
+              <span className="hidden min-w-0 sm:block">
                 <span className="block truncate text-base font-black leading-none text-[#146B3E] dark:text-[#72C08A] sm:text-xl">{siteName}</span>
                 <span className="mt-0.5 block truncate text-[10px] font-bold uppercase tracking-widest text-[#527060] dark:text-[#B8D1C0] sm:text-xs">{tagline}</span>
               </span>
@@ -1552,6 +1581,8 @@ export default function AppShell() {
           isOpen={showPwaInstallModal}
           onClose={() => setShowPwaInstallModal(false)}
           isIos={/iphone|ipad|ipod/i.test(navigator.userAgent)}
+          canInstallDirectly={Boolean(installPrompt) && !/iphone|ipad|ipod/i.test(navigator.userAgent)}
+          onInstall={handleInstallApp}
         />
       </div>
     )
@@ -1569,7 +1600,7 @@ export default function AppShell() {
           <div className="shrink-0 p-2 sm:p-2.5 bg-[#146B3E] dark:bg-[#146B3E] rounded-xl shadow-sm ring-1 ring-[#CFE3D5] dark:ring-[#31533D] animate-float-sway">
             <DurianLogo size={22} className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
-          <div className="min-w-0 text-left">
+          <div className="hidden min-w-0 text-left sm:block">
             <h1 className="truncate font-black text-[#146B3E] dark:text-[#72C08A] text-base sm:text-xl tracking-tight leading-none">{siteName}</h1>
             <p className="truncate text-[#527060] dark:text-[#B8D1C0] text-[10px] sm:text-sm font-semibold uppercase tracking-wider sm:tracking-widest mt-0.5">{tagline}</p>
           </div>
@@ -1732,6 +1763,8 @@ export default function AppShell() {
         isOpen={showPwaInstallModal}
         onClose={() => setShowPwaInstallModal(false)}
         isIos={/iphone|ipad|ipod/i.test(navigator.userAgent)}
+        canInstallDirectly={Boolean(installPrompt) && !/iphone|ipad|ipod/i.test(navigator.userAgent)}
+        onInstall={handleInstallApp}
       />
     </div>
   )

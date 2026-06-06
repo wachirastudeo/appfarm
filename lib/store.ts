@@ -467,6 +467,14 @@ export function useAppData(currentUserId?: string | null) {
 
   const isSupabaseMode = appRuntimeConfig.dataMode === "supabase" && isSupabaseConfigured
 
+  const toRemoteResult = useCallback(async <T,>(promise: Promise<T>) => {
+    try {
+      return { data: await promise, ok: true }
+    } catch {
+      return { data: null, ok: false }
+    }
+  }, [])
+
   useEffect(() => {
     const key = getStorageKey(currentUserId)
     const timeoutId = window.setTimeout(() => {
@@ -503,17 +511,22 @@ export function useAppData(currentUserId?: string | null) {
     let active = true
 
     const structuredDataPromise = currentUserId && !isMockUser
-      ? loadStructuredAppData(currentUserId).catch(() => null)
-      : Promise.resolve(null)
+      ? toRemoteResult(loadStructuredAppData(currentUserId))
+      : Promise.resolve({ data: null, ok: true })
 
     Promise.all([
       structuredDataPromise,
-      currentUserId ? Promise.resolve(null) : loadRemoteAppData(),
-      fetchArticles().catch(() => null),
-      fetchProducts().catch(() => null),
+      currentUserId ? Promise.resolve({ data: null, ok: true }) : toRemoteResult(loadRemoteAppData()),
+      toRemoteResult(fetchArticles()),
+      toRemoteResult(fetchProducts()),
     ])
-      .then(([structuredData, remoteData, remoteArticles, remoteProducts]) => {
+      .then(([structuredResult, remoteResult, articlesResult, productsResult]) => {
         if (!active) return
+
+        const structuredData = structuredResult.data
+        const remoteData = remoteResult.data
+        const remoteArticles = articlesResult.data
+        const remoteProducts = productsResult.data
 
         if (structuredData || remoteData) {
           const sourceData = structuredData ?? remoteData!
@@ -529,7 +542,7 @@ export function useAppData(currentUserId?: string | null) {
           if (!structuredData && !isMockUser) {
             void saveStructuredAppData(normalized, currentUserId)
           }
-        } else {
+        } else if ((currentUserId && !isMockUser ? structuredResult.ok : remoteResult.ok)) {
           // First run: seed app_data and push seed articles/products to their tables
           const initial = initialDataRef.current
           if (!isMockUser || !currentUserId) {
@@ -539,15 +552,14 @@ export function useAppData(currentUserId?: string | null) {
 
         setRemoteReady(true)
       })
-      .catch(error => {
-        console.error("Supabase data load failed", error)
+      .catch(() => {
         if (active) setRemoteReady(true)
       })
 
     return () => {
       active = false
     }
-  }, [currentUserId, isSupabaseMode, isMockUser])
+  }, [currentUserId, isSupabaseMode, isMockUser, toRemoteResult])
 
   // Sync non-articles/products data back to app_data blob
   useEffect(() => {
