@@ -1483,33 +1483,63 @@ function PlotDetailView({
 }
 
 // ---- Add Plot Modal ----
-function AddPlotModal({ onClose, onSave }: { onClose: () => void; onSave: (data: { name: string; area: number; notes: string }) => void }) {
+function AddPlotModal({ onClose, onSave }: { onClose: () => void; onSave: (data: { name: string; area: number; notes: string; trees?: Tree[] }) => void }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [name, setName] = useState("")
   const [area, setArea] = useState("1")
   const [notes, setNotes] = useState("")
+  const [treeForm, setTreeForm] = useState({
+    count: "1",
+    treeNumber: "A-001",
+    variety: "หมอนทอง" as DurianVariety,
+    age: "5",
+    stage: "vegetative" as FlowerStage,
+    health: "good" as Tree["health"],
+    notes: "",
+  })
 
   useEscapeToClose({ enabled: true, onEscape: onClose, containerRef })
+
+  const setTree = (key: string, value: unknown) => setTreeForm(current => ({ ...current, [key]: value }))
 
   const handleSave = () => {
     const checkedName = validateText("ชื่อแปลง", name, { required: true, maxLength: 120 })
     const areaVal = area === "" ? 0 : Number(area)
     const checkedArea = validateNumber("พื้นที่", areaVal, { min: 0.5, max: 100000 })
     const checkedNotes = validateText("บันทึก", notes, { maxLength: 500 })
+    const countVal = treeForm.count === "" ? 0 : Number(treeForm.count)
+    const checkedCount = validateNumber("จำนวนต้นทุเรียน", countVal, { min: 0, max: 1000, integer: true })
+    const checkedTreeNumber = validateText("หมายเลขต้นเริ่มต้น", treeForm.treeNumber, { required: countVal > 0, maxLength: 80 })
+    const ageVal = treeForm.age === "" ? 0 : Number(treeForm.age)
+    const checkedAge = validateNumber("อายุต้นทุเรียน", ageVal, { min: 1, max: 200, integer: true })
+    const checkedTreeNotes = validateText("บันทึกต้นทุเรียน", treeForm.notes, { maxLength: 500, allowMultiline: true })
     
-    if (!checkedName.ok || !checkedArea.ok || !checkedNotes.ok) {
-      const invalid = !checkedName.ok ? checkedName : !checkedArea.ok ? checkedArea : checkedNotes
+    if (!checkedName.ok || !checkedArea.ok || !checkedNotes.ok || !checkedCount.ok || !checkedTreeNumber.ok || !checkedAge.ok || !checkedTreeNotes.ok) {
+      const invalid = !checkedName.ok ? checkedName : !checkedArea.ok ? checkedArea : !checkedNotes.ok ? checkedNotes : !checkedCount.ok ? checkedCount : !checkedTreeNumber.ok ? checkedTreeNumber : !checkedAge.ok ? checkedAge : checkedTreeNotes
       alert(invalid.message)
       return
     }
+
+    const createdAt = new Date().toISOString()
+    const trees: Tree[] = Array.from({ length: checkedCount.value }, (_, index) => ({
+      id: `t${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
+      treeNumber: getTreeNumberFromBase(checkedTreeNumber.value, index),
+      variety: treeForm.variety,
+      age: checkedAge.value,
+      stage: treeForm.stage,
+      health: treeForm.health,
+      notes: checkedTreeNotes.value,
+      batches: [],
+      lastUpdated: createdAt,
+    }))
     
-    onSave({ name: checkedName.value, area: checkedArea.value, notes: checkedNotes.value })
+    onSave({ name: checkedName.value, area: checkedArea.value, notes: checkedNotes.value, trees })
   }
 
   return (
     <Portal>
       <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all animate-in fade-in duration-200" onClick={onClose}>
-        <div className="bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-6 w-full max-w-[95%] sm:max-w-md shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+        <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-6 w-full max-w-[95%] sm:max-w-2xl shadow-2xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] dark:bg-[#1D3A29]/40 flex items-center justify-center">
@@ -1517,7 +1547,7 @@ function AddPlotModal({ onClose, onSave }: { onClose: () => void; onSave: (data:
               </div>
               <div>
                 <h3 className="font-black text-sm text-foreground leading-tight">เพิ่มแปลงทุเรียนใหม่</h3>
-                <p className="text-xs text-muted-foreground font-semibold">กรอกข้อมูลแปลงในสวนของคุณ</p>
+                <p className="text-xs text-muted-foreground font-semibold">กรอกข้อมูลแปลงและต้นทุเรียนเริ่มต้น</p>
               </div>
             </div>
             <button onClick={onClose} type="button" className="p-2 hover:bg-muted dark:hover:bg-[#1D3A29] rounded-full transition-colors"><X size={16} className="text-muted-foreground" /></button>
@@ -1554,6 +1584,89 @@ function AddPlotModal({ onClose, onSave }: { onClose: () => void; onSave: (data:
               <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
                 className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2 text-xs font-bold text-foreground resize-none focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
                 placeholder="ข้อมูลเพิ่มเติม เช่น ปีที่เริ่มปลูก แหล่งน้ำ..." />
+            </div>
+
+            <div className="rounded-2xl border border-[#B9DCC8] dark:border-[#31533D] bg-[#F7FBF8] dark:bg-[#0B140F]/55 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black text-foreground">ข้อมูลต้นทุเรียน</p>
+                  <p className="text-[10px] font-semibold text-muted-foreground">สร้างต้นพร้อมแปลงใหม่ เว้นจำนวนเป็น 0 ถ้ายังไม่เพิ่มต้น</p>
+                </div>
+                <DurianIcon size={22} className="shrink-0 text-[#146B3E] dark:text-[#72C08A]" />
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="text-[10px] font-black text-muted-foreground mb-1 block uppercase tracking-wider">จำนวนต้น</label>
+                  <input
+                    type="text"
+                    value={treeForm.count === "0" ? "" : treeForm.count}
+                    onChange={e => setTree("count", e.target.value.replace(/\D/g, ""))}
+                    className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+                    placeholder="เช่น 20"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-muted-foreground mb-1 block uppercase tracking-wider">เลขต้นเริ่มต้น</label>
+                  <input
+                    value={treeForm.treeNumber}
+                    onChange={e => setTree("treeNumber", e.target.value)}
+                    className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+                    placeholder="เช่น A-001"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-muted-foreground mb-1 block uppercase tracking-wider">พันธุ์</label>
+                  <select
+                    value={treeForm.variety}
+                    onChange={e => setTree("variety", e.target.value as DurianVariety)}
+                    className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+                  >
+                    {VARIETIES.map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-muted-foreground mb-1 block uppercase tracking-wider">อายุ (ปี)</label>
+                  <input
+                    type="text"
+                    value={treeForm.age === "0" ? "" : treeForm.age}
+                    onChange={e => setTree("age", e.target.value.replace(/\D/g, ""))}
+                    className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+                    placeholder="เช่น 5"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-muted-foreground mb-1 block uppercase tracking-wider">ระยะปัจจุบัน</label>
+                  <select
+                    value={treeForm.stage}
+                    onChange={e => setTree("stage", e.target.value as FlowerStage)}
+                    className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+                  >
+                    {FLOWER_STAGES.map(s => <option key={s} value={s}>{FLOWER_STAGE_LABELS[s]}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-muted-foreground mb-1 block uppercase tracking-wider">สุขภาพต้น</label>
+                  <div className="flex gap-2">
+                    {(["good", "fair", "poor"] as Tree["health"][]).map(h => (
+                      <button key={h} type="button" onClick={() => setTree("health", h)}
+                        className={`flex-1 rounded-xl border py-2.5 text-xs font-bold transition-colors ${treeForm.health === h ? "bg-primary text-primary-foreground border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A]" : "border-[#B9DCC8] dark:border-[#31533D] text-[#527060] dark:text-[#B8D1C0] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]"}`}>
+                        {HEALTH_LABELS[h]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3">
+                <label className="text-[10px] font-black text-muted-foreground mb-1 block uppercase tracking-wider">บันทึกต้นทุเรียน</label>
+                <textarea
+                  value={treeForm.notes}
+                  onChange={e => setTree("notes", e.target.value)}
+                  rows={2}
+                  className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2 text-xs font-bold text-foreground resize-none focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+                  placeholder="เช่น ปลูกพร้อมกัน โซนแถวหน้า..."
+                />
+              </div>
             </div>
           </div>
 
@@ -1637,8 +1750,8 @@ function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick }: {
         )}
 
         {/* Plots List Panel */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-black text-foreground uppercase tracking-widest">รายการแปลงทุเรียน</h3>
+        <div className="space-y-4">
+          <h3 className="text-xl font-black text-foreground lg:text-2xl">รายการแปลงทุเรียน</h3>
           {totalPlots === 0 ? (
             <div className="relative overflow-hidden rounded-[2.5rem] p-8 md:p-12 text-center bg-gradient-to-br from-[#0d5c34] via-[#146B3E] to-[#1D5C3A] dark:from-[#0B1B12] dark:via-[#14291E] dark:to-[#173021] text-white shadow-2xl flex flex-col items-center justify-center border border-white/10">
               {/* decorative glowing circle blobs */}
@@ -1669,7 +1782,7 @@ function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick }: {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-3.5">
+            <div className="grid grid-cols-1 gap-4 lg:gap-5">
               {data.plots.map(plot => {
                 const pGood = plot.trees.filter(t => t.health === "good").length
                 const pFair = plot.trees.filter(t => t.health === "fair").length
@@ -1692,38 +1805,38 @@ function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick }: {
                   <div
                     key={plot.id}
                     onClick={() => setSelectedPlotId(plot.id)}
-                    className="group cursor-pointer rounded-[2rem] p-5 bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm border border-[#B9DCC8]/50 dark:border-[#31533D]/40 shadow-sm hover:border-[#146B3E] dark:hover:border-[#72C08A] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
+                    className="group cursor-pointer rounded-[2rem] p-5 bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm border border-[#B9DCC8]/50 dark:border-[#31533D]/40 shadow-sm hover:border-[#146B3E] dark:hover:border-[#72C08A] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden lg:p-7"
                   >
                     <BorderBeam className="opacity-0 group-hover:opacity-100 transition-opacity" size={150} duration={8} />
 
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] text-[#146B3E] dark:bg-[#1D3A29]/40 dark:text-[#72C08A] flex items-center justify-center">
-                          <DurianIcon className="h-5 w-5" />
+                    <div className="flex justify-between items-start mb-4 lg:mb-5">
+                      <div className="flex items-center gap-3 lg:gap-5">
+                        <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] text-[#146B3E] dark:bg-[#1D3A29]/40 dark:text-[#72C08A] flex items-center justify-center lg:h-16 lg:w-16 lg:rounded-2xl">
+                          <DurianIcon className="h-5 w-5 lg:h-8 lg:w-8" />
                         </div>
                         <div>
-                          <h4 className="font-black text-sm text-foreground group-hover:text-[#146B3E] dark:group-hover:text-[#72C08A] transition-colors">{plot.name}</h4>
-                          <p className="text-[10px] text-muted-foreground font-bold mt-0.5">{plot.area} ไร่ · ต้นทุเรียน {pTotal} ต้น</p>
+                          <h4 className="font-black text-lg leading-tight text-foreground group-hover:text-[#146B3E] dark:group-hover:text-[#72C08A] transition-colors lg:text-2xl">{plot.name}</h4>
+                          <p className="mt-1 text-sm font-bold text-muted-foreground lg:text-lg">{plot.area} ไร่ · ต้นทุเรียน {pTotal} ต้น</p>
                         </div>
                       </div>
-                      <div className="w-7 h-7 rounded-full bg-[#F7FAF8] dark:bg-[#0B140F] text-[#527060] dark:text-[#B8D1C0] flex items-center justify-center group-hover:bg-[#146B3E] group-hover:text-white dark:group-hover:bg-[#72C08A] dark:group-hover:text-[#0B1B12] transition-all">
-                        <ChevronRight size={14} />
+                      <div className="w-9 h-9 rounded-full bg-[#F7FAF8] dark:bg-[#0B140F] text-[#527060] dark:text-[#B8D1C0] flex items-center justify-center group-hover:bg-[#146B3E] group-hover:text-white dark:group-hover:bg-[#72C08A] dark:group-hover:text-[#0B1B12] transition-all lg:h-12 lg:w-12">
+                        <ChevronRight size={18} className="lg:h-6 lg:w-6" />
                       </div>
                     </div>
 
                     {/* Varieties list */}
-                    <div className="text-[10px] text-muted-foreground font-semibold mb-3.5 leading-relaxed min-h-[1.5rem]">
+                    <div className="mb-4 min-h-[1.5rem] text-sm font-semibold leading-relaxed text-muted-foreground lg:mb-6 lg:text-lg">
                       {vString ? `สายพันธุ์: ${vString}` : "ยังไม่มีข้อมูลต้นไม้"}
                     </div>
 
                     {/* Health summary status line */}
                     {pTotal > 0 ? (
-                      <div className="space-y-1">
-                        <div className="flex justify-between items-center text-[9px] font-black text-muted-foreground">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-sm font-black text-muted-foreground lg:text-base">
                           <span>สุขภาพต้นไม้</span>
                           <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">{Math.round(goodPct)}% ดี</span>
                         </div>
-                        <div className="h-2 w-full rounded-full bg-[#B9DCC8]/20 dark:bg-[#31533D]/20 overflow-hidden flex">
+                        <div className="h-2.5 w-full rounded-full bg-[#B9DCC8]/20 dark:bg-[#31533D]/20 overflow-hidden flex lg:h-3">
                           {goodPct > 0 && <div className="h-full bg-emerald-500" style={{ width: `${goodPct}%` }} />}
                           {fairPct > 0 && <div className="h-full bg-amber-400" style={{ width: `${fairPct}%` }} />}
                           {poorPct > 0 && <div className="h-full bg-rose-500" style={{ width: `${poorPct}%` }} />}

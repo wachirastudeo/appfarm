@@ -47,8 +47,8 @@ export const FLOWER_STAGES: FlowerStage[] = [
   "vegetative", "egg_fish", "nail", "mouse_foot", "eggplant", "bracelet", "white_flower", "bloom", "rat_tail", "chicken_egg", "expanding", "harvest", "dormant"
 ]
 
-export type DurianVariety = "หมอนทอง" | "ชะนี" | "กันยาว" | "พวงมณี" | "ก้านยาว" | "อื่นๆ"
-export const VARIETIES: DurianVariety[] = ["หมอนทอง", "ชะนี", "กันยาว", "พวงมณี", "ก้านยาว", "อื่นๆ"]
+export type DurianVariety = "หมอนทอง" | "ชะนี" | "กันยาว" | "พวงมณี" | "ก้านยาว" | "กระดุม" | "อื่นๆ"
+export const VARIETIES: DurianVariety[] = ["หมอนทอง", "ชะนี", "กันยาว", "พวงมณี", "ก้านยาว", "กระดุม", "อื่นๆ"]
 
 export interface BatchStage {
   id: string

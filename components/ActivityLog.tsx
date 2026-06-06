@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useMemo, useState } from "react"
 import { Activity, ActivityType, ACTIVITY_LABELS, Plot, useAppData } from "@/lib/store"
-import { validateDate, validateNumber, validateText } from "@/lib/form-validation"
+import { validateText } from "@/lib/form-validation"
 import { Plus, Trash2, Sprout, Droplets, Scissors, PackageSearch, Zap, ClipboardList, MoreHorizontal, Clock, ListFilter, ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react"
 
 type AppDataReturn = ReturnType<typeof useAppData>
@@ -29,6 +29,12 @@ function formatDate(iso: string) {
 
 function toInputDate(date: Date) {
   return date.toISOString().split("T")[0]
+}
+
+function toSafeActivityDate(value: string) {
+  if (!value) return new Date().toISOString()
+  const date = new Date(`${value}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString()
 }
 
 function getDaysInMonth(year: number, month: number) {
@@ -67,19 +73,19 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
   const set = (k: string, v: unknown) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = () => {
-    const description = validateText("รายละเอียด", form.description, { required: true, maxLength: 500, allowMultiline: true })
-    const cost = validateNumber("ค่าใช้จ่าย", form.cost, { min: 0, max: 100000000 })
-    const date = validateDate("วันที่", form.date)
-    if (!form.plotId) {
-      alert("กรุณาเลือกแปลงก่อนบันทึก")
-      return
-    }
-    const invalid = [description, cost, date].find(result => !result.ok)
+    const description = validateText("รายละเอียด", form.description, { maxLength: 500, allowMultiline: true })
+    const invalid = [description].find(result => !result.ok)
     if (invalid && !invalid.ok) {
       alert(invalid.message)
       return
     }
-    const activityData = { ...form, description: description.value, cost: cost.value, date: new Date(date.value).toISOString() }
+    const activityData = {
+      ...form,
+      plotId: form.plotId || "",
+      description: description.value,
+      cost: 0,
+      date: toSafeActivityDate(form.date),
+    }
     
     if (editingId) {
       updateActivity(editingId, activityData)
@@ -98,7 +104,7 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
       plotId: act.plotId,
       activityType: act.activityType,
       description: act.description,
-      cost: act.cost,
+      cost: 0,
     })
     setEditingId(act.id)
     setShowForm(true)
@@ -110,7 +116,7 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
     setForm({ date: new Date().toISOString().split("T")[0], plotId: data.plots[0]?.id ?? "", activityType: "fertilize", description: "", cost: 0 })
   }
 
-  const plotName = (id: string) => data.plots.find(p => p.id === id)?.name ?? id
+  const plotName = (id: string) => id ? data.plots.find(p => p.id === id)?.name ?? id : "ไม่ระบุแปลง"
 
   const filtered = useMemo(() => {
     return data.activities
@@ -306,6 +312,7 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
             <div>
               <label className="text-base font-bold text-[#527060] mb-1.5 block uppercase tracking-wider">แปลง</label>
               <select value={form.plotId} onChange={e => set("plotId", e.target.value)} className="w-full bg-[#F7FBF8] border border-[#B9DCC8] rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all">
+                <option value="">ไม่ระบุแปลง</option>
                 {data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
@@ -325,10 +332,6 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
           <div>
             <label className="text-base font-bold text-[#527060] mb-1.5 block uppercase tracking-wider">รายละเอียด</label>
             <textarea value={form.description} onChange={e => set("description", e.target.value)} rows={2} className="w-full bg-[#F7FBF8] border border-[#B9DCC8] rounded-xl px-4 py-3 text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" placeholder="บันทึกรายละเอียดกิจกรรม..." />
-          </div>
-          <div>
-            <label className="text-base font-bold text-[#527060] mb-1.5 block uppercase tracking-wider">ค่าใช้จ่าย (บาท)</label>
-            <input type="number" value={form.cost} onChange={e => set("cost", Number(e.target.value))} className="w-full bg-[#F7FBF8] border border-[#B9DCC8] rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" min={0} max={100000000} step="0.01" />
           </div>
           <div className="flex gap-3 pt-2">
             <button onClick={handleCancel} className="flex-1 bg-[#F7FBF8] border border-[#B9DCC8] rounded-xl py-3 text-[#527060] font-bold hover:bg-[#E7F3EC] transition-colors">ยกเลิก</button>
