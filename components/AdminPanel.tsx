@@ -4,7 +4,7 @@ import type { AppUser, Article, NewUserInput, Product, SiteSettings } from "@/li
 import { appRuntimeConfig, getDataModeLabel, isSupabaseConfigured } from "@/lib/runtime-config"
 import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "@/lib/seo"
 import { validateEmail, validateHttpUrl, validateImageFile, validateText, resizeAndCompressImage } from "@/lib/form-validation"
-import { BookOpen, Edit3, Image as ImageIcon, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users, MessageSquare, Sparkles, Globe, FileText, Eye, ArrowRight } from "lucide-react"
+import { BookOpen, Edit3, Image as ImageIcon, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users, MessageSquare, Sparkles, Globe, FileText, Eye, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 interface Props {
@@ -114,6 +114,10 @@ export default function AdminPanel({
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
   const [userDraft, setUserDraft] = useState({ name: "", email: "", password: "", role: "user" as AppUser["role"] })
   const [message, setMessage] = useState("")
+  const [articlePage, setArticlePage] = useState(1)
+  const [productPage, setProductPage] = useState(1)
+  const [userPage, setUserPage] = useState(1)
+  const [feedbackPage, setFeedbackPage] = useState(1)
 
   const uploadImage = async (file: File | undefined, onDone: (dataUrl: string) => void, label: string) => {
     if (!file) return
@@ -729,21 +733,60 @@ export default function AdminPanel({
               </div>
 
               <div className="space-y-2">
-                {articles.map(article => (
-                  <div key={article.id} className="flex gap-3 rounded-xl border border-border p-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={article.image} alt={article.title} className="h-16 w-20 rounded-lg object-cover" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-black">{article.title}</p>
-                      <p className="text-xs font-semibold text-muted-foreground">
-                        {article.category} · {article.status === "published" ? "เผยแพร่" : "ฉบับร่าง"}
-                        {article.affiliateUrl ? " · มี affiliate" : ""}
-                      </p>
-                    </div>
-                    <button onClick={() => editArticle(article)} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16}/></button>
-                    <button onClick={() => deleteArticle(article.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16}/></button>
-                  </div>
-                ))}
+                {(() => {
+                  const articlesPerPage = 10
+                  const totalArticlePages = Math.ceil(articles.length / articlesPerPage)
+                  const safeArticlePage = Math.min(articlePage, totalArticlePages || 1)
+                  const paginatedArticles = articles.slice(
+                    (safeArticlePage - 1) * articlesPerPage,
+                    safeArticlePage * articlesPerPage
+                  )
+                  return (
+                    <>
+                      {paginatedArticles.map(article => (
+                        <div key={article.id} className="flex gap-3 rounded-xl border border-border p-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={article.image} alt={article.title} className="h-16 w-20 rounded-lg object-cover" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-black">{article.title}</p>
+                            <p className="text-xs font-semibold text-muted-foreground">
+                              {article.category} · {article.status === "published" ? "เผยแพร่" : "ฉบับร่าง"}
+                              {article.affiliateUrl ? " · มี affiliate" : ""}
+                            </p>
+                          </div>
+                          <button onClick={() => editArticle(article)} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16}/></button>
+                          <button onClick={() => deleteArticle(article.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16}/></button>
+                        </div>
+                      ))}
+                      {totalArticlePages > 1 && (
+                        <div className="mt-4 flex items-center justify-between bg-muted/30 px-3 py-2 rounded-xl border border-border/40">
+                          <span className="text-xs font-bold text-muted-foreground">
+                            บทความ {Math.min(articles.length, (safeArticlePage - 1) * articlesPerPage + 1)}-{Math.min(articles.length, safeArticlePage * articlesPerPage)} จาก {articles.length}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setArticlePage(prev => Math.max(1, prev - 1))}
+                              disabled={safeArticlePage === 1}
+                              className="p-1 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-40 transition-all"
+                            >
+                              <ChevronLeft size={14} />
+                            </button>
+                            <span className="text-xs font-black px-2">{safeArticlePage} / {totalArticlePages}</span>
+                            <button
+                              type="button"
+                              onClick={() => setArticlePage(prev => Math.min(totalArticlePages, prev + 1))}
+                              disabled={safeArticlePage === totalArticlePages}
+                              className="p-1 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-40 transition-all"
+                            >
+                              <ChevronRight size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
               </div>
             </div>
           </section>
@@ -806,18 +849,57 @@ export default function AdminPanel({
             </button>
           </div>
           <div className="space-y-2">
-            {products.map(product => (
-              <div key={product.id} className="flex gap-3 rounded-xl border border-border p-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={product.image} alt={product.imageAlt || product.name} className="h-16 w-20 rounded-lg object-cover" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-black">{product.name}</p>
-                  <p className="text-xs font-semibold text-muted-foreground">{product.category} · {product.status === "active" ? "แสดง" : "ซ่อน"}</p>
-                </div>
-                <button onClick={() => editProduct(product)} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16} /></button>
-                <button onClick={() => deleteProduct(product.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16} /></button>
-              </div>
-            ))}
+            {(() => {
+              const productsPerPage = 10
+              const totalProductPages = Math.ceil(products.length / productsPerPage)
+              const safeProductPage = Math.min(productPage, totalProductPages || 1)
+              const paginatedProducts = products.slice(
+                (safeProductPage - 1) * productsPerPage,
+                safeProductPage * productsPerPage
+              )
+              return (
+                <>
+                  {paginatedProducts.map(product => (
+                    <div key={product.id} className="flex gap-3 rounded-xl border border-border p-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={product.image} alt={product.imageAlt || product.name} className="h-16 w-20 rounded-lg object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-black">{product.name}</p>
+                        <p className="text-xs font-semibold text-muted-foreground">{product.category} · {product.status === "active" ? "แสดง" : "ซ่อน"}</p>
+                      </div>
+                      <button onClick={() => editProduct(product)} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16} /></button>
+                      <button onClick={() => deleteProduct(product.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16} /></button>
+                    </div>
+                  ))}
+                  {totalProductPages > 1 && (
+                    <div className="mt-4 flex items-center justify-between bg-muted/30 px-3 py-2 rounded-xl border border-border/40">
+                      <span className="text-xs font-bold text-muted-foreground">
+                        สินค้า {Math.min(products.length, (safeProductPage - 1) * productsPerPage + 1)}-{Math.min(products.length, safeProductPage * productsPerPage)} จาก {products.length}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setProductPage(prev => Math.max(1, prev - 1))}
+                          disabled={safeProductPage === 1}
+                          className="p-1 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-40 transition-all"
+                        >
+                          <ChevronLeft size={14} />
+                        </button>
+                        <span className="text-xs font-black px-2">{safeProductPage} / {totalProductPages}</span>
+                        <button
+                          type="button"
+                          onClick={() => setProductPage(prev => Math.min(totalProductPages, prev + 1))}
+                          disabled={safeProductPage === totalProductPages}
+                          className="p-1 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-40 transition-all"
+                        >
+                          <ChevronRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )
+            })()}
           </div>
         </div>
       </section>
@@ -851,32 +933,73 @@ export default function AdminPanel({
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
-                <tr key={user.id} className="border-b border-border/60">
-                  <td className="py-3 font-bold">{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>
-                    <select value={user.role} onChange={e => updateUser(user.id, { role: e.target.value as AppUser["role"] })} className="rounded-lg border border-border bg-background px-2 py-1 text-xs font-bold">
-                      <option value="user">User</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </td>
-                  <td>
-                    <select value={user.status} onChange={e => updateUser(user.id, { status: e.target.value as AppUser["status"] })} className="rounded-lg border border-border bg-background px-2 py-1 text-xs font-bold">
-                      <option value="active">Active</option>
-                      <option value="disabled">Disabled</option>
-                    </select>
-                  </td>
-                  <td className="text-right">
-                    <button disabled={user.id === currentUser.id} onClick={() => deleteUser(user.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40">
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {(() => {
+                const usersPerPage = 10
+                const totalUserPages = Math.ceil(users.length / usersPerPage)
+                const safeUserPage = Math.min(userPage, totalUserPages || 1)
+                const paginatedUsers = users.slice(
+                  (safeUserPage - 1) * usersPerPage,
+                  safeUserPage * usersPerPage
+                )
+                return paginatedUsers.map(user => (
+                  <tr key={user.id} className="border-b border-border/60">
+                    <td className="py-3 font-bold">{user.name}</td>
+                    <td>{user.email}</td>
+                    <td>
+                      <select value={user.role} onChange={e => updateUser(user.id, { role: e.target.value as AppUser["role"] })} className="rounded-lg border border-border bg-background px-2 py-1 text-xs font-bold">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select value={user.status} onChange={e => updateUser(user.id, { status: e.target.value as AppUser["status"] })} className="rounded-lg border border-border bg-background px-2 py-1 text-xs font-bold">
+                        <option value="active">Active</option>
+                        <option value="disabled">Disabled</option>
+                      </select>
+                    </td>
+                    <td className="text-right">
+                      <button disabled={user.id === currentUser.id} onClick={() => deleteUser(user.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40">
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              })()}
             </tbody>
           </table>
         </div>
+        {(() => {
+          const usersPerPage = 10
+          const totalUserPages = Math.ceil(users.length / usersPerPage)
+          const safeUserPage = Math.min(userPage, totalUserPages || 1)
+          if (totalUserPages <= 1) return null
+          return (
+            <div className="mt-4 flex items-center justify-between bg-muted/30 px-3 py-2 rounded-xl border border-border/40">
+              <span className="text-xs font-bold text-muted-foreground">
+                ผู้ใช้ {Math.min(users.length, (safeUserPage - 1) * usersPerPage + 1)}-{Math.min(users.length, safeUserPage * usersPerPage)} จาก {users.length}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setUserPage(prev => Math.max(1, prev - 1))}
+                  disabled={safeUserPage === 1}
+                  className="p-1 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-40 transition-all"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <span className="text-xs font-black px-2">{safeUserPage} / {totalUserPages}</span>
+                <button
+                  type="button"
+                  onClick={() => setUserPage(prev => Math.min(totalUserPages, prev + 1))}
+                  disabled={safeUserPage === totalUserPages}
+                  className="p-1 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-40 transition-all"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )
+        })()}
       </section>
       )}
       {activeSection === "feedback" && (
@@ -906,30 +1029,74 @@ export default function AdminPanel({
               ยังไม่มีข้อความส่งเข้ามาจากผู้ใช้
             </div>
           ) : (
-            <div className="grid gap-3">
-              {feedbacks.map(f => (
-                <div key={f.id} className="rounded-2xl border border-border bg-background p-4 relative group">
-                  <button
-                    onClick={() => handleDeleteFeedback(f.id)}
-                    className="absolute right-3 top-3 p-1.5 hover:bg-muted text-muted-foreground hover:text-destructive rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="ลบข้อเสนอแนะ"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
-                    <span className="font-black text-[#146B3E] text-base">{f.name}</span>
-                    <span className="text-xs text-muted-foreground">{new Date(f.date).toLocaleString("th-TH")}</span>
+            <>
+              <div className="grid gap-3">
+                {(() => {
+                  const feedbackPerPage = 10
+                  const totalFeedbackPages = Math.ceil(feedbacks.length / feedbackPerPage)
+                  const safeFeedbackPage = Math.min(feedbackPage, totalFeedbackPages || 1)
+                  const paginatedFeedbacks = feedbacks.slice(
+                    (safeFeedbackPage - 1) * feedbackPerPage,
+                    safeFeedbackPage * feedbackPerPage
+                  )
+                  return paginatedFeedbacks.map(f => (
+                    <div key={f.id} className="rounded-2xl border border-border bg-background p-4 relative group">
+                      <button
+                        onClick={() => handleDeleteFeedback(f.id)}
+                        className="absolute right-3 top-3 p-1.5 hover:bg-muted text-muted-foreground hover:text-destructive rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="ลบข้อเสนอแนะ"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
+                        <span className="font-black text-[#146B3E] text-base">{f.name}</span>
+                        <span className="text-xs text-muted-foreground">{new Date(f.date).toLocaleString("th-TH")}</span>
+                      </div>
+                      <div className="text-sm font-semibold text-foreground bg-muted/40 rounded-xl px-3.5 py-2.5 mb-2 leading-relaxed">
+                        {f.message}
+                      </div>
+                      <div className="text-xs font-black text-muted-foreground flex items-center gap-1.5">
+                        <span>ช่องทางติดต่อกลับ:</span>
+                        <span className="text-[#146B3E] bg-[#E7F3EC] px-2 py-0.5 rounded-md font-bold">{f.contact || "ไม่ได้ระบุ"}</span>
+                      </div>
+                    </div>
+                  ))
+                })()}
+              </div>
+
+              {(() => {
+                const feedbackPerPage = 10
+                const totalFeedbackPages = Math.ceil(feedbacks.length / feedbackPerPage)
+                const safeFeedbackPage = Math.min(feedbackPage, totalFeedbackPages || 1)
+                if (totalFeedbackPages <= 1) return null
+                return (
+                  <div className="mt-4 flex items-center justify-between bg-muted/30 px-3 py-2 rounded-xl border border-border/40">
+                    <span className="text-xs font-bold text-muted-foreground">
+                      ข้อเสนอแนะ {Math.min(feedbacks.length, (safeFeedbackPage - 1) * feedbackPerPage + 1)}-{Math.min(feedbacks.length, safeFeedbackPage * feedbackPerPage)} จาก {feedbacks.length}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackPage(prev => Math.max(1, prev - 1))}
+                        disabled={safeFeedbackPage === 1}
+                        className="p-1 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-40 transition-all"
+                      >
+                        <ChevronLeft size={14} />
+                      </button>
+                      <span className="text-xs font-black px-2">{safeFeedbackPage} / {totalFeedbackPages}</span>
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackPage(prev => Math.min(totalFeedbackPages, prev + 1))}
+                        disabled={safeFeedbackPage === totalFeedbackPages}
+                        className="p-1 bg-background border border-border rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-40 transition-all"
+                      >
+                        <ChevronRight size={14} />
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-sm font-semibold text-foreground bg-muted/40 rounded-xl px-3.5 py-2.5 mb-2 leading-relaxed">
-                    {f.message}
-                  </div>
-                  <div className="text-xs font-black text-muted-foreground flex items-center gap-1.5">
-                    <span>ช่องทางติดต่อกลับ:</span>
-                    <span className="text-[#146B3E] bg-[#E7F3EC] px-2 py-0.5 rounded-md font-bold">{f.contact || "ไม่ได้ระบุ"}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                )
+              })()}
+            </>
           )}
         </section>
       )}

@@ -62,6 +62,12 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
     description: "",
     cost: 0,
   })
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState<number | "all">(20)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filter, timeFilter, selectedMonth, selectedYear, selectedDay])
 
   useEffect(() => {
     if (localStorage.getItem("open_activity_form") === "1") {
@@ -132,6 +138,15 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }, [data.activities, filter, timeFilter, selectedDay, selectedMonth, selectedYear])
+
+  const totalItems = filtered.length
+  const effectiveItemsPerPage = itemsPerPage === "all" ? totalItems : itemsPerPage
+  const totalPages = effectiveItemsPerPage > 0 ? Math.ceil(totalItems / effectiveItemsPerPage) : 1
+  const safeCurrentPage = Math.min(currentPage, totalPages || 1)
+  const paginatedActivities = filtered.slice(
+    (safeCurrentPage - 1) * effectiveItemsPerPage,
+    safeCurrentPage * effectiveItemsPerPage
+  )
 
   const activityCountByDate = useMemo(() => {
     const map: Record<string, number> = {}
@@ -361,7 +376,7 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
             <ClipboardList size={48} className="text-[#527060] mx-auto mb-3" />
             <p className="text-[#527060] font-medium">ยังไม่มีบันทึกสวนในรายการนี้</p>
           </div>
-        ) : filtered.map(a => {
+        ) : paginatedActivities.map(a => {
           const Icon = ACTIVITY_ICONS[a.activityType]
           return (
             <div key={a.id} className="flex items-start gap-4 rounded-2xl border border-[#B9DCC8] bg-white p-4 shadow-[0_10px_24px_rgba(20,107,62,0.08)] transition-all group hover:border-primary/50">
@@ -398,6 +413,77 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
           )
         })}
       </div>
+
+      {/* ── Pagination Controls ── */}
+      {totalItems > 20 && (
+        <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/10 rounded-2xl p-4 border border-[#B9DCC8]/30 dark:border-[#31533D]/25">
+          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+            <span>แสดง</span>
+            <span className="text-foreground font-black">
+              {Math.min(totalItems, (safeCurrentPage - 1) * effectiveItemsPerPage + 1)}-{Math.min(totalItems, safeCurrentPage * effectiveItemsPerPage)}
+            </span>
+            <span>จาก</span>
+            <span className="text-foreground font-black">{totalItems} รายการ</span>
+
+            <span className="mx-2 text-muted-foreground/35">|</span>
+
+            <span>ต่อหน้า:</span>
+            <select
+              value={itemsPerPage}
+              onChange={e => {
+                const val = e.target.value
+                setItemsPerPage(val === "all" ? "all" : Number(val))
+                setCurrentPage(1)
+              }}
+              className="bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-lg px-2 py-1 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30"
+            >
+              <option value={20}>20</option>
+              <option value={40}>40</option>
+              <option value={80}>80</option>
+              <option value="all">ทั้งหมด</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={safeCurrentPage === 1}
+              className="p-2 bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-xl text-muted-foreground hover:text-foreground hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] disabled:opacity-40 disabled:hover:bg-transparent transition-all"
+            >
+              <ChevronLeft size={14} />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - safeCurrentPage) <= 1)
+              .map((p, idx, arr) => {
+                const showEllipsisBefore = idx > 0 && p - arr[idx - 1] > 1
+                return (
+                  <div key={p} className="flex items-center gap-1">
+                    {showEllipsisBefore && <span className="text-xs text-muted-foreground/50 px-1">...</span>}
+                    <button
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-8 h-8 rounded-xl text-xs font-black transition-all ${
+                        p === safeCurrentPage
+                          ? "bg-[#146B3E] text-white dark:bg-[#72C08A] dark:text-[#0B1B12]"
+                          : "bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  </div>
+                )
+              })}
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={safeCurrentPage === totalPages}
+              className="p-2 bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-xl text-muted-foreground hover:text-foreground hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] disabled:opacity-40 disabled:hover:bg-transparent transition-all"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -66,6 +66,12 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask, onN
   const [repeatLimitMonths, setRepeatLimitMonths] = useState(3)
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all")
   const [isExpanded, setIsExpanded] = useState(false)
+  const [taskPage, setTaskPage] = useState(1)
+
+  useEffect(() => {
+    setTaskPage(1)
+  }, [selectedDate, statusFilter])
+
   const hasPlots = data.plots.length > 0
 
   const activeRef = useRef<HTMLButtonElement | null>(null)
@@ -227,6 +233,16 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask, onN
         return (order[a.status] - order[b.status]) || new Date(a.date).getTime() - new Date(b.date).getTime()
       }),
     [data.tasks, statusFilter, selectedDate])
+
+  const totalTaskItems = allFilteredTasks.length
+  const totalTaskPages = Math.ceil(totalTaskItems / 10)
+  const safeTaskPage = Math.min(taskPage, totalTaskPages || 1)
+  const paginatedTasks = useMemo(() => {
+    return allFilteredTasks.slice(
+      (safeTaskPage - 1) * 10,
+      safeTaskPage * 10
+    )
+  }, [allFilteredTasks, safeTaskPage])
 
   const plotName = (id: string) => data.plots.find(p => p.id === id)?.name ?? id
 
@@ -507,7 +523,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask, onN
 
         {/* Right Side: Task Lists */}
         <div className="lg:col-span-3 min-w-0 space-y-6">
-          {/* Pending Tasks Section */}
+          {/* Tasks Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold text-foreground flex items-center gap-2 text-sm">
@@ -526,35 +542,47 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask, onN
               )}
             </div>
 
-            {pendingTasks.length === 0 ? (
+            {paginatedTasks.length === 0 ? (
               <div className="bg-white dark:bg-[#14291E] border-2 border-dashed border-[#B9DCC8] dark:border-[#31533D] rounded-2xl p-8 text-center shadow-sm">
                 <CalendarDays size={28} className="text-[#527060] dark:text-[#B8D1C0]/60 mx-auto mb-2 opacity-60" />
-                <p className="text-xs font-bold text-[#527060] dark:text-[#B8D1C0]">ไม่มีงานที่รอดำเนินการ</p>
+                <p className="text-xs font-bold text-[#527060] dark:text-[#B8D1C0]">ไม่มีงานสำหรับวันที่เลือก</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">กดปุ่มเพิ่มแผนงานด้านบน เพื่อบันทึกงานใหม่</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {pendingTasks.map(t => (
+                {paginatedTasks.map(t => (
                   <TaskCard key={t.id} task={t} plotName={plotName(t.plotId)} plots={data.plots} updateTask={updateTask} deleteTask={deleteTask} />
                 ))}
               </div>
             )}
-          </div>
 
-          {/* Completed/Cancelled Section */}
-          {completedTasks.length > 0 && (
-            <div className="space-y-4 pt-2">
-              <h3 className="text-xs font-black text-[#527060] dark:text-[#B8D1C0] flex items-center gap-2">
-                <Check size={14} className="text-emerald-500" /> งานที่เสร็จแล้ว
-                <span className="bg-[#E7F3EC] dark:bg-[#1D3A29] text-[#146B3E] dark:text-[#72C08A] text-[10px] font-black px-2 py-0.5 rounded-full">{completedTasks.length}</span>
-              </h3>
-              <div className="space-y-3">
-                {completedTasks.map(t => (
-                  <TaskCard key={t.id} task={t} plotName={plotName(t.plotId)} plots={data.plots} updateTask={updateTask} deleteTask={deleteTask} />
-                ))}
+            {totalTaskPages > 1 && (
+              <div className="mt-4 flex items-center justify-between bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/10 rounded-2xl p-4 border border-[#B9DCC8]/30 dark:border-[#31533D]/25">
+                <span className="text-xs font-bold text-muted-foreground">
+                  งาน {Math.min(totalTaskItems, (safeTaskPage - 1) * 10 + 1)}-{Math.min(totalTaskItems, safeTaskPage * 10)} จาก {totalTaskItems}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setTaskPage(prev => Math.max(1, prev - 1))}
+                    disabled={safeTaskPage === 1}
+                    className="p-1 bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-40 transition-all"
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <span className="text-xs font-black px-2">{safeTaskPage} / {totalTaskPages}</span>
+                  <button
+                    type="button"
+                    onClick={() => setTaskPage(prev => Math.min(totalTaskPages, prev + 1))}
+                    disabled={safeTaskPage === totalTaskPages}
+                    className="p-1 bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-40 transition-all"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
         </>

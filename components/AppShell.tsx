@@ -1408,6 +1408,7 @@ export default function AppShell() {
             updatePlot={store.updatePlot}
             deletePlot={store.deletePlot}
             addTree={store.addTree}
+            addTrees={store.addTrees}
             updateTree={store.updateTree}
             deleteTree={store.deleteTree}
             bulkUpdateTrees={store.bulkUpdateTrees}

@@ -1,8 +1,8 @@
 "use client"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { FinanceType, FinanceCategory, INCOME_CATEGORIES, EXPENSE_CATEGORIES, useAppData } from "@/lib/store"
 import { validateDate, validateNumber, validateText } from "@/lib/form-validation"
-import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, X, Search, Filter, CalendarDays, ReceiptText, Tags, Layers } from "lucide-react"
+import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, X, Search, Filter, CalendarDays, ReceiptText, Tags, Layers, ChevronLeft, ChevronRight } from "lucide-react"
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from "recharts"
 
 type AppDataReturn = ReturnType<typeof useAppData>
@@ -34,6 +34,12 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
   const [categoryFilter, setCategoryFilter] = useState<FinanceCategory | "all">("all")
   const [rangeFilter, setRangeFilter] = useState<"all" | "thisMonth" | "3m" | "6m">("6m")
   const [search, setSearch] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState<number | "all">(20)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [typeFilter, plotFilter, categoryFilter, rangeFilter, search])
   const [form, setForm] = useState({
     date: new Date().toISOString().split("T")[0],
     type: "expense" as FinanceType,
@@ -83,6 +89,17 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }, [data.finance, data.plots, typeFilter, plotFilter, categoryFilter, rangeFilter, search])
+
+  const totalItems = filtered.length
+  const effectiveItemsPerPage = itemsPerPage === "all" ? totalItems : itemsPerPage
+  const totalPages = effectiveItemsPerPage > 0 ? Math.ceil(totalItems / effectiveItemsPerPage) : 1
+  const safeCurrentPage = Math.min(currentPage, totalPages || 1)
+  const paginatedFinance = useMemo(() => {
+    return filtered.slice(
+      (safeCurrentPage - 1) * effectiveItemsPerPage,
+      safeCurrentPage * effectiveItemsPerPage
+    )
+  }, [filtered, safeCurrentPage, effectiveItemsPerPage])
 
   const stats = useMemo(() => {
     const income = filtered.filter(f => f.type === "income").reduce((s, f) => s + f.amount, 0)
@@ -311,7 +328,7 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
               <Wallet size={36} className="mx-auto mb-2 text-[#527060]" />
               <p className="text-[#527060]">ยังไม่มีรายการ</p>
             </div>
-          ) : filtered.map(f => (
+          ) : paginatedFinance.map(f => (
             <div key={f.id} className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 transition-colors hover:bg-[#E7F3EC]/65">
               <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${f.type === "income" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
                 {f.type === "income" ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
@@ -332,6 +349,77 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
           ))}
         </div>
       </div>
+
+      {/* ── Pagination Controls ── */}
+      {totalItems > 20 && (
+        <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/10 rounded-2xl p-4 border border-[#B9DCC8]/30 dark:border-[#31533D]/25">
+          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+            <span>แสดง</span>
+            <span className="text-foreground font-black">
+              {Math.min(totalItems, (safeCurrentPage - 1) * effectiveItemsPerPage + 1)}-{Math.min(totalItems, safeCurrentPage * effectiveItemsPerPage)}
+            </span>
+            <span>จาก</span>
+            <span className="text-foreground font-black">{totalItems} รายการ</span>
+
+            <span className="mx-2 text-muted-foreground/35">|</span>
+
+            <span>ต่อหน้า:</span>
+            <select
+              value={itemsPerPage}
+              onChange={e => {
+                const val = e.target.value
+                setItemsPerPage(val === "all" ? "all" : Number(val))
+                setCurrentPage(1)
+              }}
+              className="bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-lg px-2 py-1 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30"
+            >
+              <option value={20}>20</option>
+              <option value={40}>40</option>
+              <option value={80}>80</option>
+              <option value="all">ทั้งหมด</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={safeCurrentPage === 1}
+              className="p-2 bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-xl text-muted-foreground hover:text-foreground hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] disabled:opacity-40 disabled:hover:bg-transparent transition-all"
+            >
+              <ChevronLeft size={14} />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - safeCurrentPage) <= 1)
+              .map((p, idx, arr) => {
+                const showEllipsisBefore = idx > 0 && p - arr[idx - 1] > 1
+                return (
+                  <div key={p} className="flex items-center gap-1">
+                    {showEllipsisBefore && <span className="text-xs text-muted-foreground/50 px-1">...</span>}
+                    <button
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-8 h-8 rounded-xl text-xs font-black transition-all ${
+                        p === safeCurrentPage
+                          ? "bg-[#146B3E] text-white dark:bg-[#72C08A] dark:text-[#0B1B12]"
+                          : "bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  </div>
+                )
+              })}
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={safeCurrentPage === totalPages}
+              className="p-2 bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-xl text-muted-foreground hover:text-foreground hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] disabled:opacity-40 disabled:hover:bg-transparent transition-all"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

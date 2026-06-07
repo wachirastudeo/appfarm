@@ -9,7 +9,7 @@ import { validateDate, validateNumber, validateText } from "@/lib/form-validatio
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import {
   Plus, Pencil, Trash2, QrCode, RefreshCw, X, Check,
-  ChevronRight, ArrowLeft,
+  ChevronRight, ChevronLeft, ArrowLeft,
   History, CalendarDays, Printer, Sparkles,
   Search
 } from "lucide-react"
@@ -26,6 +26,7 @@ interface Props {
   updatePlot: AppDataReturn["updatePlot"]
   deletePlot: AppDataReturn["deletePlot"]
   addTree: AppDataReturn["addTree"]
+  addTrees: AppDataReturn["addTrees"]
   updateTree: AppDataReturn["updateTree"]
   deleteTree: AppDataReturn["deleteTree"]
   bulkUpdateTrees: AppDataReturn["bulkUpdateTrees"]
@@ -972,11 +973,12 @@ function TreeDetailView({
 }
 
 function PlotDetailView({
-  plot, activities, onBack, addTree, updateTree, deleteTree, bulkUpdateTrees, updatePlot, deletePlot,
+  plot, activities, onBack, addTree, addTrees, updateTree, deleteTree, bulkUpdateTrees, updatePlot, deletePlot,
   addActivity, addBatch, addBatchStage, updateBatch, deleteBatch
 }: {
   plot: Plot; activities: any[]; onBack: () => void
   addTree: (plotId: string, tree: Omit<Tree, "id" | "lastUpdated">) => void
+  addTrees: (plotId: string, treesList: Omit<Tree, "id" | "lastUpdated" | "batches">[]) => void
   updateTree: (plotId: string, treeId: string, changes: Partial<Tree>) => void
   deleteTree: (plotId: string, treeId: string) => void
   bulkUpdateTrees: (plotId: string, stage: FlowerStage) => void
@@ -1002,6 +1004,12 @@ function PlotDetailView({
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedHealth, setSelectedHealth] = useState<"all" | "good" | "fair" | "poor">("all")
   const [selectedStage, setSelectedStage] = useState<"all" | FlowerStage>("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState<number | "all">(20)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, selectedHealth, selectedStage])
 
   const toggleSelectTree = (id: string) => {
     setSelectedIds(prev => {
@@ -1093,6 +1101,15 @@ function PlotDetailView({
     const matchesStage = selectedStage === "all" || t.stage === selectedStage
     return matchesSearch && matchesHealth && matchesStage
   })
+
+  const totalItems = filteredTrees.length
+  const effectiveItemsPerPage = itemsPerPage === "all" ? totalItems : itemsPerPage
+  const totalPages = effectiveItemsPerPage > 0 ? Math.ceil(totalItems / effectiveItemsPerPage) : 1
+  const safeCurrentPage = Math.min(currentPage, totalPages || 1)
+  const paginatedTrees = filteredTrees.slice(
+    (safeCurrentPage - 1) * effectiveItemsPerPage,
+    safeCurrentPage * effectiveItemsPerPage
+  )
 
   return (
     <div className="flex-1 flex flex-col min-h-0 relative">
@@ -1259,9 +1276,9 @@ function PlotDetailView({
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="ค้นหาเลขต้น หรือพันธุ์..."
-              className="w-full bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-xl pl-9 pr-8 py-2 text-[11px] font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+              className="w-full bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-xl pl-9 pr-8 py-2 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
             />
-            <Search size={12} className="absolute left-3 top-2.5 text-muted-foreground" />
+            <Search size={13} className="absolute left-3 top-2.5 text-muted-foreground" />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
@@ -1276,10 +1293,10 @@ function PlotDetailView({
           <div className="flex gap-1 overflow-x-auto scrollbar-hide py-0.5">
             <button
               onClick={() => setSelectedHealth("all")}
-              className={`px-2.5 py-1 rounded-lg text-[9px] font-black border whitespace-nowrap transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-black border whitespace-nowrap transition-all ${
                 selectedHealth === "all"
                   ? "bg-primary text-white border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A]"
-                  : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground"
+                  : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground hover:bg-[#E7F3EC]/50 dark:hover:bg-[#1D3A29]/50"
               }`}
             >
               สุขภาพทั้งหมด
@@ -1288,14 +1305,14 @@ function PlotDetailView({
               <button
                 key={h}
                 onClick={() => setSelectedHealth(h)}
-                className={`px-2.5 py-1 rounded-lg text-[9px] font-black border whitespace-nowrap transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-black border whitespace-nowrap transition-all ${
                   selectedHealth === h
                     ? h === "good"
                       ? "bg-emerald-500 text-white border-emerald-500 dark:bg-emerald-600 dark:border-emerald-600"
                       : h === "fair"
                       ? "bg-amber-500 text-white border-amber-500 dark:bg-amber-600 dark:border-amber-600"
                       : "bg-rose-500 text-white border-rose-500 dark:bg-rose-600 dark:border-rose-600"
-                    : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground"
+                    : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground hover:bg-[#E7F3EC]/50 dark:hover:bg-[#1D3A29]/50"
                 }`}
               >
                 {HEALTH_LABELS[h]}
@@ -1307,10 +1324,10 @@ function PlotDetailView({
           <div className="flex gap-1 overflow-x-auto scrollbar-hide pt-2 border-t border-[#B9DCC8]/20 dark:border-[#31533D]/10">
             <button
               onClick={() => setSelectedStage("all")}
-              className={`px-2.5 py-1 rounded-lg text-[9px] font-black border whitespace-nowrap transition-all shrink-0 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-black border whitespace-nowrap transition-all shrink-0 ${
                 selectedStage === "all"
                   ? "bg-primary text-white border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A]"
-                  : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground"
+                  : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground hover:bg-[#E7F3EC]/50 dark:hover:bg-[#1D3A29]/50"
               }`}
             >
               ระยะทั้งหมด
@@ -1321,10 +1338,10 @@ function PlotDetailView({
                 <button
                   key={st}
                   onClick={() => setSelectedStage(st)}
-                  className={`px-2.5 py-1 rounded-lg text-[9px] font-black border whitespace-nowrap transition-all shrink-0 flex items-center gap-1 ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black border whitespace-nowrap transition-all shrink-0 flex items-center gap-1 ${
                     isActive
                       ? "bg-primary text-white border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A]"
-                      : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground"
+                      : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground hover:bg-[#E7F3EC]/50 dark:hover:bg-[#1D3A29]/50"
                   }`}
                 >
                   <span>{FLOWER_STAGE_LABELS[st]}</span>
@@ -1342,12 +1359,12 @@ function PlotDetailView({
           existingTrees={plot.trees}
           onClose={() => setAddingTree(false)}
           onSave={d => { addTree(plot.id, d); setAddingTree(false) }}
-          onSaveMany={items => { items.forEach(item => addTree(plot.id, item)); setAddingTree(false) }}
+          onSaveMany={items => { addTrees(plot.id, items); setAddingTree(false) }}
         />
       )}
 
       {/* ── Tree Grid ── */}
-      <div className="grid grid-cols-2 items-start gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 relative">
+      <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 items-stretch gap-2 relative">
         {filteredTrees.length === 0 ? (
           <div className="col-span-2 rounded-3xl p-10 text-center border-2 border-dashed border-[#B9DCC8]/40 dark:border-[#31533D]/25 bg-white/20 dark:bg-black/5 flex flex-col items-center justify-center">
             <DurianIcon className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
@@ -1363,7 +1380,7 @@ function PlotDetailView({
               </button>
             )}
           </div>
-        ) : filteredTrees.map(tree => (
+        ) : paginatedTrees.map(tree => (
           <div key={tree.id} className={editingTree === tree.id ? "col-span-2" : ""}>
             {editingTree === tree.id ? (
               <div className="bg-white dark:bg-[#14291E] border border-white/60 dark:border-[#31533D]/60 rounded-3xl p-5 shadow-md">
@@ -1373,7 +1390,7 @@ function PlotDetailView({
             ) : (
               <div
                 onClick={() => selectMode ? toggleSelectTree(tree.id) : setSelectedTreeId(tree.id)}
-                className={`relative flex min-h-[8.25rem] flex-col gap-2 p-3 cursor-pointer transition-all duration-200 group rounded-2xl border ${
+                className={`relative flex flex-col justify-between gap-1.5 p-2.5 cursor-pointer transition-all duration-200 group rounded-2xl border ${
                   selectMode && selectedIds.has(tree.id)
                     ? "border-[#146B3E] dark:border-[#72C08A] border-2 bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/20 shadow-md"
                     : `bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm border-[#B9DCC8]/50 dark:border-[#31533D]/40 hover:border-[#146B3E]/40 dark:hover:border-[#72C08A]/40 hover:-translate-y-0.5 ${HEALTH_GLOW[tree.health]}`
@@ -1381,7 +1398,7 @@ function PlotDetailView({
               >
                 {/* LED health pulse dot */}
                 {!selectMode && (
-                  <span className={`absolute top-3 right-3 w-2 h-2 rounded-full ${HEALTH_DOT[tree.health]} animate-pulse`} />
+                  <span className={`absolute top-2.5 right-2.5 w-2 h-2 rounded-full ${HEALTH_DOT[tree.health]} animate-pulse`} />
                 )}
 
                 {/* Top row: checkbox/icon */}
@@ -1391,29 +1408,29 @@ function PlotDetailView({
                       {selectedIds.has(tree.id) && <Check size={11} className="text-white dark:text-[#0B1B12]" strokeWidth={3.5} />}
                     </div>
                   ) : (
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                       tree.health === "good" ? "bg-emerald-50 dark:bg-emerald-900/20" : tree.health === "fair" ? "bg-amber-50 dark:bg-amber-900/20" : "bg-rose-50 dark:bg-rose-900/20"
                     }`}>
-                      <DurianIcon className={`h-4 w-4 ${tree.health === "good" ? "text-emerald-600 dark:text-emerald-400" : tree.health === "fair" ? "text-amber-500 dark:text-amber-400" : "text-rose-500 dark:text-rose-400"}`} />
+                      <DurianIcon className={`h-3.5 w-3.5 ${tree.health === "good" ? "text-emerald-600 dark:text-emerald-400" : tree.health === "fair" ? "text-amber-500 dark:text-amber-400" : "text-rose-500 dark:text-rose-400"}`} />
                     </div>
                   )}
                 </div>
 
                 {/* Tree info */}
                 <div className="min-w-0 text-left">
-                  <p className="font-black text-foreground text-xs sm:text-sm leading-tight truncate">{tree.treeNumber}</p>
-                  <p className="text-[9px] text-muted-foreground mt-0.5 truncate">{tree.variety} · อายุทุเรียน {tree.age} ปี</p>
+                  <p className="font-extrabold text-foreground text-sm sm:text-base leading-tight truncate">{tree.treeNumber}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate">{tree.variety} · {tree.age} ปี</p>
                 </div>
 
                 {/* Health + Stage badges */}
                 <div className="flex flex-wrap gap-1">
-                  <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-black ${
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
                     tree.health === "good" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
                     tree.health === "fair" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
                     "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
                   }`}>{HEALTH_LABELS[tree.health]}</span>
                   {tree.stage !== "vegetative" && tree.stage !== "dormant" && (
-                    <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-black ${STAGE_BADGE[tree.stage] || "bg-muted text-muted-foreground"}`}>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${STAGE_BADGE[tree.stage] || "bg-muted text-muted-foreground"}`}>
                       {FLOWER_STAGE_LABELS[tree.stage]}
                     </span>
                   )}
@@ -1429,7 +1446,7 @@ function PlotDetailView({
                       return (
                         <div key={idx} className="flex flex-1 flex-col items-center gap-0.5">
                           <div className={`h-1 w-full rounded-full transition-all duration-500 ${isPast ? "bg-[#146B3E] dark:bg-[#72C08A]" : isActive ? "bg-[#146B3E]/60 dark:bg-[#72C08A]/60" : "bg-[#B9DCC8]/40 dark:bg-[#31533D]/30"}`} />
-                          <span className={`text-[8px] font-bold leading-none ${isActive ? "text-[#146B3E] dark:text-[#72C08A]" : isPast ? "text-[#146B3E]/70 dark:text-[#72C08A]/70" : "text-muted-foreground/30"}`}>
+                          <span className={`text-[10px] font-bold leading-none ${isActive ? "text-[#146B3E] dark:text-[#72C08A]" : isPast ? "text-[#146B3E]/70 dark:text-[#72C08A]/70" : "text-muted-foreground/30"}`}>
                             {STAGE_ICONS[idx]}
                           </span>
                         </div>
@@ -1438,12 +1455,83 @@ function PlotDetailView({
                   </div>
                 </div>
 
-                {tree.notes && <p className="text-[9px] text-muted-foreground italic line-clamp-1 text-left">📝 {tree.notes}</p>}
+                {tree.notes && <p className="text-[10px] text-muted-foreground italic line-clamp-1 text-left">📝 {tree.notes}</p>}
               </div>
             )}
           </div>
         ))}
       </div>
+
+      {/* ── Pagination Controls ── */}
+      {totalItems > 20 && (
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/10 rounded-2xl p-4 border border-[#B9DCC8]/30 dark:border-[#31533D]/25">
+          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+            <span>แสดง</span>
+            <span className="text-foreground font-black">
+              {Math.min(totalItems, (safeCurrentPage - 1) * effectiveItemsPerPage + 1)}-{Math.min(totalItems, safeCurrentPage * effectiveItemsPerPage)}
+            </span>
+            <span>จาก</span>
+            <span className="text-foreground font-black">{totalItems} ต้น</span>
+
+            <span className="mx-2 text-muted-foreground/35">|</span>
+
+            <span>ต่อหน้า:</span>
+            <select
+              value={itemsPerPage}
+              onChange={e => {
+                const val = e.target.value
+                setItemsPerPage(val === "all" ? "all" : Number(val))
+                setCurrentPage(1)
+              }}
+              className="bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-lg px-2 py-1 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30"
+            >
+              <option value={20}>20</option>
+              <option value={40}>40</option>
+              <option value={80}>80</option>
+              <option value="all">ทั้งหมด</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={safeCurrentPage === 1}
+              className="p-2 bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-xl text-muted-foreground hover:text-foreground hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] disabled:opacity-40 disabled:hover:bg-transparent transition-all"
+            >
+              <ChevronLeft size={14} />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - safeCurrentPage) <= 1)
+              .map((p, idx, arr) => {
+                const showEllipsisBefore = idx > 0 && p - arr[idx - 1] > 1
+                return (
+                  <div key={p} className="flex items-center gap-1">
+                    {showEllipsisBefore && <span className="text-xs text-muted-foreground/50 px-1">...</span>}
+                    <button
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-8 h-8 rounded-xl text-xs font-black transition-all ${
+                        p === safeCurrentPage
+                          ? "bg-[#146B3E] text-white dark:bg-[#72C08A] dark:text-[#0B1B12]"
+                          : "bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  </div>
+                )
+              })}
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={safeCurrentPage === totalPages}
+              className="p-2 bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-xl text-muted-foreground hover:text-foreground hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] disabled:opacity-40 disabled:hover:bg-transparent transition-all"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
 
       {/* Multi-Select Action panel */}
@@ -1860,7 +1948,7 @@ function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick }: {
 // ---- Main Component ----
 export default function PlotManagement({
   data, addPlot, updatePlot, deletePlot,
-  addTree, updateTree, deleteTree, bulkUpdateTrees,
+  addTree, addTrees, updateTree, deleteTree, bulkUpdateTrees,
   addActivity, addBatch, addBatchStage, updateBatch, deleteBatch
 }: Props) {
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null)
@@ -1890,6 +1978,7 @@ export default function PlotManagement({
               activities={data.activities}
               onBack={() => setSelectedPlotId(null)}
               addTree={addTree}
+              addTrees={addTrees}
               updateTree={updateTree}
               deleteTree={deleteTree}
               bulkUpdateTrees={bulkUpdateTrees}

@@ -607,6 +607,17 @@ export function useAppData(currentUserId?: string | null) {
     updateData(d => ({ ...d, plots: d.plots.map(p => p.id === plotId ? { ...p, trees: [...p.trees, newTree] } : p) }))
   }, [updateData])
 
+  const addTrees = useCallback((plotId: string, treesList: Omit<Tree, "id" | "lastUpdated" | "batches">[]) => {
+    const nowStr = new Date().toISOString()
+    const newTrees: Tree[] = treesList.map((t, idx) => ({
+      ...t,
+      id: `t${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 8)}`,
+      batches: [],
+      lastUpdated: nowStr
+    }))
+    updateData(d => ({ ...d, plots: d.plots.map(p => p.id === plotId ? { ...p, trees: [...p.trees, ...newTrees] } : p) }))
+  }, [updateData])
+
   const updateTree = useCallback((plotId: string, treeId: string, changes: Partial<Tree>) => {
     updateData(d => ({
       ...d,
@@ -949,7 +960,7 @@ export function useAppData(currentUserId?: string | null) {
   return useMemo(() => ({
     data,
     addPlot, updatePlot, deletePlot,
-    addTree, updateTree, deleteTree, bulkUpdateTrees,
+    addTree, addTrees, updateTree, deleteTree, bulkUpdateTrees,
     addActivity, deleteActivity, updateActivity,
     addTask, updateTask, deleteTask,
     addFinance, deleteFinance,
@@ -961,7 +972,7 @@ export function useAppData(currentUserId?: string | null) {
   }), [
     data,
     addPlot, updatePlot, deletePlot,
-    addTree, updateTree, deleteTree, bulkUpdateTrees,
+    addTree, addTrees, updateTree, deleteTree, bulkUpdateTrees,
     addActivity, deleteActivity, updateActivity,
     addTask, updateTask, deleteTask,
     addFinance, deleteFinance,
