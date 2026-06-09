@@ -1,4 +1,4 @@
-const CACHE_NAME = 'durianflow-v4';
+const CACHE_NAME = 'durianflow-v5';
 const ASSETS = [
   '/',
   '/manifest.webmanifest',
@@ -66,4 +66,47 @@ self.addEventListener('fetch', (event) => {
         throw new Error('No cached response available');
       })
   );
+});
+
+// Open / focus the app when a notification is tapped
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) {
+          client.focus();
+          if ('navigate' in client && targetUrl !== client.url) {
+            client.navigate(targetUrl).catch(() => undefined);
+          }
+          return undefined;
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+      return undefined;
+    })
+  );
+});
+
+// Forward-compat: handle server-sent Web Push payloads (no backend yet).
+// Expected payload: { title, body, url, tag }
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch (err) {
+    payload = { body: event.data && event.data.text ? event.data.text() : '' };
+  }
+  const title = payload.title || 'สวนทุเรียน';
+  const options = {
+    body: payload.body || '',
+    icon: '/durian-logo.png',
+    badge: '/durian-logo.png',
+    tag: payload.tag || undefined,
+    data: { url: payload.url || '/' },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
 });

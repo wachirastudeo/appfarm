@@ -4,6 +4,7 @@ import Image from "next/image"
 import { useCallback, useMemo, useRef, useState, useEffect } from "react"
 import { useAppData } from "@/lib/store"
 import type { AppUser, Article, Product } from "@/lib/store"
+import { useNotificationScheduler } from "@/hooks/use-notification-scheduler"
 import { createClient } from "@/lib/supabase/client"
 import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
 import { TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, HeartHandshake, Check, Smartphone, Download } from "lucide-react"
@@ -985,6 +986,7 @@ export default function AppShell() {
   const [isInstalled, setIsInstalled] = useState(false)
   const [showPwaInstallModal, setShowPwaInstallModal] = useState(false)
   const store = useAppData(user?.id ?? null)
+  useNotificationScheduler(store.data.tasks, store.data.plots)
   const locationStorageKey = user?.id ? `farm_location_${user.id}` : "farm_location_guest"
   const coverStorageKey = user?.id ? `farm_cover_image_${user.id}` : "farm_cover_image_guest"
   const openAuth = useCallback(() => {
@@ -1553,7 +1555,6 @@ export default function AppShell() {
             onLoginSuccess={handleLoginSuccess}
             authenticateUser={store.authenticateUser}
             addUser={store.addUser}
-            resetPassword={store.resetPassword}
             initialError={authError ?? undefined}
           />
         )}
@@ -1741,7 +1742,6 @@ export default function AppShell() {
           onLoginSuccess={handleLoginSuccess}
           authenticateUser={store.authenticateUser}
           addUser={store.addUser}
-          resetPassword={store.resetPassword}
           initialError={authError ?? undefined}
         />
       )}

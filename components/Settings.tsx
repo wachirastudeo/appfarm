@@ -4,6 +4,7 @@ import { Settings as SettingsIcon, Download, Upload, Trash2, Moon, Sun, Info, Ch
 import type { AppUser, SiteSettings } from "@/lib/store"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { validateImageFile, validateText, resizeAndCompressImage } from "@/lib/form-validation"
+import { NOTIFICATION_KEY } from "@/lib/notifications"
 import { Slider } from "./ui/slider"
 import DurianLogo from "./DurianLogo"
 import UserAvatarImage from "./UserAvatarImage"
@@ -11,7 +12,6 @@ import UserAvatarImage from "./UserAvatarImage"
 const STORAGE_KEY_BASE = "durian_orchard_data"
 const APP_VERSION = "1.0.0"
 const THEME_KEY = "durian_theme"
-const NOTIFICATION_KEY = "durian_notifications_enabled"
 const DEFAULT_COVER_POSITION = 50
 
 const readCoverPosition = (key: string) => {
@@ -368,10 +368,24 @@ export default function Settings({
 
     localStorage.setItem(NOTIFICATION_KEY, "true")
     setNotificationsEnabled(true)
-    new Notification("เปิดการแจ้งเตือนแล้ว", {
-      body: "แอปจะแจ้งเตือนงานสวนเมื่อเบราว์เซอร์รองรับ",
+
+    const title = "เปิดการแจ้งเตือนแล้ว"
+    const options: NotificationOptions = {
+      body: "แอปจะเตือนงานครบกำหนดและช่วงใกล้เก็บเกี่ยวขณะเปิดแอป",
       icon: "/durian-logo.png",
-    })
+      badge: "/durian-logo.png",
+      data: { url: "/" },
+    }
+    const registration =
+      "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration() : null
+    if (registration) {
+      await registration.showNotification(title, options)
+    } else {
+      new Notification(title, options)
+    }
+
+    // Let the in-app scheduler evaluate reminders immediately.
+    window.dispatchEvent(new Event("durian:notifications-changed"))
   }
 
   const handleInstallApp = async () => {
