@@ -34,7 +34,7 @@ export default function SandboxModal({ isOpen, onClose, onLogin, initialTab = "t
   const [newTaskPriority, setNewTaskPriority] = useState<"high" | "medium" | "low">("medium")
 
   // --- Sandbox State: Tree Growth ---
-  const [growthStage, setGrowthStage] = useState<"nail" | "eggplant" | "bloom" | "rat_tail" | "expanding" | "harvest">("eggplant")
+  const [growthStage, setGrowthStage] = useState<"nail" | "eggplant" | "white_flower" | "bloom" | "rat_tail" | "expanding" | "harvest">("eggplant")
 
   // --- Sandbox State: Activity Log ---
   const [activities, setActivities] = useState([
@@ -384,6 +384,7 @@ export default function SandboxModal({ isOpen, onClose, onLogin, initialTab = "t
                     {[
                       { id: "nail", label: "ตาปู" },
                       { id: "eggplant", label: "มะเขือพวง" },
+                      { id: "white_flower", label: "ดอกขาว" },
                       { id: "bloom", label: "ดอกบาน" },
                       { id: "rat_tail", label: "หางแย้" },
                       { id: "expanding", label: "ขยายผล" },
@@ -441,6 +442,23 @@ export default function SandboxModal({ isOpen, onClose, onLogin, initialTab = "t
                             </div>
                           </div>
                           <span className="text-[10px] font-black text-[#146B3E] bg-[#E7F3EC] px-2 py-0.5 rounded-full mt-2 dark:bg-[#1D3A29] dark:text-[#72C08A]">มะเขือพวง</span>
+                        </div>
+                      )}
+
+                      {growthStage === "white_flower" && (
+                        <div className="relative flex flex-col items-center animate-pulse">
+                          <div className="w-4 h-24 bg-amber-800 rounded-full relative">
+                            {/* White flower clusters before full bloom */}
+                            <div className="absolute left-[-22px] top-7 flex gap-1">
+                              <div className="w-3 h-5 rounded-b-full bg-white border border-gray-200 shadow-sm" />
+                              <div className="w-3 h-5 rounded-b-full bg-white border border-gray-200 shadow-sm" />
+                            </div>
+                            <div className="absolute right-[-22px] top-13 flex gap-1">
+                              <div className="w-3 h-5 rounded-b-full bg-white border border-gray-200 shadow-sm" />
+                              <div className="w-3 h-5 rounded-b-full bg-white border border-gray-200 shadow-sm" />
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full mt-2 dark:bg-[#1D3A29] dark:text-[#72C08A]">ระยะดอกขาว</span>
                         </div>
                       )}
 
@@ -519,6 +537,7 @@ export default function SandboxModal({ isOpen, onClose, onLogin, initialTab = "t
                       <p className="text-2xl font-black text-foreground">
                         {growthStage === "nail" && "อีกประมาณ 110 - 120 วัน"}
                         {growthStage === "eggplant" && "อีกประมาณ 95 - 100 วัน"}
+                        {growthStage === "white_flower" && "อีกประมาณ 90 - 95 วัน"}
                         {growthStage === "bloom" && "อีกประมาณ 85 - 90 วัน"}
                         {growthStage === "rat_tail" && "อีกประมาณ 75 - 80 วัน"}
                         {growthStage === "expanding" && "อีกประมาณ 30 - 45 วัน"}
@@ -531,6 +550,7 @@ export default function SandboxModal({ isOpen, onClose, onLogin, initialTab = "t
                       <p className="text-xs font-semibold leading-6 text-foreground">
                         {growthStage === "nail" && "💧 การให้น้ำ: รดน้ำรอบโคนต้นในปริมาณสม่ำเสมอ แต่อย่าแฉะ เพื่อกระตุ้นตาดอกให้พัฒนาสมบูรณ์ และฉีดสารป้องกันโรคราและเพลี้ยไฟ"}
                         {growthStage === "eggplant" && "💧 การให้น้ำ: รดน้ำในปริมาณ 60% ของปกติ คุมความชื้นดินให้เหมาะสมเพื่อไม่ให้ดอกฝัดหรือร่วง และเริ่มพ่นปุ๋ยแคลเซียมโบรอน"}
+                        {growthStage === "white_flower" && "💧 การให้น้ำ: ทยอยลดน้ำลงเตรียมเข้าสู่ดอกบาน รดบางๆ สม่ำเสมอ ระวังดอกร่วง และพ่นปุ๋ยแคลเซียมโบรอนต่อเนื่องเพื่อให้ดอกติดสมบูรณ์"}
                         {growthStage === "bloom" && "🚨 ข้อระวัง: ช่วงดอกบานสะพรั่งให้ 'ลดน้ำลง 70-80%' รดน้ำบางๆ แค่โคนต้นเพื่อป้องกันไม่ให้ดอกร่วงหล่นจากการช็อคน้ำ"}
                         {growthStage === "rat_tail" && "💧 การให้น้ำ: ค่อยๆ ทยอยเพิ่มน้ำขึ้นวันละ 10% จนเข้าสู่อัตราปกติหลังหางแย้แห้ง ป้องกันเพลี้ยหอยเพลี้ยแป้งระบาดรุนแรง"}
                         {growthStage === "expanding" && "💧 การให้น้ำ: ต้องให้น้ำเพียงพอและสม่ำเสมอ หากดินแห้งสลับแฉะจะส่งผลให้ผลทุเรียนแตกและรูปทรงบิดเบี้ยวได้"}

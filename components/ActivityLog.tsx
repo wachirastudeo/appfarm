@@ -16,9 +16,15 @@ const ACTIVITY_ICONS: Record<ActivityType, React.ElementType> = {
   fertilize: Sprout, spray: Zap, water: Droplets, prune: Scissors,
   harvest: PackageSearch, inspect: ClipboardList, other: MoreHorizontal,
 }
-const ACTIVITY_COLORS: Record<ActivityType, string> = {
-  fertilize: "text-green-400", spray: "text-yellow-400", water: "text-blue-400",
-  prune: "text-orange-400", harvest: "text-primary", inspect: "text-purple-400", other: "text-[#527060]",
+// Per-activity color theme: vivid icon chip + accent bar (light & dark)
+const ACTIVITY_THEME: Record<ActivityType, { chip: string; accent: string; icon: string }> = {
+  fertilize: { chip: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400", accent: "bg-emerald-400", icon: "text-emerald-500" },
+  spray:     { chip: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400", accent: "bg-amber-400", icon: "text-amber-500" },
+  water:     { chip: "bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400", accent: "bg-sky-400", icon: "text-sky-500" },
+  prune:     { chip: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400", accent: "bg-orange-400", icon: "text-orange-500" },
+  harvest:   { chip: "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400", accent: "bg-rose-400", icon: "text-rose-500" },
+  inspect:   { chip: "bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400", accent: "bg-violet-400", icon: "text-violet-500" },
+  other:     { chip: "bg-slate-100 text-slate-600 dark:bg-slate-800/50 dark:text-slate-300", accent: "bg-slate-400", icon: "text-slate-500" },
 }
 const MONTHS_TH = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
 const DAYS_TH = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"]
@@ -361,9 +367,10 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
         </button>
         {(Object.keys(ACTIVITY_LABELS) as ActivityType[]).map(t => {
           const Icon = ACTIVITY_ICONS[t]
+          const isActive = filter === t
           return (
-            <button key={t} onClick={() => setFilter(t)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-black border transition-all ${filter === t ? "bg-primary text-primary-foreground border-primary shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "border-[#B9DCC8] bg-white text-[#146B3E] hover:border-primary/50"}`}>
-              <Icon size={14} /> {ACTIVITY_LABELS[t]}
+            <button key={t} onClick={() => setFilter(t)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-black border transition-all ${isActive ? "bg-primary text-primary-foreground border-primary shadow-[0_8px_18px_rgba(20,107,62,0.18)]" : "border-[#B9DCC8] dark:border-[#31533D] bg-white dark:bg-[#14291E] text-[#146B3E] dark:text-[#72C08A] hover:border-primary/50"}`}>
+              <Icon size={14} className={isActive ? "" : ACTIVITY_THEME[t].icon} /> {ACTIVITY_LABELS[t]}
             </button>
           )
         })}
@@ -372,40 +379,43 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
       {/* Activity List */}
       <div className="space-y-2">
         {filtered.length === 0 ? (
-          <div className="bg-white rounded-xl p-6 text-center border border-dashed border-[#B9DCC8]">
-            <ClipboardList size={48} className="text-[#527060] mx-auto mb-3" />
-            <p className="text-[#527060] font-medium">ยังไม่มีบันทึกสวนในรายการนี้</p>
+          <div className="bg-white dark:bg-[#14291E] rounded-2xl p-8 text-center border border-dashed border-[#B9DCC8] dark:border-[#31533D]">
+            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E7F3EC] dark:bg-[#1D3A29] text-primary dark:text-[#72C08A]">
+              <ClipboardList size={32} />
+            </div>
+            <p className="text-foreground font-bold">ยังไม่มีบันทึกสวนในรายการนี้</p>
+            <p className="text-sm text-[#527060] dark:text-[#9CC4AC] mt-1">เริ่มบันทึกกิจกรรม เช่น ใส่ปุ๋ย รดน้ำ พ่นยา เพื่อติดตามการดูแลสวน</p>
+            {!showForm && (
+              <button onClick={() => setShowForm(true)} className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-black text-primary-foreground shadow-[0_10px_24px_rgba(20,107,62,0.16)] transition-all hover:bg-[#0F5A34] active:scale-95">
+                <Plus size={16} /> เพิ่มบันทึกแรก
+              </button>
+            )}
           </div>
         ) : paginatedActivities.map(a => {
           const Icon = ACTIVITY_ICONS[a.activityType]
+          const theme = ACTIVITY_THEME[a.activityType]
           return (
-            <div key={a.id} className="flex items-start gap-4 rounded-2xl border border-[#B9DCC8] bg-white p-4 shadow-[0_10px_24px_rgba(20,107,62,0.08)] transition-all group hover:border-primary/50">
-              <div className={`p-3 bg-[#F7FBF8] rounded-xl shrink-0 shadow-[0_10px_24px_rgba(20,107,62,0.10)] border border-[#B9DCC8] ${ACTIVITY_COLORS[a.activityType]}`}>
+            <div key={a.id} className="relative flex items-start gap-3.5 overflow-hidden rounded-2xl border border-[#B9DCC8] dark:border-[#31533D] bg-white dark:bg-[#14291E] p-4 pl-5 shadow-[0_10px_24px_rgba(20,107,62,0.08)] transition-all group hover:border-primary/50 hover:-translate-y-0.5 transform-gpu">
+              {/* color accent bar */}
+              <span className={`absolute left-0 top-0 h-full w-1.5 ${theme.accent}`} />
+              <div className={`p-3 rounded-xl shrink-0 ${theme.chip}`}>
                 <Icon size={20} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
                   <span className="text-base font-bold text-foreground">{ACTIVITY_LABELS[a.activityType]}</span>
-                  <span className="text-base text-[#527060]">•</span>
-                  <span className="text-base font-medium text-primary">{plotName(a.plotId)}</span>
+                  <span className="text-xs font-bold text-primary dark:text-[#72C08A] bg-[#E7F3EC] dark:bg-[#1D3A29] px-2 py-0.5 rounded-full">{plotName(a.plotId)}</span>
                 </div>
-                <p className="text-base text-[#527060] leading-relaxed mb-2">{a.description}</p>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                  <span className="text-base font-medium text-[#527060] flex items-center gap-1">
-                    <Clock size={12} /> {formatDate(a.date)}
-                  </span>
-                  {a.cost > 0 && (
-                    <span className="text-base font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded-md">
-                      ฿{a.cost.toLocaleString()}
-                    </span>
-                  )}
-                </div>
+                {a.description && <p className="text-sm text-[#527060] dark:text-[#9CC4AC] leading-relaxed mb-2 whitespace-pre-wrap break-words">{a.description}</p>}
+                <span className="text-xs font-medium text-[#527060] dark:text-[#9CC4AC] flex items-center gap-1">
+                  <Clock size={12} /> {formatDate(a.date)}
+                </span>
               </div>
               <div className="flex flex-col gap-1 shrink-0">
-                <button onClick={() => handleEdit(a)} className="p-2 text-[#527060] hover:text-primary hover:bg-primary/10 rounded-xl transition-all">
+                <button aria-label="แก้ไข" onClick={() => handleEdit(a)} className="p-2 text-[#527060] dark:text-[#9CC4AC] hover:text-primary hover:bg-primary/10 rounded-xl transition-all">
                   <ClipboardList size={18} />
                 </button>
-                <button onClick={() => deleteActivity(a.id)} className="p-2 text-[#527060] hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all">
+                <button aria-label="ลบ" onClick={() => deleteActivity(a.id)} className="p-2 text-[#527060] dark:text-[#9CC4AC] hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all">
                   <Trash2 size={18} />
                 </button>
               </div>

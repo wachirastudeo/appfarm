@@ -1257,10 +1257,10 @@ function PlotDetailView({
             <button
               onClick={() => setShowAllQR(true)}
               type="button"
-              className="p-2 bg-white dark:bg-[#14291E] border border-[#B9DCC8] dark:border-[#31533D] text-muted-foreground hover:text-foreground rounded-xl transition-colors shrink-0"
+              className="p-2 sm:p-2.5 bg-white dark:bg-[#14291E] border border-[#B9DCC8] dark:border-[#31533D] text-muted-foreground hover:text-foreground rounded-xl transition-colors shrink-0"
               title="พิมพ์ QR Code ทั้งหมด"
             >
-              <QrCode size={13} />
+              <QrCode className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
             </button>
           </div>
         </div>
@@ -1268,9 +1268,9 @@ function PlotDetailView({
 
       {/* ── Search & Filters ── */}
       {!editingPlot && (
-        <div className="space-y-3 bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/10 rounded-2xl p-3 border border-[#B9DCC8]/30 dark:border-[#31533D]/25">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-2.5 bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/10 rounded-2xl p-3 border border-[#B9DCC8]/30 dark:border-[#31533D]/25">
           {/* Search Input */}
-          <div className="relative">
+          <div className="relative lg:flex-1 lg:min-w-[200px]">
             <input
               type="text"
               value={searchQuery}
@@ -1289,65 +1289,46 @@ function PlotDetailView({
             )}
           </div>
 
-          {/* Health Filters */}
-          <div className="flex gap-1 overflow-x-auto scrollbar-hide py-0.5">
-            <button
-              onClick={() => setSelectedHealth("all")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black border whitespace-nowrap transition-all ${
-                selectedHealth === "all"
-                  ? "bg-primary text-white border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A]"
-                  : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground hover:bg-[#E7F3EC]/50 dark:hover:bg-[#1D3A29]/50"
-              }`}
-            >
-              สุขภาพทั้งหมด
-            </button>
-            {(["good", "fair", "poor"] as const).map(h => (
+          {/* Filters: Health + Stage (same row as search on desktop) */}
+          <div className="flex items-center gap-2 min-w-0 lg:shrink-0">
+            <div className="flex gap-1 overflow-x-auto scrollbar-hide min-w-0">
               <button
-                key={h}
-                onClick={() => setSelectedHealth(h)}
+                onClick={() => setSelectedHealth("all")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-black border whitespace-nowrap transition-all ${
-                  selectedHealth === h
-                    ? h === "good"
-                      ? "bg-emerald-500 text-white border-emerald-500 dark:bg-emerald-600 dark:border-emerald-600"
-                      : h === "fair"
-                      ? "bg-amber-500 text-white border-amber-500 dark:bg-amber-600 dark:border-amber-600"
-                      : "bg-rose-500 text-white border-rose-500 dark:bg-rose-600 dark:border-rose-600"
+                  selectedHealth === "all"
+                    ? "bg-primary text-white border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A]"
                     : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground hover:bg-[#E7F3EC]/50 dark:hover:bg-[#1D3A29]/50"
                 }`}
               >
-                {HEALTH_LABELS[h]}
+                สุขภาพทั้งหมด
               </button>
-            ))}
-          </div>
-
-          {/* Stage Filters (Horizontal Scroll) */}
-          <div className="flex gap-1 overflow-x-auto scrollbar-hide pt-2 border-t border-[#B9DCC8]/20 dark:border-[#31533D]/10">
-            <button
-              onClick={() => setSelectedStage("all")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black border whitespace-nowrap transition-all shrink-0 ${
-                selectedStage === "all"
-                  ? "bg-primary text-white border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A]"
-                  : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground hover:bg-[#E7F3EC]/50 dark:hover:bg-[#1D3A29]/50"
-              }`}
-            >
-              ระยะทั้งหมด
-            </button>
-            {FLOWER_STAGES.map(st => {
-              const isActive = selectedStage === st
-              return (
+              {(["good", "fair", "poor"] as const).map(h => (
                 <button
-                  key={st}
-                  onClick={() => setSelectedStage(st)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black border whitespace-nowrap transition-all shrink-0 flex items-center gap-1 ${
-                    isActive
-                      ? "bg-primary text-white border-primary dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A]"
+                  key={h}
+                  onClick={() => setSelectedHealth(h)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black border whitespace-nowrap transition-all ${
+                    selectedHealth === h
+                      ? h === "good"
+                        ? "bg-emerald-500 text-white border-emerald-500 dark:bg-emerald-600 dark:border-emerald-600"
+                        : h === "fair"
+                        ? "bg-amber-500 text-white border-amber-500 dark:bg-amber-600 dark:border-amber-600"
+                        : "bg-rose-500 text-white border-rose-500 dark:bg-rose-600 dark:border-rose-600"
                       : "bg-white dark:bg-[#0B140F] border-[#B9DCC8]/40 dark:border-[#31533D]/30 text-muted-foreground hover:bg-[#E7F3EC]/50 dark:hover:bg-[#1D3A29]/50"
                   }`}
                 >
-                  <span>{FLOWER_STAGE_LABELS[st]}</span>
+                  {HEALTH_LABELS[h]}
                 </button>
-              )
-            })}
+              ))}
+            </div>
+
+            <select
+              value={selectedStage}
+              onChange={e => setSelectedStage(e.target.value as "all" | FlowerStage)}
+              className="shrink-0 ml-auto bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-lg px-3 py-1.5 text-xs font-black text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
+            >
+              <option value="all">ระยะทั้งหมด</option>
+              {FLOWER_STAGES.map(st => <option key={st} value={st}>{FLOWER_STAGE_LABELS[st]}</option>)}
+            </select>
           </div>
         </div>
       )}
@@ -1390,10 +1371,10 @@ function PlotDetailView({
             ) : (
               <div
                 onClick={() => selectMode ? toggleSelectTree(tree.id) : setSelectedTreeId(tree.id)}
-                className={`relative flex flex-col justify-between gap-1.5 p-2.5 cursor-pointer transition-all duration-200 group rounded-2xl border ${
+                className={`relative flex flex-col justify-between gap-1.5 p-2.5 cursor-pointer transition-[transform,border-color] duration-200 transform-gpu group rounded-2xl border ${
                   selectMode && selectedIds.has(tree.id)
                     ? "border-[#146B3E] dark:border-[#72C08A] border-2 bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/20 shadow-md"
-                    : `bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm border-[#B9DCC8]/50 dark:border-[#31533D]/40 hover:border-[#146B3E]/40 dark:hover:border-[#72C08A]/40 hover:-translate-y-0.5 ${HEALTH_GLOW[tree.health]}`
+                    : `bg-white/90 dark:bg-[#14291E]/90 border-[#B9DCC8]/50 dark:border-[#31533D]/40 hover:border-[#146B3E]/40 dark:hover:border-[#72C08A]/40 hover:-translate-y-0.5 ${HEALTH_GLOW[tree.health]}`
                 }`}
               >
                 {/* LED health pulse dot */}
@@ -1870,7 +1851,7 @@ function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick }: {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 lg:gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5">
               {data.plots.map(plot => {
                 const pGood = plot.trees.filter(t => t.health === "good").length
                 const pFair = plot.trees.filter(t => t.health === "fair").length
