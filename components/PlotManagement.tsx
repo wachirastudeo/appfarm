@@ -973,10 +973,12 @@ function TreeDetailView({
 }
 
 function PlotDetailView({
-  plot, activities, onBack, addTree, addTrees, updateTree, deleteTree, bulkUpdateTrees, updatePlot, deletePlot,
+  plot, activities, selectedTreeId, setSelectedTreeId, onBack, addTree, addTrees, updateTree, deleteTree, bulkUpdateTrees, updatePlot, deletePlot,
   addActivity, addBatch, addBatchStage, updateBatch, deleteBatch
 }: {
   plot: Plot; activities: any[]; onBack: () => void
+  selectedTreeId: string | null
+  setSelectedTreeId: (id: string | null) => void
   addTree: (plotId: string, tree: Omit<Tree, "id" | "lastUpdated">) => void
   addTrees: (plotId: string, treesList: Omit<Tree, "id" | "lastUpdated" | "batches">[]) => void
   updateTree: (plotId: string, treeId: string, changes: Partial<Tree>) => void
@@ -990,7 +992,6 @@ function PlotDetailView({
   updateBatch: AppDataReturn["updateBatch"]
   deleteBatch: AppDataReturn["deleteBatch"]
 }) {
-  const [selectedTreeId, setSelectedTreeId] = useState<string | null>(null)
   const [addingTree, setAddingTree] = useState(false)
   const [editingTree, setEditingTree] = useState<string | null>(null)
   const [qrTree, setQrTree] = useState<Tree | null>(null)
@@ -1927,13 +1928,78 @@ function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick }: {
 
 
 // ---- Main Component ----
+/**
+ * Makes the in-app drill-down (overview → plot → tree) participate in browser
+ * history so the device/browser Back button steps back one level at a time
+ * instead of jumping to the previous tab. `depth` is the number of open levels;
+ * `closeTop` closes the current top level. Pushes a history entry per opened
+ * level (URL unchanged, so AppShell keeps the active tab) and consumes them on
+ * UI-initiated closes to keep the stack balanced.
+ */
+function useDrillBackHistory(depth: number, closeTop: () => void) {
+  const prevDepth = useRef(0)
+  const fromPopState = useRef(false)
+  const selfGo = useRef(false)
+  const closeRef = useRef(closeTop)
+  useEffect(() => {
+    closeRef.current = closeTop
+  })
+
+  useEffect(() => {
+    const onPop = () => {
+      // Ignore the popstate our own history.go() triggers on a UI close.
+      if (selfGo.current) {
+        selfGo.current = false
+        return
+      }
+      if (prevDepth.current > 0) {
+        fromPopState.current = true
+        closeRef.current()
+      }
+    }
+    window.addEventListener("popstate", onPop)
+    return () => window.removeEventListener("popstate", onPop)
+  }, [])
+
+  useEffect(() => {
+    const before = prevDepth.current
+    if (depth > before) {
+      for (let i = before; i < depth; i++) {
+        // URL omitted → entry keeps the same URL, so the active tab is preserved.
+        window.history.pushState({ durianDrill: i + 1 }, "")
+      }
+    } else if (depth < before) {
+      if (fromPopState.current) {
+        fromPopState.current = false // browser already popped the entry
+      } else {
+        selfGo.current = true
+        window.history.go(-(before - depth)) // UI close → consume our entries
+      }
+    }
+    prevDepth.current = depth
+  }, [depth])
+}
+
 export default function PlotManagement({
   data, addPlot, updatePlot, deletePlot,
   addTree, addTrees, updateTree, deleteTree, bulkUpdateTrees,
   addActivity, addBatch, addBatchStage, updateBatch, deleteBatch
 }: Props) {
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null)
+  const [selectedTreeId, setSelectedTreeId] = useState<string | null>(null)
   const [showAddPlot, setShowAddPlot] = useState(false)
+
+  const closePlot = () => {
+    setSelectedTreeId(null)
+    setSelectedPlotId(null)
+  }
+
+  // Back button steps tree → plot → previous tab (instead of jumping tabs).
+  const depth = (selectedPlotId ? 1 : 0) + (selectedTreeId ? 1 : 0)
+  useDrillBackHistory(depth, () => {
+    if (selectedTreeId) setSelectedTreeId(null)
+    else if (selectedPlotId) setSelectedPlotId(null)
+  })
 
   const selectedPlot = data.plots.find(p => p.id === selectedPlotId)
 
@@ -1957,14 +2023,16 @@ export default function PlotManagement({
             <PlotDetailView
               plot={selectedPlot}
               activities={data.activities}
-              onBack={() => setSelectedPlotId(null)}
+              selectedTreeId={selectedTreeId}
+              setSelectedTreeId={setSelectedTreeId}
+              onBack={closePlot}
               addTree={addTree}
               addTrees={addTrees}
               updateTree={updateTree}
               deleteTree={deleteTree}
               bulkUpdateTrees={bulkUpdateTrees}
               updatePlot={updatePlot}
-              deletePlot={(id) => { deletePlot(id); setSelectedPlotId(null) }}
+              deletePlot={(id) => { deletePlot(id); closePlot() }}
               addActivity={addActivity}
               addBatch={addBatch}
               addBatchStage={addBatchStage}

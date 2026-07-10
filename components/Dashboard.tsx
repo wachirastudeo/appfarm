@@ -273,11 +273,28 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
     priority: "medium" as Task["priority"],
   })
 
+  // data.plots loads async (store/Supabase), so quickForm.plotId may be "" on first
+  // mount even though the <select> visually shows the first plot. Sync it once plots
+  // arrive (or when the selected plot is removed) so "บันทึกงาน" doesn't falsely block.
+  useEffect(() => {
+    if (data.plots.length === 0) return
+    const valid = data.plots.some(p => p.id === quickForm.plotId)
+    if (!valid) {
+      setQuickForm(f => ({ ...f, plotId: data.plots[0].id }))
+    }
+  }, [data.plots, quickForm.plotId])
+
   const handleQuickAdd = () => {
     const title = validateText("ชื่องาน", quickForm.title, { required: true, maxLength: 160 })
     const date = validateDate("วันที่", quickForm.date)
-    if (!quickForm.plotId) {
-      alert("กรุณาเลือกแปลงก่อนบันทึก")
+    // Fall back to the first plot if state hasn't caught up to the rendered <select>.
+    const plotId = data.plots.some(p => p.id === quickForm.plotId)
+      ? quickForm.plotId
+      : data.plots[0]?.id ?? ""
+    if (!plotId) {
+      alert("ยังไม่มีแปลงทุเรียน กรุณาเพิ่มแปลงก่อนจึงจะบันทึกงานได้")
+      setShowAddTask(false)
+      onNavigate?.("plots")
       return
     }
     if (!title.ok || !date.ok) {
@@ -287,7 +304,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
     addTask({
       title: title.value,
       date: new Date(date.value).toISOString(),
-      plotId: quickForm.plotId,
+      plotId,
       priority: quickForm.priority,
       description: "",
       status: "pending",
@@ -647,7 +664,9 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
                     onChange={e => setQuickForm(f => ({ ...f, plotId: e.target.value }))}
                     className="min-w-0 bg-white border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
                   >
-                    {data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {data.plots.length === 0
+                      ? <option value="">ยังไม่มีแปลง</option>
+                      : data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                   <select
                     value={quickForm.priority}
