@@ -41,8 +41,17 @@ export function validateEmail(value: string): ValidationResult<string> {
 
 export function validateDate(label: string, value: string): ValidationResult<string> {
   if (!DATE_PATTERN.test(value)) return invalid(`กรุณาเลือก${label}ให้ถูกต้อง`)
-  const date = new Date(`${value}T00:00:00`)
-  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+  // Validate using local date parts. Avoid toISOString() (UTC): in positive-offset
+  // timezones (e.g. ไทย UTC+7) local midnight rolls back a UTC day, which would
+  // reject the user's current local date.
+  const [y, m, d] = value.split("-").map(Number)
+  const date = new Date(y, m - 1, d)
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== y ||
+    date.getMonth() !== m - 1 ||
+    date.getDate() !== d
+  ) {
     return invalid(`กรุณาเลือก${label}ให้ถูกต้อง`)
   }
   return { ok: true, value, message: "" }

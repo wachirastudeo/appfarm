@@ -732,3 +732,22 @@
   animation: marquee-vertical var(--duration, 40s) linear infinite;
 }
 
+/*
+ * Desktop typography scale-up.
+ * Mobile-first sizes read too small on large screens. On >=1024px we bump the
+ * Tailwind font-size *tokens* (not the utility classes) so every size — incl.
+ * responsive variants like lg:text-base — scales consistently and the cascade
+ * keeps working. Line-heights are ratios, so they scale automatically.
+ * Spacing/layout are untouched. The tiny fixed-px labels are bumped directly.
+ */
+@media (min-width: 1024px) {
+  :root {
+    --text-xs: 0.8125rem;   /* 12px -> 13px */
+    --text-sm: 0.9375rem;   /* 14px -> 15px */
+    --text-base: 1.0625rem; /* 16px -> 17px */
+  }
+  .text-\[9px\]  { font-size: 10px; }
+  .text-\[10px\] { font-size: 11px; }
+  .text-\[11px\] { font-size: 12px; }
+}
+

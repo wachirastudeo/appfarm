@@ -3,6 +3,7 @@ import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import type { AppUser } from "@/lib/store"
 import { createClient } from "@/lib/supabase/client"
+import { isSupabaseConfigured } from "@/lib/runtime-config"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { validateEmail, validateText } from "@/lib/form-validation"
 import { X, Mail, Eye, EyeOff, AlertCircle, ShieldCheck, Sparkles } from "lucide-react"
@@ -40,17 +41,15 @@ interface Props {
   onLoginSuccess: (user: AppUser) => void
   authenticateUser: (email: string, password: string) => Promise<AppUser | null>
   addUser: (user: Omit<AppUser, "id" | "createdAt" | "passwordHash" | "password"> & { password: string }) => Promise<AppUser | null>
-  resetPassword: (email: string, password: string) => Promise<AppUser | null>
   initialError?: string
 }
 
-export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticateUser, addUser, resetPassword, initialError }: Props) {
+export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticateUser, addUser, initialError }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [mode, setMode] = useState<"choose" | "email" | "forgot">("choose")
   const [isSignUp, setIsSignUp] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
   const [name, setName] = useState("")
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
@@ -61,7 +60,6 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
   const passwordInputId = "auth-password"
   const signupNameInputId = "auth-signup-name"
   const resetEmailInputId = "auth-reset-email"
-  const resetPasswordInputId = "auth-reset-password"
 
   useEscapeToClose({ enabled: isOpen, onEscape: onClose, containerRef })
 
@@ -117,9 +115,44 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
     }
   }
 
-  const handleUnavailablePasswordReset = () => {
-    setError("การรีเซ็ตรหัสผ่านอัตโนมัติยังไม่พร้อมในโหมดนี้ กรุณาติดต่อผู้ดูแลระบบ")
+  const openForgotMode = () => {
+    setMode("forgot")
+    setError("")
     setSuccess("")
+  }
+
+  const handleForgotPassword = (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setSuccess("")
+    const checkedEmail = validateEmail(email)
+    if (!checkedEmail.ok) {
+      setError(checkedEmail.message)
+      return
+    }
+    if (!isSupabaseConfigured) {
+      setError("การรีเซ็ตรหัสผ่านทางอีเมลยังไม่พร้อมในโหมดนี้ (ต้องตั้งค่า Supabase) กรุณาติดต่อผู้ดูแลระบบ")
+      return
+    }
+    setLoading("reset")
+    void (async () => {
+      try {
+        const supabase = createClient()
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(checkedEmail.value, {
+          redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+        })
+        if (resetError) {
+          setError(resetError.message || "ไม่สามารถส่งอีเมลรีเซ็ตรหัสผ่านได้")
+          setLoading(null)
+          return
+        }
+        setSuccess("ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่อีเมลแล้ว กรุณาตรวจสอบกล่องจดหมาย (รวมถึงสแปม)")
+        setLoading(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "ไม่สามารถส่งอีเมลรีเซ็ตรหัสผ่านได้")
+        setLoading(null)
+      }
+    })()
   }
 
   const handleEmailSubmit = (e: React.FormEvent) => {
@@ -161,38 +194,6 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
     }, 1000)
   }
 
-  const handleResetPassword = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setSuccess("")
-    const checkedEmail = validateEmail(email)
-    const checkedPassword = validateText("รหัสผ่านใหม่", newPassword, { required: true, maxLength: 128 })
-    if (!checkedEmail.ok || !checkedPassword.ok) {
-      setError(!checkedEmail.ok ? checkedEmail.message : checkedPassword.message)
-      return
-    }
-    setLoading("reset")
-    setTimeout(async () => {
-      try {
-        const result = await resetPassword(checkedEmail.value, checkedPassword.value)
-        if (!result) {
-          setError("ไม่พบบัญชีอีเมลนี้ในระบบ")
-          setLoading(null)
-          return
-        }
-        setPassword(checkedPassword.value)
-        setNewPassword("")
-        setIsSignUp(false)
-        setMode("email")
-        setSuccess("เปลี่ยนรหัสผ่านแล้ว กรุณาเข้าสู่ระบบด้วยรหัสใหม่")
-        setLoading(null)
-      } catch (err: any) {
-        setError(err.message || "เกิดข้อผิดพลาดในการรีเซ็ตรหัสผ่าน")
-        setLoading(null)
-      }
-    }, 700)
-  }
-
   const openEmailMode = (signUp: boolean) => {
     setIsSignUp(signUp)
     setMode("email")
@@ -200,7 +201,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
     setSuccess("")
   }
 
-  const reset = () => { setMode("choose"); setError(""); setSuccess(""); setEmail(""); setPassword(""); setNewPassword(""); setName(""); setIsSignUp(false) }
+  const reset = () => { setMode("choose"); setError(""); setSuccess(""); setEmail(""); setPassword(""); setName(""); setIsSignUp(false) }
 
   return (
     <div ref={containerRef} data-escapable-layer="true" className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
@@ -266,14 +267,14 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
             </div>
             <h2 className="mt-5 text-2xl font-black text-gray-950">
               {mode === "forgot"
-                ? "ตั้งรหัสผ่านใหม่"
+                ? "ลืมรหัสผ่าน"
                 : mode === "email"
                   ? (isSignUp ? "สร้างบัญชีใหม่" : "เข้าสู่ระบบ")
                   : "ยินดีต้อนรับ"}
             </h2>
             <p className="text-sm text-gray-400 mt-0.5">
               {mode === "forgot"
-                ? "กรอกอีเมลบัญชีและรหัสผ่านใหม่"
+                ? "กรอกอีเมลเพื่อรับลิงก์ตั้งรหัสผ่านใหม่"
                 : mode === "email"
                   ? (isSignUp ? "กรอกข้อมูลเพื่อเริ่มต้น" : "กรอกอีเมลและรหัสผ่าน")
                   : "เลือกวิธีเข้าสู่ระบบ"}
@@ -349,7 +350,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
               </p>
             </div>
           ) : mode === "forgot" ? (
-            <form onSubmit={handleResetPassword} className="space-y-4">
+            <form onSubmit={handleForgotPassword} className="space-y-4">
               <button
                 type="button"
                 onClick={() => { setMode("email"); setError(""); setSuccess("") }}
@@ -372,34 +373,17 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label htmlFor={resetPasswordInputId} className="text-xs font-semibold text-gray-500">รหัสผ่านใหม่</label>
-                <div className="relative">
-                  <input
-                    id={resetPasswordInputId}
-                    name="new-password"
-                    type={showPass ? "text" : "password"}
-                    value={newPassword}
-                    onChange={e => setNewPassword(e.target.value)}
-                    placeholder="••••••••"
-                    autoComplete="new-password"
-                    className="w-full border border-gray-200 focus:border-emerald-400 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/20 transition-all pr-11"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(v => !v)}
-                    aria-label={showPass ? "ซ่อนรหัสผ่านใหม่" : "แสดงรหัสผ่านใหม่"}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
-                  >
-                    {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-              </div>
-
               {error && (
                 <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">
                   <AlertCircle size={14} className="mt-0.5 text-red-400 shrink-0" />
                   <p className="whitespace-pre-wrap text-xs leading-5 text-red-500">{error}</p>
+                </div>
+              )}
+
+              {success && (
+                <div className="flex items-start gap-2 bg-emerald-50 border border-emerald-100 rounded-xl px-3.5 py-2.5">
+                  <ShieldCheck size={14} className="mt-0.5 text-emerald-500 shrink-0" />
+                  <p className="text-xs leading-5 text-emerald-600">{success}</p>
                 </div>
               )}
 
@@ -411,7 +395,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
                 {loading === "reset" && (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 )}
-                เปลี่ยนรหัสผ่าน
+                ส่งลิงก์ตั้งรหัสผ่านใหม่
               </button>
             </form>
           ) : (
@@ -514,7 +498,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
               {!isSignUp && (
                 <button
                   type="button"
-                  onClick={handleUnavailablePasswordReset}
+                  onClick={openForgotMode}
                   className="w-full text-center text-xs text-gray-400 hover:text-gray-600 transition-colors py-0.5"
                 >
                   ลืมรหัสผ่าน?

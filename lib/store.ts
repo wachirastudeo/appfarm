@@ -809,22 +809,6 @@ export function useAppData(currentUserId?: string | null) {
     return newUser
   }, [data.users, isSupabaseMode, updateData, upsertOAuthUser])
 
-  const resetPassword = useCallback(async (email: string, password: string) => {
-    if (isSupabaseMode) {
-      throw new Error("การเปลี่ยนรหัสผ่านโดยตรงไม่รองรับในโหมด Supabase กรุณาติดต่อผู้ดูแลระบบเพื่อขอรีเซ็ตรหัสผ่านผ่าน Supabase Dashboard")
-    }
-
-    const normalized = email.trim().toLowerCase()
-    const user = data.users.find(u => u.email.toLowerCase() === normalized && u.provider === "email")
-    if (!user) return null
-    const passwordHash = await hashPassword(normalized, password)
-    updateData(d => ({
-      ...d,
-      users: d.users.map(u => u.id === user.id ? { ...u, passwordHash } : u),
-    }))
-    return { ...user, passwordHash }
-  }, [data.users, isSupabaseMode, updateData])
-
   const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {
     updateData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, ...changes } : u) }))
     
@@ -965,7 +949,7 @@ export function useAppData(currentUserId?: string | null) {
     addTask, updateTask, deleteTask,
     addFinance, deleteFinance,
     addBatch, addBatchStage, updateBatch, deleteBatch,
-    authenticateUser, addUser, resetPassword, upsertOAuthUser, updateUser, deleteUser,
+    authenticateUser, addUser, upsertOAuthUser, updateUser, deleteUser,
     addArticle, updateArticle, deleteArticle,
     addProduct, updateProduct, deleteProduct,
     updateSiteSettings,
@@ -977,7 +961,7 @@ export function useAppData(currentUserId?: string | null) {
     addTask, updateTask, deleteTask,
     addFinance, deleteFinance,
     addBatch, addBatchStage, updateBatch, deleteBatch,
-    authenticateUser, addUser, resetPassword, upsertOAuthUser, updateUser, deleteUser,
+    authenticateUser, addUser, upsertOAuthUser, updateUser, deleteUser,
     addArticle, updateArticle, deleteArticle,
     addProduct, updateProduct, deleteProduct,
     updateSiteSettings,
