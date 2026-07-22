@@ -23,6 +23,7 @@ import Marquee from "./magicui/marquee"
 import ShinyButton from "./magicui/shiny-button"
 import InteractiveHoverButton from "./magicui/interactive-hover-button"
 import SparklesText from "./magicui/sparkles-text"
+import PrintReportView, { PrintReportData } from "./PrintReportView"
 
 const Dashboard = dynamic(() => import("./Dashboard"), { loading: () => <ContentSkeleton /> })
 const PlotManagement = dynamic(() => import("./PlotManagement"), { loading: () => <ContentSkeleton /> })
@@ -985,8 +986,27 @@ export default function AppShell() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
   const [showPwaInstallModal, setShowPwaInstallModal] = useState(false)
+  const [printData, setPrintData] = useState<PrintReportData | null>(null)
   const store = useAppData(user?.id ?? null)
   useNotificationScheduler(store.data.tasks, store.data.plots)
+
+  const handlePrint = useCallback((reportData: Omit<PrintReportData, "farmName" | "userName" | "plots">) => {
+    const savedSiteName = store.data.siteSettings.siteName
+    const farmName = user?.farmName || (savedSiteName === "DurianFlow" ? "Durian Flow" : savedSiteName) || "สวนทุเรียน"
+    const userName = user?.name || "สมชาย"
+
+    setPrintData({
+      ...reportData,
+      farmName,
+      userName,
+      plots: store.data.plots
+    })
+
+    setTimeout(() => {
+      window.print()
+    }, 150)
+  }, [store.data.plots, store.data.siteSettings.siteName, user])
+
   const locationStorageKey = user?.id ? `farm_location_${user.id}` : "farm_location_guest"
   const coverStorageKey = user?.id ? `farm_cover_image_${user.id}` : "farm_cover_image_guest"
   const openAuth = useCallback(() => {
@@ -1419,6 +1439,7 @@ export default function AppShell() {
             addBatchStage={store.addBatchStage}
             updateBatch={store.updateBatch}
             deleteBatch={store.deleteBatch}
+            onPrint={handlePrint}
           />
         )
       case "operations":
@@ -1427,9 +1448,10 @@ export default function AppShell() {
           addTask={store.addTask} updateTask={store.updateTask} deleteTask={store.deleteTask}
           addActivity={store.addActivity} deleteActivity={store.deleteActivity} updateActivity={store.updateActivity}
           onNavigate={setActiveTab}
+          onPrint={handlePrint}
         />
       case "finance":
-        return <Finance data={store.data} addFinance={store.addFinance} deleteFinance={store.deleteFinance} />
+        return <Finance data={store.data} addFinance={store.addFinance} deleteFinance={store.deleteFinance} onPrint={handlePrint} />
       case "articles":
         return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} savedArticleIds={user?.savedArticleIds} savedArticlesStorageKey={user?.id ? `durian_saved_articles_${user.id}` : "durian_saved_articles_guest"} onSavedArticleIdsChange={savedArticleIds => user ? store.updateUser(user.id, { savedArticleIds }) : Promise.resolve()} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
       case "admin":
@@ -1463,7 +1485,7 @@ export default function AppShell() {
     if (authChecking) return <AppShellSkeleton />
 
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col guest-layout-container">
         <AnimatedBackground />
         <header className="sticky top-0 z-40 border-b border-[#DDEBE1]/50 bg-white/82 px-4 py-3 shadow-[0_8px_30px_rgba(20,107,62,0.06)] backdrop-blur-xl dark:border-[#31533D]/45 dark:bg-[#0F1F17]/82">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
@@ -1591,7 +1613,7 @@ export default function AppShell() {
   }
 
   return (
-    <div className="h-screen bg-transparent flex flex-col relative overflow-hidden">
+    <div className="h-screen bg-transparent flex flex-col relative overflow-hidden app-shell-container">
       <AnimatedBackground />
       {/* Top Header Bar */}
       <header className="sticky top-0 z-40 bg-white/75 dark:bg-[#0F1F17]/75 backdrop-blur-md px-3 sm:px-4 md:px-8 pt-2 sm:pt-2 pb-2 sm:pb-2 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1]/40 dark:border-[#31533D]/45 shadow-[0_8px_30px_rgba(20,107,62,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)] overflow-hidden">
@@ -1767,6 +1789,7 @@ export default function AppShell() {
         canInstallDirectly={Boolean(installPrompt) && !/iphone|ipad|ipod/i.test(navigator.userAgent)}
         onInstall={handleInstallApp}
       />
+      <PrintReportView printData={printData} onClose={() => setPrintData(null)} />
     </div>
   )
 }

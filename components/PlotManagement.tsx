@@ -11,8 +11,10 @@ import {
   Plus, Pencil, Trash2, QrCode, RefreshCw, X, Check,
   ChevronRight, ChevronLeft, ArrowLeft,
   History, CalendarDays, Printer, Sparkles,
-  Search
+  Search, Download
 } from "lucide-react"
+import { exportPlotsToCSV } from "@/lib/report-utils"
+import { PrintReportData } from "./PrintReportView"
 import { QRCodeSVG } from "qrcode.react"
 import DurianIcon from "./DurianIcon"
 import Portal from "./Portal"
@@ -35,6 +37,7 @@ interface Props {
   addBatchStage: AppDataReturn["addBatchStage"]
   updateBatch: AppDataReturn["updateBatch"]
   deleteBatch: AppDataReturn["deleteBatch"]
+  onPrint?: (reportData: Omit<PrintReportData, "farmName" | "userName" | "plots">) => void
 }
 
 const HEALTH_LABELS = { good: "ดี", fair: "พอใช้", poor: "ไม่ดี" }
@@ -1751,11 +1754,13 @@ function AddPlotModal({ onClose, onSave }: { onClose: () => void; onSave: (data:
 }
 
 // ---- All Plots Overview Dashboard ----
-function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick }: {
+function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick, onPrint }: {
   data: AppDataReturn["data"]
   setSelectedPlotId: (id: string) => void
   onAddPlotClick: () => void
+  onPrint?: (reportData: Omit<PrintReportData, "farmName" | "userName" | "plots">) => void
 }) {
+  const [showExportMenu, setShowExportMenu] = useState(false)
   const totalPlots = data.plots.length
   const totalArea = data.plots.reduce((acc, p) => acc + p.area, 0)
   const totalTrees = data.plots.reduce((acc, p) => acc + p.trees.length, 0)
@@ -1783,12 +1788,49 @@ function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick }: {
               </p>
             </div>
             {totalPlots > 0 && (
-              <button
-                onClick={onAddPlotClick}
-                className="self-start md:self-auto bg-white text-[#146B3E] dark:bg-[#72C08A] dark:text-[#0B1B12] px-4 py-2.5 rounded-2xl text-xs font-black hover:scale-105 active:scale-95 shadow-md transition-all flex items-center gap-1.5 shrink-0"
-              >
-                <Plus size={14} strokeWidth={3} /> เพิ่มแปลงทุเรียน
-              </button>
+              <div className="flex gap-2 items-center self-start md:self-auto shrink-0">
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowExportMenu(v => !v)}
+                    className="flex h-[38px] items-center justify-center gap-1.5 rounded-2xl border border-white/20 bg-white/10 hover:bg-white/20 active:scale-95 transition-all px-3.5 text-xs font-black text-white"
+                  >
+                    <Download size={14} /> ส่งออก
+                  </button>
+                  {showExportMenu && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white p-1.5 shadow-xl border border-[#B9DCC8] z-50 text-gray-800 animate-slide-up">
+                      <button
+                        onClick={() => {
+                          exportPlotsToCSV(data.plots)
+                          setShowExportMenu(false)
+                        }}
+                        className="w-full text-left rounded-lg px-3 py-2 text-xs font-black hover:bg-[#E7F3EC] hover:text-[#146B3E] transition-all flex items-center gap-2"
+                      >
+                        📊 ส่งออก Excel (CSV)
+                      </button>
+                      <button
+                        onClick={() => {
+                          onPrint?.({
+                            type: "plots",
+                            title: "รายงานสรุปทะเบียนแปลงและต้นทุเรียน",
+                            dateRange: "ข้อมูลอัปเดตล่าสุด"
+                          })
+                          setShowExportMenu(false)
+                        }}
+                        className="w-full text-left rounded-lg px-3 py-2 text-xs font-black hover:bg-[#E7F3EC] hover:text-[#146B3E] transition-all flex items-center gap-2"
+                      >
+                        🖨️ พิมพ์รายงาน (PDF)
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={onAddPlotClick}
+                  className="bg-white text-[#146B3E] dark:bg-[#72C08A] dark:text-[#0B1B12] px-4 py-2.5 rounded-2xl text-xs font-black hover:scale-105 active:scale-95 shadow-md transition-all flex items-center gap-1.5"
+                >
+                  <Plus size={14} strokeWidth={3} /> เพิ่มแปลงทุเรียน
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -1983,7 +2025,8 @@ function useDrillBackHistory(depth: number, closeTop: () => void) {
 export default function PlotManagement({
   data, addPlot, updatePlot, deletePlot,
   addTree, addTrees, updateTree, deleteTree, bulkUpdateTrees,
-  addActivity, addBatch, addBatchStage, updateBatch, deleteBatch
+  addActivity, addBatch, addBatchStage, updateBatch, deleteBatch,
+  onPrint
 }: Props) {
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null)
   const [selectedTreeId, setSelectedTreeId] = useState<string | null>(null)
@@ -2044,6 +2087,7 @@ export default function PlotManagement({
               data={data}
               setSelectedPlotId={setSelectedPlotId}
               onAddPlotClick={() => setShowAddPlot(true)}
+              onPrint={onPrint}
             />
           )}
         </div>

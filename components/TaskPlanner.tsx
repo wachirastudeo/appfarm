@@ -6,6 +6,8 @@ import { Task, TaskStatus, useAppData } from "@/lib/store"
 import { validateDate, validateNumber, validateText } from "@/lib/form-validation"
 import { Plus, Check, X, Trash2, ChevronLeft, ChevronRight, CalendarDays, RotateCcw, Pencil, ChevronDown, ChevronUp, CalendarPlus, Download, Sparkles, AlertTriangle } from "lucide-react"
 import Portal from "./Portal"
+import { exportOperationsToCSV } from "@/lib/report-utils"
+import { PrintReportData } from "./PrintReportView"
 
 type AppDataReturn = ReturnType<typeof useAppData>
 interface Props {
@@ -14,6 +16,7 @@ interface Props {
   updateTask: AppDataReturn["updateTask"]
   deleteTask: AppDataReturn["deleteTask"]
   onNavigate?: (tab: "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin") => void
+  onPrint?: (reportData: Omit<PrintReportData, "farmName" | "userName" | "plots">) => void
 }
 
 const PRIORITY_COLORS = {
@@ -54,12 +57,13 @@ function getLocalDateString(date: Date) {
   return `${year}-${month}-${day}`
 }
 
-export default function TaskPlanner({ data, addTask, updateTask, deleteTask, onNavigate }: Props) {
+export default function TaskPlanner({ data, addTask, updateTask, deleteTask, onNavigate, onPrint }: Props) {
   const today = new Date()
   const [calYear, setCalYear] = useState(today.getFullYear())
   const [calMonth, setCalMonth] = useState(today.getMonth())
   const [selectedDate, setSelectedDate] = useState<string>(getLocalDateString(today))
   const [showForm, setShowForm] = useState(false)
+  const [showExportMenu, setShowExportMenu] = useState(false)
   const [repeatEnabled, setRepeatEnabled] = useState(false)
   const [repeatEveryDays, setRepeatEveryDays] = useState(2)
   const [repeatLimitEnabled, setRepeatLimitEnabled] = useState(false)
@@ -277,19 +281,59 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask, onN
           </div>
         </div>
         {hasPlots && (
-          <button
-            onClick={() => {
-              setForm(f => ({ ...f, date: selectedDate, plotId: data.plots[0]?.id ?? "", title: "", description: "", priority: "medium" }))
-              setRepeatEnabled(false)
-              setRepeatEveryDays(2)
-              setRepeatLimitEnabled(false)
-              setRepeatLimitMonths(3)
-              setShowForm(true)
-            }}
-            className="flex items-center gap-1.5 bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] px-4 py-2.5 rounded-xl text-xs font-black hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] transition-all active:scale-[0.98] shadow-md shadow-primary/10 dark:shadow-[#72C08A]/10"
-          >
-            <Plus size={14} /> เพิ่มแผนงาน
-          </button>
+          <div className="flex gap-2 items-center">
+            <div className="relative">
+              <button 
+                onClick={() => setShowExportMenu(v => !v)}
+                className="flex h-[38px] sm:h-[42px] items-center justify-center gap-1.5 rounded-xl border border-[#B9DCC8] bg-white hover:bg-[#E7F3EC] active:scale-95 transition-all px-3 text-xs font-black text-[#146B3E] shadow-sm"
+                title="ส่งออกรายงาน"
+              >
+                <Download size={14} /> <span className="hidden sm:inline">ส่งออก</span>
+              </button>
+              {showExportMenu && (
+                <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white p-1.5 shadow-xl border border-[#B9DCC8] z-50 text-gray-800 animate-slide-up">
+                  <button
+                    onClick={() => {
+                      exportOperationsToCSV(allFilteredTasks, [], (id) => id ? (data.plots.find(p => p.id === id)?.name ?? id) : "ไม่ระบุ")
+                      setShowExportMenu(false)
+                    }}
+                    className="w-full text-left rounded-lg px-3 py-2 text-xs font-black hover:bg-[#E7F3EC] hover:text-[#146B3E] transition-all flex items-center gap-2"
+                  >
+                    📊 ส่งออก Excel (CSV)
+                  </button>
+                  <button
+                    onClick={() => {
+                      onPrint?.({
+                        type: "operations",
+                        title: `รายงานสรุปแผนงานสวน ประจำวันที่ ${selectedDate}`,
+                        dateRange: `ประจำวันที่ ${selectedDate}`,
+                        tasks: allFilteredTasks,
+                        activities: []
+                      })
+                      setShowExportMenu(false)
+                    }}
+                    className="w-full text-left rounded-lg px-3 py-2 text-xs font-black hover:bg-[#E7F3EC] hover:text-[#146B3E] transition-all flex items-center gap-2"
+                  >
+                    🖨️ พิมพ์รายงาน (PDF)
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => {
+                setForm(f => ({ ...f, date: selectedDate, plotId: data.plots[0]?.id ?? "", title: "", description: "", priority: "medium" }))
+                setRepeatEnabled(false)
+                setRepeatEveryDays(2)
+                setRepeatLimitEnabled(false)
+                setRepeatLimitMonths(3)
+                setShowForm(true)
+              }}
+              className="flex items-center gap-1.5 bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] px-4 py-2.5 rounded-xl text-xs font-black hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] transition-all active:scale-[0.98] shadow-md shadow-primary/10 dark:shadow-[#72C08A]/10"
+            >
+              <Plus size={14} /> เพิ่มแผนงาน
+            </button>
+          </div>
         )}
       </div>
 

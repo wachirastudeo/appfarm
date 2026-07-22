@@ -751,3 +751,59 @@
   .text-\[11px\] { font-size: 12px; }
 }
 
+/* @media print overrides for printable agricultural reports */
+@media print {
+  /* Hide interactive/navigational components */
+  .no-print,
+  button,
+  nav,
+  header,
+  footer,
+  aside,
+  .app-shell-main-nav,
+  .app-shell-header,
+  .app-shell-sidebar,
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+
+  /* Hide the interactive UI shell containers */
+  .app-shell-container,
+  .guest-layout-container,
+  #__next > div:not(#print-area-root),
+  body > div:not(#print-area-root) {
+    display: none !important;
+  }
+
+  /* Show and style the print area */
+  #print-area-root {
+    display: block !important;
+    visibility: visible !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: white !important;
+    color: black !important;
+  }
+
+  body {
+    background-color: white !important;
+    background-image: none !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Prevent elements from breaking awkwardly across pages */
+  tr, 
+  .print-card,
+  .print-page-break-avoid {
+    page-break-inside: avoid !important;
+    break-inside: avoid-page !important;
+  }
+}
+
+

@@ -5,6 +5,8 @@ import TaskPlanner from "./TaskPlanner"
 import ActivityLog from "./ActivityLog"
 import { CalendarDays, ClipboardList } from "lucide-react"
 
+import { PrintReportData } from "./PrintReportView"
+
 type AppDataReturn = ReturnType<typeof useAppData>
 interface Props {
   data: AppDataReturn["data"]
@@ -15,9 +17,10 @@ interface Props {
   deleteActivity: AppDataReturn["deleteActivity"]
   updateActivity: AppDataReturn["updateActivity"]
   onNavigate?: (tab: "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin") => void
+  onPrint?: (reportData: Omit<PrintReportData, "farmName" | "userName" | "plots">) => void
 }
 
-export default function Operations({ data, addTask, updateTask, deleteTask, addActivity, deleteActivity, updateActivity, onNavigate }: Props) {
+export default function Operations({ data, addTask, updateTask, deleteTask, addActivity, deleteActivity, updateActivity, onNavigate, onPrint }: Props) {
   const [activeTab, setActiveTab] = useState<"tasks" | "activities">("tasks")
 
   useEffect(() => {
@@ -54,10 +57,10 @@ export default function Operations({ data, addTask, updateTask, deleteTask, addA
 
       {/* Content — no extra wrapper card */}
       {activeTab === "tasks" && (
-        <TaskPlanner data={data} addTask={addTask} updateTask={updateTask} deleteTask={deleteTask} onNavigate={onNavigate} />
+        <TaskPlanner data={data} addTask={addTask} updateTask={updateTask} deleteTask={deleteTask} onNavigate={onNavigate} onPrint={onPrint} />
       )}
       {activeTab === "activities" && (
-        <ActivityLog data={data} addActivity={addActivity} deleteActivity={deleteActivity} updateActivity={updateActivity} />
+        <ActivityLog data={data} addActivity={addActivity} deleteActivity={deleteActivity} updateActivity={updateActivity} onPrint={onPrint} />
       )}
     </div>
   )

@@ -2,7 +2,9 @@
 import { useEffect, useMemo, useState } from "react"
 import { Activity, ActivityType, ACTIVITY_LABELS, Plot, useAppData } from "@/lib/store"
 import { validateText } from "@/lib/form-validation"
-import { Plus, Trash2, Sprout, Droplets, Scissors, PackageSearch, Zap, ClipboardList, MoreHorizontal, Clock, ListFilter, ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react"
+import { Plus, Trash2, Sprout, Droplets, Scissors, PackageSearch, Zap, ClipboardList, MoreHorizontal, Clock, ListFilter, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Download } from "lucide-react"
+import { exportOperationsToCSV } from "@/lib/report-utils"
+import { PrintReportData } from "./PrintReportView"
 
 type AppDataReturn = ReturnType<typeof useAppData>
 interface Props {
@@ -10,6 +12,7 @@ interface Props {
   addActivity: AppDataReturn["addActivity"]
   deleteActivity: AppDataReturn["deleteActivity"]
   updateActivity: AppDataReturn["updateActivity"]
+  onPrint?: (reportData: Omit<PrintReportData, "farmName" | "userName" | "plots">) => void
 }
 
 const ACTIVITY_ICONS: Record<ActivityType, React.ElementType> = {
@@ -51,8 +54,9 @@ function getFirstDayOfMonth(year: number, month: number) {
   return new Date(year, month, 1).getDay()
 }
 
-export default function ActivityLog({ data, addActivity, deleteActivity, updateActivity }: Props) {
+export default function ActivityLog({ data, addActivity, deleteActivity, updateActivity, onPrint }: Props) {
   const [showForm, setShowForm] = useState(false)
+  const [showExportMenu, setShowExportMenu] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [filter, setFilter] = useState<ActivityType | "all">("all")
   const today = new Date()
@@ -275,6 +279,45 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
 
             <span className="shrink-0 rounded-xl bg-[#E7F3EC] px-2 py-2 text-center text-xs font-bold text-[#527060]">{filtered.length} รายการ</span>
           </div>
+
+          <div className="relative">
+            <button 
+              onClick={() => setShowExportMenu(v => !v)}
+              className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-[#B9DCC8] bg-white hover:bg-[#E7F3EC] active:scale-95 transition-all px-3 text-sm font-black text-[#146B3E] shadow-sm"
+              title="ส่งออกรายงาน"
+            >
+              <Download size={16} /> <span className="hidden sm:inline">ส่งออก</span>
+            </button>
+            {showExportMenu && (
+              <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white p-1.5 shadow-xl border border-[#B9DCC8] z-50 text-gray-800 animate-slide-up">
+                <button
+                  onClick={() => {
+                    exportOperationsToCSV([], filtered, (id) => id ? (data.plots.find(p => p.id === id)?.name ?? id) : "ไม่ระบุ")
+                    setShowExportMenu(false)
+                  }}
+                  className="w-full text-left rounded-lg px-3 py-2 text-xs font-black hover:bg-[#E7F3EC] hover:text-[#146B3E] transition-all flex items-center gap-2"
+                >
+                  📊 ส่งออก Excel (CSV)
+                </button>
+                <button
+                  onClick={() => {
+                    onPrint?.({
+                      type: "operations",
+                      title: `รายงานสรุปกิจกรรมสวน (${timeLabel})`,
+                      dateRange: timeLabel,
+                      activities: filtered,
+                      tasks: []
+                    })
+                    setShowExportMenu(false)
+                  }}
+                  className="w-full text-left rounded-lg px-3 py-2 text-xs font-black hover:bg-[#E7F3EC] hover:text-[#146B3E] transition-all flex items-center gap-2"
+                >
+                  🖨️ พิมพ์รายงาน (PDF)
+                </button>
+              </div>
+            )}
+          </div>
+
           <button onClick={() => { if(showForm) handleCancel(); else setShowForm(true); }} className="hidden items-center gap-2 rounded-xl bg-primary px-4 py-2 text-base font-black text-primary-foreground shadow-[0_10px_24px_rgba(20,107,62,0.16)] transition-colors hover:bg-[#0F5A34] sm:flex">
             <Plus size={16} />{showForm ? "ยกเลิก" : "บันทึก"}
           </button>

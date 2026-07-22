@@ -2,14 +2,17 @@
 import { useEffect, useMemo, useState } from "react"
 import { FinanceType, FinanceCategory, INCOME_CATEGORIES, EXPENSE_CATEGORIES, useAppData } from "@/lib/store"
 import { validateDate, validateNumber, validateText } from "@/lib/form-validation"
-import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, X, Search, Filter, CalendarDays, ReceiptText, Tags, Layers, ChevronLeft, ChevronRight } from "lucide-react"
+import { Plus, Trash2, TrendingUp, TrendingDown, Wallet, X, Search, Filter, CalendarDays, ReceiptText, Tags, Layers, ChevronLeft, ChevronRight, Download } from "lucide-react"
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from "recharts"
+import { exportFinanceToCSV } from "@/lib/report-utils"
+import { PrintReportData } from "./PrintReportView"
 
 type AppDataReturn = ReturnType<typeof useAppData>
 interface Props {
   data: AppDataReturn["data"]
   addFinance: AppDataReturn["addFinance"]
   deleteFinance: AppDataReturn["deleteFinance"]
+  onPrint?: (reportData: Omit<PrintReportData, "farmName" | "userName" | "plots">) => void
 }
 
 const MONTHS_TH = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
@@ -27,8 +30,9 @@ function monthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
 }
 
-export default function Finance({ data, addFinance, deleteFinance }: Props) {
+export default function Finance({ data, addFinance, deleteFinance, onPrint }: Props) {
   const [showForm, setShowForm] = useState(false)
+  const [showExportMenu, setShowExportMenu] = useState(false)
   const [typeFilter, setTypeFilter] = useState<FinanceType | "all">("all")
   const [plotFilter, setPlotFilter] = useState("all")
   const [categoryFilter, setCategoryFilter] = useState<FinanceCategory | "all">("all")
@@ -146,9 +150,47 @@ export default function Finance({ data, addFinance, deleteFinance }: Props) {
             <h2 className="text-2xl font-black leading-tight">การเงินสวน</h2>
             <p className="mt-1 text-sm font-medium text-white/70">ติดตามรายรับ รายจ่าย กำไร และต้นทุนแยกตามแปลง</p>
           </div>
-          <button onClick={() => setShowForm(v => !v)} className="flex items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#146B3E] shadow-lg hover:bg-[#E7F3EC]">
-            <Plus size={17} />{showForm ? "ยกเลิก" : "บันทึกรายการ"}
-          </button>
+          <div className="flex gap-2 flex-wrap items-center">
+            <div className="relative">
+              <button 
+                onClick={() => setShowExportMenu(v => !v)}
+                className="flex items-center justify-center gap-1.5 rounded-2xl border border-white/20 bg-white/10 hover:bg-white/20 active:scale-95 transition-all px-4 py-3 text-sm font-black text-white"
+              >
+                <Download size={16} /> ส่งออก
+              </button>
+              {showExportMenu && (
+                <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-white p-1.5 shadow-xl border border-[#B9DCC8] z-50 text-gray-800 animate-slide-up">
+                  <button
+                    onClick={() => {
+                      exportFinanceToCSV(filtered, (id) => id ? (data.plots.find(p => p.id === id)?.name ?? id) : "ไม่ระบุ")
+                      setShowExportMenu(false)
+                    }}
+                    className="w-full text-left rounded-xl px-3.5 py-2 text-xs font-black hover:bg-[#E7F3EC] hover:text-[#146B3E] transition-all flex items-center gap-2"
+                  >
+                    📊 ส่งออก Excel (CSV)
+                  </button>
+                  <button
+                    onClick={() => {
+                      onPrint?.({
+                        type: "finance",
+                        title: `รายงานสรุปรายรับ-รายจ่าย (${rangeFilter === "thisMonth" ? "เดือนนี้" : rangeFilter === "3m" ? "3 เดือนล่าสุด" : rangeFilter === "6m" ? "6 เดือนล่าสุด" : "ทั้งหมด"})`,
+                        dateRange: rangeFilter === "thisMonth" ? "เดือนนี้" : rangeFilter === "3m" ? "3 เดือนล่าสุด" : rangeFilter === "6m" ? "6 เดือนล่าสุด" : "ทั้งหมด",
+                        financeRecords: filtered
+                      })
+                      setShowExportMenu(false)
+                    }}
+                    className="w-full text-left rounded-xl px-3.5 py-2 text-xs font-black hover:bg-[#E7F3EC] hover:text-[#146B3E] transition-all flex items-center gap-2"
+                  >
+                    🖨️ พิมพ์รายงาน (PDF)
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            <button onClick={() => setShowForm(v => !v)} className="flex items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#146B3E] shadow-lg hover:bg-[#E7F3EC]">
+              <Plus size={17} />{showForm ? "ยกเลิก" : "บันทึกรายการ"}
+            </button>
+          </div>
         </div>
       </div>
 
