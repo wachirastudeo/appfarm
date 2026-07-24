@@ -601,7 +601,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       */}
       <div className="flex flex-col gap-5">
         {/* Stats Grid — order-2 on mobile, order-1 on desktop */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 order-2 lg:order-1">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 order-2 lg:order-1">
           <StatCard onClick={() => onNavigate?.("plots")} icon={DurianIcon} label="ต้นทั้งหมด" value={`${totalTrees} ต้น`} color="text-primary" bgColor="bg-primary/10" />
           <StatCard onClick={() => onNavigate?.("operations")} icon={ListTodo} label="งานต้องทำ" value={`${pendingTasks} งาน`} color="text-amber-600" bgColor="bg-amber-100" />
           <StatCard onClick={() => onNavigate?.("finance")} icon={TrendingUp} label="รายรับเดือนนี้" value={`฿${thisMonthIncome.toLocaleString()}`} color="text-emerald-600" bgColor="bg-emerald-100" />
@@ -609,7 +609,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
         </div>
 
         {/* Tasks (mobile: order-1 / desktop: order-2 inside 2-col grid with Activities) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 xl:gap-6 items-stretch order-1 lg:order-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 xl:gap-6 items-stretch order-1 lg:order-2">
           {/* Tasks card — always visible */}
           <div
             onClick={() => onNavigate?.("operations")}
@@ -805,22 +805,46 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
 
       {/* Recommended Articles */}
       <div className="mx-auto max-w-7xl rounded-[2rem] bg-card/60 backdrop-blur-md p-5 sm:p-6 shadow-[0_12px_40px_rgba(20,107,62,0.04)] border border-border/80 dark:border-border/30">
-        <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="mb-6 flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
             <h2 className="text-2xl font-black text-foreground">บทความแนะนำ</h2>
             <p className="text-sm font-bold text-muted-foreground">เริ่มจากความรู้เรื่องน้ำ โรค ปุ๋ย ดอก และตลาดทุเรียน</p>
           </div>
-          <button onClick={() => onNavigate?.("articles")} className="inline-flex shrink-0 items-center gap-2 pt-1 text-sm font-black text-primary transition-colors hover:text-primary/80">
-            ดูบทความทั้งหมด <ArrowRight size={16} />
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button onClick={() => onNavigate?.("articles")} className="hidden items-center gap-2 text-sm font-black text-primary transition-colors hover:text-primary/80 sm:inline-flex">
+              ดูบทความทั้งหมด <ArrowRight size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const track = document.getElementById("dashboard-article-carousel")
+                if (track) track.scrollBy({ left: -300, behavior: "smooth" })
+              }}
+              aria-label="เลื่อนบทความซ้าย"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/80 bg-card text-primary transition-all hover:border-primary/30 hover:bg-muted active:scale-95"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const track = document.getElementById("dashboard-article-carousel")
+                if (track) track.scrollBy({ left: 300, behavior: "smooth" })
+              }}
+              aria-label="เลื่อนบทความขวา"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md transition-all hover:bg-primary/95 hover:scale-105 active:scale-95"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div id="dashboard-article-carousel" className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0">
           {recommendedArticles.map(article => (
             <button
               key={article.id}
               type="button"
               onClick={() => onOpenArticle?.(article.id) ?? onNavigate?.("articles")}
-              className="group w-[240px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30 sm:w-full sm:min-w-0"
+              className="group w-[240px] sm:w-[260px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30"
             >
               <div className="relative h-24 overflow-hidden sm:h-28">
                 <Image

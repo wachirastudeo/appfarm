@@ -850,22 +850,46 @@ function GuestHome({
       </section>
 
       <section className="mx-auto max-w-7xl rounded-[2rem] bg-card/60 backdrop-blur-md p-5 sm:p-6 shadow-[0_12px_40px_rgba(20,107,62,0.04)] border border-border/80 dark:border-border/30">
-        <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="mb-6 flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
             <h2 className="text-2xl font-black text-foreground">บทความแนะนำ</h2>
             <p className="text-sm font-bold text-muted-foreground">เริ่มจากความรู้เรื่องน้ำ โรค ปุ๋ย ดอก และตลาดทุเรียน</p>
           </div>
-          <button onClick={() => onReadArticles()} className="inline-flex shrink-0 items-center gap-2 pt-1 text-sm font-black text-primary transition-colors hover:text-primary/80">
-            ดูบทความทั้งหมด <ArrowRight size={16} />
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button onClick={() => onReadArticles()} className="hidden items-center gap-2 text-sm font-black text-primary transition-colors hover:text-primary/80 sm:inline-flex">
+              ดูบทความทั้งหมด <ArrowRight size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const track = document.getElementById("guest-article-carousel")
+                if (track) track.scrollBy({ left: -300, behavior: "smooth" })
+              }}
+              aria-label="เลื่อนบทความซ้าย"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/80 bg-card text-primary transition-all hover:border-primary/30 hover:bg-muted active:scale-95"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const track = document.getElementById("guest-article-carousel")
+                if (track) track.scrollBy({ left: 300, behavior: "smooth" })
+              }}
+              aria-label="เลื่อนบทความขวา"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md transition-all hover:bg-primary/95 hover:scale-105 active:scale-95"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
-        <Marquee pauseOnHover className="[--duration:40s] gap-4" repeat={3}>
+        <div id="guest-article-carousel" className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth -mx-1 px-1">
           {featuredArticles.map(article => (
             <button
               key={article.id}
               type="button"
               onClick={() => onReadArticles(article.id)}
-              className="group w-[240px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30"
+              className="group w-[240px] sm:w-[260px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30"
             >
               <div className="relative h-24 overflow-hidden sm:h-28">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -883,7 +907,7 @@ function GuestHome({
               </div>
             </button>
           ))}
-        </Marquee>
+        </div>
       </section>
 
       {SHOW_RECOMMENDED_PRODUCTS && activeProducts.length > 0 && (
@@ -1719,8 +1743,8 @@ export default function AppShell() {
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation (Clean pill style) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#0F1F17]/85 backdrop-blur-xl px-2 py-2 flex items-center gap-1 w-full overflow-x-auto border-t border-[#DDEBE1]/40 dark:border-[#31533D]/30 safe-area-bottom scrollbar-hide shadow-[0_-8px_30px_rgba(0,0,0,0.05)]">
+      {/* Mobile & Tablet Bottom Navigation (Clean pill style) */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/85 dark:bg-[#0F1F17]/90 backdrop-blur-xl px-2 py-2 flex items-center gap-1 w-full sm:max-w-xl sm:left-1/2 sm:-translate-x-1/2 sm:mb-3 sm:rounded-2xl sm:border sm:border-[#DDEBE1]/70 dark:sm:border-[#31533D]/60 border-t border-[#DDEBE1]/40 dark:border-[#31533D]/30 safe-area-bottom scrollbar-hide shadow-[0_-8px_30px_rgba(0,0,0,0.05)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
         {visibleTabs.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id

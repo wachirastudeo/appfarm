@@ -398,7 +398,7 @@ export default function Articles({
         />
       ) : (
         /* Articles Grid */
-        <div className={guestMobileRail ? "grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3" : "grid grid-cols-2 gap-3 sm:gap-8 lg:grid-cols-3"}>
+        <div className={guestMobileRail ? "grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 md:grid-cols-3" : "grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3"}>
           {filteredArticles.map((article, index) => {
             const excerpt = createExcerpt(article.content, 90)
             return (

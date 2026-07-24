@@ -218,7 +218,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       <div className="relative grid w-full max-w-4xl max-h-[92dvh] overflow-y-auto rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-2xl ring-1 ring-emerald-950/10 md:grid-cols-[1.05fr_0.95fr]">
-        <div className="relative hidden min-h-[520px] overflow-hidden bg-[#0B3B25] p-8 text-white md:block">
+        <div className="relative hidden min-h-[480px] overflow-hidden bg-[#0B3B25] p-6 lg:p-8 text-white md:block">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(93,209,132,0.38),transparent_18rem),linear-gradient(145deg,rgba(255,255,255,0.14),transparent_42%)]" />
           <div className="relative flex h-full flex-col justify-center gap-7">
             <div>
