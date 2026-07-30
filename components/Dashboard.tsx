@@ -363,17 +363,17 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
   return (
     <div className="space-y-5">
       {/* Hero Banner with Image */}
-      <div className="relative rounded-2xl overflow-hidden shadow-[0_22px_55px_rgba(15,59,37,0.22)] ring-1 ring-white/70">
+      <div className="relative rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(15,59,37,0.25)] ring-1 ring-white/80 transition-all duration-300 hover:shadow-[0_30px_70px_rgba(15,59,37,0.3)]">
         <Image
           src={coverImage || "/images/durian-banner.avif"}
           alt="สวนทุเรียน"
           width={1200}
           height={400}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 hover:scale-105"
           style={{ objectPosition: coverPosition }}
           priority
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,59,37,0.86),rgba(15,59,37,0.46)_48%,rgba(15,59,37,0.12)),linear-gradient(0deg,rgba(0,0,0,0.52),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,59,37,0.88),rgba(15,59,37,0.48)_48%,rgba(15,59,37,0.15)),linear-gradient(0deg,rgba(0,0,0,0.58),transparent_55%)]" />
         <div className="relative flex min-h-[27rem] flex-col justify-end p-4 sm:min-h-[25rem] sm:p-5 lg:p-8">
           <p className="mb-1 max-w-full text-sm font-semibold leading-tight text-[#E7F3EC] break-words">{new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long" })}</p>
           <div className="flex items-center gap-2 mb-3">

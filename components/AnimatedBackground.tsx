@@ -31,14 +31,17 @@ const particles: Particle[] = Array.from({ length: 12 }, (_, id) => {
 })
 
 export default function AnimatedBackground() {
+  const containerRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<number | null>(null)
   const mouseRef = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
     const setMousePosition = () => {
       frameRef.current = null
-      document.documentElement.style.setProperty("--mouse-x", `${mouseRef.current.x}px`)
-      document.documentElement.style.setProperty("--mouse-y", `${mouseRef.current.y}px`)
+      if (containerRef.current) {
+        containerRef.current.style.setProperty("--mouse-x", `${mouseRef.current.x}px`)
+        containerRef.current.style.setProperty("--mouse-y", `${mouseRef.current.y}px`)
+      }
     }
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -65,10 +68,10 @@ export default function AnimatedBackground() {
   }, [])
 
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-background">
+    <div ref={containerRef} className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-background">
       {/* Dynamic Grid Background with Radial mouse mask */}
       <div 
-        className="absolute inset-0 opacity-80"
+        className="absolute inset-0 opacity-80 pointer-events-none transform-gpu"
         style={{
           backgroundImage: `
             linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
@@ -77,12 +80,13 @@ export default function AnimatedBackground() {
           backgroundSize: "64px 64px",
           maskImage: "radial-gradient(circle 380px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 15%, transparent 80%)",
           WebkitMaskImage: "radial-gradient(circle 380px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 15%, transparent 80%)",
+          willChange: "mask-image, -webkit-mask-image",
         }}
       />
 
       {/* Static Subdued Ambient Grid (to keep grid visible outside of mouse glow) */}
       <div 
-        className="absolute inset-0 opacity-[0.25]"
+        className="absolute inset-0 opacity-[0.25] pointer-events-none"
         style={{
           backgroundImage: `
             linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
@@ -93,16 +97,16 @@ export default function AnimatedBackground() {
       />
 
       {/* Floating Ambient Glow Blobs */}
-      <div className="absolute top-[-15%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-emerald-400/14 dark:bg-emerald-500/9 blur-[120px] animate-[drift-slow_28s_ease-in-out_infinite]" />
-      <div className="absolute bottom-[-15%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-teal-400/12 dark:bg-teal-500/8 blur-[140px] animate-[drift-medium_34s_ease-in-out_infinite]" />
-      <div className="absolute top-[25%] right-[5%] w-[40vw] h-[40vw] rounded-full bg-lime-400/8 dark:bg-lime-500/5 blur-[100px] animate-[drift-fast_22s_ease-in-out_infinite]" />
+      <div className="absolute top-[-15%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-emerald-400/14 dark:bg-emerald-500/9 blur-[120px] animate-[drift-slow_28s_ease-in-out_infinite] transform-gpu will-change-transform" />
+      <div className="absolute bottom-[-15%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-teal-400/12 dark:bg-teal-500/8 blur-[140px] animate-[drift-medium_34s_ease-in-out_infinite] transform-gpu will-change-transform" />
+      <div className="absolute top-[25%] right-[5%] w-[40vw] h-[40vw] rounded-full bg-lime-400/8 dark:bg-lime-500/5 blur-[100px] animate-[drift-fast_22s_ease-in-out_infinite] transform-gpu will-change-transform" />
 
       {/* Drifting Floating dust/particles */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 pointer-events-none">
         {particles.map((p) => (
           <div
             key={p.id}
-            className="absolute rounded-full pointer-events-none"
+            className="absolute rounded-full pointer-events-none transform-gpu"
             style={{
               left: p.left,
               width: p.size,
@@ -111,6 +115,7 @@ export default function AnimatedBackground() {
               animation: `particle-drift ${p.duration} linear infinite`,
               animationDelay: p.delay,
               opacity: 0,
+              willChange: "transform, opacity",
               "--particle-opacity": p.opacity,
               "--drift-x": p.driftX,
             } as React.CSSProperties}

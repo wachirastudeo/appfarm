@@ -184,19 +184,33 @@
 }
 
 @layer utilities {
+  .transform-gpu {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  .smooth-gpu {
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  .content-visibility-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 250px;
+  }
   .orchard-card {
     background: var(--glass-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     box-shadow: 0 12px 34px rgba(15, 59, 37, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, box-shadow, border-color;
   }
   .dark .orchard-card {
     box-shadow: 0 12px 34px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
   .orchard-card-hover {
-    @apply transition-all duration-300;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+    will-change: transform, box-shadow;
   }
   .orchard-card-hover:hover {
     border-color: var(--primary);
@@ -204,7 +218,7 @@
       0 20px 40px rgba(15, 59, 37, 0.06), 
       0 0 18px rgba(20, 107, 62, 0.06),
       inset 0 1px 0 rgba(255, 255, 255, 0.35);
-    transform: translateY(-3px) scale(1.004);
+    transform: translateY(-3px) scale(1.004) translateZ(0);
   }
   .dark .orchard-card-hover:hover {
     border-color: var(--primary);

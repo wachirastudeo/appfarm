@@ -237,7 +237,7 @@ function ContentSkeleton() {
 
 function AppFooter({ onContactClick }: { onContactClick: () => void }) {
   return (
-    <footer className="mt-8 border-t border-[#B9DCC8]/40 bg-[#F4F9F6]/80 px-4 py-6 text-center backdrop-blur-sm sm:py-8">
+    <footer className="sticky bottom-0 z-30 mt-auto border-t border-[#B9DCC8]/40 dark:border-[#31533D]/40 bg-[#F4F9F6]/95 dark:bg-[#0F1F17]/95 px-4 py-3 sm:py-4 text-center backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
       <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Left Side: Credits */}
         <div className="text-center md:text-left">
@@ -649,8 +649,8 @@ function GuestHome({
             {/* Benefits badging pills */}
             <div className="mt-8 flex flex-wrap justify-center lg:justify-start gap-2.5">
               {HERO_BENEFITS.map(({ label, icon: Icon }) => (
-                <div key={label} className="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-sm font-black text-white hover:bg-white/10 hover:border-white/20 transition-all hover:scale-105 duration-300">
-                  <Icon size={14} className="text-emerald-400" />
+                <div key={label} className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-4 py-2 text-sm font-black text-white hover:bg-white/20 hover:border-emerald-400/40 transition-all hover:scale-105 duration-300 shadow-md backdrop-blur-md">
+                  <Icon size={15} className="text-emerald-400 animate-pulse" />
                   <span>{label}</span>
                 </div>
               ))}
