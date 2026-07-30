@@ -194,7 +194,7 @@ export default function Finance({ data, addFinance, deleteFinance, onPrint }: Pr
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: "รายรับ", value: stats.income, icon: TrendingUp, tone: "text-emerald-700 bg-emerald-50 border-emerald-100" },
           { label: "รายจ่าย", value: stats.expense, icon: TrendingDown, tone: "text-rose-700 bg-rose-50 border-rose-100" },

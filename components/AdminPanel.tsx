@@ -911,7 +911,7 @@ export default function AdminPanel({
           <Users className="text-primary" size={20} />
           <h3 className="text-lg font-black">จัดการ User</h3>
         </div>
-        <div className="mb-4 grid gap-3 md:grid-cols-5">
+        <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <AdminInput label="ชื่อ" value={userDraft.name} onChange={name => setUserDraft(v => ({ ...v, name }))} required />
           <AdminInput label="อีเมล" value={userDraft.email} onChange={email => setUserDraft(v => ({ ...v, email }))} type="email" required />
           <AdminInput label="รหัสผ่าน" value={userDraft.password} onChange={password => setUserDraft(v => ({ ...v, password }))} type="password" required />
