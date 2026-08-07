@@ -312,7 +312,7 @@ export default function Articles({
   }
 
   return (
-    <div className="space-y-5 rounded-[2rem] border border-[#DDEBE1]/80 bg-white px-4 py-3 shadow-[0_20px_50px_rgba(20,107,62,0.06)] sm:px-6 sm:py-4 pb-10 dark:border-[#31533D]/45 dark:bg-[#14291E]">
+    <div data-page="articles" className="space-y-5 rounded-[2rem] border border-[#DDEBE1]/80 bg-white px-4 py-3 shadow-[0_20px_50px_rgba(20,107,62,0.06)] sm:px-6 sm:py-4 pb-10 dark:border-[#31533D]/45 dark:bg-[#14291E]">
       {/* Sleek Premium Header */}
       <div className="flex flex-col gap-2 pt-0 xl:flex-row xl:items-center xl:justify-between">
         <div className="min-w-0">

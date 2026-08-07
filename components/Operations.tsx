@@ -30,7 +30,7 @@ export default function Operations({ data, addTask, updateTask, deleteTask, addA
   }, [])
 
   return (
-    <div className="min-w-0 space-y-6">
+    <div data-page="operations" className="min-w-0 space-y-6">
       {/* Sub-Tab Switcher */}
       <div className="flex min-w-0 bg-[#E7F3EC] p-1.5 rounded-2xl border-2 border-[#B9DCC8] shadow-[0_10px_24px_rgba(20,107,62,0.10)]">
         <button

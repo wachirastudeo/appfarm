@@ -141,7 +141,7 @@ export default function Finance({ data, addFinance, deleteFinance, onPrint }: Pr
   }, [filtered, data.plots])
 
   return (
-    <div className="space-y-5">
+    <div data-page="finance" className="space-y-5">
       <div className="relative overflow-hidden rounded-[1.75rem] bg-[#146B3E] p-4 sm:p-5 text-white shadow-[0_18px_42px_rgba(20,107,62,0.2)]">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.22),transparent_16rem)]" />
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

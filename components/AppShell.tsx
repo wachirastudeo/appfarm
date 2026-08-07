@@ -24,6 +24,7 @@ import ShinyButton from "./magicui/shiny-button"
 import InteractiveHoverButton from "./magicui/interactive-hover-button"
 import SparklesText from "./magicui/sparkles-text"
 import PrintReportView, { PrintReportData } from "./PrintReportView"
+import MinimalGuestHome from "./MinimalGuestHome"
 
 const Dashboard = dynamic(() => import("./Dashboard"), { loading: () => <ContentSkeleton /> })
 const PlotManagement = dynamic(() => import("./PlotManagement"), { loading: () => <ContentSkeleton /> })
@@ -494,7 +495,20 @@ function GuestHome({
   }, [activeProducts.length])
 
   return (
-    <div className="space-y-5 pb-12 sm:space-y-8">
+    <MinimalGuestHome
+      articles={articles}
+      products={products}
+      onLogin={onLogin}
+      onReadArticles={onReadArticles}
+      onOpenProducts={onOpenProducts}
+      onOpenSandbox={onOpenSandbox}
+      onInstall={onInstall}
+      isInstalled={isInstalled}
+    />
+  )
+
+  return (
+    <div data-page="home" className="space-y-5 pb-12 sm:space-y-8">
       <style>{`
         @keyframes fadeSlideUp {
           from { opacity: 0; transform: translateY(30px); }
@@ -1511,7 +1525,7 @@ export default function AppShell() {
     return (
       <div className="min-h-screen bg-background flex flex-col guest-layout-container">
         <AnimatedBackground />
-        <header className="sticky top-0 z-40 border-b border-[#DDEBE1]/50 bg-white/82 px-4 py-3 shadow-[0_8px_30px_rgba(20,107,62,0.06)] backdrop-blur-xl dark:border-[#31533D]/45 dark:bg-[#0F1F17]/82">
+        <header className="sticky top-0 z-40 border-b border-border bg-card px-4 py-3 shadow-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
             <button
               onClick={() => setActiveTab("dashboard")}
@@ -1640,7 +1654,7 @@ export default function AppShell() {
     <div className="h-screen bg-transparent flex flex-col relative overflow-hidden app-shell-container">
       <AnimatedBackground />
       {/* Top Header Bar */}
-      <header className="sticky top-0 z-40 bg-white/75 dark:bg-[#0F1F17]/75 backdrop-blur-md px-3 sm:px-4 md:px-8 pt-2 sm:pt-2 pb-2 sm:pb-2 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1]/40 dark:border-[#31533D]/45 shadow-[0_8px_30px_rgba(20,107,62,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.15)] overflow-hidden">
+      <header className="sticky top-0 z-40 bg-card px-3 sm:px-4 md:px-8 py-2.5 flex items-center justify-between gap-2 shrink-0 border-b border-border shadow-sm overflow-hidden">
         <button
           onClick={() => setActiveTab("dashboard")}
           className="relative flex min-w-0 items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity active:scale-95"
@@ -1707,7 +1721,7 @@ export default function AppShell() {
       {/* Body: Sidebar + Content */}
       <div className="relative flex min-w-0 flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
-        <nav className="hidden lg:flex flex-col w-56 bg-white/40 dark:bg-black/15 backdrop-blur-md border-r border-[#DDEBE1]/40 dark:border-[#31533D]/25 py-4 px-3 gap-1.5 shrink-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.1),10px_0_30px_rgba(0,0,0,0.02)] relative overflow-hidden">
+        <nav className="hidden lg:flex flex-col w-56 bg-card border-r border-border py-4 px-3 gap-1.5 shrink-0 relative overflow-hidden">
           <p className="relative px-2 pt-2 text-xs font-black text-muted-foreground uppercase tracking-wider mb-1">เมนูหลัก</p>
           {visibleTabs.map(tab => {
             const Icon = tab.icon
@@ -1744,7 +1758,7 @@ export default function AppShell() {
       </div>
 
       {/* Mobile & Tablet Bottom Navigation (Clean pill style) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/85 dark:bg-[#0F1F17]/90 backdrop-blur-xl px-2 py-2 flex items-center gap-1 w-full sm:max-w-xl sm:left-1/2 sm:-translate-x-1/2 sm:mb-3 sm:rounded-2xl sm:border sm:border-[#DDEBE1]/70 dark:sm:border-[#31533D]/60 border-t border-[#DDEBE1]/40 dark:border-[#31533D]/30 safe-area-bottom scrollbar-hide shadow-[0_-8px_30px_rgba(0,0,0,0.05)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card px-2 py-2 flex items-center gap-1 w-full sm:max-w-xl sm:left-1/2 sm:-translate-x-1/2 sm:mb-3 sm:rounded-xl sm:border sm:border-border border-t border-border safe-area-bottom scrollbar-hide shadow-[0_-4px_18px_rgba(0,0,0,0.08)]">
         {visibleTabs.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id

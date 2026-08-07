@@ -361,7 +361,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
   }
 
   return (
-    <div className="space-y-5">
+    <div data-page="dashboard" className="space-y-5">
       {/* Hero Banner with Image */}
       <div className="relative rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(15,59,37,0.25)] ring-1 ring-white/80 transition-all duration-300 hover:shadow-[0_30px_70px_rgba(15,59,37,0.3)]">
         <Image

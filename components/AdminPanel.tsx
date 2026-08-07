@@ -341,7 +341,7 @@ export default function AdminPanel({
   }
 
   return (
-    <div className="space-y-6 pb-12">
+    <div data-page="admin" className="space-y-6 pb-12">
       <div className="flex flex-col gap-4 rounded-3xl bg-[#0F4A2E] p-6 text-white shadow-xl md:flex-row md:items-end md:justify-between">
         <div>
           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1.5 text-xs font-black ring-1 ring-white/20">

@@ -2047,7 +2047,7 @@ export default function PlotManagement({
   const selectedPlot = data.plots.find(p => p.id === selectedPlotId)
 
   return (
-    <div className="w-full min-w-0 animate-slide-up">
+    <div data-page="plots" className="w-full min-w-0 animate-slide-up">
       {showAddPlot && (
         <AddPlotModal
           onClose={() => setShowAddPlot(false)}
