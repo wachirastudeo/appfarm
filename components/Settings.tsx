@@ -32,7 +32,7 @@ interface Props {
   coverStorageKey: string
   onUpdateCover: (changes: Partial<Pick<AppUser, "coverImage" | "coverPositionX" | "coverPositionY">>) => Promise<void>
   onUpdateFarmProfile: (changes: Partial<Pick<AppUser, "farmName" | "farmLocation">>) => Promise<void>
-  onLogout?: () => void
+  onLogout?: () => void | Promise<void>
   onShowInstallInstructions?: () => void
 }
 
@@ -471,8 +471,8 @@ export default function Settings({
               </div>
               {onLogout && (
                 <button
-                  onClick={() => {
-                    onLogout()
+                  onClick={async () => {
+                    await onLogout()
                     onClose()
                   }}
                   className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-600 transition-colors hover:bg-red-50"

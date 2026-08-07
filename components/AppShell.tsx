@@ -317,7 +317,7 @@ function AppFooter({ onContactClick }: { onContactClick: () => void }) {
 function AppShellSkeleton() {
   return (
     <div className="min-h-screen bg-background flex flex-col" role="status" aria-label="กำลังเตรียมแอป">
-      <header className="relative z-20 bg-white/90 px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 shrink-0 border-b border-[#DDEBE1] backdrop-blur dark:border-[#31533D] dark:bg-[#14291E]/90">
+      <header className="relative z-20 bg-card px-3 sm:px-4 md:px-8 py-2.5 flex items-center justify-between gap-2 shrink-0 border-b border-border shadow-sm">
         <div className="flex min-w-0 items-center gap-3">
           <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#146B3E] text-white shadow-sm dark:bg-[#72C08A] dark:text-[#0B1B12]">
             <DurianIcon size={23} />
@@ -333,19 +333,18 @@ function AppShellSkeleton() {
         </div>
       </header>
       <div className="flex flex-1 overflow-hidden">
-        <aside className="hidden lg:flex w-56 shrink-0 flex-col gap-2 bg-gradient-to-b from-[#146B3E] to-[#0F5A34] p-3 dark:from-[#102619] dark:to-[#0B1B12]">
+        <aside className="hidden lg:flex w-56 shrink-0 flex-col gap-2 border-r border-border bg-card p-3">
           <Skeleton className="mb-2 h-4 w-24 rounded-full bg-white/20" />
           {[1, 2, 3, 4, 5].map(item => (
             <Skeleton key={item} className="h-14 rounded-xl bg-white/18" />
           ))}
         </aside>
         <main className="flex-1 overflow-hidden p-3 sm:p-4 md:p-8">
-          <div className="relative overflow-hidden rounded-2xl border border-[#B9DCC8]/70 bg-gradient-to-br from-white via-[#F4F9F6] to-[#DFF0E6] p-5 shadow-sm dark:border-[#31533D]/80 dark:from-[#14291E] dark:via-[#102619] dark:to-[#1D3A29]">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#146B3E] via-[#F4B942] to-[#72C08A]" />
-            <div className="absolute -right-16 -top-20 h-52 w-52 rounded-full bg-[#72C08A]/20 blur-3xl" />
+          <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm">
+            <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
             <div className="relative flex h-60 flex-col justify-between">
               <div className="flex items-center gap-3">
-                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#146B3E] text-white shadow-lg shadow-[#146B3E]/20 dark:bg-[#72C08A] dark:text-[#0B1B12]">
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
                   <Leaf size={27} />
                 </div>
                 <div className="space-y-2">
@@ -1389,12 +1388,12 @@ export default function AppShell() {
     setShowPwaInstallModal(true)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem("durian_current_user")
     setUser(null)
     setAuthChecking(false)
     try {
-      createClient().auth.signOut().catch(() => undefined)
+      await createClient().auth.signOut()
     } catch {
       // Local-only mode has no Supabase client to sign out from.
     }

@@ -10,7 +10,7 @@ interface Props {
   isOpen: boolean
   onClose: () => void
   user: AppUser | null
-  onLogout: () => void
+  onLogout: () => void | Promise<void>
   onLogin: () => void
   onUpdateUser: (changes: Partial<Pick<AppUser, "name" | "avatar">>) => void
   onOpenFarmData: () => void
@@ -201,7 +201,7 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout, onLogin,
 
             {/* Logout */}
             <button
-              onClick={() => { onLogout(); onClose() }}
+              onClick={async () => { await onLogout(); onClose() }}
               className="w-full flex items-center justify-center gap-2 border border-red-200 text-red-600 rounded-xl py-2.5 text-sm font-semibold hover:bg-red-50 transition-colors"
             >
               <LogOut size={16} />
