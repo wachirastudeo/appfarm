@@ -548,6 +548,75 @@
   letter-spacing: -0.01em;
 }
 
+/* Each signed-in area gets its own accent while sharing the guest home's clean surfaces. */
+[data-page="dashboard"] {
+  --page-accent: #8fca3f;
+  --page-tint: #f3f8e9;
+}
+
+[data-page="plots"] {
+  --page-accent: #269d70;
+  --page-tint: #eaf7f1;
+}
+
+[data-page="operations"] {
+  --page-accent: #e1ad3e;
+  --page-tint: #fff8e8;
+}
+
+[data-page="finance"] {
+  --page-accent: #c56f4d;
+  --page-tint: #fff2ed;
+}
+
+[data-page="articles"] {
+  --page-accent: #1597e5;
+  --page-tint: #edf8ff;
+}
+
+[data-page="admin"] {
+  --page-accent: #8d6bb5;
+  --page-tint: #f6f0fc;
+}
+
+[data-page="dashboard"],
+[data-page="plots"],
+[data-page="operations"],
+[data-page="finance"],
+[data-page="articles"],
+[data-page="admin"] {
+  border-top: 3px solid var(--page-accent);
+  background-color: color-mix(in srgb, var(--page-tint) 48%, transparent);
+}
+
+[data-page="dashboard"] .orchard-card,
+[data-page="plots"] .orchard-card,
+[data-page="operations"] .orchard-card,
+[data-page="finance"] .orchard-card,
+[data-page="articles"] .orchard-card,
+[data-page="admin"] .orchard-card {
+  border-color: color-mix(in srgb, var(--page-accent) 28%, var(--border)) !important;
+}
+
+[data-page="dashboard"] .orchard-card-hover:hover,
+[data-page="plots"] .orchard-card-hover:hover,
+[data-page="operations"] .orchard-card-hover:hover,
+[data-page="finance"] .orchard-card-hover:hover,
+[data-page="articles"] .orchard-card-hover:hover,
+[data-page="admin"] .orchard-card-hover:hover {
+  border-color: color-mix(in srgb, var(--page-accent) 58%, var(--border)) !important;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--page-accent) 14%, transparent) !important;
+}
+
+.dark [data-page="dashboard"],
+.dark [data-page="plots"],
+.dark [data-page="operations"],
+.dark [data-page="finance"],
+.dark [data-page="articles"],
+.dark [data-page="admin"] {
+  background-color: color-mix(in srgb, var(--page-accent) 6%, transparent);
+}
+
 .home-minimal .home-minimal-hero {
   border-radius: 1.5rem !important;
 }
@@ -560,6 +629,85 @@
 
 .home-minimal .home-minimal-hero button {
   border-radius: 0.75rem !important;
+}
+
+@keyframes guest-cta-glow {
+  0%, 100% {
+    box-shadow: 0 8px 20px rgba(167, 216, 91, 0.12);
+  }
+  50% {
+    box-shadow: 0 10px 28px rgba(167, 216, 91, 0.38), 0 0 0 5px rgba(167, 216, 91, 0.1);
+  }
+}
+
+@keyframes guest-cta-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.01);
+  }
+}
+
+@keyframes guest-cta-shine {
+  0%, 42% {
+    transform: translateX(-160%) skewX(-18deg);
+  }
+  58%, 100% {
+    transform: translateX(260%) skewX(-18deg);
+  }
+}
+
+@keyframes guest-cta-arrow {
+  0%, 58%, 100% {
+    transform: translateX(0);
+  }
+  66% {
+    transform: translateX(3px);
+  }
+}
+
+.home-minimal .home-minimal-hero button:not(:last-child) {
+  position: relative;
+  overflow: hidden;
+  animation: guest-cta-glow 3.2s ease-in-out infinite, guest-cta-float 2.4s ease-in-out infinite;
+  will-change: transform, box-shadow;
+}
+
+.home-minimal .home-minimal-hero button:not(:last-child)::after {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 34%;
+  background: rgba(255, 255, 255, 0.28);
+  content: "";
+  pointer-events: none;
+  transform: translateX(-160%) skewX(-18deg);
+  animation: guest-cta-shine 3.2s ease-in-out infinite;
+}
+
+.home-minimal .home-minimal-hero button:not(:last-child) svg {
+  animation: guest-cta-arrow 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-minimal .home-minimal-hero button:not(:last-child),
+  .home-minimal .home-minimal-hero button:not(:last-child)::after,
+  .home-minimal .home-minimal-hero button:not(:last-child) svg {
+    animation: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .home-minimal .home-minimal-hero button {
+    min-height: 2.5rem;
+    width: auto;
+    flex: 0 0 auto;
+    min-width: 0;
+    gap: 0.25rem;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
 }
 
 .home-minimal section:not(.home-minimal-hero) {

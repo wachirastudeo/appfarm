@@ -33,12 +33,12 @@ export default function MinimalGuestHome({ articles, products, onLogin, onReadAr
       <section className="home-minimal-hero relative overflow-hidden rounded-[1.25rem] bg-[#123c2b] text-white">
         <Image src="/images/durian-hero-new.png" alt="สวนทุเรียนสีเขียว" fill priority sizes="(min-width: 1024px) 1200px, 100vw" className="object-cover object-center opacity-55" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,43,29,0.94),rgba(10,43,29,0.62)_52%,rgba(10,43,29,0.12))]" />
-        <div className="relative grid min-h-[29rem] items-end gap-8 p-5 sm:min-h-[32rem] sm:p-10 lg:grid-cols-[1fr_0.8fr] lg:p-14">
+        <div className="relative grid min-h-[24rem] items-start gap-8 p-5 pt-10 sm:min-h-[32rem] sm:items-end sm:p-10 lg:grid-cols-[1fr_0.8fr] lg:p-14">
           <div className="max-w-2xl">
             <p className="mb-5 text-xs font-bold uppercase tracking-[0.24em] text-[#b9d9bf]">Smart orchard management</p>
             <h1 className="max-w-xl text-3xl font-black leading-[1.08] tracking-tight sm:text-6xl">จัดการสวนทุเรียนให้เป็นเรื่องง่าย</h1>
             <p className="mt-5 max-w-lg text-sm leading-6 text-white/78 sm:mt-6 sm:text-lg sm:leading-7">วางแผนงาน ดูแลแปลง บันทึกกิจกรรม และติดตามการเงินของสวนในระบบเดียว</p>
-            <div className="mt-7 flex w-full flex-col gap-2.5 sm:mt-8 sm:w-auto sm:flex-row sm:flex-wrap sm:gap-3">
+            <div className="mt-6 flex w-full flex-row gap-2 sm:mt-8 sm:w-auto sm:flex-wrap sm:gap-3">
               <button onClick={onLogin} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#a7d85b] px-5 py-3 text-sm font-black text-[#173326] transition-colors hover:bg-white sm:w-auto">เริ่มใช้งาน <ArrowRight size={17} /></button>
               <button onClick={() => onOpenSandbox("plots")} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-white/35 bg-white/10 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-white/20 sm:w-auto">ทดลองดูระบบ</button>
             </div>
