@@ -29,6 +29,7 @@ Contains the Next.js routing logic, page components, and layouts.
 - `globals.css`: Global CSS variables, theme definitions, and Tailwind configuration
 - `auth/callback/route.ts`: Supabase OAuth callback route
 - `api/system/health/route.ts`: Runtime configuration health route
+- `api/line/webhook/route.ts`: LINE Messaging API webhook and Thai command replies
 - `sitemap.ts` and `robots.ts`: Metadata routes backed by `NEXT_PUBLIC_SITE_URL`
 
 ### `/components`
@@ -238,6 +239,8 @@ The `/components/ui` directory contains comprehensive component library:
 ## State Management
 
 Currently relies on React local state through `store.ts` for application-wide state, then syncs owner-scoped orchard data to Supabase when `NEXT_PUBLIC_APP_DATA_MODE=supabase`.
+
+LINE Messaging API setup is documented in [LINE_BOT_SETUP_TH.md](./LINE_BOT_SETUP_TH.md).
 
 Persistence layers:
 

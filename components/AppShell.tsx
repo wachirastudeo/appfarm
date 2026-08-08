@@ -7,7 +7,7 @@ import type { AppUser, Article, Product } from "@/lib/store"
 import { useNotificationScheduler } from "@/hooks/use-notification-scheduler"
 import { createClient } from "@/lib/supabase/client"
 import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, HeartHandshake, Check, Smartphone, Download } from "lucide-react"
+import { TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, MessageCircle, HeartHandshake, Check, Smartphone, Download } from "lucide-react"
 import DurianIcon from "./DurianIcon"
 import DurianLogo from "./DurianLogo"
 import UserAvatarImage from "./UserAvatarImage"
@@ -25,6 +25,7 @@ import InteractiveHoverButton from "./magicui/interactive-hover-button"
 import SparklesText from "./magicui/sparkles-text"
 import PrintReportView, { PrintReportData } from "./PrintReportView"
 import MinimalGuestHome from "./MinimalGuestHome"
+import LineBot from "./LineBot"
 
 const Dashboard = dynamic(() => import("./Dashboard"), { loading: () => <ContentSkeleton /> })
 const PlotManagement = dynamic(() => import("./PlotManagement"), { loading: () => <ContentSkeleton /> })
@@ -37,7 +38,7 @@ const FeedbackModal = dynamic(() => import("./FeedbackModal"), { loading: () => 
 const SupportModal = dynamic(() => import("./SupportModal"), { loading: () => null })
 const SandboxModal = dynamic(() => import("./SandboxModal"), { loading: () => null })
 
-type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin"
+type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin" | "linebot"
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -56,6 +57,7 @@ function warmPwaChunks() {
     import("./FeedbackModal"),
     import("./SupportModal"),
     import("./SandboxModal"),
+    import("./LineBot"),
   ])
 }
 
@@ -1067,7 +1069,7 @@ export default function AppShell() {
     const params = new URLSearchParams(window.location.search)
     const tab = params.get("tab")
     const articleId = params.get("articleId") || params.get("article")
-    setActiveTab(tab && ["dashboard", "plots", "operations", "finance", "articles", "admin"].includes(tab) ? tab as Tab : articleId ? "articles" : "dashboard")
+    setActiveTab(tab && ["dashboard", "plots", "operations", "finance", "articles", "admin", "linebot"].includes(tab) ? tab as Tab : articleId ? "articles" : "dashboard")
 
     const view = params.get("view")
     setArticleView(view && ["articles", "products"].includes(view) ? view as "articles" | "products" : "articles")
@@ -1414,7 +1416,7 @@ export default function AppShell() {
   }
 
   const visibleTabs = useMemo(() => user?.role === "admin"
-    ? [...TABS, { id: "admin" as const, label: "Admin", icon: ShieldCheck }]
+    ? [...TABS, { id: "admin" as const, label: "Admin", icon: ShieldCheck }, { id: "linebot" as const, label: "LINE Bot", icon: MessageCircle }]
     : user
       ? TABS
       : TABS.filter(tab => tab.id === "dashboard" || tab.id === "articles"), [user])
@@ -1491,6 +1493,9 @@ export default function AppShell() {
         return <Finance data={store.data} addFinance={store.addFinance} deleteFinance={store.deleteFinance} onPrint={handlePrint} />
       case "articles":
         return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} savedArticleIds={user?.savedArticleIds} savedArticlesStorageKey={user?.id ? `durian_saved_articles_${user.id}` : "durian_saved_articles_guest"} onSavedArticleIdsChange={savedArticleIds => user ? store.updateUser(user.id, { savedArticleIds }) : Promise.resolve()} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
+      case "linebot":
+        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => updateCurrentUser({ farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
+        return <LineBot />
       case "admin":
         if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => updateCurrentUser({ farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
         return (
