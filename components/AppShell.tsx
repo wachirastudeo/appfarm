@@ -685,7 +685,7 @@ function GuestHome({
               <InteractiveHoverButton
                 onClick={() => onOpenSandbox("plots")}
                 text="ทดลองเล่น Demo"
-                className="h-auto py-3.5"
+                className="hidden h-auto py-3.5"
               />
             </div>
           </div>

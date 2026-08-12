@@ -608,6 +608,26 @@
   box-shadow: 0 10px 28px color-mix(in srgb, var(--page-accent) 14%, transparent) !important;
 }
 
+[data-page="dashboard"] > div:first-child {
+  border-radius: 1.5rem !important;
+  box-shadow: 0 18px 42px rgba(15, 59, 37, 0.16) !important;
+}
+
+[data-page="finance"] > div:first-child,
+[data-page="admin"] > div:first-child {
+  border-radius: 1.25rem !important;
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--page-accent) 14%, transparent) !important;
+}
+
+[data-page="articles"] {
+  border-radius: 1.25rem !important;
+  box-shadow: 0 10px 28px rgba(21, 151, 229, 0.08) !important;
+}
+
+[data-page="operations"] > div:first-child {
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--page-accent) 12%, transparent) !important;
+}
+
 .dark [data-page="dashboard"],
 .dark [data-page="plots"],
 .dark [data-page="operations"],
@@ -619,6 +639,66 @@
 
 .home-minimal .home-minimal-hero {
   border-radius: 1.5rem !important;
+}
+
+@keyframes guest-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes guest-loading-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.guest-loading-skeleton > div {
+  position: relative;
+  overflow: hidden;
+}
+
+.guest-loading-skeleton > div::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 25%, rgba(255, 255, 255, 0.48) 50%, transparent 75%);
+  background-size: 200% 100%;
+  content: "";
+  pointer-events: none;
+  animation: guest-loading-shimmer 1.7s ease-in-out infinite;
+}
+
+@keyframes guest-hero-image-drift {
+  from {
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.08) translate3d(-1%, -1%, 0);
+  }
+}
+
+.home-minimal .home-minimal-hero > img {
+  animation: guest-hero-image-drift 18s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.home-minimal > section:not(.home-minimal-hero) {
+  opacity: 0;
+  transform: translateY(14px);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
+}
+
+.home-minimal > section.guest-reveal-visible:not(.home-minimal-hero) {
+  animation: guest-page-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .home-minimal section:not(.home-minimal-hero),
@@ -667,14 +747,63 @@
   }
 }
 
-.home-minimal .home-minimal-hero button:not(:last-child) {
+@keyframes guest-hero-pill {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-6px, -3px, 0);
+  }
+}
+
+@keyframes guest-hero-spark {
+  0%, 100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(6deg);
+  }
+}
+
+.guest-hero-pill {
+  transition: transform 240ms ease, border-color 240ms ease, background-color 240ms ease;
+}
+
+.guest-hero-pill:hover {
+  transform: translateX(-6px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.48);
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.guest-hero-mobile-spark {
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.guest-hero-mobile-spark:active {
+  transform: rotate(8deg) scale(1.08);
+}
+
+.home-minimal .home-minimal-hero > div.hidden.justify-end > .relative.w-full.max-w-xs > div.relative {
+  transition: transform 240ms ease, border-color 240ms ease, background-color 240ms ease;
+}
+
+.home-minimal .home-minimal-hero > div.hidden.justify-end > .relative.w-full.max-w-xs > div.relative:nth-of-type(3) {
+  animation-delay: -1.6s;
+}
+
+.home-minimal .home-minimal-hero > div.hidden.justify-end > .relative.w-full.max-w-xs > div.relative:nth-of-type(4) {
+  animation-delay: -3.2s;
+}
+
+.home-minimal .home-minimal-hero button:first-child {
   position: relative;
   overflow: hidden;
-  animation: guest-cta-glow 3.2s ease-in-out infinite, guest-cta-float 2.4s ease-in-out infinite;
+  animation: guest-cta-glow 3.2s ease-in-out infinite, guest-cta-float 2.4s ease-in-out infinite !important;
+  animation-play-state: running !important;
   will-change: transform, box-shadow;
 }
 
-.home-minimal .home-minimal-hero button:not(:last-child)::after {
+.home-minimal .home-minimal-hero button:first-child::after {
   position: absolute;
   inset: 0 auto 0 0;
   width: 34%;
@@ -685,19 +814,73 @@
   animation: guest-cta-shine 3.2s ease-in-out infinite;
 }
 
-.home-minimal .home-minimal-hero button:not(:last-child) svg {
+.home-minimal .home-minimal-hero button:first-child svg {
   animation: guest-cta-arrow 3.2s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-minimal .home-minimal-hero button:not(:last-child),
-  .home-minimal .home-minimal-hero button:not(:last-child)::after,
-  .home-minimal .home-minimal-hero button:not(:last-child) svg {
+  .home-minimal .home-minimal-hero button:first-child::after,
+  .home-minimal .home-minimal-hero button:first-child svg,
+  .home-minimal .home-minimal-hero > div.hidden.justify-end > .relative.w-full.max-w-xs > div.relative {
     animation: none;
   }
 }
 
 @media (max-width: 639px) {
+  .home-minimal {
+    gap: 2.5rem;
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  .home-minimal .home-minimal-hero {
+    border-radius: 1.25rem !important;
+  }
+
+  .home-minimal .home-minimal-hero > div.relative {
+    min-height: 19rem;
+    gap: 1rem;
+    padding: 2rem 1rem 1rem;
+    align-items: center;
+  }
+
+  .home-minimal .home-minimal-hero > div.relative > div:first-child {
+    position: relative;
+    z-index: 2;
+  }
+
+  .home-minimal .home-minimal-hero > div.relative > div:first-child > div:last-child {
+    justify-content: center;
+  }
+
+  .home-minimal .home-minimal-hero h1 {
+    max-width: 19rem;
+    font-size: clamp(2rem, 9vw, 2.5rem);
+  }
+
+  .home-minimal .home-minimal-hero p {
+    max-width: 20rem;
+  }
+
+  .home-minimal section:not(.home-minimal-hero) {
+    padding: 1rem;
+    border-radius: 1.25rem !important;
+  }
+
+  .home-minimal .apple-feature-card {
+    min-height: 11.5rem;
+    padding: 1rem 0.5rem;
+  }
+
+  .home-minimal .apple-feature-icon {
+    height: 3.5rem;
+    width: 3.5rem;
+  }
+
+  .home-minimal .apple-feature-card .mt-5 {
+    margin-top: 0.75rem;
+  }
+
   .home-minimal .home-minimal-hero button {
     min-height: 2.5rem;
     width: auto;
@@ -720,6 +903,12 @@
   border-style: solid !important;
   background: rgba(255, 255, 255, 0.82);
   box-shadow: 0 8px 24px rgba(24, 67, 44, 0.055), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
+}
+
+.home-minimal .apple-feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 30px rgba(24, 67, 44, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .home-minimal .apple-feature-card::before {
@@ -740,6 +929,32 @@
 
 .home-minimal .apple-feature-icon {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 6px 14px rgba(24, 67, 44, 0.08);
+  transition: transform 240ms ease;
+}
+
+.home-minimal .apple-feature-card:hover .apple-feature-icon {
+  transform: rotate(-4deg) scale(1.06);
+}
+
+.home-minimal .product-rail {
+  scrollbar-width: none !important;
+  scrollbar-color: transparent transparent !important;
+  -ms-overflow-style: none;
+  touch-action: pan-x;
+  mask-image: linear-gradient(to right, transparent 0, black 1rem, black calc(100% - 1rem), transparent 100%);
+}
+
+.home-minimal .product-rail::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent;
+  display: none !important;
+}
+
+@media (min-width: 1024px) {
+  .home-minimal .product-rail > button {
+    min-width: calc((100% - 3.75rem) / 6);
+  }
 }
 
 .dark .home-minimal .apple-feature-card {
