@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react"
 import Image from "next/image"
 import { ArrowRight, BookOpen, CalendarDays, CloudSun, Coins, Download, MapPinned, Sprout } from "lucide-react"
 import type { Article, Product } from "@/lib/store"
+import ShinyButton from "@/components/magicui/shiny-button"
 
 interface Props {
   articles: Article[]
@@ -142,7 +143,12 @@ export default function MinimalGuestHome({ articles, products, onLogin, onReadAr
   const dragStartScroll = useRef(0)
 
   const scrollProducts = (direction: 1 | -1) => {
-    productRailRef.current?.scrollBy({ left: direction * 240, behavior: "smooth" })
+    const rail = productRailRef.current
+    if (!rail) return
+    const firstCard = rail.querySelector<HTMLElement>("[data-product-card]")
+    const step = (firstCard?.offsetWidth ?? 208) + 16
+    const target = Math.max(0, Math.min(rail.scrollLeft + direction * step, rail.scrollWidth - rail.clientWidth))
+    rail.scrollTo({ left: target, behavior: "smooth" })
   }
 
   const handleProductPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -199,8 +205,10 @@ export default function MinimalGuestHome({ articles, products, onLogin, onReadAr
             <p className="mb-5 text-xs font-bold uppercase tracking-[0.24em] text-[#b9d9bf]">Smart orchard management</p>
             <h1 className="max-w-xl text-3xl font-black leading-[1.08] tracking-tight sm:text-6xl">จัดการสวนทุเรียนให้เป็นเรื่องง่าย</h1>
             <p className="mt-5 max-w-lg text-sm leading-6 text-white/78 sm:mt-6 sm:text-lg sm:leading-7">วางแผนงาน ดูแลแปลง บันทึกกิจกรรม และติดตามการเงินของสวนในระบบเดียว</p>
-            <div className="mt-6 flex w-full flex-row justify-center gap-2 sm:mt-8 sm:w-auto sm:flex-wrap sm:gap-3">
-              <button onClick={onLogin} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#a7d85b] px-5 py-3 text-sm font-black text-[#173326] transition-colors hover:bg-white sm:w-auto">เริ่มใช้งาน <ArrowRight size={17} /></button>
+            <div className="mt-6 flex w-full flex-row justify-center gap-2 sm:mt-8 sm:w-auto sm:flex-wrap sm:justify-start sm:gap-3">
+              <ShinyButton onClick={onLogin} className="min-h-12 w-auto rounded-lg bg-[#a7d85b] px-5 py-3 text-sm font-black text-[#173326] shadow-[0_10px_24px_rgba(167,216,91,0.24)] hover:bg-white">
+                เริ่มใช้งาน <ArrowRight size={17} />
+              </ShinyButton>
             </div>
           </div>
           <div className="hidden justify-end lg:flex">
@@ -270,14 +278,14 @@ export default function MinimalGuestHome({ articles, products, onLogin, onReadAr
       </section>
 
       {featuredArticles.length > 0 && (
-        <section>
+        <section className="knowledge-showcase w-full overflow-hidden rounded-[1.5rem] bg-[#edf5ef] p-4 sm:p-7 lg:p-8">
           <div className="mb-6 flex items-end justify-between gap-4">
             <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Knowledge base</p><h2 className="mt-2 text-xl font-black text-foreground sm:text-3xl">บทความน่ารู้สำหรับชาวสวน</h2></div>
             <button onClick={() => onReadArticles()} className="hidden items-center gap-2 text-sm font-black text-primary sm:inline-flex">ดูทั้งหมด <ArrowRight size={16} /></button>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
             {featuredArticles.map(article => (
-              <button key={article.id} onClick={() => onReadArticles(article.id)} className="group overflow-hidden border border-border bg-card text-left transition-colors hover:border-primary">
+              <button key={article.id} onClick={() => onReadArticles(article.id)} className="article-showcase-card group overflow-hidden rounded-[1.1rem] border border-border/80 bg-card text-left shadow-[0_8px_22px_rgba(24,67,44,0.06)] transition-all hover:-translate-y-1 hover:border-primary/50 hover:shadow-[0_14px_28px_rgba(24,67,44,0.1)]">
                 <div className="relative aspect-[1.5/1] overflow-hidden"><Image src={article.image} alt={article.title} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover transition-transform duration-500 group-hover:scale-105" /></div>
                 <div className="p-4"><p className="text-xs font-bold text-primary">{article.category}</p><h3 className="mt-2 line-clamp-2 text-base font-black leading-snug text-foreground">{article.title}</h3><p className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-muted-foreground">อ่านต่อ <ArrowRight size={13} /></p></div>
               </button>
@@ -287,7 +295,7 @@ export default function MinimalGuestHome({ articles, products, onLogin, onReadAr
       )}
 
       {activeProducts.length > 0 && (
-        <section className="border-t border-border pt-8">
+        <section className="product-showcase w-full overflow-hidden rounded-[1.5rem] bg-[#edf5ef] p-4 sm:p-7 lg:p-8">
           <div className="mb-6 flex items-end justify-between gap-4">
             <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Recommended products</p><h2 className="mt-2 text-xl font-black text-foreground sm:text-3xl">สินค้าแนะนำสำหรับสวน</h2></div>
             <button onClick={onOpenProducts} className="hidden items-center gap-2 text-sm font-black text-primary sm:inline-flex">ดูทั้งหมด <ArrowRight size={16} /></button>
@@ -306,19 +314,19 @@ export default function MinimalGuestHome({ articles, products, onLogin, onReadAr
             onPointerMove={handleProductPointerMove}
             onPointerUp={handleProductPointerUp}
             onPointerCancel={handleProductPointerUp}
-            className="product-rail flex cursor-grab snap-x snap-mandatory gap-3 overflow-x-auto pb-2 active:cursor-grabbing"
+            className="product-rail flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2 active:cursor-grabbing"
           >
             {activeProducts.map(product => (
-              <button key={product.id} onClick={onOpenProducts} className="group min-w-[10.5rem] snap-start text-left sm:min-w-[13rem]">
-                <div className="relative aspect-square overflow-hidden rounded-lg bg-muted"><Image src={product.image} alt={product.name} fill sizes="(min-width: 640px) 25vw, 50vw" className="object-cover transition-transform duration-500 group-hover:scale-105" /></div>
-                <p className="mt-3 text-sm font-black text-foreground">{product.name}</p><p className="mt-1 text-xs text-muted-foreground">{product.category}</p>
+              <button key={product.id} data-product-card onClick={onOpenProducts} className="product-showcase-card group min-w-[10.5rem] snap-start overflow-hidden rounded-[1.1rem] border border-white/80 bg-white p-2.5 text-left shadow-[0_8px_22px_rgba(24,67,44,0.07)] sm:min-w-[13rem]">
+                <div className="relative aspect-[1.08/1] overflow-hidden rounded-[0.85rem] bg-[#e5eee7]"><Image src={product.image} alt={product.name} fill sizes="(min-width: 640px) 16vw, 48vw" className="object-cover transition-transform duration-500 group-hover:scale-105" /></div>
+                <div className="px-1 pb-1 pt-3"><p className="line-clamp-2 min-h-10 text-sm font-black leading-5 text-foreground">{product.name}</p><p className="mt-1 text-xs font-semibold text-muted-foreground">{product.category}</p></div>
               </button>
             ))}
           </div>
         </section>
       )}
 
-      <section className="flex flex-col items-start justify-between gap-5 rounded-xl bg-[#e8f0ea] p-5 sm:flex-row sm:items-center sm:p-8">
+      <section className="hidden flex flex-col items-start justify-between gap-5 rounded-xl bg-[#e8f0ea] p-5 sm:flex-row sm:items-center sm:p-8">
         <div><p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Start today</p><h2 className="mt-2 text-xl font-black text-foreground sm:text-2xl">พร้อมจัดการสวนให้เป็นระบบแล้วหรือยัง?</h2></div>
         <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row sm:flex-wrap sm:gap-3">
           <button onClick={onLogin} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-black text-primary-foreground hover:bg-[#0f5938] sm:w-auto">เข้าสู่ระบบ <ArrowRight size={16} /></button>

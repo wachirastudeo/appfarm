@@ -1,11 +1,12 @@
 "use client"
 import { useMemo, useState, useEffect, useRef } from "react"
-import { AppData, Task } from "@/lib/store"
+import { AppData, Task, FLOWER_STAGE_LABELS, FlowerStage } from "@/lib/store"
 import { validateDate, validateText } from "@/lib/form-validation"
 import {
   Droplets, Wind, TrendingUp, TrendingDown, ListTodo, Sun, CloudSun, CloudRain,
   Sprout, Zap, Scissors, PackageSearch, ClipboardList, MoreHorizontal, Plus, X, Check, MapPin,
-  AlertTriangle, ArrowRight, ChevronLeft, ChevronRight, ExternalLink
+  AlertTriangle, ArrowRight, ChevronLeft, ChevronRight, ExternalLink,
+  Layers, DollarSign, HeartPulse, Info
 } from "lucide-react"
 import Image from "next/image"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
@@ -13,8 +14,6 @@ import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
 import { TaskCard } from "./TaskPlanner"
 import DurianIcon from "./DurianIcon"
 import { Skeleton } from "./ui/skeleton"
-import SparklesText from "./magicui/sparkles-text"
-import BorderBeam from "./magicui/border-beam"
 
 interface Props {
   data: AppData
@@ -33,20 +32,52 @@ interface Props {
   userName?: string
 }
 
-function StatCard({ icon: Icon, label, value, sub, color = "text-primary", bgColor = "bg-primary/10", onClick }: {
-  icon: React.ElementType; label: string; value: string | number; sub?: string; color?: string; bgColor?: string; onClick?: () => void
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  color = "text-primary",
+  bgColor = "bg-primary/10",
+  badge,
+  onClick,
+}: {
+  icon: React.ElementType
+  label: string
+  value: string | number
+  sub?: string
+  color?: string
+  bgColor?: string
+  badge?: { text: string; positive?: boolean }
+  onClick?: () => void
 }) {
   return (
     <div
       onClick={onClick}
-      className={`orchard-card rounded-[28px] p-5 sm:p-6 flex gap-3 items-center overflow-hidden relative ${onClick ? 'orchard-card-hover cursor-pointer' : ''}`}
+      className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs transition-all duration-300 ${
+        onClick ? "cursor-pointer hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:scale-[0.99]" : ""
+      }`}
     >
-      <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#E7F3EC]/55" />
-      <div className={`relative p-3 rounded-xl ${bgColor} ring-1 ring-black/5`}><Icon size={22} className={color} /></div>
-      <div className="min-w-0">
-        <p className="text-muted-foreground text-sm font-medium leading-tight">{label}</p>
-        <p className={`text-lg font-bold leading-tight ${color}`}>{value}</p>
-        {sub && <p className="text-muted-foreground text-xs mt-0.5">{sub}</p>}
+      <div className="flex items-start justify-between gap-3">
+        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${bgColor} ring-1 ring-black/5 dark:ring-white/10`}>
+          <Icon size={22} className={color} />
+        </div>
+        {badge && (
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${
+              badge.positive
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+            }`}
+          >
+            {badge.text}
+          </span>
+        )}
+      </div>
+      <div className="mt-3 min-w-0">
+        <p className="text-xs font-semibold text-muted-foreground">{label}</p>
+        <p className={`mt-0.5 text-xl sm:text-2xl font-black tracking-tight ${color}`}>{value}</p>
+        {sub && <p className="mt-1 text-xs font-medium text-muted-foreground truncate">{sub}</p>}
       </div>
     </div>
   )
@@ -60,6 +91,7 @@ const WEATHER_CODE_MAP: Record<number, string> = {
   80: "ฝนตกสลับ", 81: "ฝนตกสลับปานกลาง", 82: "ฝนตกสลับหนัก",
   95: "พายุฝนฟ้าคะนอง", 96: "พายุกับลูกเห็บ", 99: "พายุรุนแรง",
 }
+
 type ForecastAlert = {
   label: string
   detail: string
@@ -74,14 +106,60 @@ type ForecastAlert = {
     low: number | null
   }[]
 }
+
 type PlaceResult = { display_name: string; lat: string; lon: string }
 type FarmLocation = { lat: number; lon: number; label: string }
 
-const ACTIVITY_ICONS: any = { fertilize: Sprout, spray: Zap, water: Droplets, prune: Scissors, harvest: PackageSearch, inspect: ClipboardList, other: MoreHorizontal }
-const ACTIVITY_COLORS: any = { fertilize: "text-green-500", spray: "text-yellow-500", water: "text-blue-500", prune: "text-orange-500", harvest: "text-primary", inspect: "text-purple-500", other: "text-muted-foreground" }
+const ACTIVITY_ICONS: Record<string, React.ElementType> = {
+  fertilize: Sprout,
+  spray: Zap,
+  water: Droplets,
+  prune: Scissors,
+  harvest: PackageSearch,
+  inspect: ClipboardList,
+  other: MoreHorizontal,
+}
 
-export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSettings, onOpenProducts, updateTask, deleteTask, addTask, farmLocation, locationStorageKey, onUpdateFarmLocation, coverImage, coverPosition, userName }: Props) {
-  const [weather, setWeather] = useState<{ temp: string | number; humidity: string | number; rain: string | number; wind: string | number; condition: string }>({ temp: "–", humidity: "–", rain: "–", wind: "–", condition: "กำลังโหลด..." })
+const ACTIVITY_COLORS: Record<string, string> = {
+  fertilize: "text-emerald-600 bg-emerald-500/10",
+  spray: "text-amber-600 bg-amber-500/10",
+  water: "text-blue-600 bg-blue-500/10",
+  prune: "text-orange-600 bg-orange-500/10",
+  harvest: "text-primary bg-primary/10",
+  inspect: "text-purple-600 bg-purple-500/10",
+  other: "text-muted-foreground bg-muted",
+}
+
+export default function Dashboard({
+  data,
+  onNavigate,
+  onOpenArticle,
+  onOpenSettings,
+  onOpenProducts,
+  updateTask,
+  deleteTask,
+  addTask,
+  farmLocation,
+  locationStorageKey,
+  onUpdateFarmLocation,
+  coverImage,
+  coverPosition,
+  userName,
+}: Props) {
+  const [weather, setWeather] = useState<{
+    temp: string | number
+    humidity: string | number
+    rain: string | number
+    wind: string | number
+    condition: string
+  }>({
+    temp: "–",
+    humidity: "–",
+    rain: "–",
+    wind: "–",
+    condition: "กำลังโหลด...",
+  })
+
   const [forecastAlert, setForecastAlert] = useState<ForecastAlert | null>(null)
   const [showLocationEditor, setShowLocationEditor] = useState(false)
   const [placeSearch, setPlaceSearch] = useState("")
@@ -89,13 +167,15 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
   const [pendingLocation, setPendingLocation] = useState<FarmLocation | null>(null)
   const [searchingPlace, setSearchingPlace] = useState(false)
   const locationEditorRef = useRef<HTMLDivElement | null>(null)
+
+  // Recommended Articles
   const recommendedArticles = useMemo(() => {
     const active = data.articles.filter(article => article.status === "published")
     if (active.length >= 9) return active.slice(0, 9)
     const defaultSeeds = [
       { id: "art1", title: "เทคนิคการให้น้ำทุเรียนช่วงเตรียมทำใบ", category: "การดูแลรักษา", image: "/images/articles/article_watering_1778037948644.avif", status: "published" },
       { id: "art2", title: "รับมือโรคไฟทอปธอร่า หน้าฝนนี้ต้องรอด", category: "โรคและแมลง", image: "/images/articles/article_disease_1778037967060.avif", status: "published" },
-      { id: "art3", title: "แนวโน้มราคาทุเรียนส่งออก ปี 2026", category: "การตลาด", image: "/images/articles/article_market_1778038017547.avif", status: "published" }
+      { id: "art3", title: "แนวโน้มราคาทุเรียนส่งออก ปี 2026", category: "การตลาด", image: "/images/articles/article_market_1778038017547.avif", status: "published" },
     ]
     const list = [...active]
     for (const seed of defaultSeeds) {
@@ -107,7 +187,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
     return list.slice(0, 9)
   }, [data.articles])
 
-  // Products carousel
+  // Recommended Products carousel
   const activeProducts = useMemo(() => data.products.filter(p => p.status === "active"), [data.products])
   const carouselProducts = useMemo(() => activeProducts.length > 0 ? [...activeProducts, ...activeProducts] : [], [activeProducts])
   const productDrag = useRef({ active: false, startX: 0, scrollLeft: 0 })
@@ -151,7 +231,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       if (!track) return
       normalizeProductScroll(track)
       track.scrollBy({ left: 300, behavior: "smooth" })
-    }, 3600)
+    }, 4500)
     return () => window.clearInterval(interval)
   }, [activeProducts.length])
 
@@ -170,13 +250,12 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
     [data.plots]
   )
 
-  // Memoize loc so the object reference only changes when lat/lon actually change
   const loc = useMemo(
     () => farmLocation ?? { lat: 12.6081, lon: 102.1048 }, // default: จันทบุรี
     [farmLocation]
   )
 
-  // Use farmLocation as the dependency — ensures re-fetch whenever the user picks a new place
+  // Weather fetch
   useEffect(() => {
     setWeather({ temp: "–", humidity: "–", rain: "–", wind: "–", condition: "กำลังโหลด..." })
     setForecastAlert(null)
@@ -220,7 +299,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
           condition: WEATHER_CODE_MAP[c.weather_code] ?? `รหัส ${c.weather_code}`,
         })
         setForecastAlert({
-          label: hasStorm ? "เตือนพายุ 5 วัน" : hasHeavyRain ? `ฝนสูง ${maxRain}%` : `ฝน ${maxRain}% ใน 5 วัน`,
+          label: hasStorm ? "เตือนพายุ 5 วัน" : hasHeavyRain ? `ฝนตกชุกสูงสุด ${maxRain}%` : `ฝนสูงสุด ${maxRain}% ใน 5 วัน`,
           detail: items.join(" · ") || "พยากรณ์ฝน 5 วันข้างหน้า",
           level: hasStorm ? "storm" : hasHeavyRain ? "rain" : "clear",
           items,
@@ -231,11 +310,73 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
         setWeather(w => ({ ...w, condition: "ไม่สามารถโหลดได้" }))
         setForecastAlert(null)
       })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [farmLocation])
-  const totalTrees = useMemo(() => data.plots.reduce((s, p) => s + p.trees.length, 0), [data.plots])
-  const totalArea = useMemo(() => data.plots.reduce((s, p) => s + p.area, 0), [data.plots])
+  }, [farmLocation, loc.lat, loc.lon])
+
+  // Agri-Weather Guidance
+  const weatherAdvice = useMemo(() => {
+    const rainNum = typeof weather.rain === "number" ? weather.rain : parseInt(String(weather.rain)) || 0
+    const tempNum = typeof weather.temp === "number" ? weather.temp : parseInt(String(weather.temp)) || 0
+    const windNum = typeof weather.wind === "number" ? weather.wind : parseInt(String(weather.wind)) || 0
+
+    if (rainNum >= 65) {
+      return {
+        text: "โอกาสฝนตกสูง ควรงดหรือเลื่อนการพ่นปุ๋ย/ยาทางใบ เพื่อลดการชะล้าง",
+        tone: "warning",
+      }
+    }
+    if (rainNum >= 35) {
+      return {
+        text: "อาจมีฝนประปราย ควรตรวจเช็คทางระบายน้ำในร่องแปลงและปรับแผนการให้น้ำ",
+        tone: "info",
+      }
+    }
+    if (tempNum >= 36) {
+      return {
+        text: "อากาศร้อนจัด แดดแรง ควรเพิ่มรอบการให้น้ำช่วงเช้าตรู่เพื่อรักษาความชื้นทรงพุ่ม",
+        tone: "warning",
+      }
+    }
+    if (windNum >= 28) {
+      return {
+        text: "ลมค่อนข้างแรง ตรวจสอบการค้ำกิ่งและผูกโยงผลทุเรียนเพื่อป้องกันความเสียหาย",
+        tone: "warning",
+      }
+    }
+    return {
+      text: "สภาพอากาศแจ่มใส เหมาะแก่การตัดแต่งกิ่ง ใส่ปุ๋ยทางดิน และบันทึกกิจกรรมสวน",
+      tone: "good",
+    }
+  }, [weather.rain, weather.temp, weather.wind])
+
+  // Orchard Stats & Metrics
+  const { totalTrees, totalArea, healthCounts, stageDistribution } = useMemo(() => {
+    let treesCount = 0
+    let areaSum = 0
+    const health = { good: 0, fair: 0, poor: 0 }
+    const stages: Record<string, number> = {}
+
+    data.plots.forEach(plot => {
+      areaSum += plot.area || 0
+      plot.trees.forEach(tree => {
+        treesCount++
+        const stg = tree.stage || "vegetative"
+        stages[stg] = (stages[stg] || 0) + 1
+        if (tree.health === "fair") health.fair++
+        else if (tree.health === "poor") health.poor++
+        else health.good++
+      })
+    })
+
+    return {
+      totalTrees: treesCount,
+      totalArea: areaSum,
+      healthCounts: health,
+      stageDistribution: stages,
+    }
+  }, [data.plots])
+
   const pendingTasks = useMemo(() => data.tasks.filter(t => t.status === "pending").length, [data.tasks])
+
   const monthlyTotals = useMemo(() => {
     const now = new Date()
     return data.finance.reduce((totals, record) => {
@@ -248,14 +389,17 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       return totals
     }, { income: 0, expense: 0 })
   }, [data.finance])
+
   const thisMonthIncome = monthlyTotals.income
   const thisMonthExpense = monthlyTotals.expense
+  const thisMonthNet = thisMonthIncome - thisMonthExpense
+
   const recentActivities = useMemo(() =>
-    [...data.activities].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 4),
+    [...data.activities].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5),
     [data.activities])
 
   const upcomingTasks = useMemo(() =>
-    data.tasks.filter(t => t.status === "pending").sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(0, 3),
+    data.tasks.filter(t => t.status === "pending").sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(0, 4),
     [data.tasks])
 
   const plotName = (id: string) => plotNameById.get(id) ?? id
@@ -265,6 +409,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
     return d.toLocaleDateString("th-TH", { day: "numeric", month: "short" })
   }
 
+  // Quick Task Form
   const [showAddTask, setShowAddTask] = useState(false)
   const [quickForm, setQuickForm] = useState({
     title: "",
@@ -273,9 +418,6 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
     priority: "medium" as Task["priority"],
   })
 
-  // data.plots loads async (store/Supabase), so quickForm.plotId may be "" on first
-  // mount even though the <select> visually shows the first plot. Sync it once plots
-  // arrive (or when the selected plot is removed) so "บันทึกงาน" doesn't falsely block.
   useEffect(() => {
     if (data.plots.length === 0) return
     const valid = data.plots.some(p => p.id === quickForm.plotId)
@@ -287,10 +429,10 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
   const handleQuickAdd = () => {
     const title = validateText("ชื่องาน", quickForm.title, { required: true, maxLength: 160 })
     const date = validateDate("วันที่", quickForm.date)
-    // Fall back to the first plot if state hasn't caught up to the rendered <select>.
     const plotId = data.plots.some(p => p.id === quickForm.plotId)
       ? quickForm.plotId
       : data.plots[0]?.id ?? ""
+
     if (!plotId) {
       alert("ยังไม่มีแปลงทุเรียน กรุณาเพิ่มแปลงก่อนจึงจะบันทึกงานได้")
       setShowAddTask(false)
@@ -301,6 +443,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       alert(!title.ok ? title.message : date.message)
       return
     }
+
     addTask({
       title: title.value,
       date: new Date(date.value).toISOString(),
@@ -350,7 +493,7 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
       await onUpdateFarmLocation(pendingLocation)
       window.dispatchEvent(new Event("farm_location_changed"))
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : (typeof err === "object" && err !== null && "message" in err ? String((err as any).message) : String(err))
+      const errMsg = err instanceof Error ? err.message : String(err)
       alert("บันทึกตำแหน่งสวนไม่สำเร็จ: " + errMsg)
       return
     }
@@ -360,162 +503,671 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
     setPendingLocation(null)
   }
 
+  // Top stages active in the orchard
+  const topActiveStages = useMemo(() => {
+    return Object.entries(stageDistribution)
+      .filter(([_, count]) => count > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+  }, [stageDistribution])
+
   return (
-    <div data-page="dashboard" className="space-y-5">
-      {/* Hero Banner with Image */}
-      <div className="relative rounded-3xl overflow-hidden shadow-[0_25px_60px_rgba(15,59,37,0.25)] ring-1 ring-white/80 transition-all duration-300 hover:shadow-[0_30px_70px_rgba(15,59,37,0.3)]">
-        <Image
-          src={coverImage || "/images/durian-banner.avif"}
-          alt="สวนทุเรียน"
-          width={1200}
-          height={400}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 hover:scale-105"
-          style={{ objectPosition: coverPosition }}
-          priority
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,59,37,0.88),rgba(15,59,37,0.48)_48%,rgba(15,59,37,0.15)),linear-gradient(0deg,rgba(0,0,0,0.58),transparent_55%)]" />
-        <div className="relative flex min-h-[27rem] flex-col justify-end p-4 sm:min-h-[25rem] sm:p-5 lg:p-8">
-          <p className="mb-1 max-w-full text-sm font-semibold leading-tight text-[#E7F3EC] break-words">{new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long" })}</p>
-          <div className="flex items-center gap-2 mb-3">
-            <h1 className="text-white text-xl sm:text-2xl lg:text-3xl font-black drop-shadow-lg leading-tight">
-              สวัสดีคุณ<SparklesText text={userName?.trim() || "ชาวสวน"} className="p-0 text-white font-black inline-block" sparklesCount={3} />
-            </h1>
+    <div data-page="dashboard" className="space-y-6">
+      {/* 1. Hero & Weather Overview */}
+      <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm transition-all">
+        {/* Banner Cover Image */}
+        <div className="relative h-44 sm:h-52 lg:h-56 w-full overflow-hidden">
+          <Image
+            src={coverImage || "/images/durian-banner.avif"}
+            alt="สวนทุเรียน"
+            fill
+            sizes="100vw"
+            className="object-cover transition-transform duration-700 hover:scale-105"
+            style={{ objectPosition: coverPosition || "center 40%" }}
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
+          
+          <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 text-white flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+            <div>
+              <p className="text-xs sm:text-sm font-semibold text-emerald-300">
+                {new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+              </p>
+              <h1 className="mt-1 text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-sm">
+                สวัสดีคุณ{userName?.trim() || "ชาวสวน"}
+              </h1>
+            </div>
+
+            {/* Farm Location Badge */}
             <button
               onClick={() => setShowLocationEditor(true)}
-              className="p-1.5 rounded-full bg-white/15 hover:bg-white/30 transition-colors shrink-0"
-              title={farmLocation ? "เปลี่ยนสถานที่สวน" : "ตั้งสถานที่สวน"}
+              className="inline-flex w-fit items-center gap-2 rounded-xl bg-white/15 px-3.5 py-2 text-xs sm:text-sm font-bold text-white shadow-sm ring-1 ring-white/20 backdrop-blur-md transition-all hover:bg-white/25 active:scale-95"
             >
-              <MapPin size={16} className="text-white/80" />
+              <MapPin size={16} className="text-emerald-400 shrink-0" />
+              <span className="max-w-[14rem] sm:max-w-[18rem] truncate">
+                {farmLocation ? farmLocation.label : "ตั้งค่าตำแหน่งสวน"}
+              </span>
             </button>
           </div>
-          <div className="w-full max-w-[29rem] rounded-2xl bg-white/16 p-3 text-white shadow-lg ring-1 ring-white/20 backdrop-blur-md sm:p-4 relative overflow-hidden">
-            <BorderBeam duration={10} size={120} colorFrom="#10B981" colorTo="#F59E0B" />
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/18 ring-1 ring-white/18">
-                  <Sun size={24} className="text-yellow-300" />
+        </div>
+
+        {/* Weather Bar & Agri-Guidance inside Hero Card */}
+        <div className="border-t border-border/60 bg-muted/40 p-4 sm:p-5">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-4 items-center">
+            {/* Weather Metrics */}
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20">
+                  <Sun size={24} />
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-black uppercase tracking-wider text-white/68">อากาศสวนวันนี้</p>
+                <div>
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase">อากาศวันนี้</p>
                   {weatherLoading ? (
-                    <div className="mt-1 flex items-end gap-2">
-                      <Skeleton className="h-9 w-16 rounded-lg bg-white/20" />
-                      <Skeleton className="h-5 w-28 rounded-lg bg-white/20" />
-                    </div>
+                    <Skeleton className="h-7 w-24 rounded-lg mt-0.5" />
                   ) : (
-                    <div className="flex min-w-0 items-baseline gap-2">
-                      <span className="text-3xl font-black leading-none">{weather.temp}°</span>
-                      <span className="truncate text-sm font-bold text-white/88">{weather.condition}</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-black text-foreground">{weather.temp}°C</span>
+                      <span className="text-sm font-bold text-muted-foreground">{weather.condition}</span>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-center sm:w-52">
-                <div className="rounded-xl bg-blue-50 px-2 py-2 text-blue-700 shadow-sm ring-1 ring-blue-100">
-                  <CloudRain size={15} className="mx-auto mb-1 text-blue-600" />
-                  {weatherLoading ? <Skeleton className="mx-auto h-5 w-10 bg-blue-100" /> : <p className="text-base font-black leading-none">{weather.rain}%</p>}
-                  <p className="mt-1 text-[10px] font-black text-blue-600">ฝนวันนี้</p>
+
+              <div className="flex items-center gap-3 border-l border-border/60 pl-3 sm:pl-6">
+                <div className="text-left">
+                  <p className="text-[11px] font-bold text-muted-foreground">โอกาสฝน</p>
+                  <p className="text-sm font-extrabold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                    <CloudRain size={14} /> {weather.rain}%
+                  </p>
                 </div>
-                <div className="rounded-xl bg-white/14 px-2 py-2 ring-1 ring-white/12">
-                  <Wind size={14} className="mx-auto mb-1 text-cyan-200" />
-                  {weatherLoading ? <Skeleton className="mx-auto h-4 w-8 bg-white/20" /> : <p className="text-sm font-black leading-none">{weather.wind}</p>}
-                  <p className="mt-1 text-[10px] font-bold text-white/62">กม./ชม.</p>
+                <div className="text-left border-l border-border/60 pl-3">
+                  <p className="text-[11px] font-bold text-muted-foreground">ความเร็วลม</p>
+                  <p className="text-sm font-extrabold text-foreground flex items-center gap-1">
+                    <Wind size={14} className="text-muted-foreground" /> {weather.wind} <span className="text-xs font-normal text-muted-foreground">กม./ชม.</span>
+                  </p>
                 </div>
-                <a
-                  href={`https://www.windy.com/${loc.lat}/${loc.lon}?${loc.lat},${loc.lon},10`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-xl bg-[#E7F3EC]/22 px-2 py-2 text-center ring-1 ring-[#E7F3EC]/30 transition-colors hover:bg-[#E7F3EC]/32"
-                >
-                  <Wind size={14} className="mx-auto mb-1 text-cyan-200" />
-                  <p className="text-sm font-black leading-none">Windy</p>
-                  <p className="mt-1 text-[10px] font-bold text-white/62">เปิด</p>
-                </a>
               </div>
             </div>
-            <div className="mt-3 flex flex-col gap-2 border-t border-white/12 pt-2 sm:flex-row sm:items-center sm:justify-between">
-              {farmLocation ? (
-                <button
-                  type="button"
-                  onClick={() => setShowLocationEditor(true)}
-                  className="flex min-w-0 flex-wrap items-center gap-1.5 text-left text-xs font-bold text-white/72 transition-colors hover:text-white"
-                >
-                  <MapPin size={13} className="shrink-0" />
-                  <span className="max-w-[12rem] truncate sm:max-w-[16rem]">{farmLocation.label}</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => setShowLocationEditor(true)}
-                  className="inline-flex min-h-10 w-fit max-w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-black text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-white/10 transition-all hover:bg-[#0F5A34] active:scale-95 sm:px-4"
-                >
-                  <MapPin size={16} />
-                  <span className="sm:hidden">ตั้งสถานที่สวน</span>
-                  <span className="hidden sm:inline">ตั้งค่าสถานที่สวนเลย</span>
-                </button>
-              )}
+
+            {/* Agri-Weather Guidance Alert */}
+            <div className={`flex items-start gap-2.5 rounded-2xl p-3 text-xs sm:text-sm font-semibold border ${
+              weatherAdvice.tone === "warning"
+                ? "bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/20"
+                : weatherAdvice.tone === "info"
+                  ? "bg-blue-500/10 text-blue-800 dark:text-blue-300 border-blue-500/20"
+                  : "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/20"
+            }`}>
+              <Info size={18} className="shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <span className="font-black mr-1">คำแนะนำสวนวันนี้:</span>
+                <span>{weatherAdvice.text}</span>
+              </div>
             </div>
-            {weatherLoading ? (
-              <div className="mt-3 border-t border-white/12 pt-3">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <Skeleton className="h-3 w-32 bg-white/20" />
-                  <Skeleton className="h-6 w-20 rounded-full bg-white/20" />
-                </div>
-                <div className="-mx-1 flex gap-2 overflow-hidden px-1 pb-1">
-                  {[1, 2, 3, 4, 5].map(item => (
-                    <Skeleton key={item} className="h-[5.5rem] w-[4.9rem] shrink-0 rounded-2xl bg-white/28" />
-                  ))}
-                </div>
-              </div>
-            ) : forecastAlert && forecastAlert.days.length > 0 && (
-              <div className="mt-3 border-t border-white/12 pt-3">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="text-xs font-black uppercase tracking-wider text-white/78">พยากรณ์ล่วงหน้า 5 วัน</p>
-                  <span
-                    className={`rounded-full px-2 py-1 text-[10px] font-black ring-1 ${forecastAlert.level === "storm"
-                      ? "bg-rose-50 text-rose-700 ring-rose-100"
-                      : forecastAlert.level === "rain"
-                        ? "bg-amber-50 text-amber-800 ring-amber-100"
-                        : "bg-emerald-50 text-emerald-800 ring-emerald-100"
-                      }`}
-                  >
-                    {forecastAlert.label}
-                  </span>
-                </div>
-                <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-hide sm:overflow-visible sm:pb-0">
-                  {forecastAlert.days.map(day => {
-                    const Icon = day.code >= 95 ? AlertTriangle : day.rain >= 45 ? CloudRain : CloudSun
-                    return (
-                      <div key={day.date} className="w-[4.9rem] shrink-0 rounded-2xl bg-white/90 px-2.5 py-2 text-center shadow-sm ring-1 ring-white/80">
-                        <p className="text-[11px] font-black text-[#527060]">{day.day}</p>
-                        <Icon size={18} className={`mx-auto my-1 ${day.code >= 95 ? "text-rose-600" : day.rain >= 45 ? "text-blue-600" : "text-amber-500"}`} />
-                        <p className="text-xs font-black text-[#143422]">{day.rain}%</p>
-                        <p className="mt-0.5 text-[10px] font-bold text-[#527060]">
-                          {day.high ?? "–"}°/{day.low ?? "–"}°
-                        </p>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
           </div>
+
+          {/* 5-Day Forecast Row */}
+          {forecastAlert && forecastAlert.days.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between gap-3 overflow-x-auto scrollbar-hide pb-1">
+              <span className="text-xs font-black text-muted-foreground shrink-0 uppercase tracking-wider">
+                พยากรณ์ 5 วัน:
+              </span>
+              <div className="flex gap-2 min-w-max">
+                {forecastAlert.days.map(day => {
+                  const Icon = day.code >= 95 ? AlertTriangle : day.rain >= 45 ? CloudRain : CloudSun
+                  return (
+                    <div
+                      key={day.date}
+                      className="flex items-center gap-2 rounded-xl bg-card border border-border/80 px-3 py-1.5 shadow-xs"
+                    >
+                      <span className="text-xs font-black text-foreground">{day.day}</span>
+                      <Icon size={14} className={day.code >= 95 ? "text-rose-500" : day.rain >= 45 ? "text-blue-500" : "text-amber-500"} />
+                      <span className="text-xs font-bold text-muted-foreground">{day.rain}%</span>
+                      <span className="text-[11px] font-medium text-muted-foreground">
+                        {day.high ?? "–"}°/{day.low ?? "–"}°
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* 2. Quick Action Hub (1-Tap Shortcuts for Orchard Operations) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <button
+          onClick={() => {
+            localStorage.setItem("open_activity_form", "1")
+            onNavigate?.("operations")
+          }}
+          className="group flex items-center gap-3 rounded-2xl border border-border/80 bg-card p-3.5 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/50 hover:bg-emerald-500/5 active:scale-[0.98]"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+            <Sprout size={20} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-black text-foreground truncate">บันทึกสวน</p>
+            <p className="text-xs font-medium text-muted-foreground truncate">ใส่ปุ๋ย/พ่นยา/รดน้ำ</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setShowAddTask(v => !v)}
+          className="group flex items-center gap-3 rounded-2xl border border-border/80 bg-card p-3.5 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/50 hover:bg-amber-500/5 active:scale-[0.98]"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+            <ListTodo size={20} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-black text-foreground truncate">{showAddTask ? "ปิดฟอร์มงาน" : "เพิ่มงานด่วน"}</p>
+            <p className="text-xs font-medium text-muted-foreground truncate">นัดหมาย/วางแผน</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => onNavigate?.("finance")}
+          className="group flex items-center gap-3 rounded-2xl border border-border/80 bg-card p-3.5 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/5 active:scale-[0.98]"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+            <DollarSign size={20} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-black text-foreground truncate">บันทึกเงิน</p>
+            <p className="text-xs font-medium text-muted-foreground truncate">รายรับ-รายจ่าย</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => onNavigate?.("plots")}
+          className="group flex items-center gap-3 rounded-2xl border border-border/80 bg-card p-3.5 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/50 hover:bg-blue-500/5 active:scale-[0.98]"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+            <Layers size={20} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-black text-foreground truncate">จัดการแปลง</p>
+            <p className="text-xs font-medium text-muted-foreground truncate">{data.plots.length} แปลง · {totalTrees} ต้น</p>
+          </div>
+        </button>
+      </div>
+
+      {/* 3. Stats Grid with Net Profit Balance */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <StatCard
+          onClick={() => onNavigate?.("plots")}
+          icon={DurianIcon}
+          label="ต้นทุเรียนทั้งหมด"
+          value={`${totalTrees} ต้น`}
+          sub={`${totalArea} ไร่ (${data.plots.length} แปลง)`}
+          color="text-primary"
+          bgColor="bg-primary/10"
+        />
+
+        <StatCard
+          onClick={() => onNavigate?.("operations")}
+          icon={ListTodo}
+          label="งานค้างที่ต้องทำ"
+          value={`${pendingTasks} งาน`}
+          sub={pendingTasks > 0 ? "มีงานที่ต้องติดตาม" : "จัดการเรียบร้อยทั้งหมด"}
+          color="text-amber-600 dark:text-amber-400"
+          bgColor="bg-amber-500/10"
+        />
+
+        <StatCard
+          onClick={() => onNavigate?.("finance")}
+          icon={TrendingUp}
+          label="รายรับเดือนนี้"
+          value={`฿${thisMonthIncome.toLocaleString()}`}
+          sub="ยอดขายผลผลิต"
+          color="text-emerald-600 dark:text-emerald-400"
+          bgColor="bg-emerald-500/10"
+        />
+
+        <StatCard
+          onClick={() => onNavigate?.("finance")}
+          icon={TrendingDown}
+          label="รายจ่ายเดือนนี้"
+          value={`฿${thisMonthExpense.toLocaleString()}`}
+          sub={`คงเหลือสุทธิ: ฿${thisMonthNet.toLocaleString()}`}
+          badge={{
+            text: thisMonthNet >= 0 ? `+กำไร ฿${thisMonthNet.toLocaleString()}` : `-ติดลบ ฿${Math.abs(thisMonthNet).toLocaleString()}`,
+            positive: thisMonthNet >= 0,
+          }}
+          color="text-rose-600 dark:text-rose-400"
+          bgColor="bg-rose-500/10"
+        />
+      </div>
+
+      {/* 4. Durian Stage & Orchard Health Pulse Overview */}
+      {totalTrees > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Stage Progress Summary */}
+          <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-black text-foreground flex items-center gap-2">
+                <Sprout size={16} className="text-primary" />
+                ระยะพัฒนาการต้นทุเรียน
+              </h3>
+              <button
+                onClick={() => onNavigate?.("plots")}
+                className="text-xs font-bold text-primary hover:underline"
+              >
+                ดูรายละเอียด
+              </button>
+            </div>
+            
+            {topActiveStages.length > 0 ? (
+              <div className="space-y-2">
+                {topActiveStages.map(([stgKey, count]) => {
+                  const percent = Math.round((count / totalTrees) * 100)
+                  const label = FLOWER_STAGE_LABELS[stgKey as FlowerStage] || stgKey
+                  return (
+                    <div key={stgKey} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-foreground">{label}</span>
+                        <span className="font-bold text-muted-foreground">{count} ต้น ({percent}%)</span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-primary transition-all duration-500"
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground py-2">ยังไม่มีการบันทึกระยะต้น</p>
+            )}
+          </div>
+
+          {/* Orchard Health Pulse */}
+          <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-black text-foreground flex items-center gap-2">
+                  <HeartPulse size={16} className="text-emerald-500" />
+                  ภาพรวมสุขภาพต้นไม้
+                </h3>
+                <span className="text-xs font-bold text-muted-foreground">ทั้งหมด {totalTrees} ต้น</span>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-2 text-center mt-2">
+                <div className="rounded-xl bg-emerald-500/10 p-2.5 border border-emerald-500/20">
+                  <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">สมบูรณ์ดี</p>
+                  <p className="text-lg font-black text-emerald-600 dark:text-emerald-300 mt-0.5">{healthCounts.good}</p>
+                </div>
+                <div className="rounded-xl bg-amber-500/10 p-2.5 border border-amber-500/20">
+                  <p className="text-xs font-bold text-amber-700 dark:text-amber-400">ปานกลาง</p>
+                  <p className="text-lg font-black text-amber-600 dark:text-amber-300 mt-0.5">{healthCounts.fair}</p>
+                </div>
+                <div className="rounded-xl bg-rose-500/10 p-2.5 border border-rose-500/20">
+                  <p className="text-xs font-bold text-rose-700 dark:text-rose-400">ต้องดูแลด่วน</p>
+                  <p className="text-lg font-black text-rose-600 dark:text-rose-300 mt-0.5">{healthCounts.poor}</p>
+                </div>
+              </div>
+            </div>
+
+            {healthCounts.poor > 0 ? (
+              <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mt-3 flex items-center gap-1.5">
+                <AlertTriangle size={14} /> มีต้นทุเรียน {healthCounts.poor} ต้น ที่ต้องตรวจรักษาโรค/แมลง
+              </p>
+            ) : (
+              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-3 flex items-center gap-1.5">
+                <Check size={14} /> สุขภาพต้นไม้โดยรวมอยู่ในเกณฑ์ดี
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 5. Tasks & Activities Dual Column Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+        {/* Left Column: Tasks */}
+        <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h3 className="font-black text-foreground text-base sm:text-lg flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                <ListTodo size={18} />
+              </span>
+              งานที่ต้องทำ
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowAddTask(v => !v)}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-black transition-all ${
+                  showAddTask
+                    ? "bg-muted text-muted-foreground hover:bg-muted/80"
+                    : "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+                }`}
+              >
+                {showAddTask ? <X size={14} /> : <Plus size={14} />}
+                {showAddTask ? "ยกเลิก" : "เพิ่มงาน"}
+              </button>
+              <button
+                onClick={() => onNavigate?.("operations")}
+                className="inline-flex items-center text-xs font-black text-primary hover:underline px-2 py-1"
+              >
+                ดูทั้งหมด ({pendingTasks})
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Add Task Form (Modern Nature Styled) */}
+          {showAddTask && (
+            <div className="mb-4 rounded-2xl border border-primary/20 bg-muted/50 p-4 space-y-3 shadow-inner">
+              <p className="text-xs font-black text-foreground">สร้างงานใหม่</p>
+              <input
+                autoFocus
+                value={quickForm.title}
+                onChange={e => setQuickForm(f => ({ ...f, title: e.target.value }))}
+                onKeyDown={e => e.key === "Enter" && handleQuickAdd()}
+                placeholder="ระบุชื่องาน เช่น รดน้ำแปลงบน, พ่นยากำจัดเพลี้ย..."
+                className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <input
+                  type="date"
+                  value={quickForm.date}
+                  onChange={e => setQuickForm(f => ({ ...f, date: e.target.value }))}
+                  className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                />
+                <select
+                  value={quickForm.plotId}
+                  onChange={e => setQuickForm(f => ({ ...f, plotId: e.target.value }))}
+                  className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                >
+                  {data.plots.length === 0 ? (
+                    <option value="">ยังไม่มีแปลง</option>
+                  ) : (
+                    data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
+                  )}
+                </select>
+                <select
+                  value={quickForm.priority}
+                  onChange={e => setQuickForm(f => ({ ...f, priority: e.target.value as Task["priority"] }))}
+                  className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                >
+                  <option value="high">สำคัญมาก (ด่วน)</option>
+                  <option value="medium">ปานกลาง</option>
+                  <option value="low">ทั่วไป</option>
+                </select>
+              </div>
+              <button
+                onClick={handleQuickAdd}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-2 text-xs sm:text-sm font-black text-primary-foreground shadow-xs hover:bg-primary/90 transition-all"
+              >
+                <Check size={16} /> บันทึกงาน
+              </button>
+            </div>
+          )}
+
+          {/* Task List */}
+          {upcomingTasks.length > 0 ? (
+            <div className="space-y-2">
+              {upcomingTasks.map(t => (
+                <TaskCard
+                  key={t.id}
+                  task={t}
+                  plotName={plotName(t.plotId)}
+                  plots={data.plots}
+                  updateTask={updateTask}
+                  deleteTask={deleteTask}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="py-10 text-center rounded-2xl border border-dashed border-border/80 bg-muted/20">
+              <ListTodo size={36} className="text-muted-foreground/40 mx-auto mb-2" />
+              <p className="text-sm font-bold text-foreground">ไม่มีงานค้าง</p>
+              <p className="text-xs text-muted-foreground mt-0.5">กดปุ่ม "เพิ่มงาน" เพื่อสร้างกำหนดการใหม่</p>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Activities */}
+        <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h3 className="font-black text-foreground text-base sm:text-lg flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <ClipboardList size={18} />
+              </span>
+              บันทึกกิจกรรมล่าสุด
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  localStorage.setItem("open_activity_form", "1")
+                  onNavigate?.("operations")
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-black text-primary-foreground shadow-xs hover:bg-primary/90 transition-all"
+              >
+                <Plus size={14} /> บันทึกกิจกรรม
+              </button>
+              <button
+                onClick={() => onNavigate?.("operations")}
+                className="inline-flex items-center text-xs font-black text-primary hover:underline px-2 py-1"
+              >
+                ดูทั้งหมด
+              </button>
+            </div>
+          </div>
+
+          {recentActivities.length > 0 ? (
+            <div className="space-y-2">
+              {recentActivities.map(a => {
+                const Icon = ACTIVITY_ICONS[a.activityType] || ACTIVITY_ICONS.other
+                const colorClass = ACTIVITY_COLORS[a.activityType] || "text-muted-foreground bg-muted"
+                return (
+                  <div
+                    key={a.id}
+                    className="flex items-center gap-3 p-3 rounded-2xl border border-border/60 bg-background/50 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className={`p-2.5 rounded-xl ${colorClass} shrink-0`}>
+                      <Icon size={18} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-foreground truncate">{a.description}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {plotName(a.plotId)} · {formatDate(a.date)}
+                      </p>
+                    </div>
+                    {a.cost > 0 && (
+                      <span className="text-xs sm:text-sm font-extrabold text-rose-600 dark:text-rose-400 shrink-0">
+                        ฿{a.cost.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="py-10 text-center rounded-2xl border border-dashed border-border/80 bg-muted/20">
+              <ClipboardList size={36} className="text-muted-foreground/40 mx-auto mb-2" />
+              <p className="text-sm font-bold text-foreground">ยังไม่มีบันทึกกิจกรรม</p>
+              <p className="text-xs text-muted-foreground mt-0.5">กด "บันทึกกิจกรรม" เพื่อเริ่มเก็บประวัติการดูแลสวน</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 6. Recommended Articles Carousel */}
+      <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-sm">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-lg sm:text-xl font-black text-foreground">บทความแนะนำสำหรับการดูแลสวน</h2>
+            <p className="text-xs sm:text-sm font-semibold text-muted-foreground">เทคนิคการทำดอก ดูแลระบบน้ำ จัดการโรค และตลาดทุเรียน</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              onClick={() => onNavigate?.("articles")}
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-black text-primary hover:underline mr-2"
+            >
+              ดูทั้งหมด <ArrowRight size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const track = document.getElementById("dashboard-article-carousel")
+                if (track) track.scrollBy({ left: -280, behavior: "smooth" })
+              }}
+              aria-label="เลื่อนบทความซ้าย"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-all hover:bg-muted active:scale-95"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const track = document.getElementById("dashboard-article-carousel")
+                if (track) track.scrollBy({ left: 280, behavior: "smooth" })
+              }}
+              aria-label="เลื่อนบทความขวา"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div id="dashboard-article-carousel" className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth">
+          {recommendedArticles.map(article => (
+            <button
+              key={article.id}
+              type="button"
+              onClick={() => onOpenArticle?.(article.id) ?? onNavigate?.("articles")}
+              className="group w-[230px] sm:w-[260px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-background text-left shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/40"
+            >
+              <div className="relative h-28 overflow-hidden">
+                <Image
+                  src={article.image}
+                  alt={article.title}
+                  fill
+                  sizes="260px"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+              <div className="p-4">
+                <span className="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-black text-primary">
+                  {article.category}
+                </span>
+                <h3 className="mt-2 line-clamp-2 text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
+                  {article.title}
+                </h3>
+                <div className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-primary">
+                  อ่านต่อ <ArrowRight size={12} />
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 7. Recommended Products Carousel (Conditional Feature Flag) */}
+      {SHOW_RECOMMENDED_PRODUCTS && activeProducts.length > 0 && (
+        <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg sm:text-xl font-black text-foreground">ปุ๋ยและยาแนะนำ</h2>
+              <p className="text-xs sm:text-sm font-semibold text-muted-foreground">ปุ๋ย สารปรับปรุงดิน และสารป้องกันกำจัดศัตรูพืช</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                onClick={() => onOpenProducts?.()}
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-black text-primary hover:underline mr-2"
+              >
+                ดูสินค้าทั้งหมด <ArrowRight size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollProducts("left")}
+                aria-label="เลื่อนปุ๋ยและยาซ้าย"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-all hover:bg-muted active:scale-95"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollProducts("right")}
+                aria-label="เลื่อนปุ๋ยและยาขวา"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="dashboard-product-carousel"
+            className="flex w-full cursor-grab select-none gap-4 overflow-x-auto active:cursor-grabbing scrollbar-hide pb-2"
+            onMouseDown={event => startProductDrag(event.clientX)}
+            onMouseMove={event => moveProductDrag(event.clientX)}
+            onMouseUp={stopProductDrag}
+            onMouseLeave={stopProductDrag}
+            onTouchStart={event => startProductDrag(event.touches[0]?.clientX ?? 0)}
+            onTouchMove={event => moveProductDrag(event.touches[0]?.clientX ?? 0)}
+            onTouchEnd={stopProductDrag}
+            onScroll={event => normalizeProductScroll(event.currentTarget)}
+          >
+            {carouselProducts.map((product, index) => (
+              <button
+                key={`${product.id}-${index}`}
+                type="button"
+                onClick={() => onOpenProducts?.()}
+                className="group flex h-[18rem] w-[200px] sm:w-[220px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border/80 bg-background text-left shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/40"
+              >
+                <div className="relative h-28 overflow-hidden">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    sizes="220px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col p-3.5">
+                  <span className="inline-block w-fit text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                    {product.category}
+                  </span>
+                  <h3 className="mt-1.5 line-clamp-2 text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
+                    {product.name}
+                  </h3>
+                  {product.description && (
+                    <p className="mt-1 line-clamp-2 text-xs font-normal text-muted-foreground">
+                      {product.description}
+                    </p>
+                  )}
+                  <div className="mt-auto pt-2 inline-flex items-center gap-1.5 text-xs font-bold text-primary">
+                    ดูข้อมูลสินค้า <ExternalLink size={12} />
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 8. Location Editor Modal */}
       {showLocationEditor && (
-        <div ref={locationEditorRef} data-escapable-layer="true" className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/45 p-3 pt-5 backdrop-blur-sm sm:p-4 sm:pt-8">
-          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-4 shadow-2xl sm:p-5 max-h-[90vh] overflow-y-auto">
+        <div
+          ref={locationEditorRef}
+          data-escapable-layer="true"
+          className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-8 backdrop-blur-xs"
+        >
+          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-5 shadow-2xl">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h3 className="text-lg font-black text-foreground">เปลี่ยนสถานที่สวน</h3>
-                <p className="text-sm font-semibold text-muted-foreground">ค้นหา เลือกสถานที่ แล้วกดตกลงเพื่อบันทึก</p>
+                <h3 className="text-lg font-black text-foreground">ตั้งค่าตำแหน่งสวน</h3>
+                <p className="text-xs font-semibold text-muted-foreground">ค้นหาและเลือกอำเภอ/จังหวัดเพื่อดึงสภาพอากาศที่แม่นยำ</p>
               </div>
               <button
                 onClick={() => {
                   setShowLocationEditor(false)
                   setPendingLocation(null)
                 }}
-                className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 aria-label="ปิด"
               >
                 <X size={18} />
@@ -527,39 +1179,41 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
                 value={placeSearch}
                 onChange={event => setPlaceSearch(event.target.value)}
                 onKeyDown={event => event.key === "Enter" && handlePlaceSearch()}
-                placeholder="เช่น อำเภอหลังสวน ชุมพร"
-                className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                placeholder="เช่น ท่าใหม่ จันทบุรี, หลังสวน ชุมพร..."
+                className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3.5 py-2 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40"
               />
               <button
                 onClick={handlePlaceSearch}
                 disabled={searchingPlace || !placeSearch.trim()}
-                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-black text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="rounded-xl bg-primary px-4 py-2 text-sm font-black text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
               >
-                {searchingPlace ? "ค้น..." : "ค้นหา"}
+                {searchingPlace ? "ค้นหา..." : "ค้นหา"}
               </button>
             </div>
 
-            <div className="mt-3 max-h-56 overflow-y-auto rounded-2xl border border-border bg-background">
+            <div className="mt-3 max-h-52 overflow-y-auto rounded-2xl border border-border bg-background">
               {searchResults.length === 0 ? (
-                <div className="p-4 text-sm font-semibold text-muted-foreground">
-                  {pendingLocation ? "เลือกสถานที่แล้ว กดตกลงเพื่อบันทึก" : "พิมพ์ชื่อสถานที่เพื่อค้นหา"}
+                <div className="p-4 text-center text-xs font-semibold text-muted-foreground">
+                  {pendingLocation ? "เลือกสถานที่แล้ว กด 'บันทึก' ด้านล่าง" : "พิมพ์ชื่ออำเภอหรือจังหวัดเพื่อค้นหา"}
                 </div>
               ) : (
                 searchResults.map(result => {
                   const label = result.display_name.split(",").slice(0, 2).join(",").trim()
-                  const isSelected = pendingLocation?.lat === parseFloat(parseFloat(result.lat).toFixed(4))
-                    && pendingLocation?.lon === parseFloat(parseFloat(result.lon).toFixed(4))
+                  const isSelected =
+                    pendingLocation?.lat === parseFloat(parseFloat(result.lat).toFixed(4)) &&
+                    pendingLocation?.lon === parseFloat(parseFloat(result.lon).toFixed(4))
                   return (
                     <button
                       key={`${result.lat}-${result.lon}-${result.display_name}`}
                       onClick={() => selectPlace(result)}
-                      className={`flex w-full items-start gap-2 border-b border-border/60 px-3 py-3 text-left last:border-b-0 transition-colors ${isSelected ? "bg-[#E7F3EC] text-[#146B3E]" : "hover:bg-muted/60"
-                        }`}
+                      className={`flex w-full items-start gap-2 border-b border-border/60 px-3.5 py-2.5 text-left last:border-b-0 transition-colors ${
+                        isSelected ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                      }`}
                     >
-                      <MapPin size={16} className="mt-0.5 shrink-0" />
+                      <MapPin size={16} className="mt-0.5 shrink-0 text-primary" />
                       <div className="min-w-0">
                         <p className="line-clamp-1 text-sm font-black">{label}</p>
-                        <p className="line-clamp-1 text-xs font-semibold text-muted-foreground">{result.display_name}</p>
+                        <p className="line-clamp-1 text-xs font-medium text-muted-foreground">{result.display_name}</p>
                       </div>
                     </button>
                   )
@@ -568,8 +1222,8 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
             </div>
 
             {pendingLocation && (
-              <div className="mt-3 rounded-2xl bg-[#E7F3EC] px-3 py-2 text-sm font-black text-[#146B3E]">
-                เลือก: {pendingLocation.label}
+              <div className="mt-3 rounded-xl bg-primary/10 p-2.5 text-xs font-bold text-primary flex items-center gap-2">
+                <MapPin size={14} /> สถานที่ที่เลือก: {pendingLocation.label}
               </div>
             )}
 
@@ -579,373 +1233,17 @@ export default function Dashboard({ data, onNavigate, onOpenArticle, onOpenSetti
                   setShowLocationEditor(false)
                   setPendingLocation(null)
                 }}
-                className="flex-1 rounded-xl border border-border py-2.5 text-sm font-black text-muted-foreground transition-colors hover:bg-muted"
+                className="flex-1 rounded-xl border border-border py-2.5 text-xs font-black text-muted-foreground hover:bg-muted transition-colors"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={saveLocation}
                 disabled={!pendingLocation}
-                className="flex-1 rounded-xl bg-primary py-2.5 text-sm font-black text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="flex-1 rounded-xl bg-primary py-2.5 text-xs font-black text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-all"
               >
-                ตกลง
+                บันทึกตำแหน่ง
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/*
-        Mobile:  Banner → Tasks → Stats → Activities → Articles
-        Desktop: Banner → Stats → [Tasks | Activities] → Articles
-      */}
-      <div className="flex flex-col gap-5">
-        {/* Stats Grid — order-2 on mobile, order-1 on desktop */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 order-2 lg:order-1">
-          <StatCard onClick={() => onNavigate?.("plots")} icon={DurianIcon} label="ต้นทั้งหมด" value={`${totalTrees} ต้น`} color="text-primary" bgColor="bg-primary/10" />
-          <StatCard onClick={() => onNavigate?.("operations")} icon={ListTodo} label="งานต้องทำ" value={`${pendingTasks} งาน`} color="text-amber-600" bgColor="bg-amber-100" />
-          <StatCard onClick={() => onNavigate?.("finance")} icon={TrendingUp} label="รายรับเดือนนี้" value={`฿${thisMonthIncome.toLocaleString()}`} color="text-emerald-600" bgColor="bg-emerald-100" />
-          <StatCard onClick={() => onNavigate?.("finance")} icon={TrendingDown} label="รายจ่ายเดือนนี้" value={`฿${thisMonthExpense.toLocaleString()}`} color="text-rose-600" bgColor="bg-rose-100" />
-        </div>
-
-        {/* Tasks (mobile: order-1 / desktop: order-2 inside 2-col grid with Activities) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 xl:gap-6 items-stretch order-1 lg:order-2">
-          {/* Tasks card — always visible */}
-          <div
-            onClick={() => onNavigate?.("operations")}
-            className="orchard-card orchard-card-hover rounded-[32px] p-5 sm:p-6 xl:p-7 flex h-full min-h-[18rem] flex-col cursor-pointer"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <h3 className="font-bold text-foreground flex items-center gap-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-100 text-amber-600"><ListTodo size={18} /></span>งานที่ต้องทำ</h3>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={(e) => { e.stopPropagation(); setShowAddTask(v => !v); }}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-black transition-all ${
-                    showAddTask
-                      ? "bg-muted text-muted-foreground hover:bg-muted/80 shadow-sm"
-                      : "bg-primary text-primary-foreground shadow-[0_10px_24px_rgba(20,107,62,0.12)] hover:bg-[#0F5A34]"
-                  }`}
-                >
-                  {showAddTask ? <X size={14} /> : <Plus size={14} />}
-                  {showAddTask ? "ยกเลิก" : "เพิ่ม"}
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onNavigate?.("operations"); }}
-                  className="inline-flex items-center rounded-full px-4 py-2 text-sm font-black text-primary transition-colors hover:bg-[#E7F3EC]"
-                >
-                  ดูทั้งหมด
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Add Form */}
-            {showAddTask && (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="mb-3 bg-[#fff8e8] border border-amber-200 rounded-xl p-3 space-y-2 shadow-inner"
-              >
-                <input
-                  autoFocus
-                  value={quickForm.title}
-                  onChange={e => setQuickForm(f => ({ ...f, title: e.target.value }))}
-                  onKeyDown={e => e.key === "Enter" && handleQuickAdd()}
-                  placeholder="ชื่องาน..."
-                  className="w-full bg-white border border-border rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-400/50"
-                />
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
-                  <input
-                    type="date"
-                    value={quickForm.date}
-                    onChange={e => setQuickForm(f => ({ ...f, date: e.target.value }))}
-                    className="min-w-0 bg-white border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
-                  />
-                  <select
-                    value={quickForm.plotId}
-                    onChange={e => setQuickForm(f => ({ ...f, plotId: e.target.value }))}
-                    className="min-w-0 bg-white border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
-                  >
-                    {data.plots.length === 0
-                      ? <option value="">ยังไม่มีแปลง</option>
-                      : data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                  <select
-                    value={quickForm.priority}
-                    onChange={e => setQuickForm(f => ({ ...f, priority: e.target.value as Task["priority"] }))}
-                    className="min-w-0 bg-white border border-border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50"
-                  >
-                    <option value="high">สำคัญมาก</option>
-                    <option value="medium">ปานกลาง</option>
-                    <option value="low">ไม่เร่งด่วน</option>
-                  </select>
-                </div>
-                <button
-                  onClick={handleQuickAdd}
-                  className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-full py-2.5 text-sm font-black hover:bg-[#0F5A34] transition-colors shadow-[0_10px_24px_rgba(20,107,62,0.12)]"
-                >
-                  <Check size={15} /> บันทึกงาน
-                </button>
-              </div>
-            )}
-
-            {upcomingTasks.length > 0 ? (
-              <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
-                {upcomingTasks.map(t => (
-                  <TaskCard key={t.id} task={t} plotName={plotName(t.plotId)} plots={data.plots} updateTask={updateTask} deleteTask={deleteTask} />
-                ))}
-              </div>
-            ) : (
-              <div className="py-8 text-center">
-                <ListTodo size={32} className="text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">ไม่มีงานที่ต้องทำ</p>
-              </div>
-            )}
-          </div>
-
-          {/* Activities — desktop only (inside 2-col grid) */}
-          <div
-            className="hidden lg:block orchard-card orchard-card-hover rounded-[32px] p-5 sm:p-6 xl:p-7 cursor-pointer h-full min-h-[18rem]"
-            onClick={() => onNavigate?.("operations")}
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <h3 className="font-bold text-foreground flex items-center gap-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E7F3EC] text-primary"><ClipboardList size={18} /></span>บันทึกสวน</h3>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    localStorage.setItem("open_activity_form", "1")
-                    onNavigate?.("operations")
-                  }}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-black text-primary-foreground shadow-[0_10px_24px_rgba(20,107,62,0.12)] transition-colors hover:bg-[#0F5A34]"
-                >
-                  <Plus size={14} /> บันทึก
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onNavigate?.("operations") }}
-                  className="inline-flex items-center rounded-full px-4 py-2 text-sm font-black text-primary transition-colors hover:bg-[#E7F3EC]"
-                >ดูทั้งหมด</button>
-              </div>
-            </div>
-            {recentActivities.length > 0 ? (
-              <div className="space-y-1">
-                {recentActivities.map(a => {
-                  const Icon = ACTIVITY_ICONS[a.activityType] || ACTIVITY_ICONS.other
-                  return (
-                    <div key={a.id} className="flex items-center gap-3 py-2.5 border-b border-border/50 last:border-0 hover:bg-[#E7F3EC]/45 px-2 rounded-lg transition-colors">
-                      <div className={`p-2 rounded-lg bg-muted ${ACTIVITY_COLORS[a.activityType] || 'text-muted-foreground'}`}>
-                        <Icon size={18} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">{a.description}</p>
-                        <p className="text-xs text-muted-foreground">{plotName(a.plotId)} · {formatDate(a.date)}</p>
-                      </div>
-                      {a.cost > 0 && <span className="text-sm font-bold text-destructive shrink-0">฿{a.cost.toLocaleString()}</span>}
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="py-8 text-center">
-                <ClipboardList size={32} className="text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">ไม่มีบันทึกสวน</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Activities — mobile only (order-3, after Stats) */}
-        <div
-          className="lg:hidden orchard-card orchard-card-hover rounded-[32px] p-5 sm:p-6 cursor-pointer order-3"
-          onClick={() => onNavigate?.("operations")}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <h3 className="font-bold text-foreground flex items-center gap-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E7F3EC] text-primary"><ClipboardList size={18} /></span>บันทึกสวน</h3>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  localStorage.setItem("open_activity_form", "1")
-                  onNavigate?.("operations")
-                }}
-                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-black text-primary-foreground shadow-[0_10px_24px_rgba(20,107,62,0.12)] transition-colors hover:bg-[#0F5A34]"
-              >
-                <Plus size={14} /> บันทึก
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onNavigate?.("operations") }}
-                className="inline-flex items-center rounded-full px-4 py-2 text-sm font-black text-primary transition-colors hover:bg-[#E7F3EC]"
-              >ดูทั้งหมด</button>
-            </div>
-          </div>
-          {recentActivities.length > 0 ? (
-            <div className="space-y-1">
-              {recentActivities.map(a => {
-                const Icon = ACTIVITY_ICONS[a.activityType] || ACTIVITY_ICONS.other
-                return (
-                  <div key={a.id} className="flex items-center gap-3 py-2.5 border-b border-border/50 last:border-0 hover:bg-[#E7F3EC]/45 px-2 rounded-lg transition-colors">
-                    <div className={`p-2 rounded-lg bg-muted ${ACTIVITY_COLORS[a.activityType] || 'text-muted-foreground'}`}>
-                      <Icon size={18} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">{a.description}</p>
-                      <p className="text-xs text-muted-foreground">{plotName(a.plotId)} · {formatDate(a.date)}</p>
-                    </div>
-                    {a.cost > 0 && <span className="text-sm font-bold text-destructive shrink-0">฿{a.cost.toLocaleString()}</span>}
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="py-8 text-center">
-              <ClipboardList size={32} className="text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">ไม่มีบันทึกสวน</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Recommended Articles */}
-      <div className="mx-auto max-w-7xl rounded-[2rem] bg-card/60 backdrop-blur-md p-5 sm:p-6 shadow-[0_12px_40px_rgba(20,107,62,0.04)] border border-border/80 dark:border-border/30">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-2xl font-black text-foreground">บทความแนะนำ</h2>
-            <p className="text-sm font-bold text-muted-foreground">เริ่มจากความรู้เรื่องน้ำ โรค ปุ๋ย ดอก และตลาดทุเรียน</p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <button onClick={() => onNavigate?.("articles")} className="hidden items-center gap-2 text-sm font-black text-primary transition-colors hover:text-primary/80 sm:inline-flex">
-              ดูบทความทั้งหมด <ArrowRight size={16} />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const track = document.getElementById("dashboard-article-carousel")
-                if (track) track.scrollBy({ left: -300, behavior: "smooth" })
-              }}
-              aria-label="เลื่อนบทความซ้าย"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/80 bg-card text-primary transition-all hover:border-primary/30 hover:bg-muted active:scale-95"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const track = document.getElementById("dashboard-article-carousel")
-                if (track) track.scrollBy({ left: 300, behavior: "smooth" })
-              }}
-              aria-label="เลื่อนบทความขวา"
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md transition-all hover:bg-primary/95 hover:scale-105 active:scale-95"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-        </div>
-        <div id="dashboard-article-carousel" className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0">
-          {recommendedArticles.map(article => (
-            <button
-              key={article.id}
-              type="button"
-              onClick={() => onOpenArticle?.(article.id) ?? onNavigate?.("articles")}
-              className="group w-[240px] sm:w-[260px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30"
-            >
-              <div className="relative h-24 overflow-hidden sm:h-28">
-                <Image
-                  src={article.image}
-                  alt={article.title}
-                  fill
-                  sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 240px"
-                  className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.08]"
-                />
-              </div>
-              <div className="p-4">
-                <span className="rounded-lg bg-primary/10 px-2.5 py-0.5 text-xs font-black text-primary">{article.category}</span>
-                <h3 className="mt-2 line-clamp-2 text-sm font-black leading-snug text-foreground transition-colors group-hover:text-primary">
-                  {article.title}
-                </h3>
-                <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-extrabold text-primary transition-all duration-300">
-                  อ่านต่อ
-                  <ArrowRight size={12} />
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Products Carousel */}
-      {SHOW_RECOMMENDED_PRODUCTS && activeProducts.length > 0 && (
-        <div className="overflow-hidden rounded-[2rem] border border-border/80 bg-card/60 backdrop-blur-md py-6 shadow-[0_12px_40px_rgba(20,107,62,0.04)] dark:border-border/30">
-          <div className="mb-4 flex items-center justify-between gap-3 px-5 sm:px-6">
-            <div>
-              <h2 className="text-2xl font-black text-foreground">ปุ๋ยและยาแนะนำ</h2>
-              <p className="text-sm font-bold text-muted-foreground">รวมปุ๋ย ยา สารเคมี และอุปกรณ์ที่ใช้กับสวนทุเรียน</p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <button onClick={() => onOpenProducts?.()} className="hidden rounded-2xl border border-border bg-background/50 backdrop-blur-sm px-4 py-2 text-sm font-black text-primary transition-all hover:bg-primary hover:text-primary-foreground sm:inline-flex">
-                ดูทั้งหมด
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollProducts("left")}
-                aria-label="เลื่อนปุ๋ยและยาซ้าย"
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/80 bg-card text-primary transition-all hover:border-primary/30 hover:bg-muted active:scale-95"
-              >
-                <ChevronLeft size={22} />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollProducts("right")}
-                aria-label="เลื่อนปุ๋ยและยาขวา"
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md transition-all hover:bg-primary/95 hover:scale-105 active:scale-95"
-              >
-                <ChevronRight size={22} />
-              </button>
-            </div>
-          </div>
-          <div className="product-carousel-mask">
-            <div
-              id="dashboard-product-carousel"
-              className="product-carousel-track flex w-full cursor-grab select-none gap-4 overflow-x-auto px-5 active:cursor-grabbing sm:px-6 scrollbar-hide"
-              onMouseDown={event => startProductDrag(event.clientX)}
-              onMouseMove={event => moveProductDrag(event.clientX)}
-              onMouseUp={stopProductDrag}
-              onMouseLeave={stopProductDrag}
-              onTouchStart={event => startProductDrag(event.touches[0]?.clientX ?? 0)}
-              onTouchMove={event => moveProductDrag(event.touches[0]?.clientX ?? 0)}
-              onTouchEnd={stopProductDrag}
-              onScroll={event => normalizeProductScroll(event.currentTarget)}
-            >
-              {carouselProducts.map((product, index) => (
-                <button
-                  key={`${product.id}-${index}`}
-                  type="button"
-                  onClick={() => onOpenProducts?.()}
-                  className="group flex h-[18.5rem] w-[190px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm text-left shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lg hover:border-primary/30 sm:h-[19rem] sm:w-[220px]"
-                >
-                  <div className="h-24 overflow-hidden sm:h-28 relative">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      sizes="220px"
-                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
-                    />
-                  </div>
-                  <div className="flex flex-1 flex-col p-4">
-                    <span className="text-xs font-black text-primary bg-primary/10 px-2.5 py-0.5 rounded-lg">{product.category}</span>
-                    <h3 className="mt-2 min-h-[3.5rem] line-clamp-2 text-sm font-black leading-snug text-foreground transition-colors group-hover:text-primary">
-                      {product.name}
-                    </h3>
-                    {product.description && (
-                      <p className="mt-1.5 min-h-[2.5rem] line-clamp-2 text-xs font-semibold leading-relaxed text-muted-foreground">
-                        {product.description}
-                      </p>
-                    )}
-                    <div className="mt-auto inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-emerald-600 px-3.5 py-2 text-xs font-extrabold text-primary-foreground shadow-sm transition-all duration-300 group-hover:shadow-md">
-                      ดูสินค้า
-                      <ExternalLink size={12} />
-                    </div>
-                  </div>
-                </button>
-              ))}
             </div>
           </div>
         </div>

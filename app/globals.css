@@ -829,8 +829,8 @@
 @media (max-width: 639px) {
   .home-minimal {
     gap: 2.5rem;
-    padding-right: 0.75rem;
-    padding-left: 0.75rem;
+    padding-right: 0.75rem !important;
+    padding-left: 0.75rem !important;
   }
 
   .home-minimal .home-minimal-hero {
@@ -936,12 +936,90 @@
   transform: rotate(-4deg) scale(1.06);
 }
 
+.home-minimal .product-showcase {
+  position: relative;
+  min-width: 0;
+  isolation: isolate;
+}
+
+.home-minimal .knowledge-showcase {
+  position: relative;
+  min-width: 0;
+  isolation: isolate;
+}
+
+.home-minimal .knowledge-showcase .article-showcase-card {
+  border-color: rgba(255, 255, 255, 0.9) !important;
+  background: #ffffff;
+}
+
+.home-minimal {
+  overflow-x: hidden;
+  max-width: 80rem !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+.home-minimal > section {
+  overflow-x: hidden;
+}
+
 .home-minimal .product-rail {
+  overflow-y: hidden;
+}
+
+.home-minimal > section:not(.product-showcase),
+.home-minimal .home-minimal-hero {
+  overflow: hidden;
+}
+
+.home-minimal h1,
+.home-minimal h2,
+.home-minimal h3,
+.home-minimal p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.home-minimal .grid > button,
+.home-minimal .grid > article {
+  min-width: 0;
+}
+
+.home-minimal .grid > button img,
+.home-minimal .grid > article img {
+  max-width: 100%;
+}
+
+.home-minimal .product-showcase > div:first-child {
+  padding-right: 5.5rem;
+}
+
+.home-minimal .product-showcase > div:nth-child(2) {
+  position: absolute;
+  top: 1.75rem;
+  right: 2rem;
+  margin: 0;
+}
+
+@media (max-width: 639px) {
+  .home-minimal .product-showcase > div:first-child {
+    padding-right: 5rem;
+  }
+
+  .home-minimal .product-showcase > div:nth-child(2) {
+    top: 1rem;
+    right: 1rem;
+  }
+}
+
+.home-minimal .product-rail {
+  scrollbar-width: none !important;
   scrollbar-width: none !important;
   scrollbar-color: transparent transparent !important;
   -ms-overflow-style: none;
   touch-action: pan-x;
-  mask-image: linear-gradient(to right, transparent 0, black 1rem, black calc(100% - 1rem), transparent 100%);
+  overscroll-behavior-x: contain;
 }
 
 .home-minimal .product-rail::-webkit-scrollbar {
@@ -954,6 +1032,7 @@
 @media (min-width: 1024px) {
   .home-minimal .product-rail > button {
     min-width: calc((100% - 3.75rem) / 6);
+    flex: 0 0 calc((100% - 3.75rem) / 6);
   }
 }
 
