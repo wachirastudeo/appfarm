@@ -512,11 +512,11 @@ export default function Dashboard({
   }, [stageDistribution])
 
   return (
-    <div data-page="dashboard" className="space-y-6">
+    <div data-page="dashboard" className="space-y-5 sm:space-y-6">
       {/* 1. Hero & Weather Overview */}
       <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm transition-all">
         {/* Banner Cover Image */}
-        <div className="relative h-44 sm:h-52 lg:h-56 w-full overflow-hidden">
+        <div className="relative h-40 sm:h-52 lg:h-56 w-full overflow-hidden">
           <Image
             src={coverImage || "/images/durian-banner.avif"}
             alt="สวนทุเรียน"
@@ -528,12 +528,12 @@ export default function Dashboard({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
           
-          <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 text-white flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+          <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 text-white flex flex-col sm:flex-row sm:items-end justify-between gap-2.5">
             <div>
               <p className="text-xs sm:text-sm font-semibold text-emerald-300">
                 {new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </p>
-              <h1 className="mt-1 text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-sm">
+              <h1 className="mt-0.5 sm:mt-1 text-xl sm:text-3xl font-black tracking-tight text-white drop-shadow-sm">
                 สวัสดีคุณ{userName?.trim() || "ชาวสวน"}
               </h1>
             </div>
@@ -541,10 +541,10 @@ export default function Dashboard({
             {/* Farm Location Badge */}
             <button
               onClick={() => setShowLocationEditor(true)}
-              className="inline-flex w-fit items-center gap-2 rounded-xl bg-white/15 px-3.5 py-2 text-xs sm:text-sm font-bold text-white shadow-sm ring-1 ring-white/20 backdrop-blur-md transition-all hover:bg-white/25 active:scale-95"
+              className="inline-flex w-fit items-center gap-1.5 sm:gap-2 rounded-xl bg-white/15 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs sm:text-sm font-bold text-white shadow-sm ring-1 ring-white/20 backdrop-blur-md transition-all hover:bg-white/25 active:scale-95"
             >
-              <MapPin size={16} className="text-emerald-400 shrink-0" />
-              <span className="max-w-[14rem] sm:max-w-[18rem] truncate">
+              <MapPin size={15} className="text-emerald-400 shrink-0" />
+              <span className="max-w-[12rem] sm:max-w-[18rem] truncate">
                 {farmLocation ? farmLocation.label : "ตั้งค่าตำแหน่งสวน"}
               </span>
             </button>
@@ -552,22 +552,22 @@ export default function Dashboard({
         </div>
 
         {/* Weather Bar & Agri-Guidance inside Hero Card */}
-        <div className="border-t border-border/60 bg-muted/40 p-4 sm:p-5">
-          <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-4 items-center">
+        <div className="border-t border-border/60 bg-muted/40 p-3.5 sm:p-5">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-3 sm:gap-4 items-center">
             {/* Weather Metrics */}
             <div className="flex flex-wrap items-center gap-3 sm:gap-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20">
-                  <Sun size={24} />
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/20">
+                  <Sun size={22} className="sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-bold text-muted-foreground uppercase">อากาศวันนี้</p>
+                  <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase">อากาศวันนี้</p>
                   {weatherLoading ? (
-                    <Skeleton className="h-7 w-24 rounded-lg mt-0.5" />
+                    <Skeleton className="h-6 sm:h-7 w-20 sm:w-24 rounded-lg mt-0.5" />
                   ) : (
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-black text-foreground">{weather.temp}°C</span>
-                      <span className="text-sm font-bold text-muted-foreground">{weather.condition}</span>
+                    <div className="flex items-baseline gap-1.5 sm:gap-2">
+                      <span className="text-xl sm:text-2xl font-black text-foreground">{weather.temp}°C</span>
+                      <span className="text-xs sm:text-sm font-bold text-muted-foreground">{weather.condition}</span>
                     </div>
                   )}
                 </div>
@@ -575,31 +575,31 @@ export default function Dashboard({
 
               <div className="flex items-center gap-3 border-l border-border/60 pl-3 sm:pl-6">
                 <div className="text-left">
-                  <p className="text-[11px] font-bold text-muted-foreground">โอกาสฝน</p>
-                  <p className="text-sm font-extrabold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                    <CloudRain size={14} /> {weather.rain}%
+                  <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground">โอกาสฝน</p>
+                  <p className="text-xs sm:text-sm font-extrabold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                    <CloudRain size={13} /> {weather.rain}%
                   </p>
                 </div>
                 <div className="text-left border-l border-border/60 pl-3">
-                  <p className="text-[11px] font-bold text-muted-foreground">ความเร็วลม</p>
-                  <p className="text-sm font-extrabold text-foreground flex items-center gap-1">
-                    <Wind size={14} className="text-muted-foreground" /> {weather.wind} <span className="text-xs font-normal text-muted-foreground">กม./ชม.</span>
+                  <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground">ความเร็วลม</p>
+                  <p className="text-xs sm:text-sm font-extrabold text-foreground flex items-center gap-1">
+                    <Wind size={13} className="text-muted-foreground" /> {weather.wind} <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">กม./ชม.</span>
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Agri-Weather Guidance Alert */}
-            <div className={`flex items-start gap-2.5 rounded-2xl p-3 text-xs sm:text-sm font-semibold border ${
+            <div className={`flex items-start gap-2 rounded-2xl p-2.5 sm:p-3 text-xs sm:text-sm font-semibold border ${
               weatherAdvice.tone === "warning"
                 ? "bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/20"
                 : weatherAdvice.tone === "info"
                   ? "bg-blue-500/10 text-blue-800 dark:text-blue-300 border-blue-500/20"
                   : "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/20"
             }`}>
-              <Info size={18} className="shrink-0 mt-0.5" />
+              <Info size={16} className="shrink-0 mt-0.5" />
               <div className="min-w-0">
-                <span className="font-black mr-1">คำแนะนำสวนวันนี้:</span>
+                <span className="font-black mr-1">คำแนะนำสวน:</span>
                 <span>{weatherAdvice.text}</span>
               </div>
             </div>
@@ -607,22 +607,22 @@ export default function Dashboard({
 
           {/* 5-Day Forecast Row */}
           {forecastAlert && forecastAlert.days.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between gap-3 overflow-x-auto scrollbar-hide pb-1">
-              <span className="text-xs font-black text-muted-foreground shrink-0 uppercase tracking-wider">
+            <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-border/50 flex items-center justify-between gap-3 overflow-x-auto scrollbar-hide pb-1">
+              <span className="text-[11px] sm:text-xs font-black text-muted-foreground shrink-0 uppercase tracking-wider">
                 พยากรณ์ 5 วัน:
               </span>
-              <div className="flex gap-2 min-w-max">
+              <div className="flex gap-1.5 sm:gap-2 min-w-max">
                 {forecastAlert.days.map(day => {
                   const Icon = day.code >= 95 ? AlertTriangle : day.rain >= 45 ? CloudRain : CloudSun
                   return (
                     <div
                       key={day.date}
-                      className="flex items-center gap-2 rounded-xl bg-card border border-border/80 px-3 py-1.5 shadow-xs"
+                      className="flex items-center gap-1.5 sm:gap-2 rounded-xl bg-card border border-border/80 px-2.5 py-1 sm:px-3 sm:py-1.5 shadow-xs"
                     >
                       <span className="text-xs font-black text-foreground">{day.day}</span>
-                      <Icon size={14} className={day.code >= 95 ? "text-rose-500" : day.rain >= 45 ? "text-blue-500" : "text-amber-500"} />
+                      <Icon size={13} className={day.code >= 95 ? "text-rose-500" : day.rain >= 45 ? "text-blue-500" : "text-amber-500"} />
                       <span className="text-xs font-bold text-muted-foreground">{day.rain}%</span>
-                      <span className="text-[11px] font-medium text-muted-foreground">
+                      <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground">
                         {day.high ?? "–"}°/{day.low ?? "–"}°
                       </span>
                     </div>
@@ -634,76 +634,8 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* 2. Quick Action Hub (1-Tap Shortcuts for Orchard Operations) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <button
-          onClick={() => {
-            localStorage.setItem("open_activity_form", "1")
-            onNavigate?.("operations")
-          }}
-          className="group flex items-center gap-3 rounded-2xl border border-border/80 bg-card p-3.5 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/50 hover:bg-emerald-500/5 active:scale-[0.98]"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-            <Sprout size={20} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-black text-foreground truncate">บันทึกสวน</p>
-            <p className="text-xs font-medium text-muted-foreground truncate">ใส่ปุ๋ย/พ่นยา/รดน้ำ</p>
-          </div>
-        </button>
-
-        <button
-          onClick={() => setShowAddTask(v => !v)}
-          className="group flex items-center gap-3 rounded-2xl border border-border/80 bg-card p-3.5 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/50 hover:bg-amber-500/5 active:scale-[0.98]"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white transition-colors">
-            <ListTodo size={20} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-black text-foreground truncate">{showAddTask ? "ปิดฟอร์มงาน" : "เพิ่มงานด่วน"}</p>
-            <p className="text-xs font-medium text-muted-foreground truncate">นัดหมาย/วางแผน</p>
-          </div>
-        </button>
-
-        <button
-          onClick={() => onNavigate?.("finance")}
-          className="group flex items-center gap-3 rounded-2xl border border-border/80 bg-card p-3.5 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/5 active:scale-[0.98]"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-            <DollarSign size={20} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-black text-foreground truncate">บันทึกเงิน</p>
-            <p className="text-xs font-medium text-muted-foreground truncate">รายรับ-รายจ่าย</p>
-          </div>
-        </button>
-
-        <button
-          onClick={() => onNavigate?.("plots")}
-          className="group flex items-center gap-3 rounded-2xl border border-border/80 bg-card p-3.5 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/50 hover:bg-blue-500/5 active:scale-[0.98]"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-            <Layers size={20} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-black text-foreground truncate">จัดการแปลง</p>
-            <p className="text-xs font-medium text-muted-foreground truncate">{data.plots.length} แปลง · {totalTrees} ต้น</p>
-          </div>
-        </button>
-      </div>
-
-      {/* 3. Stats Grid with Net Profit Balance */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <StatCard
-          onClick={() => onNavigate?.("plots")}
-          icon={DurianIcon}
-          label="ต้นทุเรียนทั้งหมด"
-          value={`${totalTrees} ต้น`}
-          sub={`${totalArea} ไร่ (${data.plots.length} แปลง)`}
-          color="text-primary"
-          bgColor="bg-primary/10"
-        />
-
+      {/* 2. Stats Grid (จำนวนงานต่าง ๆ และตัวเลขสถิติ - ขึ้นมาก่อน) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           onClick={() => onNavigate?.("operations")}
           icon={ListTodo}
@@ -712,6 +644,16 @@ export default function Dashboard({
           sub={pendingTasks > 0 ? "มีงานที่ต้องติดตาม" : "จัดการเรียบร้อยทั้งหมด"}
           color="text-amber-600 dark:text-amber-400"
           bgColor="bg-amber-500/10"
+        />
+
+        <StatCard
+          onClick={() => onNavigate?.("plots")}
+          icon={DurianIcon}
+          label="ต้นทุเรียนทั้งหมด"
+          value={`${totalTrees} ต้น`}
+          sub={`${totalArea} ไร่ (${data.plots.length} แปลง)`}
+          color="text-primary"
+          bgColor="bg-primary/10"
         />
 
         <StatCard
@@ -729,9 +671,9 @@ export default function Dashboard({
           icon={TrendingDown}
           label="รายจ่ายเดือนนี้"
           value={`฿${thisMonthExpense.toLocaleString()}`}
-          sub={`คงเหลือสุทธิ: ฿${thisMonthNet.toLocaleString()}`}
+          sub={`คงเหลือ: ฿${thisMonthNet.toLocaleString()}`}
           badge={{
-            text: thisMonthNet >= 0 ? `+กำไร ฿${thisMonthNet.toLocaleString()}` : `-ติดลบ ฿${Math.abs(thisMonthNet).toLocaleString()}`,
+            text: thisMonthNet >= 0 ? `+฿${thisMonthNet.toLocaleString()}` : `-฿${Math.abs(thisMonthNet).toLocaleString()}`,
             positive: thisMonthNet >= 0,
           }}
           color="text-rose-600 dark:text-rose-400"
@@ -739,116 +681,90 @@ export default function Dashboard({
         />
       </div>
 
-      {/* 4. Durian Stage & Orchard Health Pulse Overview */}
-      {totalTrees > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Stage Progress Summary */}
-          <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-black text-foreground flex items-center gap-2">
-                <Sprout size={16} className="text-primary" />
-                ระยะพัฒนาการต้นทุเรียน
-              </h3>
-              <button
-                onClick={() => onNavigate?.("plots")}
-                className="text-xs font-bold text-primary hover:underline"
-              >
-                ดูรายละเอียด
-              </button>
-            </div>
-            
-            {topActiveStages.length > 0 ? (
-              <div className="space-y-2">
-                {topActiveStages.map(([stgKey, count]) => {
-                  const percent = Math.round((count / totalTrees) * 100)
-                  const label = FLOWER_STAGE_LABELS[stgKey as FlowerStage] || stgKey
-                  return (
-                    <div key={stgKey} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-foreground">{label}</span>
-                        <span className="font-bold text-muted-foreground">{count} ต้น ({percent}%)</span>
-                      </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full bg-primary transition-all duration-500"
-                          style={{ width: `${percent}%` }}
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground py-2">ยังไม่มีการบันทึกระยะต้น</p>
-            )}
+      {/* 3. Quick Action Hub (ปุ่มทางลัดสร้างงาน / บันทึกสวน / การเงิน / แปลง) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+        <button
+          onClick={() => setShowAddTask(v => !v)}
+          className="group flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/50 hover:bg-amber-500/5 active:scale-[0.98]"
+        >
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+            <ListTodo size={18} className="sm:w-5 sm:h-5" />
           </div>
-
-          {/* Orchard Health Pulse */}
-          <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-xs flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-black text-foreground flex items-center gap-2">
-                  <HeartPulse size={16} className="text-emerald-500" />
-                  ภาพรวมสุขภาพต้นไม้
-                </h3>
-                <span className="text-xs font-bold text-muted-foreground">ทั้งหมด {totalTrees} ต้น</span>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-2 text-center mt-2">
-                <div className="rounded-xl bg-emerald-500/10 p-2.5 border border-emerald-500/20">
-                  <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">สมบูรณ์ดี</p>
-                  <p className="text-lg font-black text-emerald-600 dark:text-emerald-300 mt-0.5">{healthCounts.good}</p>
-                </div>
-                <div className="rounded-xl bg-amber-500/10 p-2.5 border border-amber-500/20">
-                  <p className="text-xs font-bold text-amber-700 dark:text-amber-400">ปานกลาง</p>
-                  <p className="text-lg font-black text-amber-600 dark:text-amber-300 mt-0.5">{healthCounts.fair}</p>
-                </div>
-                <div className="rounded-xl bg-rose-500/10 p-2.5 border border-rose-500/20">
-                  <p className="text-xs font-bold text-rose-700 dark:text-rose-400">ต้องดูแลด่วน</p>
-                  <p className="text-lg font-black text-rose-600 dark:text-rose-300 mt-0.5">{healthCounts.poor}</p>
-                </div>
-              </div>
-            </div>
-
-            {healthCounts.poor > 0 ? (
-              <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mt-3 flex items-center gap-1.5">
-                <AlertTriangle size={14} /> มีต้นทุเรียน {healthCounts.poor} ต้น ที่ต้องตรวจรักษาโรค/แมลง
-              </p>
-            ) : (
-              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-3 flex items-center gap-1.5">
-                <Check size={14} /> สุขภาพต้นไม้โดยรวมอยู่ในเกณฑ์ดี
-              </p>
-            )}
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm font-black text-foreground truncate">{showAddTask ? "ปิดฟอร์มงาน" : "เพิ่มงานด่วน"}</p>
+            <p className="text-[11px] font-medium text-muted-foreground truncate">สร้างกำหนดการ</p>
           </div>
-        </div>
-      )}
+        </button>
 
-      {/* 5. Tasks & Activities Dual Column Section */}
+        <button
+          onClick={() => {
+            localStorage.setItem("open_activity_form", "1")
+            onNavigate?.("operations")
+          }}
+          className="group flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/50 hover:bg-emerald-500/5 active:scale-[0.98]"
+        >
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+            <Sprout size={18} className="sm:w-5 sm:h-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm font-black text-foreground truncate">บันทึกสวน</p>
+            <p className="text-[11px] font-medium text-muted-foreground truncate">ใส่ปุ๋ย/พ่นยา/รดน้ำ</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => onNavigate?.("finance")}
+          className="group flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/5 active:scale-[0.98]"
+        >
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+            <DollarSign size={18} className="sm:w-5 sm:h-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm font-black text-foreground truncate">บันทึกเงิน</p>
+            <p className="text-[11px] font-medium text-muted-foreground truncate">รายรับ-รายจ่าย</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => onNavigate?.("plots")}
+          className="group flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/50 hover:bg-blue-500/5 active:scale-[0.98]"
+        >
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+            <Layers size={18} className="sm:w-5 sm:h-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm font-black text-foreground truncate">จัดการแปลง</p>
+            <p className="text-[11px] font-medium text-muted-foreground truncate">{data.plots.length} แปลง · {totalTrees} ต้น</p>
+          </div>
+        </button>
+      </div>
+
+      {/* 4. Tasks (สร้างกำหนดการ) กับ Activities (บันทึกสวน) อยู่ต่อกันทันที */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
-        {/* Left Column: Tasks */}
-        <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        {/* Section 4.1: งานที่ต้องทำ & สร้างกำหนดการ */}
+        <div className="rounded-3xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
             <h3 className="font-black text-foreground text-base sm:text-lg flex items-center gap-2.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
                 <ListTodo size={18} />
               </span>
               งานที่ต้องทำ
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => setShowAddTask(v => !v)}
-                className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-black transition-all ${
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black transition-all ${
                   showAddTask
                     ? "bg-muted text-muted-foreground hover:bg-muted/80"
                     : "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
                 }`}
               >
                 {showAddTask ? <X size={14} /> : <Plus size={14} />}
-                {showAddTask ? "ยกเลิก" : "เพิ่มงาน"}
+                {showAddTask ? "ยกเลิก" : "สร้างกำหนดการ"}
               </button>
               <button
                 onClick={() => onNavigate?.("operations")}
-                className="inline-flex items-center text-xs font-black text-primary hover:underline px-2 py-1"
+                className="inline-flex items-center text-xs font-black text-primary hover:underline px-1.5 py-1"
               >
                 ดูทั้งหมด ({pendingTasks})
               </button>
@@ -857,8 +773,8 @@ export default function Dashboard({
 
           {/* Quick Add Task Form (Modern Nature Styled) */}
           {showAddTask && (
-            <div className="mb-4 rounded-2xl border border-primary/20 bg-muted/50 p-4 space-y-3 shadow-inner">
-              <p className="text-xs font-black text-foreground">สร้างงานใหม่</p>
+            <div className="mb-4 rounded-2xl border border-primary/20 bg-muted/50 p-3.5 sm:p-4 space-y-2.5 sm:space-y-3 shadow-inner">
+              <p className="text-xs font-black text-foreground">สร้างกำหนดการงานใหม่</p>
               <input
                 autoFocus
                 value={quickForm.title}
@@ -919,36 +835,36 @@ export default function Dashboard({
               ))}
             </div>
           ) : (
-            <div className="py-10 text-center rounded-2xl border border-dashed border-border/80 bg-muted/20">
-              <ListTodo size={36} className="text-muted-foreground/40 mx-auto mb-2" />
+            <div className="py-8 sm:py-10 text-center rounded-2xl border border-dashed border-border/80 bg-muted/20">
+              <ListTodo size={32} className="text-muted-foreground/40 mx-auto mb-1.5" />
               <p className="text-sm font-bold text-foreground">ไม่มีงานค้าง</p>
-              <p className="text-xs text-muted-foreground mt-0.5">กดปุ่ม "เพิ่มงาน" เพื่อสร้างกำหนดการใหม่</p>
+              <p className="text-xs text-muted-foreground mt-0.5">กดปุ่ม "สร้างกำหนดการ" เพื่อเพิ่มงานใหม่</p>
             </div>
           )}
         </div>
 
-        {/* Right Column: Activities */}
-        <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        {/* Section 4.2: บันทึกกิจกรรมสวน (อยู่ต่อกันทันที) */}
+        <div className="rounded-3xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
             <h3 className="font-black text-foreground text-base sm:text-lg flex items-center gap-2.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <ClipboardList size={18} />
               </span>
-              บันทึกกิจกรรมล่าสุด
+              บันทึกกิจกรรมสวนล่าสุด
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => {
                   localStorage.setItem("open_activity_form", "1")
                   onNavigate?.("operations")
                 }}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-black text-primary-foreground shadow-xs hover:bg-primary/90 transition-all"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-black text-primary-foreground shadow-xs hover:bg-primary/90 transition-all"
               >
                 <Plus size={14} /> บันทึกกิจกรรม
               </button>
               <button
                 onClick={() => onNavigate?.("operations")}
-                className="inline-flex items-center text-xs font-black text-primary hover:underline px-2 py-1"
+                className="inline-flex items-center text-xs font-black text-primary hover:underline px-1.5 py-1"
               >
                 ดูทั้งหมด
               </button>
@@ -963,14 +879,14 @@ export default function Dashboard({
                 return (
                   <div
                     key={a.id}
-                    className="flex items-center gap-3 p-3 rounded-2xl border border-border/60 bg-background/50 hover:bg-muted/50 transition-colors"
+                    className="flex items-center gap-3 p-2.5 sm:p-3 rounded-2xl border border-border/60 bg-background/50 hover:bg-muted/50 transition-colors"
                   >
-                    <div className={`p-2.5 rounded-xl ${colorClass} shrink-0`}>
-                      <Icon size={18} />
+                    <div className={`p-2 sm:p-2.5 rounded-xl ${colorClass} shrink-0`}>
+                      <Icon size={16} className="sm:w-[18px] sm:h-[18px]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-foreground truncate">{a.description}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-xs sm:text-sm font-bold text-foreground truncate">{a.description}</p>
+                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">
                         {plotName(a.plotId)} · {formatDate(a.date)}
                       </p>
                     </div>
@@ -984,8 +900,8 @@ export default function Dashboard({
               })}
             </div>
           ) : (
-            <div className="py-10 text-center rounded-2xl border border-dashed border-border/80 bg-muted/20">
-              <ClipboardList size={36} className="text-muted-foreground/40 mx-auto mb-2" />
+            <div className="py-8 sm:py-10 text-center rounded-2xl border border-dashed border-border/80 bg-muted/20">
+              <ClipboardList size={32} className="text-muted-foreground/40 mx-auto mb-1.5" />
               <p className="text-sm font-bold text-foreground">ยังไม่มีบันทึกกิจกรรม</p>
               <p className="text-xs text-muted-foreground mt-0.5">กด "บันทึกกิจกรรม" เพื่อเริ่มเก็บประวัติการดูแลสวน</p>
             </div>
@@ -993,14 +909,98 @@ export default function Dashboard({
         </div>
       </div>
 
+      {/* 5. Durian Stage & Orchard Health Pulse Overview */}
+      {totalTrees > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Stage Progress Summary */}
+          <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-black text-foreground flex items-center gap-2">
+                <Sprout size={16} className="text-primary" />
+                ระยะพัฒนาการต้นทุเรียน
+              </h3>
+              <button
+                onClick={() => onNavigate?.("plots")}
+                className="text-xs font-bold text-primary hover:underline"
+              >
+                ดูรายละเอียด
+              </button>
+            </div>
+            
+            {topActiveStages.length > 0 ? (
+              <div className="space-y-2">
+                {topActiveStages.map(([stgKey, count]) => {
+                  const percent = Math.round((count / totalTrees) * 100)
+                  const label = FLOWER_STAGE_LABELS[stgKey as FlowerStage] || stgKey
+                  return (
+                    <div key={stgKey} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-foreground">{label}</span>
+                        <span className="font-bold text-muted-foreground">{count} ต้น ({percent}%)</span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-primary transition-all duration-500"
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground py-2">ยังไม่มีการบันทึกระยะต้น</p>
+            )}
+          </div>
+
+          {/* Orchard Health Pulse */}
+          <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-black text-foreground flex items-center gap-2">
+                  <HeartPulse size={16} className="text-emerald-500" />
+                  ภาพรวมสุขภาพต้นไม้
+                </h3>
+                <span className="text-xs font-bold text-muted-foreground">ทั้งหมด {totalTrees} ต้น</span>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-2 text-center mt-2">
+                <div className="rounded-xl bg-emerald-500/10 p-2 sm:p-2.5 border border-emerald-500/20">
+                  <p className="text-[11px] sm:text-xs font-bold text-emerald-700 dark:text-emerald-400">สมบูรณ์ดี</p>
+                  <p className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-300 mt-0.5">{healthCounts.good}</p>
+                </div>
+                <div className="rounded-xl bg-amber-500/10 p-2 sm:p-2.5 border border-amber-500/20">
+                  <p className="text-[11px] sm:text-xs font-bold text-amber-700 dark:text-amber-400">ปานกลาง</p>
+                  <p className="text-base sm:text-lg font-black text-amber-600 dark:text-amber-300 mt-0.5">{healthCounts.fair}</p>
+                </div>
+                <div className="rounded-xl bg-rose-500/10 p-2 sm:p-2.5 border border-rose-500/20">
+                  <p className="text-[11px] sm:text-xs font-bold text-rose-700 dark:text-rose-400">ต้องดูแล</p>
+                  <p className="text-base sm:text-lg font-black text-rose-600 dark:text-rose-300 mt-0.5">{healthCounts.poor}</p>
+                </div>
+              </div>
+            </div>
+
+            {healthCounts.poor > 0 ? (
+              <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mt-3 flex items-center gap-1.5">
+                <AlertTriangle size={14} /> มีต้นทุเรียน {healthCounts.poor} ต้น ที่ต้องตรวจรักษาโรค/แมลง
+              </p>
+            ) : (
+              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-3 flex items-center gap-1.5">
+                <Check size={14} /> สุขภาพต้นไม้โดยรวมอยู่ในเกณฑ์ดี
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 6. Recommended Articles Carousel */}
-      <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-sm">
-        <div className="mb-5 flex items-center justify-between gap-4">
+      <div className="rounded-3xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm">
+        <div className="mb-4 sm:mb-5 flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <h2 className="text-lg sm:text-xl font-black text-foreground">บทความแนะนำสำหรับการดูแลสวน</h2>
+            <h2 className="text-base sm:text-xl font-black text-foreground">บทความแนะนำสำหรับการดูแลสวน</h2>
             <p className="text-xs sm:text-sm font-semibold text-muted-foreground">เทคนิคการทำดอก ดูแลระบบน้ำ จัดการโรค และตลาดทุเรียน</p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => onNavigate?.("articles")}
               className="hidden sm:inline-flex items-center gap-1.5 text-xs font-black text-primary hover:underline mr-2"
@@ -1014,9 +1014,9 @@ export default function Dashboard({
                 if (track) track.scrollBy({ left: -280, behavior: "smooth" })
               }}
               aria-label="เลื่อนบทความซ้าย"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-all hover:bg-muted active:scale-95"
+              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-all hover:bg-muted active:scale-95"
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
             </button>
             <button
               type="button"
@@ -1025,22 +1025,22 @@ export default function Dashboard({
                 if (track) track.scrollBy({ left: 280, behavior: "smooth" })
               }}
               aria-label="เลื่อนบทความขวา"
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
             >
-              <ChevronRight size={18} />
+              <ChevronRight size={16} className="sm:w-[18px] sm:h-[18px]" />
             </button>
           </div>
         </div>
 
-        <div id="dashboard-article-carousel" className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth">
+        <div id="dashboard-article-carousel" className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth">
           {recommendedArticles.map(article => (
             <button
               key={article.id}
               type="button"
               onClick={() => onOpenArticle?.(article.id) ?? onNavigate?.("articles")}
-              className="group w-[230px] sm:w-[260px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-background text-left shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/40"
+              className="group w-[210px] sm:w-[260px] shrink-0 overflow-hidden rounded-2xl border border-border/80 bg-background text-left shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/40"
             >
-              <div className="relative h-28 overflow-hidden">
+              <div className="relative h-24 sm:h-28 overflow-hidden">
                 <Image
                   src={article.image}
                   alt={article.title}
@@ -1049,14 +1049,14 @@ export default function Dashboard({
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
-              <div className="p-4">
-                <span className="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-black text-primary">
+              <div className="p-3.5 sm:p-4">
+                <span className="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-[10px] sm:text-[11px] font-black text-primary">
                   {article.category}
                 </span>
-                <h3 className="mt-2 line-clamp-2 text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
+                <h3 className="mt-1.5 sm:mt-2 line-clamp-2 text-xs sm:text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
                   {article.title}
                 </h3>
-                <div className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-primary">
+                <div className="mt-2.5 sm:mt-3 inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-primary">
                   อ่านต่อ <ArrowRight size={12} />
                 </div>
               </div>
@@ -1067,13 +1067,13 @@ export default function Dashboard({
 
       {/* 7. Recommended Products Carousel (Conditional Feature Flag) */}
       {SHOW_RECOMMENDED_PRODUCTS && activeProducts.length > 0 && (
-        <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-sm">
+        <div className="rounded-3xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg sm:text-xl font-black text-foreground">ปุ๋ยและยาแนะนำ</h2>
+              <h2 className="text-base sm:text-xl font-black text-foreground">ปุ๋ยและยาแนะนำ</h2>
               <p className="text-xs sm:text-sm font-semibold text-muted-foreground">ปุ๋ย สารปรับปรุงดิน และสารป้องกันกำจัดศัตรูพืช</p>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => onOpenProducts?.()}
                 className="hidden sm:inline-flex items-center gap-1.5 text-xs font-black text-primary hover:underline mr-2"
@@ -1084,24 +1084,24 @@ export default function Dashboard({
                 type="button"
                 onClick={() => scrollProducts("left")}
                 aria-label="เลื่อนปุ๋ยและยาซ้าย"
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-all hover:bg-muted active:scale-95"
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-all hover:bg-muted active:scale-95"
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
               </button>
               <button
                 type="button"
                 onClick={() => scrollProducts("right")}
                 aria-label="เลื่อนปุ๋ยและยาขวา"
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
               >
-                <ChevronRight size={18} />
+                <ChevronRight size={16} className="sm:w-[18px] sm:h-[18px]" />
               </button>
             </div>
           </div>
 
           <div
             id="dashboard-product-carousel"
-            className="flex w-full cursor-grab select-none gap-4 overflow-x-auto active:cursor-grabbing scrollbar-hide pb-2"
+            className="flex w-full cursor-grab select-none gap-3 sm:gap-4 overflow-x-auto active:cursor-grabbing scrollbar-hide pb-2"
             onMouseDown={event => startProductDrag(event.clientX)}
             onMouseMove={event => moveProductDrag(event.clientX)}
             onMouseUp={stopProductDrag}
@@ -1116,9 +1116,9 @@ export default function Dashboard({
                 key={`${product.id}-${index}`}
                 type="button"
                 onClick={() => onOpenProducts?.()}
-                className="group flex h-[18rem] w-[200px] sm:w-[220px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border/80 bg-background text-left shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/40"
+                className="group flex h-[17.5rem] sm:h-[18rem] w-[185px] sm:w-[220px] shrink-0 flex-col overflow-hidden rounded-2xl border border-border/80 bg-background text-left shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/40"
               >
-                <div className="relative h-28 overflow-hidden">
+                <div className="relative h-24 sm:h-28 overflow-hidden">
                   <Image
                     src={product.image}
                     alt={product.name}
@@ -1127,11 +1127,11 @@ export default function Dashboard({
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
-                <div className="flex flex-1 flex-col p-3.5">
-                  <span className="inline-block w-fit text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                <div className="flex flex-1 flex-col p-3 sm:p-3.5">
+                  <span className="inline-block w-fit text-[10px] sm:text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-md">
                     {product.category}
                   </span>
-                  <h3 className="mt-1.5 line-clamp-2 text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
+                  <h3 className="mt-1.5 line-clamp-2 text-xs sm:text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
                     {product.name}
                   </h3>
                   {product.description && (
@@ -1139,7 +1139,7 @@ export default function Dashboard({
                       {product.description}
                     </p>
                   )}
-                  <div className="mt-auto pt-2 inline-flex items-center gap-1.5 text-xs font-bold text-primary">
+                  <div className="mt-auto pt-2 inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-primary">
                     ดูข้อมูลสินค้า <ExternalLink size={12} />
                   </div>
                 </div>
