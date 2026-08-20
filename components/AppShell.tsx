@@ -1460,7 +1460,7 @@ export default function AppShell() {
 
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => updateCurrentUser({ farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
+        return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} addActivity={store.addActivity} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => updateCurrentUser({ farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
       case "plots":
         return (
           <PlotManagement
@@ -1494,10 +1494,10 @@ export default function AppShell() {
       case "articles":
         return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} savedArticleIds={user?.savedArticleIds} savedArticlesStorageKey={user?.id ? `durian_saved_articles_${user.id}` : "durian_saved_articles_guest"} onSavedArticleIdsChange={savedArticleIds => user ? store.updateUser(user.id, { savedArticleIds }) : Promise.resolve()} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
       case "linebot":
-        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => updateCurrentUser({ farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
+        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} addActivity={store.addActivity} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => updateCurrentUser({ farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
         return <LineBot />
       case "admin":
-        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => updateCurrentUser({ farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
+        if (user?.role !== "admin") return <Dashboard data={store.data} onNavigate={setActiveTab} onOpenArticle={openArticles} onOpenSettings={() => setShowSettings(true)} onOpenProducts={openProducts} updateTask={store.updateTask} deleteTask={store.deleteTask} addTask={store.addTask} addActivity={store.addActivity} farmLocation={farmLocation} locationStorageKey={locationStorageKey} onUpdateFarmLocation={farmLocation => updateCurrentUser({ farmLocation })} coverImage={farmCoverImage} coverPosition={farmCoverPosition} userName={user?.name} />
         return (
           <AdminPanel
             users={store.data.users}

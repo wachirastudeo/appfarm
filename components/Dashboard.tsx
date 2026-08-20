@@ -1,6 +1,6 @@
 "use client"
 import { useMemo, useState, useEffect, useRef } from "react"
-import { AppData, Task, FLOWER_STAGE_LABELS, FlowerStage } from "@/lib/store"
+import { AppData, Task, ActivityType, ACTIVITY_LABELS, FLOWER_STAGE_LABELS, FlowerStage } from "@/lib/store"
 import { validateDate, validateText } from "@/lib/form-validation"
 import {
   Droplets, Wind, TrendingUp, TrendingDown, ListTodo, Sun, CloudSun, CloudRain,
@@ -24,6 +24,7 @@ interface Props {
   updateTask: (id: string, updates: Partial<Task>) => void
   deleteTask: (id: string) => void
   addTask: (task: Omit<Task, "id">) => void
+  addActivity: (activity: Omit<import("@/lib/store").Activity, "id">) => void
   farmLocation: FarmLocation | null
   locationStorageKey: string
   onUpdateFarmLocation: (location: FarmLocation) => Promise<void>
@@ -54,7 +55,7 @@ function StatCard({
   return (
     <div
       onClick={onClick}
-      className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs transition-all duration-300 ${
+      className={`dashboard-stat-card group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs transition-all duration-300 ${
         onClick ? "cursor-pointer hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:scale-[0.99]" : ""
       }`}
     >
@@ -139,6 +140,7 @@ export default function Dashboard({
   updateTask,
   deleteTask,
   addTask,
+  addActivity,
   farmLocation,
   locationStorageKey,
   onUpdateFarmLocation,
@@ -167,6 +169,7 @@ export default function Dashboard({
   const [pendingLocation, setPendingLocation] = useState<FarmLocation | null>(null)
   const [searchingPlace, setSearchingPlace] = useState(false)
   const locationEditorRef = useRef<HTMLDivElement | null>(null)
+  const entryModalRef = useRef<HTMLDivElement | null>(null)
 
   // Recommended Articles
   const recommendedArticles = useMemo(() => {
@@ -409,8 +412,8 @@ export default function Dashboard({
     return d.toLocaleDateString("th-TH", { day: "numeric", month: "short" })
   }
 
-  // Quick Task Form
-  const [showAddTask, setShowAddTask] = useState(false)
+  // Dashboard quick-entry modal shared by tasks and activities.
+  const [entryModal, setEntryModal] = useState<"task" | "activity" | null>(null)
   const [quickForm, setQuickForm] = useState({
     title: "",
     date: new Date().toISOString().split("T")[0],
@@ -435,7 +438,7 @@ export default function Dashboard({
 
     if (!plotId) {
       alert("ยังไม่มีแปลงทุเรียน กรุณาเพิ่มแปลงก่อนจึงจะบันทึกงานได้")
-      setShowAddTask(false)
+      setEntryModal(null)
       onNavigate?.("plots")
       return
     }
@@ -453,7 +456,46 @@ export default function Dashboard({
       status: "pending",
     })
     setQuickForm({ title: "", date: new Date().toISOString().split("T")[0], plotId: data.plots[0]?.id ?? "", priority: "medium" })
-    setShowAddTask(false)
+    setEntryModal(null)
+  }
+
+  const [activityForm, setActivityForm] = useState({
+    date: new Date().toISOString().split("T")[0],
+    plotId: data.plots[0]?.id ?? "",
+    activityType: "fertilize" as ActivityType,
+    description: "",
+  })
+
+  useEscapeToClose({
+    enabled: entryModal !== null,
+    onEscape: () => setEntryModal(null),
+    containerRef: entryModalRef,
+  })
+
+  useEffect(() => {
+    if (data.plots.length > 0 && !data.plots.some(plot => plot.id === activityForm.plotId)) {
+      setActivityForm(form => ({ ...form, plotId: data.plots[0].id }))
+    }
+  }, [activityForm.plotId, data.plots])
+
+  const handleQuickActivityAdd = () => {
+    const description = validateText("รายละเอียด", activityForm.description, { required: true, maxLength: 500, allowMultiline: true })
+    const date = validateDate("วันที่", activityForm.date)
+    if (!description.ok || !date.ok) {
+      alert(!description.ok ? description.message : date.message)
+      return
+    }
+
+    addActivity({
+      date: new Date(date.value).toISOString(),
+      plotId: activityForm.plotId,
+      activityType: activityForm.activityType,
+      description: description.value,
+      cost: 0,
+      createdAt: new Date().toISOString(),
+    })
+    setActivityForm({ date: new Date().toISOString().split("T")[0], plotId: data.plots[0]?.id ?? "", activityType: "fertilize", description: "" })
+    setEntryModal(null)
   }
 
   const handlePlaceSearch = async () => {
@@ -514,7 +556,7 @@ export default function Dashboard({
   return (
     <div data-page="dashboard" className="space-y-5 sm:space-y-6">
       {/* 1. Hero & Weather Overview */}
-      <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm transition-all">
+      <div className="dashboard-hero relative overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm transition-all">
         {/* Banner Cover Image */}
         <div className="relative h-40 sm:h-52 lg:h-56 w-full overflow-hidden">
           <Image
@@ -552,7 +594,7 @@ export default function Dashboard({
         </div>
 
         {/* Weather Bar & Agri-Guidance inside Hero Card */}
-        <div className="border-t border-border/60 bg-muted/40 p-3.5 sm:p-5">
+        <div className="dashboard-weather border-t border-border/60 bg-muted/40 p-3.5 sm:p-5">
           <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-3 sm:gap-4 items-center">
             {/* Weather Metrics */}
             <div className="flex flex-wrap items-center gap-3 sm:gap-6">
@@ -684,24 +726,23 @@ export default function Dashboard({
       {/* 3. Quick Action Hub (ปุ่มทางลัดสร้างงาน / บันทึกสวน / การเงิน / แปลง) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
         <button
-          onClick={() => setShowAddTask(v => !v)}
-          className="group flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/50 hover:bg-amber-500/5 active:scale-[0.98]"
+          onClick={() => setEntryModal("task")}
+          className="dashboard-quick-action group flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/50 hover:bg-amber-500/5 active:scale-[0.98]"
         >
           <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white transition-colors">
             <ListTodo size={18} className="sm:w-5 sm:h-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs sm:text-sm font-black text-foreground truncate">{showAddTask ? "ปิดฟอร์มงาน" : "เพิ่มงานด่วน"}</p>
+            <p className="text-xs sm:text-sm font-black text-foreground truncate">เพิ่มงานด่วน</p>
             <p className="text-[11px] font-medium text-muted-foreground truncate">สร้างกำหนดการ</p>
           </div>
         </button>
 
         <button
           onClick={() => {
-            localStorage.setItem("open_activity_form", "1")
-            onNavigate?.("operations")
+            setEntryModal("activity")
           }}
-          className="group flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/50 hover:bg-emerald-500/5 active:scale-[0.98]"
+          className="dashboard-quick-action group flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/50 hover:bg-emerald-500/5 active:scale-[0.98]"
         >
           <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
             <Sprout size={18} className="sm:w-5 sm:h-5" />
@@ -714,7 +755,7 @@ export default function Dashboard({
 
         <button
           onClick={() => onNavigate?.("finance")}
-          className="group flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/5 active:scale-[0.98]"
+          className="dashboard-quick-action group flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/5 active:scale-[0.98]"
         >
           <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
             <DollarSign size={18} className="sm:w-5 sm:h-5" />
@@ -727,7 +768,7 @@ export default function Dashboard({
 
         <button
           onClick={() => onNavigate?.("plots")}
-          className="group flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/50 hover:bg-blue-500/5 active:scale-[0.98]"
+          className="dashboard-quick-action group flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/50 hover:bg-blue-500/5 active:scale-[0.98]"
         >
           <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
             <Layers size={18} className="sm:w-5 sm:h-5" />
@@ -742,7 +783,7 @@ export default function Dashboard({
       {/* 4. Tasks (สร้างกำหนดการ) กับ Activities (บันทึกสวน) อยู่ต่อกันทันที */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
         {/* Section 4.1: งานที่ต้องทำ & สร้างกำหนดการ */}
-        <div className="rounded-3xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm">
+        <div className="dashboard-panel rounded-3xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
             <h3 className="font-black text-foreground text-base sm:text-lg flex items-center gap-2.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
@@ -752,15 +793,10 @@ export default function Dashboard({
             </h3>
             <div className="flex items-center gap-1.5 sm:gap-2">
               <button
-                onClick={() => setShowAddTask(v => !v)}
-                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black transition-all ${
-                  showAddTask
-                    ? "bg-muted text-muted-foreground hover:bg-muted/80"
-                    : "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
-                }`}
+                onClick={() => setEntryModal("task")}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-black text-primary-foreground shadow-xs transition-all hover:bg-primary/90"
               >
-                {showAddTask ? <X size={14} /> : <Plus size={14} />}
-                {showAddTask ? "ยกเลิก" : "สร้างกำหนดการ"}
+                <Plus size={14} /> สร้างกำหนดการ
               </button>
               <button
                 onClick={() => onNavigate?.("operations")}
@@ -770,55 +806,6 @@ export default function Dashboard({
               </button>
             </div>
           </div>
-
-          {/* Quick Add Task Form (Modern Nature Styled) */}
-          {showAddTask && (
-            <div className="mb-4 rounded-2xl border border-primary/20 bg-muted/50 p-3.5 sm:p-4 space-y-2.5 sm:space-y-3 shadow-inner">
-              <p className="text-xs font-black text-foreground">สร้างกำหนดการงานใหม่</p>
-              <input
-                autoFocus
-                value={quickForm.title}
-                onChange={e => setQuickForm(f => ({ ...f, title: e.target.value }))}
-                onKeyDown={e => e.key === "Enter" && handleQuickAdd()}
-                placeholder="ระบุชื่องาน เช่น รดน้ำแปลงบน, พ่นยากำจัดเพลี้ย..."
-                className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/40"
-              />
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <input
-                  type="date"
-                  value={quickForm.date}
-                  onChange={e => setQuickForm(f => ({ ...f, date: e.target.value }))}
-                  className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40"
-                />
-                <select
-                  value={quickForm.plotId}
-                  onChange={e => setQuickForm(f => ({ ...f, plotId: e.target.value }))}
-                  className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40"
-                >
-                  {data.plots.length === 0 ? (
-                    <option value="">ยังไม่มีแปลง</option>
-                  ) : (
-                    data.plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
-                  )}
-                </select>
-                <select
-                  value={quickForm.priority}
-                  onChange={e => setQuickForm(f => ({ ...f, priority: e.target.value as Task["priority"] }))}
-                  className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40"
-                >
-                  <option value="high">สำคัญมาก (ด่วน)</option>
-                  <option value="medium">ปานกลาง</option>
-                  <option value="low">ทั่วไป</option>
-                </select>
-              </div>
-              <button
-                onClick={handleQuickAdd}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-2 text-xs sm:text-sm font-black text-primary-foreground shadow-xs hover:bg-primary/90 transition-all"
-              >
-                <Check size={16} /> บันทึกงาน
-              </button>
-            </div>
-          )}
 
           {/* Task List */}
           {upcomingTasks.length > 0 ? (
@@ -838,13 +825,13 @@ export default function Dashboard({
             <div className="py-8 sm:py-10 text-center rounded-2xl border border-dashed border-border/80 bg-muted/20">
               <ListTodo size={32} className="text-muted-foreground/40 mx-auto mb-1.5" />
               <p className="text-sm font-bold text-foreground">ไม่มีงานค้าง</p>
-              <p className="text-xs text-muted-foreground mt-0.5">กดปุ่ม "สร้างกำหนดการ" เพื่อเพิ่มงานใหม่</p>
+              <p className="text-xs text-muted-foreground mt-0.5">กดปุ่ม &quot;สร้างกำหนดการ&quot; เพื่อเพิ่มงานใหม่</p>
             </div>
           )}
         </div>
 
         {/* Section 4.2: บันทึกกิจกรรมสวน (อยู่ต่อกันทันที) */}
-        <div className="rounded-3xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm">
+        <div className="dashboard-panel rounded-3xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
             <h3 className="font-black text-foreground text-base sm:text-lg flex items-center gap-2.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -855,8 +842,7 @@ export default function Dashboard({
             <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={() => {
-                  localStorage.setItem("open_activity_form", "1")
-                  onNavigate?.("operations")
+                  setEntryModal("activity")
                 }}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-black text-primary-foreground shadow-xs hover:bg-primary/90 transition-all"
               >
@@ -903,7 +889,7 @@ export default function Dashboard({
             <div className="py-8 sm:py-10 text-center rounded-2xl border border-dashed border-border/80 bg-muted/20">
               <ClipboardList size={32} className="text-muted-foreground/40 mx-auto mb-1.5" />
               <p className="text-sm font-bold text-foreground">ยังไม่มีบันทึกกิจกรรม</p>
-              <p className="text-xs text-muted-foreground mt-0.5">กด "บันทึกกิจกรรม" เพื่อเริ่มเก็บประวัติการดูแลสวน</p>
+              <p className="text-xs text-muted-foreground mt-0.5">กด &quot;บันทึกกิจกรรม&quot; เพื่อเริ่มเก็บประวัติการดูแลสวน</p>
             </div>
           )}
         </div>
@@ -994,7 +980,7 @@ export default function Dashboard({
       )}
 
       {/* 6. Recommended Articles Carousel */}
-      <div className="rounded-3xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm">
+      <div className="dashboard-panel rounded-3xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm">
         <div className="mb-4 sm:mb-5 flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
             <h2 className="text-base sm:text-xl font-black text-foreground">บทความแนะนำสำหรับการดูแลสวน</h2>
@@ -1067,7 +1053,7 @@ export default function Dashboard({
 
       {/* 7. Recommended Products Carousel (Conditional Feature Flag) */}
       {SHOW_RECOMMENDED_PRODUCTS && activeProducts.length > 0 && (
-        <div className="rounded-3xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm">
+        <div className="dashboard-panel rounded-3xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-base sm:text-xl font-black text-foreground">ปุ๋ยและยาแนะนำ</h2>
@@ -1145,6 +1131,100 @@ export default function Dashboard({
                 </div>
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {entryModal && (
+        <div
+          ref={entryModalRef}
+          data-escapable-layer="true"
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+          onClick={() => setEntryModal(null)}
+        >
+          <div className="w-full max-w-lg rounded-3xl border border-[#B9DCC8] bg-card p-5 shadow-2xl" onClick={event => event.stopPropagation()}>
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-primary">บันทึกข้อมูลสวน</p>
+                <h3 className="mt-1 text-lg font-black text-foreground">
+                  {entryModal === "task" ? "สร้างกำหนดการใหม่" : "บันทึกกิจกรรมสวน"}
+                </h3>
+                <p className="mt-1 text-xs font-semibold text-muted-foreground">กรอกข้อมูลสั้น ๆ แล้วบันทึกได้ทันที</p>
+              </div>
+              <button type="button" onClick={() => setEntryModal(null)} className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="ปิด">
+                <X size={18} />
+              </button>
+            </div>
+
+            {entryModal === "task" ? (
+              <div className="space-y-3">
+                <input
+                  autoFocus
+                  value={quickForm.title}
+                  onChange={event => setQuickForm(form => ({ ...form, title: event.target.value }))}
+                  onKeyDown={event => event.key === "Enter" && handleQuickAdd()}
+                  placeholder="เช่น รดน้ำแปลงบน, พ่นยากำจัดเพลี้ย..."
+                  className="w-full rounded-xl border border-border bg-background px-3.5 py-3 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <label className="space-y-1.5 text-xs font-black text-muted-foreground">
+                    วันที่
+                    <input type="date" value={quickForm.date} onChange={event => setQuickForm(form => ({ ...form, date: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40" />
+                  </label>
+                  <label className="space-y-1.5 text-xs font-black text-muted-foreground">
+                    แปลง
+                    <select value={quickForm.plotId} onChange={event => setQuickForm(form => ({ ...form, plotId: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40">
+                      {data.plots.length === 0 ? <option value="">ยังไม่มีแปลง</option> : data.plots.map(plot => <option key={plot.id} value={plot.id}>{plot.name}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <label className="space-y-1.5 text-xs font-black text-muted-foreground">
+                  ความสำคัญ
+                  <select value={quickForm.priority} onChange={event => setQuickForm(form => ({ ...form, priority: event.target.value as Task["priority"] }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40">
+                    <option value="high">สำคัญมาก (ด่วน)</option>
+                    <option value="medium">ปานกลาง</option>
+                    <option value="low">ทั่วไป</option>
+                  </select>
+                </label>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <label className="space-y-1.5 text-xs font-black text-muted-foreground">
+                    วันที่
+                    <input type="date" value={activityForm.date} onChange={event => setActivityForm(form => ({ ...form, date: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40" />
+                  </label>
+                  <label className="space-y-1.5 text-xs font-black text-muted-foreground">
+                    แปลง
+                    <select value={activityForm.plotId} onChange={event => setActivityForm(form => ({ ...form, plotId: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40">
+                      <option value="">ไม่ระบุแปลง</option>
+                      {data.plots.map(plot => <option key={plot.id} value={plot.id}>{plot.name}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <label className="space-y-1.5 text-xs font-black text-muted-foreground">
+                  ประเภทกิจกรรม
+                  <select value={activityForm.activityType} onChange={event => setActivityForm(form => ({ ...form, activityType: event.target.value as ActivityType }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40">
+                    {(Object.keys(ACTIVITY_LABELS) as ActivityType[]).map(type => <option key={type} value={type}>{ACTIVITY_LABELS[type]}</option>)}
+                  </select>
+                </label>
+                <textarea
+                  autoFocus
+                  value={activityForm.description}
+                  onChange={event => setActivityForm(form => ({ ...form, description: event.target.value }))}
+                  placeholder="เช่น ใส่ปุ๋ยสูตร 15-15-15 ให้แปลง A..."
+                  rows={3}
+                  className="w-full resize-none rounded-xl border border-border bg-background px-3.5 py-3 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                />
+              </div>
+            )}
+
+            <div className="mt-5 flex gap-2">
+              <button type="button" onClick={() => setEntryModal(null)} className="flex-1 rounded-xl border border-border py-2.5 text-sm font-black text-muted-foreground transition-colors hover:bg-muted">ยกเลิก</button>
+              <button type="button" onClick={entryModal === "task" ? handleQuickAdd : handleQuickActivityAdd} className="flex-1 rounded-xl bg-primary py-2.5 text-sm font-black text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 active:scale-[0.98]">
+                <Check size={16} className="mr-1.5 inline-block" /> บันทึกข้อมูล
+              </button>
+            </div>
           </div>
         </div>
       )}
