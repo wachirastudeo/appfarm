@@ -1142,89 +1142,108 @@ export default function Dashboard({
           className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
           onClick={() => setEntryModal(null)}
         >
-          <div className="w-full max-w-lg rounded-3xl border border-[#B9DCC8] bg-card p-5 shadow-2xl" onClick={event => event.stopPropagation()}>
+          <div className="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-3xl border border-border bg-card p-5 shadow-2xl sm:p-6" onClick={event => event.stopPropagation()}>
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
                 <p className="text-[11px] font-black uppercase tracking-[0.16em] text-primary">บันทึกข้อมูลสวน</p>
-                <h3 className="mt-1 text-lg font-black text-foreground">
-                  {entryModal === "task" ? "สร้างกำหนดการใหม่" : "บันทึกกิจกรรมสวน"}
+                <h3 id="entry-title" className="mt-1 text-lg font-black text-foreground">
+                  {entryModal === "task" ? "วางแผนงานที่ต้องทำ" : "บันทึกงานที่ทำแล้ว"}
                 </h3>
-                <p className="mt-1 text-xs font-semibold text-muted-foreground">กรอกข้อมูลสั้น ๆ แล้วบันทึกได้ทันที</p>
+                <p id="entry-help" className="mt-2 text-sm leading-relaxed text-muted-foreground">{entryModal === "task" ? "เพิ่มงานพร้อมวันที่นัดหมาย เพื่อติดตามสิ่งที่ยังต้องทำในสวน" : "จดสิ่งที่ทำเสร็จแล้ว เพื่อเก็บประวัติการดูแลสวน"}</p>
               </div>
-              <button type="button" onClick={() => setEntryModal(null)} className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="ปิด">
+              <button type="button" onClick={() => setEntryModal(null)} className="flex min-h-11 min-w-11 items-center justify-center rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" aria-label="ปิด">
                 <X size={18} />
               </button>
             </div>
 
+            <form aria-labelledby="entry-title" aria-describedby="entry-help" onSubmit={event => {
+              event.preventDefault()
+              if (entryModal === "task") handleQuickAdd()
+              else handleQuickActivityAdd()
+            }}>
+            <p className="mb-4 rounded-xl bg-primary/5 px-3 py-2 text-xs leading-relaxed text-muted-foreground">ช่องที่มี * จำเป็นต้องกรอก</p>
             {entryModal === "task" ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
+                <label className="block space-y-1.5 text-sm font-bold text-foreground">
+                  <span>ชื่องานที่ต้องทำ *</span>
                 <input
+                  name="title"
+                  required
+                  maxLength={160}
                   autoFocus
                   value={quickForm.title}
                   onChange={event => setQuickForm(form => ({ ...form, title: event.target.value }))}
-                  onKeyDown={event => event.key === "Enter" && handleQuickAdd()}
                   placeholder="เช่น รดน้ำแปลงบน, พ่นยากำจัดเพลี้ย..."
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-3 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                  className="w-full rounded-xl border border-border bg-background px-3.5 py-3 min-h-12 min-w-0 text-base font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/40"
                 />
+                </label>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <label className="space-y-1.5 text-xs font-black text-muted-foreground">
-                    วันที่
-                    <input type="date" value={quickForm.date} onChange={event => setQuickForm(form => ({ ...form, date: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40" />
+                  <label className="block min-w-0 space-y-1.5 text-sm font-bold text-foreground">
+                    วันที่ต้องทำ *
+                    <input name="date" required type="date" value={quickForm.date} onChange={event => setQuickForm(form => ({ ...form, date: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 min-h-12 min-w-0 text-base font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/40" />
                   </label>
-                  <label className="space-y-1.5 text-xs font-black text-muted-foreground">
-                    แปลง
-                    <select value={quickForm.plotId} onChange={event => setQuickForm(form => ({ ...form, plotId: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40">
+                  <label className="block min-w-0 space-y-1.5 text-sm font-bold text-foreground">
+                    แปลงที่ต้องทำ *
+                    <select name="plotId" value={quickForm.plotId} onChange={event => setQuickForm(form => ({ ...form, plotId: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 min-h-12 min-w-0 text-base font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/40">
                       {data.plots.length === 0 ? <option value="">ยังไม่มีแปลง</option> : data.plots.map(plot => <option key={plot.id} value={plot.id}>{plot.name}</option>)}
                     </select>
                   </label>
                 </div>
-                <label className="space-y-1.5 text-xs font-black text-muted-foreground">
+                <label className="block min-w-0 space-y-1.5 text-sm font-bold text-foreground">
                   ความสำคัญ
-                  <select value={quickForm.priority} onChange={event => setQuickForm(form => ({ ...form, priority: event.target.value as Task["priority"] }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40">
+                  <select name="priority" value={quickForm.priority} onChange={event => setQuickForm(form => ({ ...form, priority: event.target.value as Task["priority"] }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 min-h-12 min-w-0 text-base font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/40">
                     <option value="high">สำคัญมาก (ด่วน)</option>
-                    <option value="medium">ปานกลาง</option>
-                    <option value="low">ทั่วไป</option>
+                    <option value="medium">ปกติ — ทำตามกำหนด</option>
+                    <option value="low">ไม่เร่งด่วน — ทำเมื่อสะดวก</option>
                   </select>
                 </label>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <label className="space-y-1.5 text-xs font-black text-muted-foreground">
-                    วันที่
-                    <input type="date" value={activityForm.date} onChange={event => setActivityForm(form => ({ ...form, date: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40" />
+                  <label className="block min-w-0 space-y-1.5 text-sm font-bold text-foreground">
+                    วันที่ทำกิจกรรม *
+                    <input name="date" required type="date" value={activityForm.date} onChange={event => setActivityForm(form => ({ ...form, date: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 min-h-12 min-w-0 text-base font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/40" />
                   </label>
-                  <label className="space-y-1.5 text-xs font-black text-muted-foreground">
-                    แปลง
-                    <select value={activityForm.plotId} onChange={event => setActivityForm(form => ({ ...form, plotId: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40">
-                      <option value="">ไม่ระบุแปลง</option>
+                  <label className="block min-w-0 space-y-1.5 text-sm font-bold text-foreground">
+                    แปลงที่ทำ (ไม่บังคับ)
+                    <select name="plotId" value={activityForm.plotId} onChange={event => setActivityForm(form => ({ ...form, plotId: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 min-h-12 min-w-0 text-base font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/40">
+                      <option value="">งานส่วนกลาง / ไม่ระบุแปลง</option>
                       {data.plots.map(plot => <option key={plot.id} value={plot.id}>{plot.name}</option>)}
                     </select>
                   </label>
                 </div>
-                <label className="space-y-1.5 text-xs font-black text-muted-foreground">
+                <label className="block min-w-0 space-y-1.5 text-sm font-bold text-foreground">
                   ประเภทกิจกรรม
-                  <select value={activityForm.activityType} onChange={event => setActivityForm(form => ({ ...form, activityType: event.target.value as ActivityType }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40">
+                  <select name="activityType" value={activityForm.activityType} onChange={event => setActivityForm(form => ({ ...form, activityType: event.target.value as ActivityType }))} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 min-h-12 min-w-0 text-base font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/40">
                     {(Object.keys(ACTIVITY_LABELS) as ActivityType[]).map(type => <option key={type} value={type}>{ACTIVITY_LABELS[type]}</option>)}
                   </select>
                 </label>
+                <label className="block space-y-1.5 text-sm font-bold text-foreground">
+                  <span>รายละเอียดงานที่ทำ *</span>
                 <textarea
+                  name="description"
+                  required
+                  maxLength={500}
                   autoFocus
                   value={activityForm.description}
                   onChange={event => setActivityForm(form => ({ ...form, description: event.target.value }))}
                   placeholder="เช่น ใส่ปุ๋ยสูตร 15-15-15 ให้แปลง A..."
                   rows={3}
-                  className="w-full resize-none rounded-xl border border-border bg-background px-3.5 py-3 text-sm font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/40"
+                  className="w-full resize-y rounded-xl border border-border bg-background px-3.5 py-3 min-h-12 min-w-0 text-base font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/40"
                 />
+                  <span className="block text-xs font-normal text-muted-foreground">ระบุสิ่งที่ทำและปริมาณ เช่น ใส่ปุ๋ยต้นละ 1 กก. (ไม่เกิน 500 ตัวอักษร)</span>
+                </label>
               </div>
             )}
 
-            <div className="mt-5 flex gap-2">
-              <button type="button" onClick={() => setEntryModal(null)} className="flex-1 rounded-xl border border-border py-2.5 text-sm font-black text-muted-foreground transition-colors hover:bg-muted">ยกเลิก</button>
-              <button type="button" onClick={entryModal === "task" ? handleQuickAdd : handleQuickActivityAdd} className="flex-1 rounded-xl bg-primary py-2.5 text-sm font-black text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 active:scale-[0.98]">
-                <Check size={16} className="mr-1.5 inline-block" /> บันทึกข้อมูล
+            <div className="sticky bottom-0 mt-6 flex gap-2 border-t border-border bg-card pt-4">
+              <button type="button" onClick={() => setEntryModal(null)} className="min-h-12 flex-1 rounded-xl border border-border py-2.5 text-sm font-black text-muted-foreground transition-colors hover:bg-muted">ยกเลิก</button>
+              <button type="submit" className="min-h-12 flex-1 rounded-xl bg-primary py-2.5 text-sm font-black text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 active:scale-[0.98]">
+                <Check size={16} className="mr-1.5 inline-block" /> {entryModal === "task" ? "เพิ่มงานที่ต้องทำ" : "บันทึกงานที่ทำแล้ว"}
               </button>
             </div>
+            </form>
           </div>
         </div>
       )}
