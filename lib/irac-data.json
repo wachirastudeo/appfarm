@@ -1,0 +1,912 @@
+[
+  {
+    "code": "1A",
+    "mainGroup": "1",
+    "mechanism": "Acetylcholinesterase (AChE) inhibitors",
+    "family": "Carbamates",
+    "actives": [
+      "Alanycarb",
+      "Aldicarb",
+      "Bendiocarb",
+      "Benfuracarb",
+      "Butocarboxim",
+      "Butoxycarboxim",
+      "Carbaryl",
+      "Carbofuran",
+      "Carbosulfan",
+      "Ethiofencarb",
+      "Fenobucarb",
+      "Formetanate",
+      "Furathiocarb",
+      "Isoprocarb",
+      "Methiocarb",
+      "Methomyl",
+      "Metolcarb",
+      "Oxamyl",
+      "Pirimicarb",
+      "Propoxur",
+      "Thiodicarb",
+      "Thiofanox",
+      "Triazamate",
+      "Trimethacarb",
+      "XMC",
+      "Xylylcarb"
+    ]
+  },
+  {
+    "code": "1B",
+    "mainGroup": "1",
+    "mechanism": "Acetylcholinesterase (AChE) inhibitors",
+    "family": "Organophosphates",
+    "actives": [
+      "Acephate",
+      "Azamethiphos",
+      "Azinphos-ethyl",
+      "Azinphos-methyl",
+      "Cadusafos",
+      "Chlorethoxyfos",
+      "Chlorfenvinphos",
+      "Chlormephos",
+      "Chlorpyrifos",
+      "Chlorpyrifos-methyl",
+      "Coumaphos",
+      "Cyanophos",
+      "Demeton-S-methyl",
+      "Diazinon",
+      "Dichlorvos/ DDVP",
+      "Dicrotophos",
+      "Dimethoate",
+      "Dimethylvinphos",
+      "Disulfoton",
+      "EPN",
+      "Ethion",
+      "Ethoprophos",
+      "Famphur",
+      "Fenamiphos",
+      "Fenitrothion",
+      "Fenthion",
+      "Fosthiazate",
+      "Heptenophos",
+      "Isofenphos",
+      "Isoxathion",
+      "Malathion",
+      "Mecarbam",
+      "Methamidophos",
+      "Methidathion",
+      "Mevinphos",
+      "Monocrotophos",
+      "Naled",
+      "Omethoate",
+      "Oxydemeton-methyl",
+      "Parathion",
+      "Parathion-methyl",
+      "Phenthoate",
+      "Phosalone",
+      "Phorate",
+      "Phosmet",
+      "Phosphamidon",
+      "Phoxim",
+      "Profenofos",
+      "Propetamphos",
+      "Prothiofos",
+      "Pyraclofos",
+      "Pyridaphenthion",
+      "Quinalphos",
+      "Sulfotep",
+      "Tebupirimfos",
+      "Temephos",
+      "Terbufos",
+      "Tetrachlorvinphos",
+      "Thiometon",
+      "Triazophos",
+      "Trichlorfon",
+      "Vamidothion",
+      "Pirimiphos-methyl",
+      "Imicyafos",
+      "Isopropyl O-(methoxyaminothio-phosphoryl) salicylate"
+    ]
+  },
+  {
+    "code": "2A",
+    "mainGroup": "2",
+    "mechanism": "GABA-gated chloride channel blockers",
+    "family": "Cyclodiene organochlorines",
+    "actives": [
+      "Chlordane",
+      "Endosulfan"
+    ]
+  },
+  {
+    "code": "2B",
+    "mainGroup": "2",
+    "mechanism": "GABA-gated chloride channel blockers",
+    "family": "Phenylpyrazoles (Fiproles)",
+    "actives": [
+      "Ethiprole",
+      "Fipronil"
+    ]
+  },
+  {
+    "code": "3A",
+    "mainGroup": "3",
+    "mechanism": "Sodium channel modulators",
+    "family": "Pyrethroids, Pyrethrins",
+    "actives": [
+      "Acrinathrin",
+      "Allethrin",
+      "d-cis-trans Allethrin",
+      "d-trans Allethrin",
+      "Bifenthrin",
+      "Bioallethrin",
+      "Bioallethrin S-cyclopentenyl",
+      "Bioresmethrin",
+      "Cycloprothrin",
+      "Cyfluthrin",
+      "beta-Cyfluthrin",
+      "Cyhalothrin",
+      "lambda-Cyhalothrin",
+      "gamma-Cyhalothrin",
+      "Cypermethrin",
+      "alpha-Cypermethrin",
+      "beta-Cypermethrin",
+      "theta-Cypermethrin",
+      "zeta-Cypermethrin",
+      "Cyphenothrin [(1R)-trans- isomers]",
+      "Deltamethrin",
+      "Empenthrin [(EZ)- (1R)- isomers]",
+      "Esfenvalerate",
+      "Etofenprox",
+      "Fenpropathrin",
+      "Fenvalerate",
+      "Flucythrinate",
+      "Flumethrin",
+      "tau-Fluvalinate",
+      "Kadethrin",
+      "Pyrethrins (pyrethrum)",
+      "Halfenprox",
+      "Phenothrin [(1R)-trans- isomer]",
+      "Prallethrin",
+      "Resmethrin",
+      "Silafluofen",
+      "Tefluthrin",
+      "Tetramethrin",
+      "Tetramethrin [(1R)- isomers]",
+      "Tralomethrin",
+      "Transfluthrin",
+      "Permethrin"
+    ]
+  },
+  {
+    "code": "3B",
+    "mainGroup": "3",
+    "mechanism": "Sodium channel modulators",
+    "family": "DDT, Methoxychlor",
+    "actives": [
+      "DDT",
+      "Methoxychlor"
+    ]
+  },
+  {
+    "code": "4A",
+    "mainGroup": "4",
+    "mechanism": "Nicotinic acetylcholine receptor (nAChR) competitive modulators",
+    "family": "Neonicotinoids",
+    "actives": [
+      "Acetamiprid",
+      "Clothianidin",
+      "Dinotefuran",
+      "Imidacloprid",
+      "Nitenpyram",
+      "Thiacloprid",
+      "Thiamethoxam"
+    ]
+  },
+  {
+    "code": "4B",
+    "mainGroup": "4",
+    "mechanism": "Nicotinic acetylcholine receptor (nAChR) competitive modulators",
+    "family": "Nicotine",
+    "actives": [
+      "Nicotine"
+    ]
+  },
+  {
+    "code": "4C",
+    "mainGroup": "4",
+    "mechanism": "Nicotinic acetylcholine receptor (nAChR) competitive modulators",
+    "family": "Sulfoximines",
+    "actives": [
+      "Sulfoxaflor"
+    ]
+  },
+  {
+    "code": "4D",
+    "mainGroup": "4",
+    "mechanism": "Nicotinic acetylcholine receptor (nAChR) competitive modulators",
+    "family": "Butenolides",
+    "actives": [
+      "Flupyradifurone"
+    ]
+  },
+  {
+    "code": "4E",
+    "mainGroup": "4",
+    "mechanism": "Nicotinic acetylcholine receptor (nAChR) competitive modulators",
+    "family": "Mesoionics",
+    "actives": [
+      "Triflumezopyrim",
+      "Dicloromezotiaz",
+      "Fenmezoditiaz"
+    ]
+  },
+  {
+    "code": "4F",
+    "mainGroup": "4",
+    "mechanism": "Nicotinic acetylcholine receptor (nAChR) competitive modulators",
+    "family": "Pyridylidenes",
+    "actives": [
+      "Flupyrimin"
+    ]
+  },
+  {
+    "code": "5",
+    "mainGroup": "5",
+    "mechanism": "Nicotinic acetylcholine receptor (nAChR) allosteric modulators – Site I",
+    "family": "Spinosyns",
+    "actives": [
+      "Spinetoram",
+      "Spinosad"
+    ]
+  },
+  {
+    "code": "6",
+    "mainGroup": "6",
+    "mechanism": "Glutamate-gated chloride channel (GluCl) allosteric modulators",
+    "family": "Avermectins, Milbemycins",
+    "actives": [
+      "Abamectin",
+      "Emamectin benzoate",
+      "Lepimectin",
+      "Milbemectin"
+    ]
+  },
+  {
+    "code": "7A",
+    "mainGroup": "7",
+    "mechanism": "Juvenile hormone receptor modulators",
+    "family": "Juvenile hormone analogues",
+    "actives": [
+      "Hydroprene",
+      "Kinoprene",
+      "Methoprene"
+    ]
+  },
+  {
+    "code": "7B",
+    "mainGroup": "7",
+    "mechanism": "Juvenile hormone receptor modulators",
+    "family": "Fenoxycarb",
+    "actives": [
+      "Fenoxycarb"
+    ]
+  },
+  {
+    "code": "7C",
+    "mainGroup": "7",
+    "mechanism": "Juvenile hormone receptor modulators",
+    "family": "Pyriproxyfen",
+    "actives": [
+      "Pyriproxyfen"
+    ]
+  },
+  {
+    "code": "8A",
+    "mainGroup": "8",
+    "mechanism": "Miscellaneous non-specific (multi-site) inhibitors",
+    "family": "Alkyl halides",
+    "actives": [
+      "Methyl bromide and other alkyl halides",
+      "1,3-dichloropropene"
+    ]
+  },
+  {
+    "code": "8B",
+    "mainGroup": "8",
+    "mechanism": "Miscellaneous non-specific (multi-site) inhibitors",
+    "family": "Chloropicrin",
+    "actives": [
+      "Chloropicrin"
+    ]
+  },
+  {
+    "code": "8C",
+    "mainGroup": "8",
+    "mechanism": "Miscellaneous non-specific (multi-site) inhibitors",
+    "family": "Fluorides",
+    "actives": [
+      "Cryolite",
+      "Sulfuryl fluoride"
+    ]
+  },
+  {
+    "code": "8D",
+    "mainGroup": "8",
+    "mechanism": "Miscellaneous non-specific (multi-site) inhibitors",
+    "family": "Borates",
+    "actives": [
+      "Borax",
+      "Boric acid",
+      "Disodium octaborate",
+      "Sodium borate",
+      "Sodium metaborate"
+    ]
+  },
+  {
+    "code": "8E",
+    "mainGroup": "8",
+    "mechanism": "Miscellaneous non-specific (multi-site) inhibitors",
+    "family": "Tartar emetic",
+    "actives": [
+      "Tartar emetic"
+    ]
+  },
+  {
+    "code": "8F",
+    "mainGroup": "8",
+    "mechanism": "Miscellaneous non-specific (multi-site) inhibitors",
+    "family": "Methyl isothiocyanate generators",
+    "actives": [
+      "Dazomet",
+      "Metam",
+      "Methyl isothiocyanate"
+    ]
+  },
+  {
+    "code": "9B",
+    "mainGroup": "9",
+    "mechanism": "Chordotonal Organ TRPV Channel Modulators",
+    "family": "pyridine azomethine derivatives",
+    "actives": [
+      "Pymetrozine",
+      "Pyrifluquinazon"
+    ]
+  },
+  {
+    "code": "9D",
+    "mainGroup": "9",
+    "mechanism": "Chordotonal Organ TRPV Channel Modulators",
+    "family": "Pyropenes",
+    "actives": [
+      "Afidopyropen"
+    ]
+  },
+  {
+    "code": "10A",
+    "mainGroup": "10",
+    "mechanism": "Mite growth inhibitors affecting CHS1",
+    "family": "Clofentezine, Diflovidazin, Hexythiazox",
+    "actives": [
+      "Clofentezine",
+      "Diflovidazin",
+      "Hexythiazox"
+    ]
+  },
+  {
+    "code": "10B",
+    "mainGroup": "10",
+    "mechanism": "Mite growth inhibitors affecting CHS1",
+    "family": "Etoxazole",
+    "actives": [
+      "Etoxazole"
+    ]
+  },
+  {
+    "code": "11A",
+    "mainGroup": "11",
+    "mechanism": "Microbial disruptors of insect midgut membranes",
+    "family": "Bacillus thuringiensis and the insecticidal proteins they produce",
+    "actives": [
+      "B.t. var. israelensis",
+      "B.t. var. aizawai",
+      "B.t. var. kurstaki",
+      "B.t. var. tenebrionensis"
+    ]
+  },
+  {
+    "code": "11B",
+    "mainGroup": "11",
+    "mechanism": "Microbial disruptors of insect midgut membranes",
+    "family": "Bacillus sphaericus",
+    "actives": [
+      "Bacillus sphaericus"
+    ]
+  },
+  {
+    "code": "12A",
+    "mainGroup": "12",
+    "mechanism": "Inhibitors of mitochondrial ATP synthase",
+    "family": "Diafenthiuron",
+    "actives": [
+      "Diafenthiuron"
+    ]
+  },
+  {
+    "code": "12B",
+    "mainGroup": "12",
+    "mechanism": "Inhibitors of mitochondrial ATP synthase",
+    "family": "Organotin miticides",
+    "actives": [
+      "Azocyclotin",
+      "Cyhexatin",
+      "Fenbutatin oxide"
+    ]
+  },
+  {
+    "code": "12C",
+    "mainGroup": "12",
+    "mechanism": "Inhibitors of mitochondrial ATP synthase",
+    "family": "Propargite",
+    "actives": [
+      "Propargite"
+    ]
+  },
+  {
+    "code": "12D",
+    "mainGroup": "12",
+    "mechanism": "Inhibitors of mitochondrial ATP synthase",
+    "family": "Tetradifon",
+    "actives": [
+      "Tetradifon"
+    ]
+  },
+  {
+    "code": "13",
+    "mainGroup": "13",
+    "mechanism": "Uncouplers of oxidative phosphorylation via disruption of the proton gradient",
+    "family": "Pyrroles, Dinitrophenols, Sulfluramid",
+    "actives": [
+      "Chlorfenapyr",
+      "DNOC",
+      "Sulfluramid"
+    ]
+  },
+  {
+    "code": "14",
+    "mainGroup": "14",
+    "mechanism": "Nicotinic acetylcholine receptor (nAChR) channel blockers",
+    "family": "Nereistoxin analogues",
+    "actives": [
+      "Bensultap",
+      "Cartap hydrochloride",
+      "Thiocyclam",
+      "Thiosultap-sodium"
+    ]
+  },
+  {
+    "code": "15",
+    "mainGroup": "15",
+    "mechanism": "Inhibitors of chitin biosynthesis affecting CHS1",
+    "family": "Benzoylureas",
+    "actives": [
+      "Bistrifluron",
+      "Chlorfluazuron",
+      "Diflubenzuron",
+      "Flucycloxuron",
+      "Flufenoxuron",
+      "Hexaflumuron",
+      "Lufenuron",
+      "Novaluron",
+      "Noviflumuron",
+      "Teflubenzuron",
+      "Triflumuron"
+    ]
+  },
+  {
+    "code": "16",
+    "mainGroup": "16",
+    "mechanism": "Inhibitors of chitin biosynthesis, type 1",
+    "family": "Buprofezin",
+    "actives": [
+      "Buprofezin"
+    ]
+  },
+  {
+    "code": "17",
+    "mainGroup": "17",
+    "mechanism": "Moulting disruptor, Dipteran",
+    "family": "Cyromazine",
+    "actives": [
+      "Cyromazine"
+    ]
+  },
+  {
+    "code": "18",
+    "mainGroup": "18",
+    "mechanism": "Ecdysone receptor agonists",
+    "family": "Diacylhydrazines",
+    "actives": [
+      "Chromafenozide",
+      "Halofenozide",
+      "Methoxyfenozide",
+      "Tebufenozide"
+    ]
+  },
+  {
+    "code": "19",
+    "mainGroup": "19",
+    "mechanism": "Octopamine receptor agonists",
+    "family": "Amitraz",
+    "actives": [
+      "Amitraz"
+    ]
+  },
+  {
+    "code": "20A",
+    "mainGroup": "20",
+    "mechanism": "Mitochondrial complex III electron transport inhibitors – Qo site",
+    "family": "Hydramethylnon",
+    "actives": [
+      "Hydramethylnon"
+    ]
+  },
+  {
+    "code": "20B",
+    "mainGroup": "20",
+    "mechanism": "Mitochondrial complex III electron transport inhibitors – Qo site",
+    "family": "Acequinocyl",
+    "actives": [
+      "Acequinocyl"
+    ]
+  },
+  {
+    "code": "20C",
+    "mainGroup": "20",
+    "mechanism": "Mitochondrial complex III electron transport inhibitors – Qo site",
+    "family": "Fluacrypyrim",
+    "actives": [
+      "Fluacrypyrim"
+    ]
+  },
+  {
+    "code": "20D",
+    "mainGroup": "20",
+    "mechanism": "Mitochondrial complex III electron transport inhibitors – Qo site",
+    "family": "Bifenazate",
+    "actives": [
+      "Bifenazate"
+    ]
+  },
+  {
+    "code": "21A",
+    "mainGroup": "21",
+    "mechanism": "Mitochondrial complex I electron transport inhibitors",
+    "family": "METI acaricides and insecticides",
+    "actives": [
+      "Fenazaquin",
+      "Fenpyroximate",
+      "Pyrimidifen",
+      "Pyridaben",
+      "Tebufenpyrad",
+      "Tolfenpyrad"
+    ]
+  },
+  {
+    "code": "21B",
+    "mainGroup": "21",
+    "mechanism": "Mitochondrial complex I electron transport inhibitors",
+    "family": "Rotenone",
+    "actives": [
+      "Rotenone"
+    ]
+  },
+  {
+    "code": "22A",
+    "mainGroup": "22",
+    "mechanism": "Voltage-dependent sodium channel blockers",
+    "family": "Oxadiazines",
+    "actives": [
+      "Indoxacarb"
+    ]
+  },
+  {
+    "code": "22B",
+    "mainGroup": "22",
+    "mechanism": "Voltage-dependent sodium channel blockers",
+    "family": "Semicarbazones",
+    "actives": [
+      "Metaflumizone"
+    ]
+  },
+  {
+    "code": "23",
+    "mainGroup": "23",
+    "mechanism": "Inhibitors of acetyl-CoA carboxylase",
+    "family": "Tetronic and Tetramic acid derivatives",
+    "actives": [
+      "Spirodiclofen",
+      "Spiromesifen",
+      "Spiropidion",
+      "Spirotetramat",
+      "Spidoxamat"
+    ]
+  },
+  {
+    "code": "24A",
+    "mainGroup": "24",
+    "mechanism": "Mitochondrial complex IV electron transport inhibitors",
+    "family": "Phosphides",
+    "actives": [
+      "Aluminium phosphide",
+      "Calcium phosphide",
+      "Phosphine",
+      "Zinc phosphide"
+    ]
+  },
+  {
+    "code": "24B",
+    "mainGroup": "24",
+    "mechanism": "Mitochondrial complex IV electron transport inhibitors",
+    "family": "Cyanides",
+    "actives": [
+      "Calcium cyanide",
+      "Potassium cyanide",
+      "Sodium cyanide"
+    ]
+  },
+  {
+    "code": "25A",
+    "mainGroup": "25",
+    "mechanism": "Mitochondrial complex II electron transport inhibitors",
+    "family": "Beta-ketonitrile derivatives",
+    "actives": [
+      "Cyenopyrafen",
+      "Cyflumetofen"
+    ]
+  },
+  {
+    "code": "25B",
+    "mainGroup": "25",
+    "mechanism": "Mitochondrial complex II electron transport inhibitors",
+    "family": "Carboxanilides",
+    "actives": [
+      "Pyflubumide"
+    ]
+  },
+  {
+    "code": "28",
+    "mainGroup": "28",
+    "mechanism": "Ryanodine receptor modulators",
+    "family": "Diamides",
+    "actives": [
+      "Chlorantraniliprole",
+      "Cyantraniliprole",
+      "Cyclaniliprole",
+      "Flubendiamide",
+      "Tetraniliprole"
+    ]
+  },
+  {
+    "code": "29",
+    "mainGroup": "29",
+    "mechanism": "Chordotonal organ nicotinamidase inhibitors",
+    "family": "Flonicamid",
+    "actives": [
+      "Flonicamid"
+    ]
+  },
+  {
+    "code": "30",
+    "mainGroup": "30",
+    "mechanism": "GABA-gated chloride channel allosteric modulators",
+    "family": "Meta-diamides, Isoxazolines",
+    "actives": [
+      "Broflanilide",
+      "Cyproflanilide",
+      "Fluxametamide",
+      "Isocycloseram"
+    ]
+  },
+  {
+    "code": "31",
+    "mainGroup": "31",
+    "mechanism": "Baculoviruses",
+    "family": "Granuloviruses (GVs), Nucleopolyhedroviruses (NPVs)",
+    "actives": [
+      "Cydia pomonella GV",
+      "Thaumatotibia leucotreta GV",
+      "Anticarsia gemmatalis MNPV",
+      "Helicoverpa armigera NPV"
+    ]
+  },
+  {
+    "code": "32",
+    "mainGroup": "32",
+    "mechanism": "Nicotinic Acetylcholine Receptor (nAChR) Allosteric Modulators – Site II",
+    "family": "GS-omega/kappa HXTX-Hv1a peptide",
+    "actives": [
+      "GS-omega/kappa HXTX-Hv1a peptide"
+    ]
+  },
+  {
+    "code": "33",
+    "mainGroup": "33",
+    "mechanism": "Calcium‐activated potassium channel (KCa2) modulators",
+    "family": "Acynonapyr",
+    "actives": [
+      "Acynonapyr"
+    ]
+  },
+  {
+    "code": "34",
+    "mainGroup": "34",
+    "mechanism": "Mitochondrial complex III electron transport inhibitors – Qi site",
+    "family": "Flometoquin",
+    "actives": [
+      "Flometoquin"
+    ]
+  },
+  {
+    "code": "35",
+    "mainGroup": "35",
+    "mechanism": "RNA Interference mediated target suppressors",
+    "family": "Ledprona",
+    "actives": [
+      "Ledprona"
+    ]
+  },
+  {
+    "code": "36",
+    "mainGroup": "36",
+    "mechanism": "Chordotonal organ modulators – undefined target site",
+    "family": "Pyridazine pyrazolecarboxamides",
+    "actives": [
+      "Dimpropyridaz"
+    ]
+  },
+  {
+    "code": "37",
+    "mainGroup": "37",
+    "mechanism": "Vesicular acetylcholine transporter (VAChT) inhibitor",
+    "family": "Oxazosulfyl",
+    "actives": [
+      "Oxazosulfyl"
+    ]
+  },
+  {
+    "code": "un",
+    "mainGroup": "un",
+    "mechanism": "Compounds of unknown or uncertain MoA",
+    "family": "Azadirachtin",
+    "actives": [
+      "Azadirachtin"
+    ]
+  },
+  {
+    "code": "un",
+    "mainGroup": "un",
+    "mechanism": "Compounds of unknown or uncertain MoA",
+    "family": "Benzoximate",
+    "actives": [
+      "Benzoximate"
+    ]
+  },
+  {
+    "code": "un",
+    "mainGroup": "un",
+    "mechanism": "Compounds of unknown or uncertain MoA",
+    "family": "Benzpyrimoxan",
+    "actives": [
+      "Benzpyrimoxan"
+    ]
+  },
+  {
+    "code": "un",
+    "mainGroup": "un",
+    "mechanism": "Compounds of unknown or uncertain MoA",
+    "family": "Bromopropylate",
+    "actives": [
+      "Bromopropylate"
+    ]
+  },
+  {
+    "code": "un",
+    "mainGroup": "un",
+    "mechanism": "Compounds of unknown or uncertain MoA",
+    "family": "Chinomethionat",
+    "actives": [
+      "Chinomethionat"
+    ]
+  },
+  {
+    "code": "un",
+    "mainGroup": "un",
+    "mechanism": "Compounds of unknown or uncertain MoA",
+    "family": "Dicofol",
+    "actives": [
+      "Dicofol"
+    ]
+  },
+  {
+    "code": "un",
+    "mainGroup": "un",
+    "mechanism": "Compounds of unknown or uncertain MoA",
+    "family": "Lime sulfur",
+    "actives": [
+      "Lime Sulfur"
+    ]
+  },
+  {
+    "code": "un",
+    "mainGroup": "un",
+    "mechanism": "Compounds of unknown or uncertain MoA",
+    "family": "Mancozeb",
+    "actives": [
+      "Mancozeb"
+    ]
+  },
+  {
+    "code": "un",
+    "mainGroup": "un",
+    "mechanism": "Compounds of unknown or uncertain MoA",
+    "family": "Pyridalyl",
+    "actives": [
+      "Pyridalyl"
+    ]
+  },
+  {
+    "code": "un",
+    "mainGroup": "un",
+    "mechanism": "Compounds of unknown or uncertain MoA",
+    "family": "Sulfur",
+    "actives": [
+      "Sulfur"
+    ]
+  },
+  {
+    "code": "unb",
+    "mainGroup": "unb",
+    "mechanism": "Bacterial agents (non-Bt) of unknown or uncertain MoA",
+    "family": "[Class not defined]",
+    "actives": [
+      "Burkholderia spp",
+      "Wolbachie pipientis (Zap)"
+    ]
+  },
+  {
+    "code": "une",
+    "mainGroup": "une",
+    "mechanism": "Botanical essence including synthetic, extracts and unrefined oils with unknown or uncertain MoA",
+    "family": "[Class not defined]",
+    "actives": [
+      "Chenopodium ambrosioides near ambrosioides extract",
+      "Clitoria ternatea extract",
+      "Fatty acid monoesters with glycerol or propanediol",
+      "Neem oil",
+      "Nonanoic acid",
+      "Sabadilla Extract"
+    ]
+  },
+  {
+    "code": "unf",
+    "mainGroup": "unf",
+    "mechanism": "Fungal agents of unknown or uncertain MoA",
+    "family": "[Class not defined]",
+    "actives": [
+      "Beauveria bassiana strains",
+      "Metarhizium brunneum strain F52",
+      "Paecilomyces fumosoroseus Apopka strain 97",
+      "Akanthomyces muscarius Ve6"
+    ]
+  },
+  {
+    "code": "unm",
+    "mainGroup": "unm",
+    "mechanism": "Non-specific mechanical and physical disruptors",
+    "family": "[Class not defined]",
+    "actives": [
+      "Diatomaceous earth",
+      "Mineral Oil",
+      "Polydimethylsiloxane (PDMS)"
+    ]
+  }
+]

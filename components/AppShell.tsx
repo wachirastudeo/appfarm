@@ -7,7 +7,7 @@ import type { AppUser, Article, Product } from "@/lib/store"
 import { useNotificationScheduler } from "@/hooks/use-notification-scheduler"
 import { createClient } from "@/lib/supabase/client"
 import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
-import { TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, MessageCircle, HeartHandshake, Check, Smartphone, Download } from "lucide-react"
+import { FlaskConical, TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, MessageCircle, HeartHandshake, Check, Smartphone, Download } from "lucide-react"
 import DurianIcon from "./DurianIcon"
 import DurianLogo from "./DurianLogo"
 import UserAvatarImage from "./UserAvatarImage"
@@ -31,6 +31,7 @@ const Dashboard = dynamic(() => import("./Dashboard"), { loading: () => <Content
 const PlotManagement = dynamic(() => import("./PlotManagement"), { loading: () => <ContentSkeleton /> })
 const Operations = dynamic(() => import("./Operations"), { loading: () => <ContentSkeleton /> })
 const Finance = dynamic(() => import("./Finance"), { loading: () => <ContentSkeleton /> })
+const InsecticideMixing = dynamic(() => import("./InsecticideMixing"), { loading: () => <ContentSkeleton /> })
 const Articles = dynamic(() => import("./Articles"), { loading: () => <ContentSkeleton /> })
 const AdminPanel = dynamic(() => import("./AdminPanel"), { loading: () => <ContentSkeleton /> })
 const AuthModal = dynamic(() => import("./AuthModal"), { loading: () => null })
@@ -38,7 +39,7 @@ const FeedbackModal = dynamic(() => import("./FeedbackModal"), { loading: () => 
 const SupportModal = dynamic(() => import("./SupportModal"), { loading: () => null })
 const SandboxModal = dynamic(() => import("./SandboxModal"), { loading: () => null })
 
-type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin" | "linebot"
+type Tab = "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin" | "linebot" | "mixing"
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -52,6 +53,7 @@ function warmPwaChunks() {
     import("./Operations"),
     import("./Finance"),
     import("./Articles"),
+    import("./InsecticideMixing"),
     import("./AdminPanel"),
     import("./AuthModal"),
     import("./FeedbackModal"),
@@ -66,6 +68,7 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "plots", label: "แปลง", icon: TreePine },
   { id: "operations", label: "งาน", icon: CalendarDays },
   { id: "finance", label: "การเงิน", icon: Coins },
+  { id: "mixing", label: "ผสมสาร", icon: FlaskConical },
   { id: "articles", label: "บทความ", icon: BookOpen },
 ]
 
@@ -1069,7 +1072,7 @@ export default function AppShell() {
     const params = new URLSearchParams(window.location.search)
     const tab = params.get("tab")
     const articleId = params.get("articleId") || params.get("article")
-    setActiveTab(tab && ["dashboard", "plots", "operations", "finance", "articles", "admin", "linebot"].includes(tab) ? tab as Tab : articleId ? "articles" : "dashboard")
+    setActiveTab(tab && ["dashboard", "plots", "operations", "finance", "articles", "admin", "linebot", "mixing"].includes(tab) ? tab as Tab : articleId ? "articles" : "dashboard")
 
     const view = params.get("view")
     setArticleView(view && ["articles", "products"].includes(view) ? view as "articles" | "products" : "articles")
@@ -1419,7 +1422,7 @@ export default function AppShell() {
     ? [...TABS, { id: "admin" as const, label: "Admin", icon: ShieldCheck }, { id: "linebot" as const, label: "LINE Bot", icon: MessageCircle }]
     : user
       ? TABS
-      : TABS.filter(tab => tab.id === "dashboard" || tab.id === "articles"), [user])
+      : TABS.filter(tab => tab.id === "dashboard" || tab.id === "articles" || tab.id === "mixing"), [user])
 
   if (!isMounted) {
     return <AppShellSkeleton />
@@ -1442,7 +1445,7 @@ export default function AppShell() {
       )
     }
 
-    if (!user && activeTab !== "articles") {
+    if (!user && activeTab !== "articles" && activeTab !== "mixing") {
       return (
         <GuestHome
           articles={store.data.articles}
@@ -1491,6 +1494,8 @@ export default function AppShell() {
         />
       case "finance":
         return <Finance data={store.data} addFinance={store.addFinance} deleteFinance={store.deleteFinance} onPrint={handlePrint} />
+      case "mixing":
+        return <InsecticideMixing />
       case "articles":
         return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} savedArticleIds={user?.savedArticleIds} savedArticlesStorageKey={user?.id ? `durian_saved_articles_${user.id}` : "durian_saved_articles_guest"} onSavedArticleIdsChange={savedArticleIds => user ? store.updateUser(user.id, { savedArticleIds }) : Promise.resolve()} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
       case "linebot":
@@ -1762,7 +1767,7 @@ export default function AppShell() {
       </div>
 
       {/* Mobile & Tablet Bottom Navigation (Clean pill style) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card px-2 py-2 flex items-center gap-1 w-full sm:max-w-xl sm:left-1/2 sm:-translate-x-1/2 sm:mb-3 sm:rounded-xl sm:border sm:border-border border-t border-border safe-area-bottom scrollbar-hide shadow-[0_-4px_18px_rgba(0,0,0,0.08)]">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card px-2 py-2 flex items-center gap-1 w-full sm:max-w-xl sm:left-1/2 sm:-translate-x-1/2 sm:mb-3 sm:rounded-xl sm:border sm:border-border border-t border-border safe-area-bottom overflow-x-auto scrollbar-hide shadow-[0_-4px_18px_rgba(0,0,0,0.08)]">
         {visibleTabs.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
