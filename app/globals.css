@@ -4,34 +4,34 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Modern Orchard UI */
-  --background: #f7f8f5;
-  --foreground: #173326;
+  /* Durian Flow — organic orchard system */
+  --background: #f3f9f4;
+  --foreground: #14532d;
   --card: #ffffff;
-  --card-foreground: #143422;
+  --card-foreground: #173b26;
   --popover: #ffffff;
-  --popover-foreground: #143422;
-  --primary: #176b45;
+  --popover-foreground: #173b26;
+  --primary: #15803d;
   --primary-foreground: #ffffff;
-  --secondary: #5c7065;
+  --secondary: #42624f;
   --secondary-foreground: #ffffff;
-  --muted: #edf1ed;
-  --muted-foreground: #527060;
-  --accent: #e8f0ea;
-  --accent-foreground: #176b45;
+  --muted: #e8f2ea;
+  --muted-foreground: #476454;
+  --accent: #f7edcf;
+  --accent-foreground: #754a05;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #d8e1da;
+  --border: #cbe2d0;
   --input: #ffffff;
-  --ring: #176b45;
-  --chart-1: #146B3E;
-  --chart-2: #0F5A34;
-  --chart-3: #146B3E;
-  --chart-4: #7fb58d;
-  --chart-5: #eab308;
-  --radius: 0.625rem;
+  --ring: #15803d;
+  --chart-1: #15803d;
+  --chart-2: #22c55e;
+  --chart-3: #a16207;
+  --chart-4: #4f8f63;
+  --chart-5: #d97706;
+  --radius: 0.875rem;
   --sidebar: #ffffff;
-  --sidebar-foreground: #eaf6ed;
+  --sidebar-foreground: #173b26;
   --sidebar-primary: #176b45;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #e8f0ea;
@@ -40,13 +40,14 @@
   --sidebar-ring: #176b45;
 
   /* Design Tokens */
-  --brand-green: #176b45;
-  --brand-deep: #176b45;
-  --brand-hover: #0f5938;
-  --brand-highlight: #e8f0ea;
-  --brand-bg: #f7f8f5;
-  --brand-muted: #5c7065;
-  --status-good: #176b45;
+  --brand-green: #15803d;
+  --brand-deep: #14532d;
+  --brand-hover: #166534;
+  --brand-highlight: #dcfce7;
+  --brand-bg: #f3f9f4;
+  --brand-muted: #476454;
+  --harvest: #a16207;
+  --status-good: #15803d;
   --status-warn: #f59e0b;
   --status-danger: #dc2626;
 
@@ -54,7 +55,7 @@
   --grid-color: transparent;
   --glow-color: transparent;
   --glass-bg: #ffffff;
-  --glass-border: #e3e9e4;
+  --glass-border: #cbe2d0;
 }
 
 .dark {
@@ -156,6 +157,10 @@
   body {
     @apply bg-background text-foreground;
     background-color: var(--background);
+    background-image:
+      radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 28rem),
+      radial-gradient(circle at 94% 12%, rgba(161, 98, 7, 0.06), transparent 24rem);
+    background-attachment: fixed;
   }
 
   .dark body {
@@ -181,6 +186,11 @@
   [onclick] {
     cursor: pointer;
   }
+
+  :where(button, a, input, select, textarea, summary, [role="button"]):focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--ring) 72%, white);
+    outline-offset: 3px;
+  }
 }
 
 @layer utilities {
@@ -199,7 +209,8 @@
   .orchard-card {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    box-shadow: 0 2px 10px rgba(15, 59, 37, 0.035);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(20, 83, 45, 0.055);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
   .dark .orchard-card {
@@ -210,7 +221,7 @@
   }
   .orchard-card-hover:hover {
     border-color: var(--primary);
-    box-shadow: 0 6px 18px rgba(15, 59, 37, 0.08);
+    box-shadow: 0 14px 32px rgba(20, 83, 45, 0.11);
   }
   .dark .orchard-card-hover:hover {
     border-color: var(--primary);
@@ -225,6 +236,23 @@
   }
   .safe-area-bottom {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .skip-link {
+    position: fixed;
+    left: 1rem;
+    top: 0.75rem;
+    z-index: 100;
+    transform: translateY(-160%);
+    border-radius: 0.75rem;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    padding: 0.65rem 1rem;
+    font-weight: 800;
+    box-shadow: 0 10px 28px rgba(20, 83, 45, 0.2);
+    transition: transform 160ms ease;
+  }
+  .skip-link:focus {
+    transform: translateY(0);
   }
   .product-carousel-mask {
     overflow: hidden;
@@ -692,6 +720,89 @@
 .dark [data-page="dashboard"] .dashboard-quick-action,
 .dark [data-page="dashboard"] .dashboard-panel {
   background: color-mix(in srgb, var(--page-tint) 14%, #14291e) !important;
+}
+
+/* Unified signed-in workspace: one visual language across every farm workflow. */
+[data-page="dashboard"],
+[data-page="plots"],
+[data-page="operations"],
+[data-page="finance"],
+[data-page="articles"],
+[data-page="admin"] {
+  --page-accent: var(--primary);
+  --page-tint: #eff8f1;
+  border-top: 0;
+  border-radius: 1.25rem;
+  background-color: color-mix(in srgb, var(--card) 70%, transparent);
+  background-image: radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 22rem);
+}
+
+[data-page] [class*="rounded-"]:not([class*="rounded-full"]) {
+  border-radius: 1rem !important;
+}
+
+[data-page] input,
+[data-page] select,
+[data-page] textarea {
+  border-radius: 0.75rem !important;
+}
+
+[data-page="dashboard"] .orchard-card,
+[data-page="plots"] .orchard-card,
+[data-page="operations"] .orchard-card,
+[data-page="finance"] .orchard-card,
+[data-page="articles"] .orchard-card,
+[data-page="admin"] .orchard-card,
+[data-page="dashboard"] .dashboard-stat-card,
+[data-page="dashboard"] .dashboard-quick-action,
+[data-page="dashboard"] .dashboard-panel {
+  border-color: color-mix(in srgb, var(--primary) 20%, var(--border)) !important;
+  background: color-mix(in srgb, var(--card) 96%, var(--primary)) !important;
+  box-shadow: 0 8px 24px rgba(20, 83, 45, 0.06) !important;
+}
+
+[data-page="dashboard"] .dashboard-stat-card:nth-child(n) {
+  background: var(--card) !important;
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--border)) !important;
+}
+
+[data-page] .orchard-card-hover:hover,
+[data-page="dashboard"] .dashboard-stat-card:hover,
+[data-page="dashboard"] .dashboard-quick-action:hover,
+[data-page="dashboard"] .dashboard-panel:hover {
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--border)) !important;
+  box-shadow: 0 14px 34px rgba(20, 83, 45, 0.11) !important;
+}
+
+.dark [data-page="dashboard"],
+.dark [data-page="plots"],
+.dark [data-page="operations"],
+.dark [data-page="finance"],
+.dark [data-page="articles"],
+.dark [data-page="admin"] {
+  --page-tint: #173a24;
+  background-color: color-mix(in srgb, var(--card) 82%, transparent);
+  background-image: radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary) 9%, transparent), transparent 22rem);
+}
+
+.app-shell-header {
+  box-shadow: 0 8px 28px rgba(20, 83, 45, 0.07);
+}
+
+.app-shell-sidebar {
+  box-shadow: 8px 0 28px rgba(20, 83, 45, 0.035);
+}
+
+.app-shell-container::before,
+.guest-layout-container::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image:
+    radial-gradient(circle at 8% 6%, rgba(34, 197, 94, 0.08), transparent 28rem),
+    radial-gradient(circle at 94% 18%, rgba(161, 98, 7, 0.055), transparent 24rem);
 }
 
 .home-minimal .home-minimal-hero {

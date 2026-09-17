@@ -49,10 +49,6 @@ export default function Articles({
     }
   }, [activeView])
 
-  useEffect(() => {
-    onArticleSelect?.(selectedArticle?.id ?? null)
-  }, [selectedArticle, onArticleSelect])
-
   const publishedArticles = useMemo(() => articles.filter(a => a.status === "published"), [articles])
   const activeProducts = useMemo(() => products.filter(product => product.status === "active"), [products])
 
@@ -209,7 +205,10 @@ export default function Articles({
       <div className="animate-in fade-in duration-500 rounded-[2rem] border border-[#DDEBE1]/80 bg-white px-4 py-4 shadow-[0_20px_50px_rgba(20,107,62,0.06)] sm:px-6 sm:py-5 pb-20 dark:border-[#31533D]/45 dark:bg-[#14291E]">
         <div className="sticky top-0 z-10 mb-6 flex items-center justify-between gap-2 border-b border-border/50 bg-white/95 py-3 backdrop-blur-md sm:mb-8 sm:py-4 dark:bg-[#14291E]/95">
           <button
-            onClick={() => setSelectedArticle(null)}
+            onClick={() => {
+              setSelectedArticle(null)
+              onArticleSelect?.(null)
+            }}
             className="flex items-center gap-2 text-base sm:text-lg font-black text-primary hover:translate-x-[-4px] transition-transform"
           >
             <ArrowLeft size={22} /> ย้อนกลับ
@@ -402,10 +401,14 @@ export default function Articles({
           {filteredArticles.map((article, index) => {
             const excerpt = createExcerpt(article.content, 90)
             return (
-              <div
+              <button
+                type="button"
                 key={article.id}
-                onClick={() => setSelectedArticle(article)}
-                className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/65 shadow-sm backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] sm:rounded-3xl dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)]"
+                onClick={() => {
+                  setSelectedArticle(article)
+                  onArticleSelect?.(article.id)
+                }}
+                className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/65 text-left shadow-sm backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:rounded-3xl dark:hover:shadow-[0_20px_50px_rgba(34,197,94,0.04)]"
               >
                 <div className="relative h-28 overflow-hidden sm:h-60">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -433,7 +436,7 @@ export default function Articles({
                     <ArrowRight size={16} className="transform transition-transform duration-300 group-hover:translate-x-1.5 sm:size-[18px]" />
                   </div>
                 </div>
-              </div>
+              </button>
             )
           })}
         </div>

@@ -53,11 +53,10 @@ function StatCard({
   onClick?: () => void
 }) {
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className={`dashboard-stat-card group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs transition-all duration-300 ${
-        onClick ? "cursor-pointer hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:scale-[0.99]" : ""
-      }`}
+      className="dashboard-stat-card group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card p-4 text-left shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:scale-[0.99] sm:p-5"
     >
       <div className="flex items-start justify-between gap-3">
         <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${bgColor} ring-1 ring-black/5 dark:ring-white/10`}>
@@ -80,7 +79,7 @@ function StatCard({
         <p className={`mt-0.5 text-xl sm:text-2xl font-black tracking-tight ${color}`}>{value}</p>
         {sub && <p className="mt-1 text-xs font-medium text-muted-foreground truncate">{sub}</p>}
       </div>
-    </div>
+    </button>
   )
 }
 
