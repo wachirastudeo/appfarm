@@ -10,7 +10,7 @@ const diseases = [
     name: "โรครากเน่า–โคนเน่า (ไฟทอปธอรา)",
     hint: "โคนฉ่ำน้ำ • เปลือกแตก • ใบร่วง",
     detail: "เชื้อไฟทอปธอรา (Phytophthora) เป็นสาเหตุสำคัญของโรครากเน่า–โคนเน่าในทุเรียน ตรวจโคน ราก และทางระบายน้ำ พร้อมจัดการน้ำและตัดส่วนเป็นโรคร่วมด้วย",
-    fungicides: ["metalaxyl"],
+    fungicides: ["metalaxyl", "fosetyl-aluminium", "metalaxyl-m-mancozeb"],
     tone: "border-orange-200 from-orange-50 to-white dark:border-orange-800/60 dark:from-orange-950/30 dark:to-card",
   },
   {
@@ -47,7 +47,14 @@ const diseases = [
   },
 ]
 
-const fracKey = (group: string) => group.replace(/^FRAC\s+/i, "")
+const fracGroups = (group: string) => new Set(
+  group.replace(/^FRAC\s+/i, "").split("+").map(value => value.trim()).filter(Boolean),
+)
+
+const sharesFracGroup = (left: string, right: string) => {
+  const rightGroups = fracGroups(right)
+  return [...fracGroups(left)].some(group => rightGroups.has(group))
+}
 
 export default function DiseaseRotationPlanner() {
   const [diseaseId, setDiseaseId] = useState(diseases[0].id)
@@ -56,10 +63,10 @@ export default function DiseaseRotationPlanner() {
   const options = compatibleFungicides.filter(item => disease.fungicides.includes(item.id))
   const current = options.find(item => item.id === currentId)
   const rotations = current
-    ? options.filter(item => item.id !== current.id && fracKey(item.fracGroup) !== fracKey(current.fracGroup))
+    ? options.filter(item => item.id !== current.id && !sharesFracGroup(item.fracGroup, current.fracGroup))
     : []
   const sameGroup = current
-    ? options.filter(item => item.id !== current.id && fracKey(item.fracGroup) === fracKey(current.fracGroup))
+    ? options.filter(item => item.id !== current.id && sharesFracGroup(item.fracGroup, current.fracGroup))
     : []
 
   const chooseDisease = (id: string) => {
