@@ -426,7 +426,7 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                   </div>
 
                   {guideOnly ? (
-                    <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3 text-sm font-black text-primary">
+                    <div className="mt-4 flex min-h-10 items-center justify-between rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-sm font-black text-primary transition-colors group-hover:border-primary/35 group-hover:bg-primary/15 dark:bg-primary/15 dark:group-hover:bg-primary/20">
                       <span className="inline-flex items-center gap-2"><ShoppingBag size={16} aria-hidden="true" /> ดูสินค้า</span>
                       <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />
                     </div>
