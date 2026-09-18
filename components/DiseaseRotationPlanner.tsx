@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { AlertTriangle, Check, Leaf, RotateCcw, ShieldCheck, Sprout } from "lucide-react"
-import { compatibleFungicides } from "@/lib/pest-planner"
+import { diseaseFungicides } from "@/lib/pest-planner"
 
 const diseases = [
   {
@@ -17,8 +17,8 @@ const diseases = [
     id: "fusarium",
     name: "โรคเหี่ยว / รากเน่า (ฟิวซาเรียม)",
     hint: "ใบเหลืองเหี่ยว • รากสีน้ำตาล • ต้นทรุด",
-    detail: "อาการฟิวซาเรียมอาจคล้ายไฟทอปธอรา ภาวะรากขาดอากาศ หรือปัญหาระบบน้ำ ควรตรวจรากและยืนยันสาเหตุก่อนเลือกสาร เพราะคลังข้อมูลนี้ยังไม่มีสารที่ยืนยันสำหรับฟิวซาเรียมในทุเรียน",
-    fungicides: [],
+    detail: "อาการฟิวซาเรียมอาจคล้ายไฟทอปธอรา ภาวะรากขาดอากาศ หรือปัญหาระบบน้ำ ควรตรวจรากและยืนยันเชื้อก่อนเลือกสาร ตัวเลือกด้านล่างเป็นสารที่มีข้อมูลต่อเชื้อฟิวซาเรียม แต่ต้องตรวจทะเบียนทุเรียนและโรคเป้าหมายบนฉลากจริง",
+    fungicides: ["thiophanate-methyl", "difenoconazole", "carbendazim", "captan"],
     tone: "border-violet-200 from-violet-50 to-white dark:border-violet-800/60 dark:from-violet-950/30 dark:to-card",
   },
   {
@@ -26,7 +26,7 @@ const diseases = [
     name: "โรคแอนแทรคโนส",
     hint: "แผลสีน้ำตาล • ใบและผล",
     detail: "ลดความชื้น ตัดแต่งทรงพุ่ม และเก็บชิ้นส่วนเป็นโรคออกจากแปลงก่อนพิจารณาสาร",
-    fungicides: ["azoxystrobin", "difenoconazole", "mancozeb", "propineb"],
+    fungicides: ["azoxystrobin", "difenoconazole", "mancozeb", "propineb", "thiophanate-methyl", "carbendazim", "captan", "chlorothalonil", "prochloraz"],
     tone: "border-rose-200 from-rose-50 to-white dark:border-rose-800/60 dark:from-rose-950/30 dark:to-card",
   },
   {
@@ -34,7 +34,7 @@ const diseases = [
     name: "โรคราใบติด / ใบไหม้",
     hint: "ใบติดกัน • แผลลามช่วงชื้น",
     detail: "เปิดทรงพุ่มให้ลมผ่านและหลีกเลี่ยงน้ำค้างบนใบเป็นเวลานาน สำรวจการลามซ้ำหลังฝน",
-    fungicides: ["azoxystrobin", "mancozeb"],
+    fungicides: ["azoxystrobin", "mancozeb", "chlorothalonil", "copper-oxychloride", "copper-hydroxide", "validamycin", "hexaconazole"],
     tone: "border-emerald-200 from-emerald-50 to-white dark:border-emerald-800/60 dark:from-emerald-950/30 dark:to-card",
   },
   {
@@ -42,7 +42,7 @@ const diseases = [
     name: "โรคใบจุด",
     hint: "จุดสีน้ำตาล • ใบแก่",
     detail: "แยกจากอาการขาดธาตุหรือพิษสารก่อนใช้ยา เก็บใบป่วยและลดแหล่งสะสมเชื้อในสวน",
-    fungicides: ["difenoconazole", "mancozeb", "propineb"],
+    fungicides: ["difenoconazole", "mancozeb", "propineb", "thiophanate-methyl", "carbendazim", "captan", "chlorothalonil", "copper-oxychloride"],
     tone: "border-sky-200 from-sky-50 to-white dark:border-sky-800/60 dark:from-sky-950/30 dark:to-card",
   },
 ]
@@ -60,7 +60,7 @@ export default function DiseaseRotationPlanner() {
   const [diseaseId, setDiseaseId] = useState(diseases[0].id)
   const [currentId, setCurrentId] = useState("")
   const disease = diseases.find(item => item.id === diseaseId) ?? diseases[0]
-  const options = compatibleFungicides.filter(item => disease.fungicides.includes(item.id))
+  const options = diseaseFungicides.filter(item => disease.fungicides.includes(item.id))
   const current = options.find(item => item.id === currentId)
   const rotations = current
     ? options.filter(item => item.id !== current.id && !sharesFracGroup(item.fracGroup, current.fracGroup))
@@ -110,7 +110,8 @@ export default function DiseaseRotationPlanner() {
               <span><strong className="block text-sm">{item.thai}</strong><span className="text-xs text-muted-foreground">{item.name} · {item.formulation}</span></span>
               <span className="shrink-0 rounded-lg bg-sky-500/15 px-2 py-1 text-xs font-black text-sky-700 dark:text-sky-300">{item.fracGroup}</span>
             </span>
-            <span className="mt-3 block text-xs text-muted-foreground">เลือกหากนี่คือสารที่ใช้ล่าสุด</span>
+            <span className={`mt-3 inline-flex rounded-full px-2 py-1 text-[11px] font-bold ${item.useStatus === "durian-guidance" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200" : "bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-100"}`}>{item.useStatus === "durian-guidance" ? "มีคำแนะนำในทุเรียน" : "ต้องตรวจฉลากทุเรียน"}</span>
+            <span className="mt-2 block text-xs text-muted-foreground">เลือกหากนี่คือสารที่ใช้ล่าสุด</span>
           </button>
         })}
       </div>}
