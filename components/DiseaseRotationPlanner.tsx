@@ -7,11 +7,19 @@ import { compatibleFungicides } from "@/lib/pest-planner"
 const diseases = [
   {
     id: "root-rot",
-    name: "โรครากเน่า–โคนเน่า",
+    name: "โรครากเน่า–โคนเน่า (ไฟทอปธอรา)",
     hint: "โคนฉ่ำน้ำ • เปลือกแตก • ใบร่วง",
-    detail: "ตรวจโคน ราก และทางระบายน้ำก่อนเลือกสาร โรคนี้ต้องจัดการน้ำและตัดส่วนเป็นโรคร่วมด้วย",
+    detail: "เชื้อไฟทอปธอรา (Phytophthora) เป็นสาเหตุสำคัญของโรครากเน่า–โคนเน่าในทุเรียน ตรวจโคน ราก และทางระบายน้ำ พร้อมจัดการน้ำและตัดส่วนเป็นโรคร่วมด้วย",
     fungicides: ["metalaxyl"],
     tone: "border-orange-200 from-orange-50 to-white dark:border-orange-800/60 dark:from-orange-950/30 dark:to-card",
+  },
+  {
+    id: "fusarium",
+    name: "โรคเหี่ยว / รากเน่า (ฟิวซาเรียม)",
+    hint: "ใบเหลืองเหี่ยว • รากสีน้ำตาล • ต้นทรุด",
+    detail: "อาการฟิวซาเรียมอาจคล้ายไฟทอปธอรา ภาวะรากขาดอากาศ หรือปัญหาระบบน้ำ ควรตรวจรากและยืนยันสาเหตุก่อนเลือกสาร เพราะคลังข้อมูลนี้ยังไม่มีสารที่ยืนยันสำหรับฟิวซาเรียมในทุเรียน",
+    fungicides: [],
+    tone: "border-violet-200 from-violet-50 to-white dark:border-violet-800/60 dark:from-violet-950/30 dark:to-card",
   },
   {
     id: "anthracnose",
@@ -69,7 +77,7 @@ export default function DiseaseRotationPlanner() {
           <p className="mt-1 text-sm text-muted-foreground">ดูตัวอย่างสารในคลังข้อมูล แล้วเทียบกลุ่ม FRAC สำหรับรอบถัดไป</p>
         </div>
       </div>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {diseases.map(item => {
           const active = item.id === diseaseId
           return <button key={item.id} type="button" onClick={() => chooseDisease(item.id)} aria-pressed={active} className={`rounded-2xl border bg-gradient-to-br p-4 text-left transition-all ${item.tone} ${active ? "ring-2 ring-primary shadow-lg" : "hover:-translate-y-0.5 hover:shadow-md"}`}>
@@ -84,7 +92,10 @@ export default function DiseaseRotationPlanner() {
     <section className="rounded-3xl border border-primary/15 bg-card p-4 shadow-[0_12px_34px_rgba(20,83,45,0.07)] sm:p-6">
       <h3 className="text-lg font-black">{disease.name}</h3>
       <p className="mt-1 text-sm text-muted-foreground">{disease.detail}</p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {options.length === 0 && <div className="mt-4 rounded-2xl border border-amber-300/60 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100">
+        ยังไม่มีสารสำหรับโรคนี้ในคลังข้อมูล โปรดยืนยันเชื้อกับเจ้าหน้าที่หรือห้องปฏิบัติการ และตรวจฉลากผลิตภัณฑ์ที่ขึ้นทะเบียนก่อนใช้
+      </div>}
+      {options.length > 0 && <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {options.map(item => {
           const active = currentId === item.id
           return <button key={item.id} type="button" onClick={() => setCurrentId(active ? "" : item.id)} aria-pressed={active} className={`rounded-2xl border p-4 text-left transition-all ${active ? "border-sky-500 bg-sky-50 ring-2 ring-sky-500/30 dark:bg-sky-950/30" : "border-border hover:border-sky-400/60 hover:bg-sky-50/40 dark:hover:bg-sky-950/15"}`}>
@@ -95,7 +106,7 @@ export default function DiseaseRotationPlanner() {
             <span className="mt-3 block text-xs text-muted-foreground">เลือกหากนี่คือสารที่ใช้ล่าสุด</span>
           </button>
         })}
-      </div>
+      </div>}
     </section>
 
     {current && <section className="rounded-3xl border border-emerald-300/50 bg-gradient-to-br from-emerald-50 to-lime-50 p-4 sm:p-6 dark:from-emerald-950/30 dark:to-lime-950/20" aria-live="polite">

@@ -85,7 +85,7 @@ export default function InsecticideMixing() {
             <Bug size={19} aria-hidden="true" /> แมลงหลัก 8 ชนิด
           </button>
           <button type="button" onClick={() => setProblemKind("disease")} aria-pressed={problemKind === "disease"} className={`flex min-h-14 items-center justify-center gap-2 rounded-2xl border px-3 text-sm font-black transition-[border-color,background-color,box-shadow] ${problemKind === "disease" ? "border-sky-600 bg-sky-600 text-white shadow-md" : "border-sky-200 bg-sky-50 text-sky-900 hover:border-sky-400 dark:border-sky-800 dark:bg-sky-950/25 dark:text-sky-100"}`}>
-            <Leaf size={19} aria-hidden="true" /> โรคหลัก 4 โรค
+            <Leaf size={19} aria-hidden="true" /> โรคหลัก 5 โรค
           </button>
         </div>
       </section>
