@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { ArrowRight, Check, FlaskConical, RotateCcw, Search, ShieldAlert, ShieldCheck } from "lucide-react"
+import { ArrowRight, Check, ChevronDown, FlaskConical, RotateCcw, Search, ShieldAlert, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { getPestTreatments, orchardPests } from "@/lib/pest-planner"
@@ -99,7 +99,7 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
   }
 
   return <div className="space-y-6">
-    <section className="overflow-hidden rounded-3xl border border-amber-300/50 bg-gradient-to-br from-amber-50 via-lime-50 to-emerald-50 p-5 shadow-[0_14px_36px_rgba(161,98,7,0.09)] sm:p-6 dark:from-amber-950/30 dark:via-lime-950/20 dark:to-emerald-950/25">
+    <section className="rounded-3xl border border-amber-300/50 bg-gradient-to-br from-amber-50 via-lime-50 to-emerald-50 p-5 shadow-[0_14px_36px_rgba(161,98,7,0.09)] sm:p-6 dark:from-amber-950/30 dark:via-lime-950/20 dark:to-emerald-950/25">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md shadow-amber-900/15">
@@ -120,9 +120,10 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
           <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-900 dark:bg-amber-950/60 dark:text-amber-100">{normalizedQuery ? `พบ ${filteredPesticides.length} จาก ${pesticides.length} สาร` : `มี ${pesticides.length} สาร`}</span>
         </div>
         <label htmlFor="pesticide-search" className="mt-3 block text-xs font-bold text-amber-900 dark:text-amber-100">ค้นหายา</label>
-        <div className="relative mt-1.5" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setIsSearchOpen(false) }}>
-          <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-700 dark:text-amber-300" aria-hidden="true" />
-          <Input
+        <div className="mt-1.5" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setIsSearchOpen(false) }}>
+          <div className="relative">
+            <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-700 dark:text-amber-300" aria-hidden="true" />
+            <Input
             id="pesticide-search"
             type="search"
             value={searchQuery}
@@ -135,9 +136,13 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
             aria-expanded={isSearchOpen}
             aria-controls="pesticide-suggestions"
             aria-describedby="pesticide-search-help"
-            className="min-h-12 border-amber-300 bg-white pl-10 text-base focus-visible:border-amber-600 focus-visible:ring-amber-500/20 dark:border-amber-800 dark:bg-card"
-          />
-          {isSearchOpen && <div id="pesticide-suggestions" className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-50 max-h-80 overflow-y-auto rounded-xl border border-amber-300 bg-white shadow-xl dark:border-amber-800 dark:bg-card" role="listbox" aria-label="คำแนะนำชื่อยา">
+            className="min-h-12 border-amber-300 bg-white pl-10 pr-12 text-base focus-visible:border-amber-600 focus-visible:ring-amber-500/20 dark:border-amber-800 dark:bg-card"
+            />
+            <button type="button" onClick={() => setIsSearchOpen(open => !open)} className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-amber-800 transition-colors hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:text-amber-200 dark:hover:bg-amber-950" aria-label={isSearchOpen ? "ปิดรายการยา" : "เปิดรายการยา"} aria-expanded={isSearchOpen} aria-controls="pesticide-suggestions">
+              <ChevronDown size={19} className={`transition-transform ${isSearchOpen ? "rotate-180" : ""}`} aria-hidden="true" />
+            </button>
+          </div>
+          {isSearchOpen && <div id="pesticide-suggestions" className="mt-2 max-h-80 overflow-y-auto rounded-xl border border-amber-300 bg-white shadow-lg dark:border-amber-800 dark:bg-card" role="listbox" aria-label="คำแนะนำชื่อยา">
             <p className="sticky top-0 z-10 bg-amber-50 px-3 py-2 text-xs font-black text-amber-900 dark:bg-amber-950 dark:text-amber-100">{normalizedQuery ? "คำที่ใกล้เคียง" : "ยาที่ใช้บ่อย"}</p>
             {filteredPesticides.map(item => <button key={item.name} type="button" role="option" aria-selected={previousName === item.name} onClick={() => choosePrevious(item.name)} className={`flex w-full items-center justify-between gap-3 border-t border-amber-100 px-3 py-3 text-left transition-colors hover:bg-amber-50 focus:bg-amber-50 focus:outline-none dark:border-amber-950 dark:hover:bg-amber-950/40 dark:focus:bg-amber-950/40 ${previousName === item.name ? "bg-amber-100 dark:bg-amber-950/60" : ""}`}>
               <span className="min-w-0"><strong className="block text-sm">{item.thai}</strong><span className="block truncate text-xs text-muted-foreground">{item.name} · {item.formulation}</span></span>
