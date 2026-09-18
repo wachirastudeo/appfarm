@@ -69,7 +69,7 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "plots", label: "แปลง", icon: TreePine },
   { id: "operations", label: "งาน", icon: CalendarDays },
   { id: "finance", label: "การเงิน", icon: Coins },
-  { id: "mixing", label: "ผสมสาร", icon: FlaskConical },
+  { id: "mixing", label: "สลับยา/ผสมสาร", icon: FlaskConical },
   { id: "articles", label: "บทความ", icon: BookOpen },
 ]
 
@@ -1562,6 +1562,12 @@ export default function AppShell() {
 
             <div className="flex shrink-0 items-center gap-2">
               <button
+                onClick={() => setActiveTab("mixing")}
+                className="hidden rounded-2xl px-4 py-2 text-sm font-black text-primary transition-colors hover:bg-primary/10 sm:inline-flex"
+              >
+                สลับยา/ผสมสาร
+              </button>
+              <button
                 onClick={() => openArticles()}
                 className="hidden rounded-2xl px-4 py-2 text-sm font-black text-[#146B3E] transition-colors hover:bg-[#E7F3EC] sm:inline-flex dark:text-[#72C08A] dark:hover:bg-white/10"
               >
@@ -1609,6 +1615,10 @@ export default function AppShell() {
           {activeTab === "articles" ? (
             <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 md:px-8 md:py-6 flex-1 flex flex-col">
               <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} savedArticlesStorageKey="durian_saved_articles_guest" guestMobileRail onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
+            </div>
+          ) : activeTab === "mixing" ? (
+            <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 md:px-8 md:py-6 flex-1">
+              <InsecticideMixing />
             </div>
           ) : (
             <div className="flex-1 flex flex-col">

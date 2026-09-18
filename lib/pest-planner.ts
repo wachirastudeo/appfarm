@@ -7,6 +7,7 @@ export interface PestTreatment {
   ratePer20L?: number
   unit?: "ซีซี" | "กรัม"
   actionType?: "ดูดซึม" | "สัมผัสตาย" | "แทรกซึม" | "ยับยั้งการลอกคราบ"
+  controlsEggs?: boolean
   highlight?: string
   source: string
 }
@@ -50,6 +51,9 @@ const mealybugSource = "https://doaenews.doae.go.th/archives/22721"
 const seedBorerSource = "https://doaenews.doae.go.th/archives/26446"
 const miteSource = "https://doaenews.doae.go.th/archives/21295"
 const caterpillarSource = "https://doaenews.doae.go.th/archives/26446"
+const longhornSource = "https://trang.doae.go.th/mueangtrang/blog/2026/02/16/เกษตรเมืองตรัง-แจ้งเตื-3/"
+const leafhopperSource = "https://yala.doae.go.th/yaha/blog/2024/09/24/เพลี้ยจักจั่นฝอยทุเรียน/"
+const officialFruitPestSource = "https://ppsf.doae.go.th/wp-content/uploads/2026/03/SUMFruit-tree_pest_2569_3_11.pdf"
 
 export const orchardPests: OrchardPest[] = [
   {
@@ -66,6 +70,7 @@ export const orchardPests: OrchardPest[] = [
       { name: "Fipronil", thai: "ฟิโพรนิล", formulation: "5% SC", ratePer20L: 20, unit: "ซีซี", actionType: "สัมผัสตาย", highlight: "กินตายสัมผัสตาย ขยายขอบเขตกำจัดหนอนร่วมด้วย", source: thripsSource },
       { name: "Chlorfenapyr", thai: "คลอร์ฟีนาเพอร์", formulation: "10% SC", ratePer20L: 20, unit: "ซีซี", actionType: "แทรกซึม", highlight: "เหมาะกับเพลี้ยไฟดื้อยา จัดการไรแดงร่วมได้", source: thripsSource },
       { name: "Abamectin", thai: "อะบาเมกติน", formulation: "1.8% EC", ratePer20L: 20, unit: "ซีซี", actionType: "แทรกซึม", highlight: "แทรกซึมเนื้อเยื่อใบ น็อกเพลี้ยและไร", source: thripsSource },
+      { name: "Carbosulfan", thai: "คาร์โบซัลแฟน", formulation: "20% EC", ratePer20L: 40, unit: "ซีซี", actionType: "ดูดซึม", highlight: "ตัวเลือกต่างกลุ่มสำหรับเพลี้ยไฟตามคำแนะนำกรมส่งเสริมการเกษตร", source: officialFruitPestSource },
     ],
   },
   {
@@ -85,6 +90,19 @@ export const orchardPests: OrchardPest[] = [
     ],
   },
   {
+    id: "durian-leafhopper",
+    name: "เพลี้ยจักจั่นฝอยทุเรียน",
+    hint: "ใบอ่อน • ขอบใบไหม้ • ยอดก้านธูป",
+    targetParts: ["ยอดอ่อน", "ใบอ่อน", "ช่อดอก"],
+    symptoms: "ตัวอ่อนและตัวเต็มวัยดูดกินน้ำเลี้ยงบริเวณขอบใบอ่อน ทำให้ใบคล้ายถูกน้ำร้อนลวก ขอบใบแห้งสีน้ำตาลและม้วนงอ เมื่อระบาดรุนแรงใบอ่อนร่วงจนยอดเหลือแต่ก้าน หรือเกิดอาการยอดก้านธูป",
+    beforeSpraying: "หมั่นสำรวจช่วงแตกใบใหม่หรือใบอ่อน ใช้กับดักกาวเหนียวสีเหลืองช่วยลดตัวเต็มวัย และพิจารณาสารเคมีเฉพาะเมื่อพบการระบาดรุนแรง",
+    source: leafhopperSource,
+    treatments: [
+      { name: "Carbosulfan", thai: "คาร์โบซัลแฟน", formulation: "20% EC", ratePer20L: 50, unit: "ซีซี", actionType: "ดูดซึม", highlight: "ตัวเลือกกลุ่ม IRAC 1A สำหรับช่วงแตกใบอ่อนเมื่อพบการระบาดรุนแรง", source: officialFruitPestSource },
+      { name: "Imidacloprid", thai: "อิมิดาโคลพริด", formulation: "10% SL", ratePer20L: 10, unit: "ซีซี", actionType: "ดูดซึม", highlight: "ตัวเลือกกลุ่ม IRAC 4A สำหรับช่วงแตกใบอ่อนเมื่อพบการระบาดรุนแรง", source: officialFruitPestSource },
+    ],
+  },
+  {
     id: "spider-mite",
     name: "ไรแดงแอฟริกัน",
     hint: "ใบแก่กร้าน • สีสนิม • แดดแล้ง",
@@ -96,8 +114,10 @@ export const orchardPests: OrchardPest[] = [
       { name: "Pyridaben", thai: "ไพริดาเบน", formulation: "20% WP", ratePer20L: 15, unit: "กรัม", actionType: "สัมผัสตาย", highlight: "น็อกตัวอ่อนและตัวแก่รวดเร็ว", source: miteSource },
       { name: "Cyflumetofen", thai: "ไซฟลูมีโทเฟน", formulation: "20% SC", ratePer20L: 15, unit: "ซีซี", actionType: "สัมผัสตาย", highlight: "ออกฤทธิ์จำเพาะต่อไร ปลอดภัยต่อแมลงดี", source: miteSource },
       { name: "Tebufenpyrad", thai: "ทีบูเฟนไพแรด", formulation: "20% WP", ratePer20L: 12, unit: "กรัม", actionType: "สัมผัสตาย", highlight: "น็อกไวและมีฤทธิ์ตกค้างคุมนาน", source: miteSource },
-      { name: "Spiromesifen", thai: "สไปโรมีซิเฟน", formulation: "24% SC", ratePer20L: 10, unit: "ซีซี", actionType: "ยับยั้งการลอกคราบ", highlight: "คุมไข่และตัวอ่อน หยุดการแพร่พันธุ์", source: miteSource },
+      { name: "Spiromesifen", thai: "สไปโรมีซิเฟน", formulation: "24% SC", ratePer20L: 10, unit: "ซีซี", actionType: "ยับยั้งการลอกคราบ", controlsEggs: true, highlight: "คุมไข่และตัวอ่อน หยุดการแพร่พันธุ์", source: miteSource },
       { name: "Propargite", thai: "โพรพาร์ไกต์", formulation: "57% EC", ratePer20L: 30, unit: "ซีซี", actionType: "สัมผัสตาย", highlight: "ไอระเหยและสัมผัสตาย คุมไรดื้อยา", source: miteSource },
+      { name: "Amitraz", thai: "อะมิทราซ", formulation: "20% EC", ratePer20L: 30, unit: "ซีซี", actionType: "สัมผัสตาย", highlight: "อีกกลุ่มทางเลือกสำหรับสลับจัดการไรแดง", source: officialFruitPestSource },
+      { name: "Hexythiazox", thai: "เฮกซีไทอะซอกซ์", formulation: "2% EC", ratePer20L: 40, unit: "ซีซี", actionType: "ยับยั้งการลอกคราบ", controlsEggs: true, highlight: "เหมาะสำหรับสลับกลุ่มเพื่อคุมระยะไข่และตัวอ่อนของไร", source: officialFruitPestSource },
     ],
   },
   {
@@ -109,11 +129,12 @@ export const orchardPests: OrchardPest[] = [
     beforeSpraying: "ตัดแต่งผลชิดกันไม่ให้หนอนซ่อนตัว ติดกับดักฟีโรโมนล่อผีเสื้อกลางคืน ห่อผลทุเรียนเมื่อผลอายุ 60 วัน",
     source: seedBorerSource,
     treatments: [
-      { name: "Chlorantraniliprole", thai: "คลอแรนทรานิลิโพรล", formulation: "5% SC", ratePer20L: 15, unit: "ซีซี", actionType: "แทรกซึม", highlight: "คุมไข่และตัวหนอนได้นาน ปลอดภัยต่อผลอ่อน", source: seedBorerSource },
+      { name: "Chlorantraniliprole", thai: "คลอแรนทรานิลิโพรล", formulation: "5% SC", ratePer20L: 15, unit: "ซีซี", actionType: "แทรกซึม", controlsEggs: true, highlight: "คุมไข่และตัวหนอนได้นาน ปลอดภัยต่อผลอ่อน", source: seedBorerSource },
       { name: "Emamectin benzoate", thai: "อีมาเมกตินเบนโซเอต", formulation: "5% WG", ratePer20L: 10, unit: "กรัม", actionType: "แทรกซึม", highlight: "หนอนกินหยุดกินทันที สัมผัสและกินตาย", source: seedBorerSource },
-      { name: "Lufenuron", thai: "ลูเฟนนูรอน", formulation: "5% EC", ratePer20L: 15, unit: "ซีซี", actionType: "ยับยั้งการลอกคราบ", highlight: "ยับยั้งสร้างเปลือกไคติน ไข่ฝ่อ หนอนไม่ลอกคราบ", source: seedBorerSource },
+      { name: "Lufenuron", thai: "ลูเฟนนูรอน", formulation: "5% EC", ratePer20L: 15, unit: "ซีซี", actionType: "ยับยั้งการลอกคราบ", controlsEggs: true, highlight: "ยับยั้งสร้างเปลือกไคติน ไข่ฝ่อ หนอนไม่ลอกคราบ", source: seedBorerSource },
       { name: "Deltamethrin", thai: "เดลทาเมทริน", formulation: "3% EC", ratePer20L: 15, unit: "ซีซี", actionType: "สัมผัสตาย", highlight: "น็อกตัวเต็มวัยผีเสื้อกลางคืนช่วงบินวางไข่", source: seedBorerSource },
       { name: "Carbaryl", thai: "คาร์บาริล", formulation: "85% WP", ratePer20L: 40, unit: "กรัม", actionType: "สัมผัสตาย", highlight: "สัมผัสตายและกินตาย คุมแมลงปีกแข็งร่วมได้", source: seedBorerSource },
+      { name: "lambda-Cyhalothrin", thai: "แลมบ์ดา-ไซฮาโลทริน", formulation: "2.5% EC", ratePer20L: 20, unit: "ซีซี", actionType: "สัมผัสตาย", highlight: "ตัวเลือกน็อกเร็วสำหรับหนอนเจาะผลตามคำแนะนำกรมส่งเสริมการเกษตร", source: officialFruitPestSource },
     ],
   },
   {
@@ -125,7 +146,7 @@ export const orchardPests: OrchardPest[] = [
     beforeSpraying: "กำจัดมดดำที่เป็นพาหะขนเพลี้ย ตัดแต่งกิ่งให้โปร่ง พ่นน้ำแรงดันสูงล้างคราบก่อนพ่นสารเฉพาะจุด",
     source: mealybugSource,
     treatments: [
-      { name: "Buprofezin", thai: "บูโพรเฟซิน", formulation: "25% WP", ratePer20L: 25, unit: "กรัม", actionType: "ยับยั้งการลอกคราบ", highlight: "คุมไข่และตัวอ่อนเพลี้ยหอย/แป้งได้ดีเยี่ยม", source: mealybugSource },
+      { name: "Buprofezin", thai: "บูโพรเฟซิน", formulation: "25% WP", ratePer20L: 25, unit: "กรัม", actionType: "ยับยั้งการลอกคราบ", controlsEggs: true, highlight: "คุมไข่และตัวอ่อนเพลี้ยหอย/แป้งได้ดีเยี่ยม", source: mealybugSource },
       { name: "Spirotetramat", thai: "สไปโรเตตระแมท", formulation: "24% SC", ratePer20L: 10, unit: "ซีซี", actionType: "ดูดซึม", highlight: "ดูดซึม 2 ทิศทาง ซึมถึงซอกหนามและใต้เปลือก", source: mealybugSource },
       { name: "Dinotefuran", thai: "ไดโนทีฟูแรน", formulation: "10% WP", ratePer20L: 15, unit: "กรัม", actionType: "ดูดซึม", highlight: "น็อกตัวเต็มวัยและดูดซึมกำจัดตัวดูดกิน", source: seedBorerSource },
       { name: "Carbaryl", thai: "คาร์บาริล", formulation: "85% WP", ratePer20L: 40, unit: "กรัม", actionType: "สัมผัสตาย", highlight: "กำจัดเพลี้ยและมดพาหะพร้อมกัน", source: mealybugSource },
@@ -144,6 +165,20 @@ export const orchardPests: OrchardPest[] = [
       { name: "Chlorantraniliprole", thai: "คลอแรนทรานิลิโพรล", formulation: "5% SC", ratePer20L: 15, unit: "ซีซี", actionType: "แทรกซึม", highlight: "กำจัดหนอนผีเสื้อทุกระยะ ปลอดภัยสูง", source: caterpillarSource },
       { name: "Indoxacarb", thai: "อินดอกซาคาร์บ", formulation: "15% SC", ratePer20L: 15, unit: "ซีซี", actionType: "สัมผัสตาย", highlight: "กินตายและสัมผัสตาย หนอนตัวใหญ่ตายไว", source: caterpillarSource },
       { name: "Emamectin benzoate", thai: "อีมาเมกตินเบนโซเอต", formulation: "5% WG", ratePer20L: 10, unit: "กรัม", actionType: "แทรกซึม", highlight: "ซึมลึกใต้ใบ หนอนกัดกินแล้วหยุดทำลาย", source: caterpillarSource },
+    ],
+  },
+  {
+    id: "longhorn-beetle",
+    name: "ด้วงหนวดยาวเจาะลำต้น",
+    hint: "ขุยไม้ • น้ำสีน้ำตาลแดง • โคนและกิ่งใหญ่",
+    targetParts: ["ลำต้น", "โคนต้น", "กิ่งก้าน"],
+    symptoms: "หนอนชอนไชใต้เปลือก พบขุยไม้หรือมูลหนอนกองตามลำต้น และอาจมีของเหลวสีน้ำตาลแดงไหลจากรอยทำลาย ต้นโทรม ใบเหลืองและร่วง",
+    beforeSpraying: "สำรวจลำต้นและกิ่งใหญ่ช่วงกลางคืน จับตัวเต็มวัย ทำลายไข่ และใช้มีดเปิดรอยหา-กำจัดหนอนก่อน สารเคมีใช้เฉพาะเมื่อระบาดรุนแรงตามคำแนะนำเจ้าหน้าที่",
+    source: longhornSource,
+    treatments: [
+      { name: "Clothianidin", thai: "โคลไทอะนิดิน", formulation: "16% SG", ratePer20L: 20, unit: "กรัม", actionType: "ดูดซึม", highlight: "พ่นให้โชกเฉพาะลำต้นและกิ่งใหญ่ตามคำแนะนำแหล่งข้อมูล", source: longhornSource },
+      { name: "Imidacloprid", thai: "อิมิดาโคลพริด", formulation: "10% SL", ratePer20L: 30, unit: "ซีซี", actionType: "ดูดซึม", highlight: "พ่นให้โชกเฉพาะลำต้นและกิ่งใหญ่ตามคำแนะนำแหล่งข้อมูล", source: longhornSource },
+      { name: "Acetamiprid", thai: "อะซีทามิพริด", formulation: "20% SP", ratePer20L: 50, unit: "กรัม", actionType: "ดูดซึม", highlight: "พ่นให้โชกเฉพาะลำต้นและกิ่งใหญ่ตามคำแนะนำแหล่งข้อมูล", source: longhornSource },
     ],
   },
 ]

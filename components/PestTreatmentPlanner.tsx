@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   Droplets,
+  Egg,
   RotateCcw,
   Sparkles,
   Info,
@@ -31,18 +32,36 @@ import {
   type CompatibleFungicide,
 } from "@/lib/pest-planner"
 
-const panel = "rounded-2xl border border-border bg-card p-4 sm:p-6"
-const selectedStyle = "border-primary bg-primary/10 ring-2 ring-primary/60 shadow-sm"
-const normalStyle = "border-border bg-card hover:border-primary/50 hover:bg-muted/50 transition-all"
+const panel = "rounded-3xl border border-primary/15 bg-card p-4 shadow-[0_12px_34px_rgba(20,83,45,0.07)] sm:p-6"
+const selectedStyle = "border-primary bg-gradient-to-br from-primary/15 to-emerald-500/5 ring-2 ring-primary/50 shadow-[0_12px_28px_rgba(20,83,45,0.12)]"
+const normalStyle = "border-border bg-card hover:border-primary/40 hover:bg-primary/[0.03] hover:shadow-[0_10px_24px_rgba(20,83,45,0.08)] transition-[border-color,background-color,box-shadow]"
 
 const TANK_PRESETS = [20, 200, 1000]
+const PEST_TONES = [
+  { card: "border-emerald-200 bg-gradient-to-br from-emerald-50 to-white dark:border-emerald-800/60 dark:from-emerald-950/35 dark:to-card", icon: "bg-emerald-500 text-white", tag: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200" },
+  { card: "border-amber-200 bg-gradient-to-br from-amber-50 to-white dark:border-amber-800/60 dark:from-amber-950/30 dark:to-card", icon: "bg-amber-500 text-white", tag: "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200" },
+  { card: "border-sky-200 bg-gradient-to-br from-sky-50 to-white dark:border-sky-800/60 dark:from-sky-950/30 dark:to-card", icon: "bg-sky-500 text-white", tag: "bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-200" },
+  { card: "border-orange-200 bg-gradient-to-br from-orange-50 to-white dark:border-orange-800/60 dark:from-orange-950/30 dark:to-card", icon: "bg-orange-500 text-white", tag: "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200" },
+  { card: "border-teal-200 bg-gradient-to-br from-teal-50 to-white dark:border-teal-800/60 dark:from-teal-950/30 dark:to-card", icon: "bg-teal-500 text-white", tag: "bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-200" },
+  { card: "border-lime-200 bg-gradient-to-br from-lime-50 to-white dark:border-lime-800/60 dark:from-lime-950/30 dark:to-card", icon: "bg-lime-600 text-white", tag: "bg-lime-100 text-lime-900 dark:bg-lime-900/50 dark:text-lime-200" },
+]
+
+const PART_TONES: Record<string, string> = {
+  "ทั้งหมด": "border-primary/25 bg-primary/10 text-primary",
+  "ยอดอ่อน": "border-lime-300 bg-lime-100 text-lime-900 dark:border-lime-700 dark:bg-lime-950/50 dark:text-lime-200",
+  "ดอก": "border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200",
+  "ผล": "border-orange-300 bg-orange-100 text-orange-900 dark:border-orange-700 dark:bg-orange-950/50 dark:text-orange-200",
+  "ใบ": "border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200",
+}
 
 export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: string[]) => void }) {
   const [step, setStep] = useState(1)
   const [search, setSearch] = useState("")
   const [selectedPart, setSelectedPart] = useState<string>("ทั้งหมด")
+  const [eggControlOnly, setEggControlOnly] = useState(false)
   const [pestId, setPestId] = useState("")
   const [primaryName, setPrimaryName] = useState("")
+  const [rotationName, setRotationName] = useState("")
   const [partnerName, setPartnerName] = useState("")
   const [selectedFungicideId, setSelectedFungicideId] = useState<string>("")
   const [tankLiters, setTankLiters] = useState<number>(200)
@@ -50,22 +69,30 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
 
   const pest = orchardPests.find(item => item.id === pestId)
   const treatments = getPestTreatments(pestId)
-  const primary = treatments.find(item => item.name === primaryName)
-  const partners = getPestPartners(pestId, primaryName)
+  const eggControlTreatments = treatments.filter(item => item.controlsEggs)
+  const previousTreatment = treatments.find(item => item.name === primaryName)
+  const rotationTreatment = treatments.find(item => item.name === rotationName)
+  const primary = rotationTreatment ?? previousTreatment
+  const previousPartners = getPestPartners(pestId, primaryName)
+  const rotationPartners = previousTreatment ? previousPartners.filter(item => item.active.mainGroup !== previousTreatment.active.mainGroup) : []
+  const sameGroupPartners = previousTreatment ? previousPartners.filter(item => item.active.mainGroup === previousTreatment.active.mainGroup) : []
+  const partners = getPestPartners(pestId, primary?.name ?? "")
   const partner = partners.find(item => item.name === partnerName)
-  const premix = documentedPremixes.find(item => item.pestId === pestId && item.actives.includes(primaryName))
+  const premix = documentedPremixes.find(item => item.pestId === pestId && item.actives.includes(primary?.name ?? ""))
   const fungicide = compatibleFungicides.find(item => item.id === selectedFungicideId)
 
   // Filter pests by search query and target plant part
   const filteredPests = orchardPests.filter(item => {
     const matchesSearch = `${item.name} ${item.hint} ${item.symptoms}`.toLowerCase().includes(search.trim().toLowerCase())
     const matchesPart = selectedPart === "ทั้งหมด" || item.targetParts.some(p => p.includes(selectedPart))
-    return matchesSearch && matchesPart
+    const matchesEggControl = !eggControlOnly || item.treatments.some(treatment => treatment.controlsEggs)
+    return matchesSearch && matchesPart && matchesEggControl
   })
 
   const choosePest = (id: string) => {
     setPestId(id)
     setPrimaryName("")
+    setRotationName("")
     setPartnerName("")
     setSelectedFungicideId("")
     setPlanKind("solo")
@@ -74,60 +101,47 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
 
   const choosePrimary = (name: string) => {
     setPrimaryName(name)
+    setRotationName("")
     setPartnerName("")
     setPlanKind("solo")
     setStep(3)
+  }
+
+  const chooseRotation = (name: string) => {
+    setRotationName(name)
+    setPartnerName("")
+    setSelectedFungicideId("")
+    setPlanKind("solo")
   }
 
   const resetAll = () => {
     setStep(1)
     setPestId("")
     setPrimaryName("")
+    setRotationName("")
     setPartnerName("")
     setSelectedFungicideId("")
     setPlanKind("solo")
     setSearch("")
     setSelectedPart("ทั้งหมด")
+    setEggControlOnly(false)
   }
 
   return (
     <div className="space-y-6">
-      {/* Top Banner */}
-      <div className="flex flex-col gap-2 rounded-2xl bg-gradient-to-r from-primary/15 via-primary/5 to-emerald-500/10 p-5 sm:p-6 border border-primary/20">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-              <FlaskConical size={22} />
-            </span>
-            <div>
-              <h1 className="text-xl font-black sm:text-2xl text-foreground">โปรแกรมเลือกยาและจับคู่ผสมสารเคมี</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground font-medium">
-                เลือกแมลงที่พบในสวน → แนะนำยาที่ได้ผล → แนะนำคู่ผสมที่ปลอดภัยและคำนวณอัตราถังฉีด
-              </p>
-            </div>
-          </div>
-          {step > 1 && (
-            <Button variant="outline" size="sm" onClick={resetAll} className="gap-1.5 font-bold">
-              <RotateCcw size={14} />
-              เริ่มใหม่
-            </Button>
-          )}
-        </div>
-      </div>
-
       {/* Modern Step Navigation */}
       <nav aria-label="ขั้นตอนเลือกสาร" className="grid grid-cols-3 gap-2 sm:gap-3">
         {[
           { num: 1, label: "1. เลือกแมลง", sub: pest?.name || "ระบุศัตรูพืช", active: step === 1, done: step > 1, disabled: false },
-          { num: 2, label: "2. เลือกยาหลัก", sub: primary?.thai || "สารกำจัดแมลง", active: step === 2, done: step > 2, disabled: !pest },
-          { num: 3, label: "3. ดูคู่ผสม & ถังฉีด", sub: planKind === "tank" && partner ? `ผสม ${partner.thai}` : "คำนวณการผสม", active: step === 3, done: false, disabled: !primary },
+          { num: 2, label: "2. ยารอบที่แล้ว", sub: previousTreatment?.thai || "เลือกสารที่เคยใช้", active: step === 2, done: step > 2, disabled: !pest },
+          { num: 3, label: "3. เลือกยารอบใหม่", sub: rotationTreatment?.thai || "สลับกลุ่ม IRAC", active: step === 3, done: false, disabled: !previousTreatment },
         ].map(item => (
           <button
             key={item.num}
             type="button"
             disabled={item.disabled}
             onClick={() => setStep(item.num)}
-            className={`flex flex-col items-start justify-center rounded-xl border p-2.5 sm:p-3 text-left transition-all ${
+            className={`flex min-h-20 flex-col items-start justify-center rounded-2xl border p-3 text-left transition-[border-color,background-color,box-shadow,transform] active:scale-[0.98] sm:p-4 ${
               item.active
                 ? selectedStyle
                 : item.done
@@ -153,59 +167,84 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
       {/* STEP 1: SELECT PEST */}
       {step === 1 && (
         <section className={`${panel} space-y-4`}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg sm:text-xl font-black flex items-center gap-2">
-                <Bug className="text-primary size-5" />
-                พบแมลงศัตรูพืชชนิดไหนในสวนทุเรียน?
-              </h2>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                เลือกแมลงที่พบเพื่อดูสารกำจัดและคู่ผสมที่เหมาะสมตามหลักวิชาการ
-              </p>
-            </div>
-            {/* Filter by plant part */}
-            <div className="flex flex-wrap gap-1.5">
-              {["ทั้งหมด", "ยอดอ่อน", "ดอก", "ผล", "ใบ"].map(part => (
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-lime-50 to-amber-50 p-4 shadow-sm sm:p-5 dark:border-emerald-800/60 dark:from-emerald-950/40 dark:via-lime-950/25 dark:to-amber-950/25">
+            <div className="pointer-events-none absolute -right-10 -top-12 size-36 rounded-full bg-amber-300/25 blur-3xl" />
+            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-green-500 text-white shadow-md shadow-emerald-900/15">
+                  <Bug size={22} aria-hidden="true" />
+                </span>
+                <div>
+                  <span className="inline-flex rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-black text-amber-800 dark:text-amber-200">ขั้นตอนที่ 1 · สำรวจสวน</span>
+                  <h2 className="mt-1 text-lg font-black text-emerald-950 sm:text-xl dark:text-emerald-50">
+                    พบแมลงศัตรูพืชชนิดไหนในสวนทุเรียน?
+                  </h2>
+                  <p className="mt-1 text-xs font-medium text-emerald-900/70 sm:text-sm dark:text-emerald-100/70">
+                    เลือกแมลงที่พบเพื่อดูสารกำจัดและคู่ผสมที่เหมาะสมตามหลักวิชาการ
+                  </p>
+                </div>
+              </div>
+              {/* Filter by plant part */}
+              <div className="flex flex-wrap gap-2" aria-label="กรองตามส่วนของต้นทุเรียน">
+                {["ทั้งหมด", "ยอดอ่อน", "ดอก", "ผล", "ใบ"].map(part => (
+                  <button
+                    key={part}
+                    type="button"
+                    onClick={() => setSelectedPart(part)}
+                    aria-pressed={selectedPart === part}
+                    className={`min-h-10 rounded-full border px-3 py-1 text-xs font-bold transition-[background-color,border-color,box-shadow,transform] active:scale-95 ${
+                      selectedPart === part ? "border-primary bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20" : `${PART_TONES[part]} hover:shadow-sm`
+                    }`}
+                  >
+                    {part}
+                  </button>
+                ))}
                 <button
-                  key={part}
                   type="button"
-                  onClick={() => setSelectedPart(part)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                    selectedPart === part ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80 text-foreground"
+                  onClick={() => setEggControlOnly(value => !value)}
+                  aria-pressed={eggControlOnly}
+                  className={`flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold transition-[background-color,border-color,box-shadow,transform] active:scale-95 ${
+                    eggControlOnly
+                      ? "border-violet-600 bg-violet-600 text-white shadow-sm ring-2 ring-violet-500/20"
+                      : "border-violet-300 bg-violet-100 text-violet-900 hover:shadow-sm dark:border-violet-700 dark:bg-violet-950/50 dark:text-violet-200"
                   }`}
                 >
-                  {part}
+                  <Egg size={14} aria-hidden="true" /> มียาคุมไข่
                 </button>
-              ))}
+              </div>
             </div>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3.5 top-3.5 size-4 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-3.5 size-4 text-sky-600 dark:text-sky-300" aria-hidden="true" />
             <Input
               id="pest-search"
               value={search}
               onChange={event => setSearch(event.target.value)}
               placeholder="ค้นหาชื่อแมลง หรืออาการ เช่น เพลี้ยไฟ, ยอดหงิก, ไรแดง, ผงขาว, ขี้หนอน..."
-              className="pl-9 min-h-11 text-sm sm:text-base rounded-xl"
+              className="min-h-12 rounded-xl border-sky-200 bg-sky-50/60 pl-9 text-sm focus-visible:border-sky-500 focus-visible:ring-sky-500/25 sm:text-base dark:border-sky-800/60 dark:bg-sky-950/20"
             />
           </div>
 
           {/* Pest Cards Grid */}
           <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredPests.map(item => (
-              <div
+            {filteredPests.map((item, index) => {
+              const tone = PEST_TONES[index % PEST_TONES.length]
+              const eggControlCount = item.treatments.filter(treatment => treatment.controlsEggs).length
+              return (
+              <button
+                type="button"
                 key={item.id}
                 onClick={() => choosePest(item.id)}
-                className={`group cursor-pointer rounded-2xl border p-4 transition-all flex flex-col justify-between ${
-                  item.id === pestId ? selectedStyle : normalStyle
+                className={`group flex cursor-pointer flex-col justify-between rounded-2xl border p-4 text-left transition-[border-color,background-color,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(20,83,45,0.11)] active:scale-[0.99] ${
+                  item.id === pestId ? selectedStyle : tone.card
                 }`}
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
-                      <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
-                        <Bug size={20} />
+                      <span className={`flex size-9 items-center justify-center rounded-xl shadow-sm transition-transform group-hover:scale-105 ${tone.icon}`}>
+                        <Bug size={20} aria-hidden="true" />
                       </span>
                       <div>
                         <h3 className="font-black text-base text-foreground group-hover:text-primary transition-colors">
@@ -220,7 +259,7 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
                   {/* Target parts tags */}
                   <div className="mt-3 flex flex-wrap gap-1">
                     {item.targetParts.map(part => (
-                      <span key={part} className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                      <span key={part} className={`rounded-md px-2 py-0.5 text-[11px] font-bold ${tone.tag}`}>
                         {part}
                       </span>
                     ))}
@@ -232,13 +271,17 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground font-medium">มียาแนะนำ {item.treatments.length} ชนิด</span>
+                  <span className="flex flex-wrap items-center gap-1.5 text-muted-foreground font-medium">
+                    มียาแนะนำ {item.treatments.length} ชนิด
+                    {eggControlCount > 0 && <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-violet-500/15 px-1.5 py-0.5 font-bold text-violet-700 dark:text-violet-300"><Egg size={12} aria-hidden="true" />คุมไข่ {eggControlCount}</span>}
+                  </span>
                   <span className="font-bold text-primary flex items-center gap-1">
                     เลือกแมลงนี้ <ArrowRight size={13} />
                   </span>
                 </div>
-              </div>
-            ))}
+              </button>
+              )
+            })}
           </div>
 
           {!filteredPests.length && (
@@ -261,10 +304,10 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
                 <Bug size={15} /> ศัตรูพืชเป้าหมาย: {pest.name}
               </div>
               <h2 className="mt-1 text-lg sm:text-xl font-black">
-                เลือกสารกำจัดแมลงหลักที่ต้องการใช้
+                รอบที่แล้วใช้ยาอะไร?
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                คลิกเลือก 1 ตัวยาเพื่อเป็นสารตั้งต้น จากนั้นระบบจะแสดงคู่ผสมที่เข้ากันได้
+                เลือกสารที่ใช้ล่าสุด 1 ตัว ระบบจะตัดยากลุ่มเดิมออกและแนะนำยาสำหรับรอบใหม่
               </p>
             </div>
             <Button variant="outline" size="sm" onClick={() => setStep(1)} className="gap-1 font-bold">
@@ -283,6 +326,25 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
               <span>{pest.beforeSpraying}</span>
             </div>
           </div>
+
+          {eggControlTreatments.length > 0 && (
+            <div className="rounded-2xl border border-violet-300 bg-gradient-to-r from-violet-50 to-fuchsia-50 p-4 dark:border-violet-800 dark:from-violet-950/35 dark:to-fuchsia-950/20">
+              <div className="flex items-start gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white"><Egg size={20} aria-hidden="true" /></span>
+                <div className="min-w-0">
+                  <h3 className="font-black text-violet-950 dark:text-violet-100">ตัวอย่างยาคุมไข่/ตัวอ่อนสำหรับ {pest.name}</h3>
+                  <p className="mt-1 text-xs text-violet-900/70 dark:text-violet-200/75">เหมาะกับการวางแผนช่วงพบไข่หรือตัวอ่อน ไม่ใช่ยาน็อกตัวเต็มวัยทุกชนิด ควรสำรวจระยะของแมลงและตรวจฉลากก่อนใช้</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {eggControlTreatments.map(item => (
+                      <span key={item.name} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-violet-300 bg-white/80 px-2.5 py-1.5 text-xs font-bold text-violet-950 dark:border-violet-800 dark:bg-card/70 dark:text-violet-100">
+                        {item.thai} <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[10px] text-violet-800 dark:bg-violet-900 dark:text-violet-200">IRAC {item.active.code}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Chemical Cards */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -321,6 +383,11 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
                           {item.actionType}
                         </span>
                       )}
+                      {item.controlsEggs && (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-violet-500/15 px-2 py-0.5 text-[11px] font-bold text-violet-700 dark:text-violet-300">
+                          <Egg size={12} aria-hidden="true" /> คุมไข่/ตัวอ่อน
+                        </span>
+                      )}
                       <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                         สูตร {item.formulation}
                       </span>
@@ -332,8 +399,9 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
                     </div>
 
                     {item.highlight && (
-                      <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
-                        ✨ {item.highlight}
+                      <p className="mt-3 flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
+                        <Sparkles size={14} className="mt-0.5 shrink-0 text-amber-500" aria-hidden="true" />
+                        <span>{item.highlight}</span>
                       </p>
                     )}
                   </div>
@@ -347,7 +415,7 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
                         choosePrimary(item.name)
                       }}
                     >
-                      <span>{isSelected ? "เลือกแล้ว" : "เลือกเป็นสารหลัก"}</span>
+                      <span>{isSelected ? "ยาที่ใช้รอบที่แล้ว" : "เลือกว่าใช้รอบที่แล้ว"}</span>
                       <ArrowRight size={15} />
                     </Button>
                   </div>
@@ -358,35 +426,74 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
         </section>
       )}
 
-      {/* STEP 3: MIXING PARTNER & LIVE TANK CALCULATOR */}
-      {step === 3 && pest && primary && (
+      {/* STEP 3: CHOOSE ROTATION, THEN OPTIONAL MIXING & CALCULATOR */}
+      {step === 3 && pest && previousTreatment && primary && (
         <div className="space-y-6">
-          {/* Chosen Chemical Header Card */}
+          {/* Previous and next treatment summary */}
           <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-primary">
                 <Bug size={14} /> ศัตรูพืช: {pest.name}
               </div>
               <div className="flex flex-wrap items-baseline gap-2.5">
-                <h2 className="text-xl font-black text-foreground">ยาหลัก: {primary.thai}</h2>
-                <span className="text-xs text-muted-foreground">({primary.name} {primary.formulation})</span>
-                <span className="rounded-md bg-primary text-primary-foreground px-2 py-0.5 text-xs font-black">
-                  IRAC {primary.active.code}
+                <h2 className="text-xl font-black text-foreground">รอบที่แล้ว: {previousTreatment.thai}</h2>
+                <span className="text-xs text-muted-foreground">({previousTreatment.name} {previousTreatment.formulation})</span>
+                <span className="rounded-md bg-amber-500 px-2 py-0.5 text-xs font-black text-white">
+                  IRAC {previousTreatment.active.code}
                 </span>
-                {primary.actionType && (
+                {previousTreatment.actionType && (
                   <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-bold text-foreground">
-                    กลไก: {primary.actionType}
+                    กลไก: {previousTreatment.actionType}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">
-                อัตราแนะนำตามเอกสาร: {primary.ratePer20L} {primary.unit} ต่อน้ำ 20 ลิตร
-              </p>
+              {rotationTreatment ? <p className="mt-2 flex flex-wrap items-center gap-2 text-sm font-black text-emerald-700 dark:text-emerald-300"><ArrowRight size={16} /> รอบนี้เลือก {rotationTreatment.thai} <span className="rounded-md bg-emerald-600 px-2 py-0.5 text-xs text-white">IRAC {rotationTreatment.active.code}</span></p> : <p className="text-xs text-muted-foreground">เลือกยารอบใหม่ด้านล่างเพื่อจัดทำแผนต่อ</p>}
             </div>
             <Button variant="outline" size="sm" onClick={() => setStep(2)} className="gap-1 font-bold shrink-0">
-              <ChevronLeft size={15} /> เปลี่ยนยาหลัก
+              <ChevronLeft size={15} /> เปลี่ยนยารอบที่แล้ว
             </Button>
           </div>
+
+          {/* Rotation plan for the next treatment window */}
+          <section className="rounded-3xl border border-emerald-300/60 bg-gradient-to-br from-emerald-50 via-lime-50 to-amber-50 p-4 shadow-[0_12px_30px_rgba(20,83,45,0.08)] sm:p-6 dark:from-emerald-950/35 dark:via-lime-950/20 dark:to-amber-950/15">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 text-xs font-black text-white">
+                  <RotateCcw size={13} /> แผนสลับกลุ่มรอบถัดไป
+                </span>
+                <h3 className="mt-3 text-lg font-black">ใช้ {previousTreatment.thai} กลุ่ม IRAC {previousTreatment.active.code} ล่าสุด</h3>
+                <p className="mt-1 text-sm text-muted-foreground">กดเลือกยาที่ต้องการใช้รอบนี้จากกลุ่มหลักที่ต่างกัน เมื่อการสำรวจพบว่ายังจำเป็นต้องใช้สาร</p>
+              </div>
+              <span className="rounded-2xl border border-amber-300 bg-amber-100 px-3 py-2 text-xs font-bold text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">เปลี่ยนชื่อยา ≠ เปลี่ยนกลุ่มเสมอ</span>
+            </div>
+
+            {rotationPartners.length > 0 ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {rotationPartners.map(item => {
+                  const isSelected = rotationName === item.name
+                  return <button type="button" key={item.name} onClick={() => chooseRotation(item.name)} aria-pressed={isSelected} className={`rounded-2xl border p-4 text-left transition-[border-color,background-color,box-shadow,transform] active:scale-[0.99] ${isSelected ? "border-emerald-600 bg-emerald-100 ring-2 ring-emerald-500/30 shadow-lg dark:bg-emerald-950/50" : "border-emerald-300 bg-white/85 hover:border-emerald-500 hover:shadow-md dark:border-emerald-800 dark:bg-card/85"}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div><strong className="block text-sm">{item.thai}</strong><span className="text-xs text-muted-foreground">{item.name}</span></div>
+                      <span className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-2 py-1 text-xs font-black text-white">{isSelected && <Check size={13} />} IRAC {item.active.code}</span>
+                    </div>
+                    <p className="mt-3 flex items-start gap-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-200"><ShieldCheck size={15} className="shrink-0" />ต่างจากกลุ่มหลัก {previousTreatment.active.mainGroup} — {isSelected ? "เลือกใช้รอบนี้แล้ว" : "กดเพื่อเลือกใช้รอบนี้"}</p>
+                  </button>
+                })}
+              </div>
+            ) : (
+              <p className="mt-4 rounded-xl bg-amber-100 p-3 text-sm text-amber-950 dark:bg-amber-950/40 dark:text-amber-100">ยังไม่มีสารต่างกลุ่มสำหรับแมลงชนิดนี้ในคลังข้อมูล โปรดปรึกษาเจ้าหน้าที่และตรวจทะเบียนล่าสุด</p>
+            )}
+
+            {sameGroupPartners.length > 0 && (
+              <div className="mt-4 flex items-start gap-2 rounded-2xl border border-orange-300/70 bg-orange-100/70 p-3 text-xs text-orange-950 dark:border-orange-800 dark:bg-orange-950/30 dark:text-orange-100">
+                <ShieldAlert size={16} className="shrink-0" />
+                <span><strong>ระบบไม่ให้เลือกเป็นยาสลับ:</strong> {sameGroupPartners.map(item => `${item.thai} (IRAC ${item.active.code})`).join(", ")} อยู่กลุ่มหลัก {previousTreatment.active.mainGroup} เหมือนกัน</span>
+              </div>
+            )}
+            <p className="mt-4 text-xs text-muted-foreground">อย่ากำหนดรอบพ่นจากปฏิทินอย่างเดียว ต้องอิงการสำรวจ วงจรแมลง ฉลากผลิตภัณฑ์ และทะเบียนที่ใช้กับทุเรียนในประเทศไทย</p>
+          </section>
+
+          {rotationTreatment && <>
 
           {/* Solo vs Mixed options */}
           <div className="grid gap-3 sm:grid-cols-2">
@@ -780,7 +887,7 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
             <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border">
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => setStep(2)} className="gap-1 font-bold">
-                  <ChevronLeft size={15} /> เปลี่ยนยาหลัก
+                  <ChevronLeft size={15} /> เปลี่ยนยารอบที่แล้ว
                 </Button>
                 <Button variant="ghost" size="sm" onClick={resetAll} className="gap-1 text-muted-foreground">
                   <RotateCcw size={14} /> เริ่มเลือกแมลงใหม่
@@ -803,6 +910,7 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
               )}
             </div>
           </section>
+          </>}
         </div>
       )}
     </div>
