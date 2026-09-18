@@ -38,6 +38,7 @@ export interface CompatibleFungicide {
 
 export interface DiseaseFungicide extends CompatibleFungicide {
   useStatus: "durian-guidance" | "verify-label"
+  popular?: boolean
 }
 
 export interface IncompatibilityRule {
@@ -280,6 +281,34 @@ export const diseaseFungicides: DiseaseFungicide[] = [
     ...item,
     useStatus: (["metalaxyl", "fosetyl-aluminium", "metalaxyl-m-mancozeb"].includes(item.id) ? "durian-guidance" : "verify-label") as DiseaseFungicide["useStatus"],
   })),
+  {
+    id: "pyraclostrobin",
+    name: "Pyraclostrobin",
+    thai: "ไพราโคลสโตรบิน",
+    targetDisease: "แอนแทรคโนส, โรคใบจุด, โรคใบไหม้, เชื้อฟิวซาเรียม",
+    formulation: "25% WG",
+    ratePer20L: 15,
+    unit: "กรัม",
+    fracGroup: "FRAC 11",
+    compatibility: "caution",
+    notes: "เป็น QoI กลุ่ม 11 เช่นเดียวกับอะซอกซีสโตรบิน จึงไม่ถือว่าเป็นการสลับกลุ่มและมีความเสี่ยงดื้อยาสูง ต้องตรวจฉลากทุเรียนจริง",
+    useStatus: "verify-label",
+    popular: true,
+  },
+  {
+    id: "pyraclostrobin-metiram",
+    name: "Pyraclostrobin + Metiram",
+    thai: "ไพราโคลสโตรบิน + เมทิแรม",
+    targetDisease: "แอนแทรคโนส, โรคใบจุด, โรคใบไหม้",
+    formulation: "60% WG",
+    ratePer20L: 30,
+    unit: "กรัม",
+    fracGroup: "FRAC 11 + M03",
+    compatibility: "caution",
+    notes: "เป็นสารผสมที่ยังมีกลุ่ม 11 จึงห้ามนับว่าเปลี่ยนกลุ่มจากไพราโคลสโตรบินหรืออะซอกซีสโตรบิน ตรวจสูตรและฉลากผลิตภัณฑ์จริง",
+    useStatus: "verify-label",
+    popular: true,
+  },
   {
     id: "thiophanate-methyl",
     name: "Thiophanate-methyl",
