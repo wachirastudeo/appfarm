@@ -380,7 +380,7 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                   <div>
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="text-lg font-black leading-snug text-foreground">{item.thai}</h3>
+                        <h3 className="text-xl font-black leading-tight text-foreground sm:text-2xl">{item.thai}</h3>
                         <p className="mt-1 break-words text-sm font-medium text-muted-foreground">{item.name}</p>
                       </div>
                       <span className="shrink-0 rounded-lg border border-primary/25 bg-primary/10 px-2.5 py-1.5 text-sm font-black text-primary">
@@ -502,7 +502,7 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                   const isSelected = rotationName === item.name
                   return <button type="button" key={item.name} onClick={() => chooseRotation(item.name)} aria-pressed={isSelected} className={`rounded-2xl border p-4 text-left transition-[border-color,background-color,box-shadow,transform] active:scale-[0.99] ${isSelected ? "border-emerald-600 bg-emerald-100 ring-2 ring-emerald-500/30 shadow-lg dark:bg-emerald-950/50" : "border-emerald-300 bg-white/85 hover:border-emerald-500 hover:shadow-md dark:border-emerald-800 dark:bg-card/85"}`}>
                     <div className="flex items-start justify-between gap-2">
-                      <div><strong className="block text-sm">{item.thai}</strong><span className="text-xs text-muted-foreground">{item.name}</span></div>
+                      <div><strong className="block text-lg leading-tight">{item.thai}</strong><span className="mt-1 block text-sm text-muted-foreground">{item.name}</span></div>
                       <span className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-2 py-1 text-xs font-black text-white">{isSelected && <Check size={13} />} IRAC {item.active.code}</span>
                     </div>
                     <p className="mt-3 flex items-start gap-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-200"><ShieldCheck size={15} className="shrink-0" />ต่างจากกลุ่มหลัก {previousTreatment.active.mainGroup} — {isSelected ? "เลือกใช้รอบนี้แล้ว" : "กดเพื่อเลือกใช้รอบนี้"}</p>
@@ -624,7 +624,7 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h4 className="font-bold text-sm sm:text-base text-foreground">{item.thai}</h4>
+                          <h4 className="text-lg font-black leading-tight text-foreground sm:text-xl">{item.thai}</h4>
                           <p className="text-xs text-muted-foreground">{item.name} ({item.formulation})</p>
                         </div>
                         <span className={`rounded-lg px-2.5 py-0.5 text-xs font-black ${

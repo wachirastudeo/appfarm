@@ -88,7 +88,7 @@ export default function DiseaseRotationPlanner() {
         {options.map(item => {
           return <article key={item.id} className="rounded-2xl border border-border p-4 text-left">
             <span className="flex items-start justify-between gap-2">
-              <span><strong className="block text-lg leading-snug">{item.thai}</strong><span className="mt-1 block text-sm font-medium text-muted-foreground">{item.name} · {item.formulation}</span></span>
+              <span><strong className="block text-xl leading-tight sm:text-2xl">{item.thai}</strong><span className="mt-1 block text-sm font-medium text-muted-foreground">{item.name} · {item.formulation}</span></span>
               <span className="shrink-0 rounded-lg bg-sky-500/15 px-2 py-1 text-xs font-black text-sky-700 dark:text-sky-300">{item.fracGroup}</span>
             </span>
             <span className="mt-3 flex flex-wrap gap-1.5">
