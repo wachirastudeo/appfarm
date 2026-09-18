@@ -105,21 +105,24 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
             className="min-h-12 border-amber-300 bg-white pl-10 text-base focus-visible:border-amber-600 focus-visible:ring-amber-500/20 dark:border-amber-800 dark:bg-card"
           />
         </div>
-        <select
-          id="previous-pesticide"
-          value={previousName}
-          onChange={event => event.target.value ? choosePrevious(event.target.value) : reset()}
-          className="mt-3 min-h-14 w-full rounded-xl border border-amber-300 bg-white px-3 text-base font-semibold text-foreground shadow-sm outline-none focus-visible:border-amber-600 focus-visible:ring-4 focus-visible:ring-amber-500/20 dark:border-amber-800 dark:bg-card"
-        >
-          <option value="">{filteredPesticides.length ? "— เลือกชื่อยา —" : "— ไม่พบยาที่ค้นหา —"}</option>
-          {commonPesticides.length > 0 && <optgroup label="ยาที่ใช้บ่อย">
-            {commonPesticides.map(item => <option key={item.name} value={item.name}>{item.thai} — {item.name} (IRAC {item.active.code})</option>)}
-          </optgroup>}
-          {otherPesticides.length > 0 && <optgroup label="ยาอื่นในข้อมูลทุเรียน">
-            {otherPesticides.map(item => <option key={item.name} value={item.name}>{item.thai} — {item.name} (IRAC {item.active.code})</option>)}
-          </optgroup>}
-        </select>
-        <p id="pesticide-search-help" className="mt-2 text-xs text-muted-foreground">{filteredPesticides.length ? "พิมพ์เพื่อกรองรายการ แล้วเลือกยาจากช่องด้านล่าง" : "ไม่พบยา ลองค้นด้วยชื่อบางส่วนหรือรหัสกลุ่ม เช่น 4A"}</p>
+        <div id="previous-pesticide" className="mt-3 max-h-72 overflow-y-auto rounded-xl border border-amber-300 bg-white shadow-sm dark:border-amber-800 dark:bg-card" role="listbox" aria-label="ผลการค้นหายา">
+          {commonPesticides.length > 0 && <div>
+            <p className="sticky top-0 z-10 bg-amber-50 px-3 py-2 text-xs font-black text-amber-900 dark:bg-amber-950 dark:text-amber-100">ยาที่ใช้บ่อย</p>
+            {commonPesticides.map(item => <button key={item.name} type="button" role="option" aria-selected={previousName === item.name} onClick={() => choosePrevious(item.name)} className={`flex w-full items-center justify-between gap-3 border-t border-amber-100 px-3 py-3 text-left transition-colors hover:bg-amber-50 dark:border-amber-950 dark:hover:bg-amber-950/40 ${previousName === item.name ? "bg-amber-100 dark:bg-amber-950/60" : ""}`}>
+              <span className="min-w-0"><strong className="block text-sm">{item.thai}</strong><span className="block truncate text-xs text-muted-foreground">{item.name} · {item.formulation}</span></span>
+              <span className="shrink-0 rounded-lg bg-amber-100 px-2 py-1 text-xs font-black text-amber-900 dark:bg-amber-950 dark:text-amber-100">IRAC {item.active.code}</span>
+            </button>)}
+          </div>}
+          {otherPesticides.length > 0 && <div>
+            <p className="sticky top-0 z-10 bg-muted px-3 py-2 text-xs font-black text-muted-foreground">ยาอื่นในข้อมูลทุเรียน</p>
+            {otherPesticides.map(item => <button key={item.name} type="button" role="option" aria-selected={previousName === item.name} onClick={() => choosePrevious(item.name)} className={`flex w-full items-center justify-between gap-3 border-t border-border px-3 py-3 text-left transition-colors hover:bg-muted/70 ${previousName === item.name ? "bg-muted" : ""}`}>
+              <span className="min-w-0"><strong className="block text-sm">{item.thai}</strong><span className="block truncate text-xs text-muted-foreground">{item.name} · {item.formulation}</span></span>
+              <span className="shrink-0 rounded-lg bg-muted px-2 py-1 text-xs font-black text-foreground">IRAC {item.active.code}</span>
+            </button>)}
+          </div>}
+          {!filteredPesticides.length && <p className="p-5 text-center text-sm text-muted-foreground">ไม่พบยา ลองค้นด้วยชื่อบางส่วนหรือรหัสกลุ่ม เช่น 4A</p>}
+        </div>
+        <p id="pesticide-search-help" className="mt-2 text-xs text-muted-foreground">ผลลัพธ์จะเปลี่ยนทันทีขณะพิมพ์ กดชื่อยาเพื่อดูตัวเลือกสลับกลุ่ม</p>
       </div>
     </section>
 
