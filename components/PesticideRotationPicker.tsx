@@ -108,7 +108,7 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
           <div>
             <span className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-300">เริ่มจากยาที่เคยใช้</span>
             <h2 className="mt-1 text-xl font-black sm:text-2xl">รอบที่แล้วใช้ยาอะไร?</h2>
-            <p className="mt-1 text-sm text-muted-foreground">เปิดรายการแล้วเลือกยา ระบบจะแนะนำสารต่างกลุ่มที่ควรสลับใช้ให้ทันที</p>
+            <p className="mt-2 text-base font-medium leading-relaxed text-muted-foreground">เปิดรายการแล้วเลือกยา ระบบจะแนะนำสารต่างกลุ่มที่ควรสลับใช้ให้ทันที</p>
           </div>
         </div>
         {previous && <Button type="button" variant="outline" size="sm" onClick={reset} className="gap-1.5 font-bold"><RotateCcw size={14} />เลือกใหม่</Button>}
@@ -116,10 +116,10 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
 
       <div className="mt-5 rounded-2xl border border-amber-300/70 bg-white/75 p-4 dark:border-amber-800 dark:bg-card/70">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <label htmlFor="pesticide-search" className="text-sm font-black text-amber-900 dark:text-amber-100">เลือกยาที่ใช้รอบที่แล้ว</label>
+          <label htmlFor="pesticide-search" className="text-lg font-black text-amber-950 dark:text-amber-100">เลือกยาที่ใช้รอบที่แล้ว</label>
           <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-900 dark:bg-amber-950/60 dark:text-amber-100">{normalizedQuery ? `พบ ${filteredPesticides.length} จาก ${pesticides.length} สาร` : `มี ${pesticides.length} สาร`}</span>
         </div>
-        <label htmlFor="pesticide-search" className="mt-3 block text-xs font-bold text-amber-900 dark:text-amber-100">ค้นหายา</label>
+        <label htmlFor="pesticide-search" className="mt-4 block text-base font-black text-amber-950 dark:text-amber-100">ค้นหายา</label>
         <div className="mt-1.5" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setIsSearchOpen(false) }}>
           <div className="relative">
             <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-700 dark:text-amber-300" aria-hidden="true" />
@@ -145,28 +145,28 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
           {isSearchOpen && <div id="pesticide-suggestions" className="mt-2 max-h-80 overflow-y-auto rounded-xl border border-amber-300 bg-white shadow-lg dark:border-amber-800 dark:bg-card" role="listbox" aria-label="คำแนะนำชื่อยา">
             <p className="sticky top-0 z-10 bg-amber-50 px-3 py-2 text-xs font-black text-amber-900 dark:bg-amber-950 dark:text-amber-100">{normalizedQuery ? "คำที่ใกล้เคียง" : "ยาที่ใช้บ่อย"}</p>
             {filteredPesticides.map(item => <button key={item.name} type="button" role="option" aria-selected={previousName === item.name} onClick={() => choosePrevious(item.name)} className={`flex w-full items-center justify-between gap-3 border-t border-amber-100 px-3 py-3 text-left transition-colors hover:bg-amber-50 focus:bg-amber-50 focus:outline-none dark:border-amber-950 dark:hover:bg-amber-950/40 dark:focus:bg-amber-950/40 ${previousName === item.name ? "bg-amber-100 dark:bg-amber-950/60" : ""}`}>
-              <span className="min-w-0"><strong className="block text-sm">{item.thai}</strong><span className="block truncate text-xs text-muted-foreground">{item.name} · {item.formulation}</span></span>
-              <span className="shrink-0 rounded-lg bg-amber-100 px-2 py-1 text-xs font-black text-amber-900 dark:bg-amber-950 dark:text-amber-100">IRAC {item.active.code}</span>
+              <span className="min-w-0"><strong className="block text-base leading-snug">{item.thai}</strong><span className="mt-1 block truncate text-sm font-medium text-muted-foreground">{item.name} · {item.formulation}</span></span>
+              <span className="shrink-0 rounded-lg bg-amber-100 px-2.5 py-1.5 text-sm font-black text-amber-950 dark:bg-amber-950 dark:text-amber-100">IRAC {item.active.code}</span>
             </button>)}
             {!filteredPesticides.length && <p className="p-5 text-center text-sm text-muted-foreground">ยังไม่พบคำใกล้เคียง ลองพิมพ์ชื่อบางส่วนหรือกลุ่ม เช่น 4A</p>}
           </div>}
         </div>
-        <p id="pesticide-search-help" className="mt-2 text-xs text-muted-foreground">พิมพ์บางส่วนของชื่อ ระบบจะเดาคำใกล้เคียงขึ้นมาให้กดเลือกทันที</p>
+        <p id="pesticide-search-help" className="mt-2 text-sm font-medium leading-relaxed text-muted-foreground">พิมพ์บางส่วนของชื่อ ระบบจะเดาคำใกล้เคียงขึ้นมาให้กดเลือกทันที</p>
       </div>
     </section>
 
     {previous && <section className="rounded-3xl border border-emerald-300/60 bg-gradient-to-br from-emerald-50 via-lime-50 to-white p-4 shadow-[0_12px_34px_rgba(20,83,45,0.08)] sm:p-6 dark:from-emerald-950/35 dark:via-lime-950/20 dark:to-card">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div><span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 text-xs font-black text-white"><RotateCcw size={13} />แนะนำยาสำหรับรอบนี้</span><h3 className="mt-3 text-lg font-black">ควรสลับจาก {previous.thai} ไปใช้ตัวไหน?</h3><p className="mt-1 text-sm text-muted-foreground">ตัวเลือกด้านล่างเป็นคนละกลุ่มกับ IRAC {previous.active.code} และใช้กับแมลงเป้าหมายเดียวกัน</p></div>
+        <div><span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-black text-white"><RotateCcw size={15} />แนะนำยาสำหรับรอบนี้</span><h3 className="mt-3 text-xl font-black leading-snug">ควรสลับจาก {previous.thai} ไปใช้ตัวไหน?</h3><p className="mt-2 text-base font-medium leading-relaxed text-muted-foreground">ตัวเลือกด้านล่างเป็นคนละกลุ่มกับ IRAC {previous.active.code} และใช้กับแมลงเป้าหมายเดียวกัน</p></div>
         <span className="rounded-xl border border-amber-300 bg-amber-100 px-3 py-2 text-xs font-bold text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">เปลี่ยนชื่อยาอย่างเดียวอาจยังเป็นกลุ่มเดิม</span>
       </div>
 
       {rotations.length ? <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{rotations.map(item => {
         const active = nextName === item.name
         return <button key={item.name} type="button" onClick={() => setNextName(item.name)} aria-pressed={active} className={`rounded-2xl border p-4 text-left transition-[border-color,background-color,box-shadow,transform] active:scale-[0.99] ${active ? "border-emerald-600 bg-emerald-100 ring-2 ring-emerald-500/30 shadow-lg dark:bg-emerald-950/50" : "border-emerald-300 bg-white/85 hover:border-emerald-500 hover:shadow-md dark:border-emerald-800 dark:bg-card/80"}`}>
-          <span className="flex items-start justify-between gap-2"><span><strong className="block">{item.thai}</strong><span className="text-xs text-muted-foreground">{item.name} · {item.formulation}</span></span><span className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-2 py-1 text-xs font-black text-white">{active && <Check size={13} />} IRAC {item.active.code}</span></span>
-          <span className="mt-2 block text-xs text-muted-foreground">เหมาะกับ: {pestsForTreatment(item.name).join(", ")}</span>
-          <span className="mt-3 flex items-start gap-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-200"><ShieldCheck size={15} className="shrink-0" />{active ? "เลือกใช้รอบนี้แล้ว" : "กดเพื่อเลือกใช้รอบนี้"}</span>
+          <span className="flex items-start justify-between gap-2"><span><strong className="block text-lg leading-snug">{item.thai}</strong><span className="mt-1 block text-sm font-medium text-muted-foreground">{item.name} · {item.formulation}</span></span><span className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-sm font-black text-white">{active && <Check size={14} />} IRAC {item.active.code}</span></span>
+          <span className="mt-3 block text-sm font-medium leading-relaxed text-muted-foreground">เหมาะกับ: {pestsForTreatment(item.name).join(", ")}</span>
+          <span className="mt-3 flex min-h-11 items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-black text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100"><ShieldCheck size={17} className="shrink-0" />{active ? "เลือกใช้รอบนี้แล้ว" : "กดเพื่อเลือกใช้รอบนี้"}</span>
         </button>
       })}</div> : <p className="mt-4 rounded-xl bg-amber-100 p-3 text-sm text-amber-950 dark:bg-amber-950/40 dark:text-amber-100">สารนี้มีข้อมูลกลุ่ม IRAC {previous.active.code} แต่ยังไม่มีสารต่างกลุ่มที่ยืนยันว่าใช้กับแมลงเป้าหมายเดียวกันในคลังข้อมูล จึงไม่แนะนำยาแมลงชนิดอื่นแบบสุ่ม โปรดตรวจทะเบียนล่าสุดหรือปรึกษาเจ้าหน้าที่</p>}
 

@@ -29,7 +29,7 @@ export default function InsecticideMixing() {
           </span>
           <div>
             <h1 className="text-2xl font-black leading-tight text-white sm:text-3xl">สลับยาอย่างเป็นระบบ</h1>
-            <p className="mt-2 max-w-2xl text-sm font-medium leading-relaxed text-emerald-50/90 sm:text-base">
+            <p className="mt-2 max-w-2xl text-base font-medium leading-relaxed text-emerald-50/95 sm:text-lg">
               เริ่มจากยาที่ใช้ล่าสุด หรือเลือกโรคและแมลงหลักที่พบบ่อยในสวนทุเรียน
             </p>
           </div>
@@ -51,14 +51,14 @@ export default function InsecticideMixing() {
           type="button"
           onClick={() => setView(item.id)}
           aria-pressed={isActive}
-          className={`group flex min-h-20 items-center gap-3 rounded-2xl border p-3 text-left transition-[border-color,background-color,box-shadow,transform] active:scale-[0.98] sm:p-4 ${isActive ? "border-primary/30 bg-card shadow-[0_12px_28px_rgba(20,83,45,0.10)] ring-2 ring-primary/15" : "border-border bg-card/70 hover:border-primary/30 hover:bg-card"}`}
+          className={`group flex min-h-20 touch-manipulation items-center gap-3 rounded-2xl border p-4 text-left transition-[border-color,background-color,box-shadow,transform] active:scale-[0.98] ${isActive ? "border-primary/30 bg-card shadow-[0_12px_28px_rgba(20,83,45,0.10)] ring-2 ring-primary/15" : "border-border bg-card/70 hover:border-primary/30 hover:bg-card"}`}
         >
           <span className={`flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.tone} text-white shadow-sm`}>
             <Icon size={21} aria-hidden="true" />
           </span>
           <span className="min-w-0">
-            <span className="block font-black text-foreground">{item.label}</span>
-            <span className="block text-xs font-medium text-muted-foreground">{item.detail}</span>
+            <span className="block text-lg font-black text-foreground">{item.label}</span>
+            <span className="mt-0.5 block text-sm font-semibold leading-relaxed text-muted-foreground">{item.detail}</span>
           </span>
           {isActive && <span className="ml-auto size-2.5 shrink-0 rounded-full bg-primary ring-4 ring-primary/15" aria-hidden="true" />}
         </button>
@@ -70,10 +70,10 @@ export default function InsecticideMixing() {
     {view === "problems" && <div className="space-y-5">
       <section className="rounded-3xl border border-primary/15 bg-card p-3 shadow-[0_12px_34px_rgba(20,83,45,0.07)] sm:p-4">
         <div className="grid grid-cols-2 gap-2" aria-label="เลือกประเภทปัญหาในสวน">
-          <button type="button" onClick={() => setProblemKind("insect")} aria-pressed={problemKind === "insect"} className={`flex min-h-14 items-center justify-center gap-2 rounded-2xl border px-3 text-sm font-black transition-[border-color,background-color,box-shadow] ${problemKind === "insect" ? "border-emerald-600 bg-emerald-600 text-white shadow-md" : "border-emerald-200 bg-emerald-50 text-emerald-900 hover:border-emerald-400 dark:border-emerald-800 dark:bg-emerald-950/25 dark:text-emerald-100"}`}>
+          <button type="button" onClick={() => setProblemKind("insect")} aria-pressed={problemKind === "insect"} className={`flex min-h-16 touch-manipulation items-center justify-center gap-2 rounded-2xl border px-3 text-base font-black transition-[border-color,background-color,box-shadow] ${problemKind === "insect" ? "border-emerald-600 bg-emerald-600 text-white shadow-md" : "border-emerald-200 bg-emerald-50 text-emerald-900 hover:border-emerald-400 dark:border-emerald-800 dark:bg-emerald-950/25 dark:text-emerald-100"}`}>
             <Bug size={19} aria-hidden="true" /> แมลงหลัก 8 ชนิด
           </button>
-          <button type="button" onClick={() => setProblemKind("disease")} aria-pressed={problemKind === "disease"} className={`flex min-h-14 items-center justify-center gap-2 rounded-2xl border px-3 text-sm font-black transition-[border-color,background-color,box-shadow] ${problemKind === "disease" ? "border-sky-600 bg-sky-600 text-white shadow-md" : "border-sky-200 bg-sky-50 text-sky-900 hover:border-sky-400 dark:border-sky-800 dark:bg-sky-950/25 dark:text-sky-100"}`}>
+          <button type="button" onClick={() => setProblemKind("disease")} aria-pressed={problemKind === "disease"} className={`flex min-h-16 touch-manipulation items-center justify-center gap-2 rounded-2xl border px-3 text-base font-black transition-[border-color,background-color,box-shadow] ${problemKind === "disease" ? "border-sky-600 bg-sky-600 text-white shadow-md" : "border-sky-200 bg-sky-50 text-sky-900 hover:border-sky-400 dark:border-sky-800 dark:bg-sky-950/25 dark:text-sky-100"}`}>
             <Leaf size={19} aria-hidden="true" /> โรคหลัก 5 โรค
           </button>
         </div>

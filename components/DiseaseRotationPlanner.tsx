@@ -63,7 +63,7 @@ export default function DiseaseRotationPlanner() {
         <div>
           <span className="text-xs font-black uppercase tracking-wider text-sky-700 dark:text-sky-300">Disease treatment guide</span>
           <h2 className="mt-1 text-xl font-black sm:text-2xl">เลือกโรคที่พบในสวน</h2>
-          <p className="mt-1 text-sm text-muted-foreground">เลือกโรคเพื่อดูสารที่เกี่ยวข้อง กลุ่ม FRAC และข้อห้ามผสมที่สำคัญ</p>
+          <p className="mt-2 text-base font-medium leading-relaxed text-muted-foreground">เลือกโรคเพื่อดูสารที่เกี่ยวข้อง กลุ่ม FRAC และข้อห้ามผสมที่สำคัญ</p>
         </div>
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -71,16 +71,16 @@ export default function DiseaseRotationPlanner() {
           const active = item.id === diseaseId
           return <button key={item.id} type="button" onClick={() => chooseDisease(item.id)} aria-pressed={active} className={`rounded-2xl border bg-gradient-to-br p-4 text-left transition-all ${item.tone} ${active ? "ring-2 ring-primary shadow-lg" : "hover:-translate-y-0.5 hover:shadow-md"}`}>
             <span className="flex items-center justify-between gap-2"><Leaf size={19} className="text-primary" />{active && <Check size={18} className="text-primary" />}</span>
-            <strong className="mt-3 block text-sm">{item.name}</strong>
-            <span className="mt-1 block text-xs text-muted-foreground">{item.hint}</span>
+            <strong className="mt-3 block text-base leading-snug">{item.name}</strong>
+            <span className="mt-1 block text-sm font-medium leading-relaxed text-muted-foreground">{item.hint}</span>
           </button>
         })}
       </div>
     </section>
 
     <section className="rounded-3xl border border-primary/15 bg-card p-4 shadow-[0_12px_34px_rgba(20,83,45,0.07)] sm:p-6">
-      <h3 className="text-lg font-black">{disease.name}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{disease.detail}</p>
+      <h3 className="text-xl font-black">{disease.name}</h3>
+      <p className="mt-2 text-base font-medium leading-relaxed text-muted-foreground">{disease.detail}</p>
       {options.length === 0 && <div className="mt-4 rounded-2xl border border-amber-300/60 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100">
         ยังไม่มีสารสำหรับโรคนี้ในคลังข้อมูล โปรดยืนยันเชื้อกับเจ้าหน้าที่หรือห้องปฏิบัติการ และตรวจฉลากผลิตภัณฑ์ที่ขึ้นทะเบียนก่อนใช้
       </div>}
@@ -88,22 +88,22 @@ export default function DiseaseRotationPlanner() {
         {options.map(item => {
           return <article key={item.id} className="rounded-2xl border border-border p-4 text-left">
             <span className="flex items-start justify-between gap-2">
-              <span><strong className="block text-sm">{item.thai}</strong><span className="text-xs text-muted-foreground">{item.name} · {item.formulation}</span></span>
+              <span><strong className="block text-lg leading-snug">{item.thai}</strong><span className="mt-1 block text-sm font-medium text-muted-foreground">{item.name} · {item.formulation}</span></span>
               <span className="shrink-0 rounded-lg bg-sky-500/15 px-2 py-1 text-xs font-black text-sky-700 dark:text-sky-300">{item.fracGroup}</span>
             </span>
             <span className="mt-3 flex flex-wrap gap-1.5">
               {item.popular && <span className="inline-flex rounded-full bg-sky-100 px-2 py-1 text-[11px] font-bold text-sky-800 dark:bg-sky-950/50 dark:text-sky-200">ชาวสวนใช้บ่อย</span>}
               <span className={`inline-flex rounded-full px-2 py-1 text-[11px] font-bold ${item.useStatus === "durian-guidance" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200" : "bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-100"}`}>{item.useStatus === "durian-guidance" ? "มีคำแนะนำในทุเรียน" : "ต้องตรวจฉลากทุเรียน"}</span>
             </span>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{item.notes}</p>
+            <p className="mt-3 text-sm font-medium leading-relaxed text-muted-foreground">{item.notes}</p>
           </article>
         })}
       </div>}
     </section>
 
     <section className="rounded-3xl border border-amber-400/60 bg-amber-50 p-4 sm:p-6 dark:border-amber-800 dark:bg-amber-950/25">
-      <h3 className="flex items-center gap-2 text-lg font-black text-amber-950 dark:text-amber-100"><ShieldAlert size={19} />ข้อห้ามผสมที่ต้องตรวจทุกครั้ง</h3>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">{tankMixRules.map(rule => <div key={rule.id} className="rounded-2xl border border-amber-300/70 bg-white/80 p-4 dark:border-amber-900 dark:bg-card/70"><strong className="text-sm text-amber-950 dark:text-amber-100">{rule.title}</strong><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{rule.dangerText}</p></div>)}</div>
+      <h3 className="flex items-center gap-2 text-xl font-black text-amber-950 dark:text-amber-100"><ShieldAlert size={21} />ข้อห้ามผสมที่ต้องตรวจทุกครั้ง</h3>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">{tankMixRules.map(rule => <div key={rule.id} className="rounded-2xl border border-amber-300/70 bg-white/80 p-4 dark:border-amber-900 dark:bg-card/70"><strong className="text-base text-amber-950 dark:text-amber-100">{rule.title}</strong><p className="mt-2 text-sm font-medium leading-relaxed text-muted-foreground">{rule.dangerText}</p></div>)}</div>
       <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground"><AlertTriangle size={15} className="shrink-0" />ใช้เฉพาะผลิตภัณฑ์ที่ขึ้นทะเบียนกับทุเรียนและโรคเป้าหมาย ตรวจ PHI/REI และข้อจำกัดจากฉลากล่าสุดทุกครั้ง</p>
     </section>
   </div>

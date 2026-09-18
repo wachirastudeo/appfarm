@@ -186,10 +186,10 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                 </span>
                 <div>
                   <span className="inline-flex rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-black text-amber-800 dark:text-amber-200">ขั้นตอนที่ 1 · สำรวจสวน</span>
-                  <h2 className="mt-1 text-lg font-black text-emerald-950 sm:text-xl dark:text-emerald-50">
+                  <h2 className="mt-1 text-xl font-black leading-snug text-emerald-950 sm:text-2xl dark:text-emerald-50">
                     พบแมลงศัตรูพืชชนิดไหนในสวนทุเรียน?
                   </h2>
-                  <p className="mt-1 text-xs font-medium text-emerald-900/70 sm:text-sm dark:text-emerald-100/70">
+                  <p className="mt-2 text-base font-semibold leading-relaxed text-emerald-950/80 dark:text-emerald-100/85">
                     {guideOnly ? "เลือกแมลงที่พบเพื่อดูสารกำจัด กลุ่ม IRAC และข้อห้ามผสมที่สำคัญ" : "เลือกแมลงที่พบเพื่อดูสารกำจัดและคู่ผสมที่เหมาะสมตามหลักวิชาการ"}
                   </p>
                 </div>
@@ -257,10 +257,10 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                         <Bug size={20} aria-hidden="true" />
                       </span>
                       <div>
-                        <h3 className="font-black text-base text-foreground group-hover:text-primary transition-colors">
+                        <h3 className="text-lg font-black text-foreground transition-colors group-hover:text-primary">
                           {item.name}
                         </h3>
-                        <p className="text-xs text-primary font-medium">{item.hint}</p>
+                        <p className="mt-0.5 text-sm font-bold text-primary">{item.hint}</p>
                       </div>
                     </div>
                     <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
@@ -275,7 +275,7 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                     ))}
                   </div>
 
-                  <p className="mt-2.5 text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                  <p className="mt-2.5 text-sm font-medium leading-relaxed text-muted-foreground sm:text-base">
                     {item.symptoms}
                   </p>
                 </div>
@@ -313,10 +313,10 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
               <div className="flex items-center gap-2 text-xs font-semibold text-primary">
                 <Bug size={15} /> ศัตรูพืชเป้าหมาย: {pest.name}
               </div>
-              <h2 className="mt-1 text-lg sm:text-xl font-black">
+              <h2 className="mt-1 text-xl font-black leading-snug sm:text-2xl">
                 {guideOnly ? `ยาที่ใช้กับ${pest.name}` : "รอบที่แล้วใช้ยาอะไร?"}
               </h2>
-              <p className="text-xs sm:text-sm text-muted-foreground">
+              <p className="mt-1 text-base font-medium leading-relaxed text-muted-foreground">
                 {guideOnly ? "ดูชื่อสาร กลุ่ม IRAC สูตร และข้อมูลการใช้เบื้องต้น ไม่ใช่หน้าวางแผนสลับกลุ่ม" : "เลือกสารที่ใช้ล่าสุด 1 ตัว ระบบจะตัดยากลุ่มเดิมออกและแนะนำยาสำหรับรอบใหม่"}
               </p>
             </div>
@@ -326,7 +326,7 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
           </div>
 
           {/* Pest Info & Cultural tips */}
-          <div className="rounded-xl bg-muted/60 p-4 text-xs sm:text-sm space-y-2 leading-relaxed border border-border/50">
+          <div className="space-y-3 rounded-xl border border-border/60 bg-muted/60 p-4 text-base font-medium leading-relaxed">
             <div className="font-bold text-foreground flex items-center gap-1.5">
               <Info size={16} className="text-primary" /> อาการระบาดและจุดสังเกต:
             </div>
@@ -380,10 +380,10 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                   <div>
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="text-base font-black text-foreground">{item.thai}</h3>
-                        <p className="text-xs text-muted-foreground break-words">{item.name}</p>
+                        <h3 className="text-lg font-black leading-snug text-foreground">{item.thai}</h3>
+                        <p className="mt-1 break-words text-sm font-medium text-muted-foreground">{item.name}</p>
                       </div>
-                      <span className="shrink-0 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-black text-primary border border-primary/20">
+                      <span className="shrink-0 rounded-lg border border-primary/25 bg-primary/10 px-2.5 py-1.5 text-sm font-black text-primary">
                         IRAC {item.iracLabel ?? item.active.code}
                       </span>
                     </div>
@@ -420,13 +420,13 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                     {item.highlight && (
                       <p className="mt-3 flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
                         <Sparkles size={14} className="mt-0.5 shrink-0 text-amber-500" aria-hidden="true" />
-                        <span>{item.highlight}</span>
+                        <span className="text-sm font-medium leading-relaxed">{item.highlight}</span>
                       </p>
                     )}
                   </div>
 
                   {guideOnly ? (
-                    <div className="mt-4 flex min-h-10 items-center justify-between rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-sm font-black text-primary transition-colors group-hover:border-primary/35 group-hover:bg-primary/15 dark:bg-primary/15 dark:group-hover:bg-primary/20">
+                    <div className="mt-4 flex min-h-12 items-center justify-between rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-base font-black text-primary transition-colors group-hover:border-primary/45 group-hover:bg-primary/15 dark:bg-primary/15 dark:group-hover:bg-primary/20">
                       <span className="inline-flex items-center gap-2"><ShoppingBag size={16} aria-hidden="true" /> ดูสินค้า</span>
                       <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />
                     </div>
