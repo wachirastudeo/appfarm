@@ -19,8 +19,27 @@ const popularPesticides = [
   "Chlorantraniliprole",
 ]
 
+const normalizeSearch = (value: string) => value.toLocaleLowerCase("th").replace(/[\s\-_/().]+/g, "")
+
+const editDistance = (left: string, right: string) => {
+  const row = Array.from({ length: right.length + 1 }, (_, index) => index)
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    let diagonal = row[0]
+    row[0] = leftIndex
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      const above = row[rightIndex]
+      row[rightIndex] = left[leftIndex - 1] === right[rightIndex - 1]
+        ? diagonal
+        : Math.min(diagonal, row[rightIndex], row[rightIndex - 1]) + 1
+      diagonal = above
+    }
+  }
+  return row[right.length]
+}
+
 export default function PesticideRotationPicker({ onInspect }: Props) {
   const [searchQuery, setSearchQuery] = useState("")
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [previousName, setPreviousName] = useState("")
   const [nextName, setNextName] = useState("")
 
@@ -32,12 +51,19 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
     return [...unique.values()].sort((a, b) => a.thai.localeCompare(b.thai, "th"))
   }, [])
 
-  const normalizedQuery = searchQuery.trim().toLocaleLowerCase("th")
+  const normalizedQuery = normalizeSearch(searchQuery.trim())
   const filteredPesticides = normalizedQuery
-    ? pesticides.filter(item => `${item.thai} ${item.name} ${item.active.code} ${item.active.mainGroup}`.toLocaleLowerCase("th").includes(normalizedQuery))
-    : pesticides
-  const commonPesticides = popularPesticides.map(name => filteredPesticides.find(item => item.name === name)).filter((item): item is (typeof pesticides)[number] => Boolean(item))
-  const otherPesticides = filteredPesticides.filter(item => !popularPesticides.includes(item.name))
+    ? pesticides.map(item => {
+      const terms = [item.thai, item.name, item.active.code, item.active.mainGroup]
+      const normalizedTerms = terms.map(normalizeSearch)
+      const exactIndex = normalizedTerms.findIndex(term => term.startsWith(normalizedQuery))
+      const containsIndex = normalizedTerms.findIndex(term => term.includes(normalizedQuery))
+      const closestDistance = Math.min(...normalizedTerms.map(term => editDistance(normalizedQuery, term.slice(0, normalizedQuery.length))))
+      const tolerance = normalizedQuery.length >= 4 ? Math.max(1, Math.floor(normalizedQuery.length * 0.25)) : 0
+      const score = exactIndex >= 0 ? exactIndex : containsIndex >= 0 ? 10 + containsIndex : closestDistance <= tolerance ? 20 + closestDistance : Number.POSITIVE_INFINITY
+      return { item, score }
+    }).filter(result => Number.isFinite(result.score)).sort((left, right) => left.score - right.score || left.item.thai.localeCompare(right.item.thai, "th")).map(result => result.item)
+    : popularPesticides.map(name => pesticides.find(item => item.name === name)).filter((item): item is (typeof pesticides)[number] => Boolean(item))
   const previous = pesticides.find(item => item.name === previousName)
   const supportedPests = previous
     ? orchardPests.filter(pest => pest.treatments.some(treatment => treatment.name === previous.name))
@@ -61,11 +87,13 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
   const choosePrevious = (name: string) => {
     setPreviousName(name)
     setSearchQuery("")
+    setIsSearchOpen(false)
     setNextName("")
   }
 
   const reset = () => {
     setSearchQuery("")
+    setIsSearchOpen(false)
     setPreviousName("")
     setNextName("")
   }
@@ -88,41 +116,37 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
 
       <div className="mt-5 rounded-2xl border border-amber-300/70 bg-white/75 p-4 dark:border-amber-800 dark:bg-card/70">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <label htmlFor="previous-pesticide" className="text-sm font-black text-amber-900 dark:text-amber-100">เลือกยาที่ใช้รอบที่แล้ว</label>
+          <label htmlFor="pesticide-search" className="text-sm font-black text-amber-900 dark:text-amber-100">เลือกยาที่ใช้รอบที่แล้ว</label>
           <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-900 dark:bg-amber-950/60 dark:text-amber-100">{normalizedQuery ? `พบ ${filteredPesticides.length} จาก ${pesticides.length} สาร` : `มี ${pesticides.length} สาร`}</span>
         </div>
         <label htmlFor="pesticide-search" className="mt-3 block text-xs font-bold text-amber-900 dark:text-amber-100">ค้นหายา</label>
-        <div className="relative mt-1.5">
+        <div className="relative mt-1.5" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setIsSearchOpen(false) }}>
           <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-700 dark:text-amber-300" aria-hidden="true" />
           <Input
             id="pesticide-search"
             type="search"
             value={searchQuery}
-            onChange={event => setSearchQuery(event.target.value)}
+            onFocus={() => setIsSearchOpen(true)}
+            onChange={event => { setSearchQuery(event.target.value); setIsSearchOpen(true) }}
             placeholder="ค้นหาชื่อไทย อังกฤษ หรือกลุ่ม IRAC"
             autoComplete="off"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={isSearchOpen}
+            aria-controls="pesticide-suggestions"
             aria-describedby="pesticide-search-help"
             className="min-h-12 border-amber-300 bg-white pl-10 text-base focus-visible:border-amber-600 focus-visible:ring-amber-500/20 dark:border-amber-800 dark:bg-card"
           />
-        </div>
-        <div id="previous-pesticide" className="mt-3 max-h-72 overflow-y-auto rounded-xl border border-amber-300 bg-white shadow-sm dark:border-amber-800 dark:bg-card" role="listbox" aria-label="ผลการค้นหายา">
-          {commonPesticides.length > 0 && <div>
-            <p className="sticky top-0 z-10 bg-amber-50 px-3 py-2 text-xs font-black text-amber-900 dark:bg-amber-950 dark:text-amber-100">ยาที่ใช้บ่อย</p>
-            {commonPesticides.map(item => <button key={item.name} type="button" role="option" aria-selected={previousName === item.name} onClick={() => choosePrevious(item.name)} className={`flex w-full items-center justify-between gap-3 border-t border-amber-100 px-3 py-3 text-left transition-colors hover:bg-amber-50 dark:border-amber-950 dark:hover:bg-amber-950/40 ${previousName === item.name ? "bg-amber-100 dark:bg-amber-950/60" : ""}`}>
+          {isSearchOpen && <div id="pesticide-suggestions" className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-50 max-h-80 overflow-y-auto rounded-xl border border-amber-300 bg-white shadow-xl dark:border-amber-800 dark:bg-card" role="listbox" aria-label="คำแนะนำชื่อยา">
+            <p className="sticky top-0 z-10 bg-amber-50 px-3 py-2 text-xs font-black text-amber-900 dark:bg-amber-950 dark:text-amber-100">{normalizedQuery ? "คำที่ใกล้เคียง" : "ยาที่ใช้บ่อย"}</p>
+            {filteredPesticides.map(item => <button key={item.name} type="button" role="option" aria-selected={previousName === item.name} onClick={() => choosePrevious(item.name)} className={`flex w-full items-center justify-between gap-3 border-t border-amber-100 px-3 py-3 text-left transition-colors hover:bg-amber-50 focus:bg-amber-50 focus:outline-none dark:border-amber-950 dark:hover:bg-amber-950/40 dark:focus:bg-amber-950/40 ${previousName === item.name ? "bg-amber-100 dark:bg-amber-950/60" : ""}`}>
               <span className="min-w-0"><strong className="block text-sm">{item.thai}</strong><span className="block truncate text-xs text-muted-foreground">{item.name} · {item.formulation}</span></span>
               <span className="shrink-0 rounded-lg bg-amber-100 px-2 py-1 text-xs font-black text-amber-900 dark:bg-amber-950 dark:text-amber-100">IRAC {item.active.code}</span>
             </button>)}
+            {!filteredPesticides.length && <p className="p-5 text-center text-sm text-muted-foreground">ยังไม่พบคำใกล้เคียง ลองพิมพ์ชื่อบางส่วนหรือกลุ่ม เช่น 4A</p>}
           </div>}
-          {otherPesticides.length > 0 && <div>
-            <p className="sticky top-0 z-10 bg-muted px-3 py-2 text-xs font-black text-muted-foreground">ยาอื่นในข้อมูลทุเรียน</p>
-            {otherPesticides.map(item => <button key={item.name} type="button" role="option" aria-selected={previousName === item.name} onClick={() => choosePrevious(item.name)} className={`flex w-full items-center justify-between gap-3 border-t border-border px-3 py-3 text-left transition-colors hover:bg-muted/70 ${previousName === item.name ? "bg-muted" : ""}`}>
-              <span className="min-w-0"><strong className="block text-sm">{item.thai}</strong><span className="block truncate text-xs text-muted-foreground">{item.name} · {item.formulation}</span></span>
-              <span className="shrink-0 rounded-lg bg-muted px-2 py-1 text-xs font-black text-foreground">IRAC {item.active.code}</span>
-            </button>)}
-          </div>}
-          {!filteredPesticides.length && <p className="p-5 text-center text-sm text-muted-foreground">ไม่พบยา ลองค้นด้วยชื่อบางส่วนหรือรหัสกลุ่ม เช่น 4A</p>}
         </div>
-        <p id="pesticide-search-help" className="mt-2 text-xs text-muted-foreground">ผลลัพธ์จะเปลี่ยนทันทีขณะพิมพ์ กดชื่อยาเพื่อดูตัวเลือกสลับกลุ่ม</p>
+        <p id="pesticide-search-help" className="mt-2 text-xs text-muted-foreground">พิมพ์บางส่วนของชื่อ ระบบจะเดาคำใกล้เคียงขึ้นมาให้กดเลือกทันที</p>
       </div>
     </section>
 
