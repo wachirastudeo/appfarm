@@ -89,7 +89,7 @@ export default function InsecticideMixing() {
           </button>
         </div>
       </section>
-      {problemKind === "insect" ? <PestTreatmentPlanner /> : <DiseaseRotationPlanner />}
+      {problemKind === "insect" ? <PestTreatmentPlanner guideOnly /> : <DiseaseRotationPlanner />}
     </div>}
 
     {view === "table" && <>

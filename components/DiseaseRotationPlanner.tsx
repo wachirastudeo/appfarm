@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { AlertTriangle, Check, Leaf, RotateCcw, ShieldCheck, Sprout } from "lucide-react"
-import { diseaseFungicides } from "@/lib/pest-planner"
+import { AlertTriangle, Check, Leaf, ShieldAlert, Sprout } from "lucide-react"
+import { diseaseFungicides, tankMixRules } from "@/lib/pest-planner"
 
 const diseases = [
   {
@@ -47,31 +47,13 @@ const diseases = [
   },
 ]
 
-const fracGroups = (group: string) => new Set(
-  group.replace(/^FRAC\s+/i, "").split("+").map(value => value.trim()).filter(Boolean),
-)
-
-const sharesFracGroup = (left: string, right: string) => {
-  const rightGroups = fracGroups(right)
-  return [...fracGroups(left)].some(group => rightGroups.has(group))
-}
-
 export default function DiseaseRotationPlanner() {
   const [diseaseId, setDiseaseId] = useState(diseases[0].id)
-  const [currentId, setCurrentId] = useState("")
   const disease = diseases.find(item => item.id === diseaseId) ?? diseases[0]
   const options = diseaseFungicides.filter(item => disease.fungicides.includes(item.id))
-  const current = options.find(item => item.id === currentId)
-  const rotations = current
-    ? options.filter(item => item.id !== current.id && !sharesFracGroup(item.fracGroup, current.fracGroup))
-    : []
-  const sameGroup = current
-    ? options.filter(item => item.id !== current.id && sharesFracGroup(item.fracGroup, current.fracGroup))
-    : []
 
   const chooseDisease = (id: string) => {
     setDiseaseId(id)
-    setCurrentId("")
   }
 
   return <div className="space-y-6">
@@ -79,9 +61,9 @@ export default function DiseaseRotationPlanner() {
       <div className="flex items-start gap-3">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-emerald-600 text-white shadow-sm"><Sprout size={23} /></span>
         <div>
-          <span className="text-xs font-black uppercase tracking-wider text-sky-700 dark:text-sky-300">FRAC rotation guide</span>
+          <span className="text-xs font-black uppercase tracking-wider text-sky-700 dark:text-sky-300">Disease treatment guide</span>
           <h2 className="mt-1 text-xl font-black sm:text-2xl">เลือกโรคที่พบในสวน</h2>
-          <p className="mt-1 text-sm text-muted-foreground">ดูตัวอย่างสารในคลังข้อมูล แล้วเทียบกลุ่ม FRAC สำหรับรอบถัดไป</p>
+          <p className="mt-1 text-sm text-muted-foreground">เลือกโรคเพื่อดูสารที่เกี่ยวข้อง กลุ่ม FRAC และข้อห้ามผสมที่สำคัญ</p>
         </div>
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -104,8 +86,7 @@ export default function DiseaseRotationPlanner() {
       </div>}
       {options.length > 0 && <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {options.map(item => {
-          const active = currentId === item.id
-          return <button key={item.id} type="button" onClick={() => setCurrentId(active ? "" : item.id)} aria-pressed={active} className={`rounded-2xl border p-4 text-left transition-all ${active ? "border-sky-500 bg-sky-50 ring-2 ring-sky-500/30 dark:bg-sky-950/30" : "border-border hover:border-sky-400/60 hover:bg-sky-50/40 dark:hover:bg-sky-950/15"}`}>
+          return <article key={item.id} className="rounded-2xl border border-border p-4 text-left">
             <span className="flex items-start justify-between gap-2">
               <span><strong className="block text-sm">{item.thai}</strong><span className="text-xs text-muted-foreground">{item.name} · {item.formulation}</span></span>
               <span className="shrink-0 rounded-lg bg-sky-500/15 px-2 py-1 text-xs font-black text-sky-700 dark:text-sky-300">{item.fracGroup}</span>
@@ -114,22 +95,16 @@ export default function DiseaseRotationPlanner() {
               {item.popular && <span className="inline-flex rounded-full bg-sky-100 px-2 py-1 text-[11px] font-bold text-sky-800 dark:bg-sky-950/50 dark:text-sky-200">ชาวสวนใช้บ่อย</span>}
               <span className={`inline-flex rounded-full px-2 py-1 text-[11px] font-bold ${item.useStatus === "durian-guidance" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200" : "bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-100"}`}>{item.useStatus === "durian-guidance" ? "มีคำแนะนำในทุเรียน" : "ต้องตรวจฉลากทุเรียน"}</span>
             </span>
-            <span className="mt-2 block text-xs text-muted-foreground">เลือกหากนี่คือสารที่ใช้ล่าสุด</span>
-          </button>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{item.notes}</p>
+          </article>
         })}
       </div>}
     </section>
 
-    {current && <section className="rounded-3xl border border-emerald-300/50 bg-gradient-to-br from-emerald-50 to-lime-50 p-4 sm:p-6 dark:from-emerald-950/30 dark:to-lime-950/20" aria-live="polite">
-      <h3 className="flex items-center gap-2 text-lg font-black"><RotateCcw size={20} className="text-emerald-600" />แผนสลับจาก {current.thai} ({current.fracGroup})</h3>
-      {rotations.length > 0 ? <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        {rotations.map(item => <div key={item.id} className="rounded-2xl border border-emerald-300 bg-white/80 p-4 dark:border-emerald-800 dark:bg-card/80">
-          <span className="flex items-center justify-between gap-2"><strong>{item.thai}</strong><span className="rounded-lg bg-emerald-600 px-2 py-1 text-xs font-black text-white">{item.fracGroup}</span></span>
-          <p className="mt-2 flex items-start gap-2 text-xs text-emerald-800 dark:text-emerald-200"><ShieldCheck size={15} className="shrink-0" />คนละกลุ่ม FRAC กับสารล่าสุด จึงเป็นตัวเลือกสำหรับพิจารณาสลับกลไก</p>
-        </div>)}
-      </div> : <p className="mt-3 rounded-xl bg-amber-100 p-3 text-sm text-amber-950 dark:bg-amber-950/40 dark:text-amber-100">ยังไม่มีสารต่างกลุ่มสำหรับโรคนี้ในคลังข้อมูล ไม่ควรสรุปว่าสารอื่นใช้แทนได้โดยไม่ตรวจฉลากและวินิจฉัยโรค</p>}
-      {sameGroup.length > 0 && <p className="mt-3 flex items-start gap-2 text-xs text-amber-800 dark:text-amber-200"><AlertTriangle size={15} className="shrink-0" />{sameGroup.map(item => item.thai).join(", ")} อยู่ {current.fracGroup} เหมือนกัน จึงไม่ถือว่าเปลี่ยนกลุ่ม</p>}
-      <p className="mt-4 text-xs text-muted-foreground">ใช้เฉพาะผลิตภัณฑ์ที่ขึ้นทะเบียนกับทุเรียนและโรคเป้าหมายในประเทศไทย ตรวจอัตรา PHI/REI และข้อจำกัดจากฉลากล่าสุดทุกครั้ง</p>
-    </section>}
+    <section className="rounded-3xl border border-amber-400/60 bg-amber-50 p-4 sm:p-6 dark:border-amber-800 dark:bg-amber-950/25">
+      <h3 className="flex items-center gap-2 text-lg font-black text-amber-950 dark:text-amber-100"><ShieldAlert size={19} />ข้อห้ามผสมที่ต้องตรวจทุกครั้ง</h3>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">{tankMixRules.map(rule => <div key={rule.id} className="rounded-2xl border border-amber-300/70 bg-white/80 p-4 dark:border-amber-900 dark:bg-card/70"><strong className="text-sm text-amber-950 dark:text-amber-100">{rule.title}</strong><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{rule.dangerText}</p></div>)}</div>
+      <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground"><AlertTriangle size={15} className="shrink-0" />ใช้เฉพาะผลิตภัณฑ์ที่ขึ้นทะเบียนกับทุเรียนและโรคเป้าหมาย ตรวจ PHI/REI และข้อจำกัดจากฉลากล่าสุดทุกครั้ง</p>
+    </section>
   </div>
 }

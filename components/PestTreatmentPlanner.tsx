@@ -54,7 +54,7 @@ const PART_TONES: Record<string, string> = {
   "ใบ": "border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200",
 }
 
-export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: string[]) => void }) {
+export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: { onInspect?: (ids: string[]) => void; guideOnly?: boolean }) {
   const [step, setStep] = useState(1)
   const [search, setSearch] = useState("")
   const [selectedPart, setSelectedPart] = useState<string>("ทั้งหมด")
@@ -130,7 +130,7 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
   return (
     <div className="space-y-6">
       {/* Modern Step Navigation */}
-      <nav aria-label="ขั้นตอนเลือกสาร" className="grid grid-cols-3 gap-2 sm:gap-3">
+      {!guideOnly && <nav aria-label="ขั้นตอนเลือกสาร" className="grid grid-cols-3 gap-2 sm:gap-3">
         {[
           { num: 1, label: "1. เลือกแมลง", sub: pest?.name || "ระบุศัตรูพืช", active: step === 1, done: step > 1, disabled: false },
           { num: 2, label: "2. ยารอบที่แล้ว", sub: previousTreatment?.thai || "เลือกสารที่เคยใช้", active: step === 2, done: step > 2, disabled: !pest },
@@ -162,7 +162,7 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
             </span>
           </button>
         ))}
-      </nav>
+      </nav>}
 
       {/* STEP 1: SELECT PEST */}
       {step === 1 && (
@@ -304,10 +304,10 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
                 <Bug size={15} /> ศัตรูพืชเป้าหมาย: {pest.name}
               </div>
               <h2 className="mt-1 text-lg sm:text-xl font-black">
-                รอบที่แล้วใช้ยาอะไร?
+                {guideOnly ? `ยาที่ใช้กับ${pest.name}` : "รอบที่แล้วใช้ยาอะไร?"}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                เลือกสารที่ใช้ล่าสุด 1 ตัว ระบบจะตัดยากลุ่มเดิมออกและแนะนำยาสำหรับรอบใหม่
+                {guideOnly ? "ดูชื่อสาร กลุ่ม IRAC สูตร และข้อมูลการใช้เบื้องต้น ไม่ใช่หน้าวางแผนสลับกลุ่ม" : "เลือกสารที่ใช้ล่าสุด 1 ตัว ระบบจะตัดยากลุ่มเดิมออกและแนะนำยาสำหรับรอบใหม่"}
               </p>
             </div>
             <Button variant="outline" size="sm" onClick={() => setStep(1)} className="gap-1 font-bold">
@@ -353,8 +353,8 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
               return (
                 <div
                   key={item.name}
-                  onClick={() => choosePrimary(item.name)}
-                  className={`cursor-pointer rounded-2xl border p-4 flex flex-col justify-between transition-all ${
+                  onClick={guideOnly ? undefined : () => choosePrimary(item.name)}
+                  className={`rounded-2xl border p-4 flex flex-col justify-between transition-all ${guideOnly ? "" : "cursor-pointer"} ${
                     isSelected ? selectedStyle : normalStyle
                   }`}
                 >
@@ -406,7 +406,7 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
                     )}
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-border/60">
+                  {!guideOnly && <div className="mt-4 pt-3 border-t border-border/60">
                     <Button
                       variant={isSelected ? "default" : "outline"}
                       className="w-full justify-between font-bold text-xs sm:text-sm h-10"
@@ -418,11 +418,16 @@ export default function PestTreatmentPlanner({ onInspect }: { onInspect?: (ids: 
                       <span>{isSelected ? "ยาที่ใช้รอบที่แล้ว" : "เลือกว่าใช้รอบที่แล้ว"}</span>
                       <ArrowRight size={15} />
                     </Button>
-                  </div>
+                  </div>}
                 </div>
               )
             })}
           </div>
+          {guideOnly && <div className="rounded-2xl border border-amber-400/60 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/25">
+            <h3 className="flex items-center gap-2 font-black text-amber-950 dark:text-amber-100"><ShieldAlert size={18} />ข้อห้ามผสมที่ต้องตรวจทุกครั้ง</h3>
+            <div className="mt-3 space-y-2">{tankMixRules.map(rule => <div key={rule.id} className="rounded-xl border border-amber-300/70 bg-white/75 p-3 text-xs dark:border-amber-900 dark:bg-card/70"><strong className="text-amber-950 dark:text-amber-100">{rule.title}</strong><p className="mt-1 text-muted-foreground">{rule.dangerText}</p></div>)}</div>
+            <p className="mt-3 text-xs text-muted-foreground">หากฉลากผลิตภัณฑ์ระบุข้อห้ามเพิ่มเติม ให้ยึดฉลากเป็นหลักและทดสอบความเข้ากันได้ก่อนผสมจริง</p>
+          </div>}
         </section>
       )}
 
