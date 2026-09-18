@@ -17,9 +17,11 @@ import {
   RotateCcw,
   Sparkles,
   Info,
+  ShoppingBag,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useToast } from "@/hooks/use-toast"
 import {
   documentedPremixes,
   getPestPartners,
@@ -55,6 +57,7 @@ const PART_TONES: Record<string, string> = {
 }
 
 export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: { onInspect?: (ids: string[]) => void; guideOnly?: boolean }) {
+  const { toast } = useToast()
   const [step, setStep] = useState(1)
   const [search, setSearch] = useState("")
   const [selectedPart, setSelectedPart] = useState<string>("ทั้งหมด")
@@ -125,6 +128,13 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
     setSearch("")
     setSelectedPart("ทั้งหมด")
     setEggControlOnly(false)
+  }
+
+  const showProductComingSoon = (thaiName: string) => {
+    toast({
+      title: `สินค้า ${thaiName}`,
+      description: "กำลังเตรียมลิงก์ร้านค้า เมื่อพร้อมแล้วจะกดจากการ์ดนี้เพื่อเลือกซื้อได้ทันที",
+    })
   }
 
   return (
@@ -353,10 +363,19 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
               return (
                 <div
                   key={item.name}
-                  onClick={guideOnly ? undefined : () => choosePrimary(item.name)}
-                  className={`rounded-2xl border p-4 flex flex-col justify-between transition-all ${guideOnly ? "" : "cursor-pointer"} ${
+                  role={guideOnly ? "button" : undefined}
+                  tabIndex={guideOnly ? 0 : undefined}
+                  aria-label={guideOnly ? `ดูสินค้า ${item.thai}` : undefined}
+                  onClick={() => guideOnly ? showProductComingSoon(item.thai) : choosePrimary(item.name)}
+                  onKeyDown={event => {
+                    if (guideOnly && (event.key === "Enter" || event.key === " ")) {
+                      event.preventDefault()
+                      showProductComingSoon(item.thai)
+                    }
+                  }}
+                  className={`group rounded-2xl border p-4 flex flex-col justify-between transition-all cursor-pointer ${
                     isSelected ? selectedStyle : normalStyle
-                  }`}
+                  } ${guideOnly ? "hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" : ""}`}
                 >
                   <div>
                     <div className="flex items-start justify-between gap-2">
@@ -406,7 +425,12 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                     )}
                   </div>
 
-                  {!guideOnly && <div className="mt-4 pt-3 border-t border-border/60">
+                  {guideOnly ? (
+                    <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3 text-sm font-black text-primary">
+                      <span className="inline-flex items-center gap-2"><ShoppingBag size={16} aria-hidden="true" /> ดูสินค้า</span>
+                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                    </div>
+                  ) : <div className="mt-4 pt-3 border-t border-border/60">
                     <Button
                       variant={isSelected ? "default" : "outline"}
                       className="w-full justify-between font-bold text-xs sm:text-sm h-10"
