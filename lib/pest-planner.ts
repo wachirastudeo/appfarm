@@ -59,6 +59,7 @@ const caterpillarSource = "https://doaenews.doae.go.th/archives/26446"
 const longhornSource = "https://trang.doae.go.th/mueangtrang/blog/2026/02/16/เกษตรเมืองตรัง-แจ้งเตื-3/"
 const leafhopperSource = "https://yala.doae.go.th/yaha/blog/2024/09/24/เพลี้ยจักจั่นฝอยทุเรียน/"
 const officialFruitPestSource = "https://ppsf.doae.go.th/wp-content/uploads/2026/03/SUMFruit-tree_pest_2569_3_11.pdf"
+const durianProductionManualSource = "https://chumphon.doae.go.th/province/wp-content/uploads/2022/04/คู่มือการผลิตทุเรียนคุณภาพ-จังหวัดชุมพร.pdf"
 
 export const orchardPests: OrchardPest[] = [
   {
@@ -75,6 +76,7 @@ export const orchardPests: OrchardPest[] = [
       { name: "Fipronil", thai: "ฟิโพรนิล", formulation: "5% SC", ratePer20L: 20, unit: "ซีซี", actionType: "สัมผัสตาย", highlight: "กินตายสัมผัสตาย ขยายขอบเขตกำจัดหนอนร่วมด้วย", source: thripsSource },
       { name: "Chlorfenapyr", thai: "คลอร์ฟีนาเพอร์", formulation: "10% SC", ratePer20L: 20, unit: "ซีซี", actionType: "แทรกซึม", highlight: "เหมาะกับเพลี้ยไฟดื้อยา จัดการไรแดงร่วมได้", source: thripsSource },
       { name: "Abamectin", thai: "อะบาเมกติน", formulation: "1.8% EC", ratePer20L: 20, unit: "ซีซี", actionType: "แทรกซึม", highlight: "แทรกซึมเนื้อเยื่อใบ น็อกเพลี้ยและไร", source: thripsSource },
+      { name: "Acetamiprid", thai: "อะซีทามิพริด", formulation: "20% SP", ratePer20L: 10, unit: "กรัม", actionType: "ดูดซึม", highlight: "ตัวเลือกกลุ่ม 4A สำหรับเพลี้ยไฟตามคู่มือการผลิตทุเรียนคุณภาพ", source: durianProductionManualSource },
       { name: "Carbosulfan", thai: "คาร์โบซัลแฟน", formulation: "20% EC", ratePer20L: 40, unit: "ซีซี", actionType: "ดูดซึม", highlight: "ตัวเลือกต่างกลุ่มสำหรับเพลี้ยไฟตามคำแนะนำกรมส่งเสริมการเกษตร", source: officialFruitPestSource },
     ],
   },

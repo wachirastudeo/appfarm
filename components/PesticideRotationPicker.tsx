@@ -168,7 +168,7 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
           <span className="mt-2 block text-xs text-muted-foreground">เหมาะกับ: {pestsForTreatment(item.name).join(", ")}</span>
           <span className="mt-3 flex items-start gap-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-200"><ShieldCheck size={15} className="shrink-0" />{active ? "เลือกใช้รอบนี้แล้ว" : "กดเพื่อเลือกใช้รอบนี้"}</span>
         </button>
-      })}</div> : <p className="mt-4 rounded-xl bg-amber-100 p-3 text-sm text-amber-950 dark:bg-amber-950/40 dark:text-amber-100">ยังไม่มีสารต่างกลุ่มสำหรับแมลงนี้ในคลังข้อมูล โปรดตรวจทะเบียนล่าสุดและปรึกษาเจ้าหน้าที่</p>}
+      })}</div> : <p className="mt-4 rounded-xl bg-amber-100 p-3 text-sm text-amber-950 dark:bg-amber-950/40 dark:text-amber-100">สารนี้มีข้อมูลกลุ่ม IRAC {previous.active.code} แต่ยังไม่มีสารต่างกลุ่มที่ยืนยันว่าใช้กับแมลงเป้าหมายเดียวกันในคลังข้อมูล จึงไม่แนะนำยาแมลงชนิดอื่นแบบสุ่ม โปรดตรวจทะเบียนล่าสุดหรือปรึกษาเจ้าหน้าที่</p>}
 
       {sameGroup.length > 0 && <div className="mt-4 flex items-start gap-2 rounded-2xl border border-orange-300 bg-orange-100/70 p-3 text-xs text-orange-950 dark:border-orange-800 dark:bg-orange-950/30 dark:text-orange-100"><ShieldAlert size={16} className="shrink-0" /><span><strong>ไม่นับเป็นการสลับกลุ่ม:</strong> {sameGroup.map(item => `${item.thai} (${item.active.code})`).join(", ")}</span></div>}
 
