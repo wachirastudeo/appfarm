@@ -58,8 +58,8 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
       const normalizedTerms = terms.map(normalizeSearch)
       const exactIndex = normalizedTerms.findIndex(term => term.startsWith(normalizedQuery))
       const containsIndex = normalizedTerms.findIndex(term => term.includes(normalizedQuery))
-      const closestDistance = Math.min(...normalizedTerms.map(term => editDistance(normalizedQuery, term.slice(0, normalizedQuery.length))))
-      const tolerance = normalizedQuery.length >= 4 ? Math.max(1, Math.floor(normalizedQuery.length * 0.25)) : 0
+      const closestDistance = Math.min(...normalizedTerms.map(term => editDistance(normalizedQuery, term)))
+      const tolerance = normalizedQuery.length >= 4 ? Math.max(1, Math.floor(normalizedQuery.length * 0.35)) : 0
       const score = exactIndex >= 0 ? exactIndex : containsIndex >= 0 ? 10 + containsIndex : closestDistance <= tolerance ? 20 + closestDistance : Number.POSITIVE_INFINITY
       return { item, score }
     }).filter(result => Number.isFinite(result.score)).sort((left, right) => left.score - right.score || left.item.thai.localeCompare(right.item.thai, "th")).map(result => result.item)

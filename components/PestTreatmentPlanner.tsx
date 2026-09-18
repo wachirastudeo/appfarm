@@ -180,7 +180,7 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                     พบแมลงศัตรูพืชชนิดไหนในสวนทุเรียน?
                   </h2>
                   <p className="mt-1 text-xs font-medium text-emerald-900/70 sm:text-sm dark:text-emerald-100/70">
-                    เลือกแมลงที่พบเพื่อดูสารกำจัดและคู่ผสมที่เหมาะสมตามหลักวิชาการ
+                    {guideOnly ? "เลือกแมลงที่พบเพื่อดูสารกำจัด กลุ่ม IRAC และข้อห้ามผสมที่สำคัญ" : "เลือกแมลงที่พบเพื่อดูสารกำจัดและคู่ผสมที่เหมาะสมตามหลักวิชาการ"}
                   </p>
                 </div>
               </div>
