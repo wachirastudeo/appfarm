@@ -9,6 +9,8 @@ export interface PestTreatment {
   actionType?: "ดูดซึม" | "สัมผัสตาย" | "แทรกซึม" | "ยับยั้งการลอกคราบ"
   controlsEggs?: boolean
   highlight?: string
+  iracLabel?: string
+  guideOnly?: boolean
   source: string
 }
 
@@ -107,6 +109,10 @@ export const orchardPests: OrchardPest[] = [
     treatments: [
       { name: "Carbosulfan", thai: "คาร์โบซัลแฟน", formulation: "20% EC", ratePer20L: 50, unit: "ซีซี", actionType: "ดูดซึม", highlight: "ตัวเลือกกลุ่ม IRAC 1A สำหรับช่วงแตกใบอ่อนเมื่อพบการระบาดรุนแรง", source: officialFruitPestSource },
       { name: "Imidacloprid", thai: "อิมิดาโคลพริด", formulation: "10% SL", ratePer20L: 10, unit: "ซีซี", actionType: "ดูดซึม", highlight: "ตัวเลือกกลุ่ม IRAC 4A สำหรับช่วงแตกใบอ่อนเมื่อพบการระบาดรุนแรง", source: officialFruitPestSource },
+      { name: "Thiamethoxam", thai: "ไทอะมีทอกแซม", formulation: "25% WG", ratePer20L: 8, unit: "กรัม", actionType: "ดูดซึม", highlight: "สารกลุ่ม 4A ที่ชาวสวนใช้กับแมลงปากดูด ตรวจฉลากทะเบียนเพลี้ยจักจั่นฝอยในทุเรียนก่อนใช้", source: leafhopperSource },
+      { name: "Dinotefuran", thai: "ไดโนทีฟูแรน", formulation: "10% WP", ratePer20L: 15, unit: "กรัม", actionType: "ดูดซึม", highlight: "สารกลุ่ม 4A สำหรับแมลงปากดูด ต้องตรวจฉลากผลิตภัณฑ์ว่าระบุทุเรียนและเพลี้ยเป้าหมาย", source: leafhopperSource },
+      { name: "Acetamiprid", thai: "อะซีทามิพริด", formulation: "20% SP", ratePer20L: 10, unit: "กรัม", actionType: "ดูดซึม", highlight: "สารกลุ่ม 4A ที่พบใช้ในสวนทุเรียน ห้ามนับว่าเป็นคนละกลุ่มกับอิมิดาโคลพริด ไทอะมีทอกแซม หรือไดโนทีฟูแรน", source: leafhopperSource },
+      { name: "Cypermethrin", thai: "ไซเพอร์เมทริน + โฟซาโลน", formulation: "6.25% / 22.5% EC", ratePer20L: 40, unit: "ซีซี", actionType: "สัมผัสตาย", iracLabel: "3A + 1B", guideOnly: true, highlight: "สูตรผสมสำเร็จที่ระบุในคำแนะนำเพลี้ยจักจั่นฝอย ไม่ใช่การนำสารเดี่ยวสองตัวมาผสมเอง", source: officialFruitPestSource },
     ],
   },
   {
@@ -506,9 +512,9 @@ export const tankMixingOrder = [
   },
 ]
 
-export function getPestTreatments(pestId: string) {
+export function getPestTreatments(pestId: string, includeGuideOnly = false) {
   const pest = orchardPests.find(item => item.id === pestId)
-  return (pest?.treatments ?? []).flatMap(treatment => {
+  return (pest?.treatments ?? []).filter(treatment => includeGuideOnly || !treatment.guideOnly).flatMap(treatment => {
     const active = iracActives.find(item => item.name === treatment.name)
     return active ? [{ ...treatment, active }] : []
   })

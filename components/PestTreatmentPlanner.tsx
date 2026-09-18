@@ -68,7 +68,7 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
   const [planKind, setPlanKind] = useState<"solo" | "tank" | "premix">("solo")
 
   const pest = orchardPests.find(item => item.id === pestId)
-  const treatments = getPestTreatments(pestId)
+  const treatments = getPestTreatments(pestId, guideOnly)
   const eggControlTreatments = treatments.filter(item => item.controlsEggs)
   const previousTreatment = treatments.find(item => item.name === primaryName)
   const rotationTreatment = treatments.find(item => item.name === rotationName)
@@ -365,7 +365,7 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                         <p className="text-xs text-muted-foreground break-words">{item.name}</p>
                       </div>
                       <span className="shrink-0 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-black text-primary border border-primary/20">
-                        IRAC {item.active.code}
+                        IRAC {item.iracLabel ?? item.active.code}
                       </span>
                     </div>
 
