@@ -1505,7 +1505,7 @@ export default function AppShell() {
       case "finance":
         return <Finance data={store.data} addFinance={store.addFinance} deleteFinance={store.deleteFinance} onPrint={handlePrint} />
       case "mixing":
-        return <InsecticideMixing />
+        return <InsecticideMixing products={store.data.products} />
       case "articles":
         return <Articles articles={store.data.articles} products={store.data.products} initialArticleId={selectedArticleId} initialView={articleView} savedArticleIds={user?.savedArticleIds} savedArticlesStorageKey={user?.id ? `durian_saved_articles_${user.id}` : "durian_saved_articles_guest"} onSavedArticleIdsChange={savedArticleIds => user ? store.updateUser(user.id, { savedArticleIds }) : Promise.resolve()} onViewChange={setArticleView} onArticleSelect={setSelectedArticleId} />
       case "linebot":
@@ -1618,7 +1618,7 @@ export default function AppShell() {
             </div>
           ) : activeTab === "mixing" ? (
             <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 md:px-8 md:py-6 flex-1">
-              <InsecticideMixing />
+              <InsecticideMixing products={store.data.products} />
             </div>
           ) : (
             <div className="flex-1 flex flex-col">

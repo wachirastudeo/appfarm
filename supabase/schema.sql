@@ -145,10 +145,13 @@ create table if not exists public.products (
   geo_summary text,
   brand_name text,
   sku text,
+  active_ingredient text,
   status text not null default 'draft',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.products add column if not exists active_ingredient text;
 
 -- 11. Site Settings Table
 create table if not exists public.site_settings (

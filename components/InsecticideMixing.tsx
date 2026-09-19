@@ -6,8 +6,9 @@ import DiseaseRotationPlanner from "./DiseaseRotationPlanner"
 import PesticideRotationPicker from "./PesticideRotationPicker"
 import { Bug, FlaskConical, Leaf, ShieldCheck } from "lucide-react"
 import { IRAC_SOURCE, IRAC_MIXTURES_SOURCE } from "@/lib/irac"
+import type { Product } from "@/lib/store"
 
-export default function InsecticideMixing() {
+export default function InsecticideMixing({ products = [] }: { products?: Product[] }) {
   const [view, setView] = useState<"drug" | "problems">("drug")
   const [problemKind, setProblemKind] = useState<"insect" | "disease">("insect")
   const views = [
@@ -78,7 +79,7 @@ export default function InsecticideMixing() {
           </button>
         </div>
       </section>
-      {problemKind === "insect" ? <PestTreatmentPlanner guideOnly /> : <DiseaseRotationPlanner />}
+      {problemKind === "insect" ? <PestTreatmentPlanner guideOnly products={products} /> : <DiseaseRotationPlanner />}
     </div>}
 
     <footer className="space-y-2 text-xs text-muted-foreground"><p>แหล่งข้อมูล: <a href={IRAC_SOURCE} target="_blank" rel="noreferrer" className="underline">IRAC Mode of Action</a> · <a href={IRAC_MIXTURES_SOURCE} target="_blank" rel="noreferrer" className="underline">IRAC Insecticide Mixtures: Key Considerations</a></p><p>ตรวจฉลากและทะเบียนล่าสุดของผลิตภัณฑ์ก่อนใช้ทุกครั้ง ข้อมูลนี้ไม่ยืนยันความเหมาะสมหรือการขึ้นทะเบียนของทุกผลิตภัณฑ์ในประเทศไทย</p></footer>

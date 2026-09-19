@@ -228,6 +228,7 @@ Project: `hpyoyjpqitpvgckxnlww`
 - `status`
 - `brand_name`
 - `sku`
+- `active_ingredient` เชื่อมสินค้ากับสารออกฤทธิ์ในหน้าสลับยา
 
 ### `site_settings`
 

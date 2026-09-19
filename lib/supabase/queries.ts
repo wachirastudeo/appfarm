@@ -521,6 +521,7 @@ export async function insertProduct(product: Product) {
       geo_summary: product.geoSummary || null,
       brand_name: product.brandName || null,
       sku: product.sku || null,
+      active_ingredient: product.activeIngredient || null,
       status: product.status,
       created_at: product.createdAt,
       updated_at: product.updatedAt,
@@ -545,6 +546,7 @@ export async function updateProduct(productId: string, changes: Partial<Product>
   if (changes.geoSummary !== undefined) dbChanges.geo_summary = changes.geoSummary || null
   if (changes.brandName !== undefined) dbChanges.brand_name = changes.brandName || null
   if (changes.sku !== undefined) dbChanges.sku = changes.sku || null
+  if (changes.activeIngredient !== undefined) dbChanges.active_ingredient = changes.activeIngredient || null
   if (changes.status !== undefined) dbChanges.status = changes.status
   if (changes.updatedAt !== undefined) dbChanges.updated_at = changes.updatedAt
 

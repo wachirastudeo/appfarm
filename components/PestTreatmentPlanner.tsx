@@ -22,6 +22,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
+import { safeHttpUrl } from "@/lib/seo"
+import type { Product } from "@/lib/store"
 import {
   documentedPremixes,
   getPestPartners,
@@ -56,7 +58,7 @@ const PART_TONES: Record<string, string> = {
   "ใบ": "border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200",
 }
 
-export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: { onInspect?: (ids: string[]) => void; guideOnly?: boolean }) {
+export default function PestTreatmentPlanner({ onInspect, guideOnly = false, products = [] }: { onInspect?: (ids: string[]) => void; guideOnly?: boolean; products?: Product[] }) {
   const { toast } = useToast()
   const [step, setStep] = useState(1)
   const [search, setSearch] = useState("")
@@ -130,10 +132,20 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
     setEggControlOnly(false)
   }
 
-  const showProductComingSoon = (thaiName: string) => {
+  const openAffiliateProduct = (activeIngredient: string, thaiName: string) => {
+    const product = products.find(item =>
+      item.status === "active" &&
+      item.activeIngredient?.toLocaleLowerCase() === activeIngredient.toLocaleLowerCase() &&
+      safeHttpUrl(item.affiliateUrl),
+    )
+    const affiliateUrl = safeHttpUrl(product?.affiliateUrl)
+    if (affiliateUrl) {
+      window.open(affiliateUrl, "_blank", "noopener,noreferrer")
+      return
+    }
     toast({
-      title: `สินค้า ${thaiName}`,
-      description: "กำลังเตรียมลิงก์ร้านค้า เมื่อพร้อมแล้วจะกดจากการ์ดนี้เพื่อเลือกซื้อได้ทันที",
+      title: `ยังไม่มีสินค้า ${thaiName}`,
+      description: "ผู้ดูแลระบบยังไม่ได้เพิ่ม Affiliate link สำหรับยาชนิดนี้",
     })
   }
 
@@ -360,17 +372,22 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {treatments.map(item => {
               const isSelected = primaryName === item.name
+              const affiliateProduct = products.find(product =>
+                product.status === "active" &&
+                product.activeIngredient?.toLocaleLowerCase() === item.name.toLocaleLowerCase() &&
+                safeHttpUrl(product.affiliateUrl),
+              )
               return (
                 <div
                   key={item.name}
                   role={guideOnly ? "button" : undefined}
                   tabIndex={guideOnly ? 0 : undefined}
-                  aria-label={guideOnly ? `ดูสินค้า ${item.thai}` : undefined}
-                  onClick={() => guideOnly ? showProductComingSoon(item.thai) : choosePrimary(item.name)}
+                  aria-label={guideOnly ? (affiliateProduct ? `เปิดลิงก์สินค้า ${item.thai}` : `ยังไม่มีลิงก์สินค้า ${item.thai}`) : undefined}
+                  onClick={() => guideOnly ? openAffiliateProduct(item.name, item.thai) : choosePrimary(item.name)}
                   onKeyDown={event => {
                     if (guideOnly && (event.key === "Enter" || event.key === " ")) {
                       event.preventDefault()
-                      showProductComingSoon(item.thai)
+                      openAffiliateProduct(item.name, item.thai)
                     }
                   }}
                   className={`group rounded-2xl border p-4 flex flex-col justify-between transition-all cursor-pointer ${
@@ -426,8 +443,8 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false }: {
                   </div>
 
                   {guideOnly ? (
-                    <div className="mt-4 flex min-h-12 items-center justify-between rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-base font-black text-primary transition-colors group-hover:border-primary/45 group-hover:bg-primary/15 dark:bg-primary/15 dark:group-hover:bg-primary/20">
-                      <span className="inline-flex items-center gap-2"><ShoppingBag size={16} aria-hidden="true" /> ดูสินค้า</span>
+                    <div className={`mt-4 flex min-h-12 items-center justify-between rounded-xl border px-4 py-3 text-base font-black transition-colors ${affiliateProduct ? "border-primary/30 bg-primary/10 text-primary group-hover:border-primary/45 group-hover:bg-primary/15 dark:bg-primary/15 dark:group-hover:bg-primary/20" : "border-border bg-muted/60 text-muted-foreground"}`}>
+                      <span className="inline-flex items-center gap-2"><ShoppingBag size={16} aria-hidden="true" /> {affiliateProduct ? "ดูสินค้า" : "ยังไม่มีสินค้า"}</span>
                       <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />
                     </div>
                   ) : <div className="mt-4 pt-3 border-t border-border/60">

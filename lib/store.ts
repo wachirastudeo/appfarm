@@ -204,6 +204,7 @@ export interface Product {
   geoSummary?: string
   brandName?: string
   sku?: string
+  activeIngredient?: string
   status: "active" | "draft"
   createdAt: string
   updatedAt: string

@@ -6,6 +6,7 @@ import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "@/l
 import { validateEmail, validateHttpUrl, validateImageFile, validateText, resizeAndCompressImage } from "@/lib/form-validation"
 import { BookOpen, Edit3, Image as ImageIcon, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users, MessageSquare, Sparkles, Globe, FileText, Eye, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { orchardPests } from "@/lib/pest-planner"
 
 interface Props {
   users: AppUser[]
@@ -57,8 +58,18 @@ const emptyProduct = {
   geoSummary: "",
   brandName: "",
   sku: "",
+  activeIngredient: "",
   status: "active" as const,
 }
+
+const pesticideActiveIngredients = Array.from(
+  new Map(
+    orchardPests.flatMap(pest => pest.treatments.map(treatment => [
+      treatment.name,
+      { name: treatment.name, thai: treatment.thai },
+    ] as const)),
+  ).values(),
+).sort((a, b) => a.thai.localeCompare(b.thai, "th"))
 
 const getTitleLengthBadge = (len: number) => {
   if (len === 0) return { label: "ไม่มีหัวข้อ", color: "text-muted-foreground bg-muted" }
@@ -268,7 +279,8 @@ export default function AdminPanel({
     const imageAlt = validateText("Alt รูปภาพ", productDraft.imageAlt ?? "", { maxLength: 300 })
     const brandName = validateText("แบรนด์", productDraft.brandName ?? "", { maxLength: 120 })
     const sku = validateText("SKU/รหัสสินค้า", productDraft.sku ?? "", { maxLength: 120 })
-    const invalid = [name, category, description, priceLabel, affiliateUrl, slug, metaTitle, metaDescription, keywords, geoSummary, imageAlt, brandName, sku].find(result => !result.ok)
+    const activeIngredient = validateText("สารออกฤทธิ์", productDraft.activeIngredient ?? "", { maxLength: 120 })
+    const invalid = [name, category, description, priceLabel, affiliateUrl, slug, metaTitle, metaDescription, keywords, geoSummary, imageAlt, brandName, sku, activeIngredient].find(result => !result.ok)
     if (invalid && !invalid.ok) {
       setMessage(invalid.message)
       return
@@ -288,6 +300,7 @@ export default function AdminPanel({
       imageAlt: imageAlt.value || name.value,
       brandName: brandName.value || "สวนทุเรียน",
       sku: sku.value,
+      activeIngredient: activeIngredient.value,
     }
     if (editingProductId) {
       updateProduct(editingProductId, nextProduct)
@@ -316,6 +329,7 @@ export default function AdminPanel({
       geoSummary: product.geoSummary ?? "",
       brandName: product.brandName ?? "",
       sku: product.sku ?? "",
+      activeIngredient: product.activeIngredient ?? "",
       status: product.status,
     })
   }
@@ -349,7 +363,7 @@ export default function AdminPanel({
             Admin Control
           </div>
           <h2 className="text-2xl font-black">หลังบ้านผู้ดูแลระบบ</h2>
-          <p className="mt-1 text-sm font-semibold text-white/70">จัดการโลโก้ บทความ และผู้ใช้งานจำลอง</p>
+          <p className="mt-1 text-sm font-semibold text-white/70">จัดการเว็บไซต์ บทความ สินค้า Affiliate และผู้ใช้งาน</p>
         </div>
         {message && <div className="rounded-2xl bg-white px-4 py-2 text-sm font-bold text-[#0F4A2E]">{message}</div>}
       </div>
@@ -805,6 +819,20 @@ export default function AdminPanel({
             <AdminInput label="หมวดหมู่" value={productDraft.category} onChange={category => setProductDraft(v => ({ ...v, category }))} required />
             <AdminInput label="ข้อความราคา/ปุ่ม" value={productDraft.priceLabel} onChange={priceLabel => setProductDraft(v => ({ ...v, priceLabel }))} required />
             <AdminInput label="Affiliate link" value={productDraft.affiliateUrl} onChange={affiliateUrl => setProductDraft(v => ({ ...v, affiliateUrl }))} placeholder="https://..." required />
+            <label className="block space-y-1.5">
+              <span className="text-xs font-black text-muted-foreground">เชื่อมกับยาหน้าสลับยา</span>
+              <select
+                value={productDraft.activeIngredient ?? ""}
+                onChange={event => setProductDraft(value => ({ ...value, activeIngredient: event.target.value }))}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-bold outline-none focus:border-primary"
+              >
+                <option value="">ไม่เชื่อม (สินค้าแนะนำทั่วไป)</option>
+                {pesticideActiveIngredients.map(item => (
+                  <option key={item.name} value={item.name}>{item.thai} ({item.name})</option>
+                ))}
+              </select>
+              <span className="block text-[11px] font-semibold leading-relaxed text-muted-foreground">เมื่อเลือกแล้ว ปุ่ม “ดูสินค้า” ของยาชนิดนี้จะเปิด Affiliate link ด้านบน</span>
+            </label>
             <div className="rounded-xl border border-border bg-muted/40 p-3">
               <p className="mb-2 text-xs font-black text-muted-foreground">SEO / AI Search ปุ๋ยและยา</p>
               <div className="space-y-2">
@@ -866,6 +894,7 @@ export default function AdminPanel({
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-black">{product.name}</p>
                         <p className="text-xs font-semibold text-muted-foreground">{product.category} · {product.status === "active" ? "แสดง" : "ซ่อน"}</p>
+                        {product.activeIngredient && <p className="truncate text-[11px] font-bold text-primary">เชื่อมยา: {product.activeIngredient}</p>}
                       </div>
                       <button onClick={() => editProduct(product)} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16} /></button>
                       <button onClick={() => deleteProduct(product.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16} /></button>
