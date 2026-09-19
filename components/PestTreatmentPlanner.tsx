@@ -438,7 +438,7 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false, pro
                   </div>
 
                   {guideOnly ? (
-                    <div className="mt-4 inline-flex min-h-11 w-fit items-center gap-2 rounded-full border border-orange-500 bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2.5 text-sm font-black text-stone-950 shadow-[0_8px_20px_rgba(249,115,22,0.28)] transition-[background-color,border-color,box-shadow] group-hover:border-orange-600 group-hover:from-amber-300 group-hover:to-orange-400 group-hover:shadow-[0_10px_24px_rgba(249,115,22,0.38)] dark:border-amber-300 dark:from-amber-300 dark:to-orange-400">
+                    <div className="mt-4 inline-flex min-h-11 w-fit items-center gap-2 rounded-full border border-orange-700 bg-orange-700 px-4 py-2.5 text-sm font-black text-white shadow-[0_8px_20px_rgba(194,65,12,0.24)] transition-[background-color,border-color,box-shadow] group-hover:border-orange-800 group-hover:bg-orange-800 group-hover:shadow-[0_10px_24px_rgba(194,65,12,0.32)] dark:border-orange-500 dark:bg-orange-600 dark:group-hover:border-orange-400 dark:group-hover:bg-orange-500">
                       <span className="inline-flex items-center gap-2"><ShoppingBag size={16} aria-hidden="true" /> ดูสินค้า</span>
                       <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />
                     </div>

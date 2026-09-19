@@ -184,7 +184,7 @@ export default function PesticideRotationPicker({ products = [] }: Props) {
           <button
             type="button"
             onClick={() => openAffiliateProduct(item.name, item.thai)}
-            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-orange-500 bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2.5 text-sm font-black text-stone-950 shadow-[0_8px_20px_rgba(249,115,22,0.28)] transition-[background-color,border-color,box-shadow] hover:border-orange-600 hover:from-amber-300 hover:to-orange-400 hover:shadow-[0_10px_24px_rgba(249,115,22,0.38)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:border-amber-300 dark:from-amber-300 dark:to-orange-400"
+            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-orange-700 bg-orange-700 px-4 py-2.5 text-sm font-black text-white shadow-[0_8px_20px_rgba(194,65,12,0.24)] transition-[background-color,border-color,box-shadow] hover:border-orange-800 hover:bg-orange-800 hover:shadow-[0_10px_24px_rgba(194,65,12,0.32)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:border-orange-500 dark:bg-orange-600 dark:hover:border-orange-400 dark:hover:bg-orange-500"
             aria-label={`เปิดลิงก์สินค้า ${item.thai}`}
           >
             <ShoppingBag size={16} aria-hidden="true" />
