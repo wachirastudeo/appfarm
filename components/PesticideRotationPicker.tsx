@@ -1,13 +1,16 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { ArrowRight, Check, ChevronDown, FlaskConical, RotateCcw, Search, ShieldAlert, ShieldCheck } from "lucide-react"
+import { ArrowRight, ChevronDown, FlaskConical, RotateCcw, Search, ShieldAlert, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { getPestTreatments, orchardPests } from "@/lib/pest-planner"
+import { safeHttpUrl } from "@/lib/seo"
+import type { Product } from "@/lib/store"
+import { useToast } from "@/hooks/use-toast"
 
 type Props = {
-  onInspect?: (ids: string[]) => void
+  products?: Product[]
 }
 
 const popularPesticides = [
@@ -37,11 +40,11 @@ const editDistance = (left: string, right: string) => {
   return row[right.length]
 }
 
-export default function PesticideRotationPicker({ onInspect }: Props) {
+export default function PesticideRotationPicker({ products = [] }: Props) {
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [previousName, setPreviousName] = useState("")
-  const [nextName, setNextName] = useState("")
 
   const pesticides = useMemo(() => {
     const unique = new Map<string, ReturnType<typeof getPestTreatments>[number]>()
@@ -78,8 +81,6 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
       .filter(item => item.name !== previous.name && item.active.mainGroup === previous.active.mainGroup)
       .map(item => [item.name, item])).values()]
     : []
-  const next = rotations.find(item => item.name === nextName)
-
   const pestsForTreatment = (name: string) => supportedPests
     .filter(pest => pest.treatments.some(treatment => treatment.name === name))
     .map(pest => pest.name)
@@ -88,14 +89,29 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
     setPreviousName(name)
     setSearchQuery("")
     setIsSearchOpen(false)
-    setNextName("")
   }
 
   const reset = () => {
     setSearchQuery("")
     setIsSearchOpen(false)
     setPreviousName("")
-    setNextName("")
+  }
+
+  const openAffiliateProduct = (activeIngredient: string, thaiName: string) => {
+    const product = products.find(item =>
+      item.status === "active" &&
+      item.activeIngredient?.toLocaleLowerCase() === activeIngredient.toLocaleLowerCase() &&
+      safeHttpUrl(item.affiliateUrl),
+    )
+    const affiliateUrl = safeHttpUrl(product?.affiliateUrl)
+    if (affiliateUrl) {
+      window.open(affiliateUrl, "_blank", "noopener,noreferrer")
+      return
+    }
+    toast({
+      title: `ลิงก์สินค้า ${thaiName} กำลังอัปเดต`,
+      description: "กรุณาลองเปิดสินค้าอีกครั้งในภายหลัง",
+    })
   }
 
   return <div className="space-y-6">
@@ -162,20 +178,24 @@ export default function PesticideRotationPicker({ onInspect }: Props) {
       </div>
 
       {rotations.length ? <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{rotations.map(item => {
-        const active = nextName === item.name
-        return <button key={item.name} type="button" onClick={() => setNextName(item.name)} aria-pressed={active} className={`rounded-2xl border p-4 text-left transition-[border-color,background-color,box-shadow,transform] active:scale-[0.99] ${active ? "border-emerald-600 bg-emerald-100 ring-2 ring-emerald-500/30 shadow-lg dark:bg-emerald-950/50" : "border-emerald-300 bg-white/85 hover:border-emerald-500 hover:shadow-md dark:border-emerald-800 dark:bg-card/80"}`}>
-          <span className="flex items-start justify-between gap-2"><span><strong className="block text-xl leading-tight sm:text-2xl">{item.thai}</strong><span className="mt-1 block text-sm font-medium text-muted-foreground">{item.name} · {item.formulation}</span></span><span className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-sm font-black text-white">{active && <Check size={14} />} IRAC {item.active.code}</span></span>
-          <span className="mt-3 block text-sm font-medium leading-relaxed text-muted-foreground">เหมาะกับ: {pestsForTreatment(item.name).join(", ")}</span>
-          <span className="mt-3 flex min-h-11 items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-black text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100"><ShieldCheck size={17} className="shrink-0" />{active ? "เลือกใช้รอบนี้แล้ว" : "กดเพื่อเลือกใช้รอบนี้"}</span>
-        </button>
+        return <article key={item.name} className="rounded-2xl border border-emerald-300 bg-white/85 p-4 transition-[border-color,box-shadow] hover:border-emerald-500 hover:shadow-md dark:border-emerald-800 dark:bg-card/80">
+          <div className="flex items-start justify-between gap-2"><div><strong className="block text-xl leading-tight sm:text-2xl">{item.thai}</strong><span className="mt-1 block text-sm font-medium text-muted-foreground">{item.name} · {item.formulation}</span></div><span className="flex shrink-0 items-center rounded-lg bg-emerald-600 px-2.5 py-1.5 text-sm font-black text-white">IRAC {item.active.code}</span></div>
+          <p className="mt-3 text-sm font-medium leading-relaxed text-muted-foreground">เหมาะกับ: {pestsForTreatment(item.name).join(", ")}</p>
+          <button
+            type="button"
+            onClick={() => openAffiliateProduct(item.name, item.thai)}
+            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-orange-500 bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2.5 text-sm font-black text-stone-950 shadow-[0_8px_20px_rgba(249,115,22,0.28)] transition-[background-color,border-color,box-shadow] hover:border-orange-600 hover:from-amber-300 hover:to-orange-400 hover:shadow-[0_10px_24px_rgba(249,115,22,0.38)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:border-amber-300 dark:from-amber-300 dark:to-orange-400"
+            aria-label={`เปิดลิงก์สินค้า ${item.thai}`}
+          >
+            <ShoppingBag size={16} aria-hidden="true" />
+            ดูสินค้า
+            <ArrowRight size={16} aria-hidden="true" />
+          </button>
+        </article>
       })}</div> : <p className="mt-4 rounded-xl bg-amber-100 p-3 text-sm text-amber-950 dark:bg-amber-950/40 dark:text-amber-100">สารนี้มีข้อมูลกลุ่ม IRAC {previous.active.code} แต่ยังไม่มีสารต่างกลุ่มที่ยืนยันว่าใช้กับแมลงเป้าหมายเดียวกันในคลังข้อมูล จึงไม่แนะนำยาแมลงชนิดอื่นแบบสุ่ม โปรดตรวจทะเบียนล่าสุดหรือปรึกษาเจ้าหน้าที่</p>}
 
       {sameGroup.length > 0 && <div className="mt-4 flex items-start gap-2 rounded-2xl border border-orange-300 bg-orange-100/70 p-3 text-xs text-orange-950 dark:border-orange-800 dark:bg-orange-950/30 dark:text-orange-100"><ShieldAlert size={16} className="shrink-0" /><span><strong>ไม่นับเป็นการสลับกลุ่ม:</strong> {sameGroup.map(item => `${item.thai} (${item.active.code})`).join(", ")}</span></div>}
 
-      {next && <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-emerald-500 bg-white/90 p-4 sm:flex-row sm:items-center sm:justify-between dark:bg-card/90" aria-live="polite">
-        <div><span className="text-xs font-bold text-muted-foreground">แผนที่เลือก</span><p className="font-black">รอบก่อน {previous.thai} ({previous.active.code}) <ArrowRight className="mx-1 inline size-4" /> รอบนี้ {next.thai} ({next.active.code})</p></div>
-        {onInspect && <Button type="button" onClick={() => onInspect([next.active.id])} className="gap-2 font-black"><FlaskConical size={16} />ตรวจกลุ่มและคำนวณยารอบนี้</Button>}
-      </div>}
       <p className="mt-4 text-xs text-muted-foreground">ตรวจฉลาก ทะเบียนสำหรับทุเรียนและแมลงเป้าหมาย อัตราใช้ PHI/REI และสำรวจการระบาดก่อนใช้ทุกครั้ง</p>
     </section>}
   </div>

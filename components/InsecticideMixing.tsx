@@ -66,7 +66,7 @@ export default function InsecticideMixing({ products = [] }: { products?: Produc
       })}
     </nav>
 
-    {view === "drug" && <PesticideRotationPicker />}
+    {view === "drug" && <PesticideRotationPicker products={products} />}
 
     {view === "problems" && <div className="space-y-5">
       <section className="rounded-3xl border border-primary/15 bg-card p-3 shadow-[0_12px_34px_rgba(20,83,45,0.07)] sm:p-4">

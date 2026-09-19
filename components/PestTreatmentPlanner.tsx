@@ -144,8 +144,8 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false, pro
       return
     }
     toast({
-      title: `ยังไม่มีสินค้า ${thaiName}`,
-      description: "ผู้ดูแลระบบยังไม่ได้เพิ่ม Affiliate link สำหรับยาชนิดนี้",
+      title: `ลิงก์สินค้า ${thaiName} กำลังอัปเดต`,
+      description: "กรุณาลองเปิดสินค้าอีกครั้งในภายหลัง",
     })
   }
 
@@ -372,17 +372,12 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false, pro
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {treatments.map(item => {
               const isSelected = primaryName === item.name
-              const affiliateProduct = products.find(product =>
-                product.status === "active" &&
-                product.activeIngredient?.toLocaleLowerCase() === item.name.toLocaleLowerCase() &&
-                safeHttpUrl(product.affiliateUrl),
-              )
               return (
                 <div
                   key={item.name}
                   role={guideOnly ? "button" : undefined}
                   tabIndex={guideOnly ? 0 : undefined}
-                  aria-label={guideOnly ? (affiliateProduct ? `เปิดลิงก์สินค้า ${item.thai}` : `ยังไม่มีลิงก์สินค้า ${item.thai}`) : undefined}
+                  aria-label={guideOnly ? `เปิดลิงก์สินค้า ${item.thai}` : undefined}
                   onClick={() => guideOnly ? openAffiliateProduct(item.name, item.thai) : choosePrimary(item.name)}
                   onKeyDown={event => {
                     if (guideOnly && (event.key === "Enter" || event.key === " ")) {
@@ -443,8 +438,8 @@ export default function PestTreatmentPlanner({ onInspect, guideOnly = false, pro
                   </div>
 
                   {guideOnly ? (
-                    <div className={`mt-4 flex min-h-12 items-center justify-between rounded-xl border px-4 py-3 text-base font-black transition-colors ${affiliateProduct ? "border-primary/30 bg-primary/10 text-primary group-hover:border-primary/45 group-hover:bg-primary/15 dark:bg-primary/15 dark:group-hover:bg-primary/20" : "border-border bg-muted/60 text-muted-foreground"}`}>
-                      <span className="inline-flex items-center gap-2"><ShoppingBag size={16} aria-hidden="true" /> {affiliateProduct ? "ดูสินค้า" : "ยังไม่มีสินค้า"}</span>
+                    <div className="mt-4 inline-flex min-h-11 w-fit items-center gap-2 rounded-full border border-orange-500 bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2.5 text-sm font-black text-stone-950 shadow-[0_8px_20px_rgba(249,115,22,0.28)] transition-[background-color,border-color,box-shadow] group-hover:border-orange-600 group-hover:from-amber-300 group-hover:to-orange-400 group-hover:shadow-[0_10px_24px_rgba(249,115,22,0.38)] dark:border-amber-300 dark:from-amber-300 dark:to-orange-400">
+                      <span className="inline-flex items-center gap-2"><ShoppingBag size={16} aria-hidden="true" /> ดูสินค้า</span>
                       <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />
                     </div>
                   ) : <div className="mt-4 pt-3 border-t border-border/60">
