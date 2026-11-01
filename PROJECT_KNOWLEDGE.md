@@ -62,7 +62,8 @@
 
 - `useAppData()` in `lib/store.ts` owns app state.
 - Storage key: `durian_orchard_data` is still used as browser fallback/cache.
-- Supabase mode is controlled by `NEXT_PUBLIC_APP_DATA_MODE=supabase`.
+- `npm run dev` forces an isolated local demo; `npm run build` forces Supabase production mode through `scripts/run-next.mjs`.
+- Local demo storage keys use a `demo_` prefix. Supabase clients and OAuth are disabled in demo mode even when credentials exist. Production storage keys are preserved.
 - Supabase project currently used: `hpyoyjpqitpvgckxnlww`.
 - Structured Supabase tables: `profiles`, `plots`, `trees`, `batches`, `batch_stages`, `activities`, `tasks`, `finance_records`, `articles`, `products`, `site_settings`.
 - `app_data` stores a full JSON backup/fallback row for legacy/global fallback; logged-in orchard data uses structured owner-scoped tables.

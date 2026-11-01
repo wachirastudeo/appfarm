@@ -6,6 +6,7 @@ import { useAppData } from "@/lib/store"
 import type { AppUser, Article, Product } from "@/lib/store"
 import { useNotificationScheduler } from "@/hooks/use-notification-scheduler"
 import { createClient } from "@/lib/supabase/client"
+import { getModeStorageKey } from "@/lib/runtime-config"
 import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
 import { FlaskConical, TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, MessageCircle, HeartHandshake, Check, Smartphone, Download, MoreHorizontal } from "lucide-react"
 import DurianIcon from "./DurianIcon"
@@ -1050,8 +1051,8 @@ export default function AppShell() {
     }, 150)
   }, [store.data.plots, store.data.siteSettings.siteName, user])
 
-  const locationStorageKey = user?.id ? `farm_location_${user.id}` : "farm_location_guest"
-  const coverStorageKey = user?.id ? `farm_cover_image_${user.id}` : "farm_cover_image_guest"
+  const locationStorageKey = getModeStorageKey(user?.id ? `farm_location_${user.id}` : "farm_location_guest")
+  const coverStorageKey = getModeStorageKey(user?.id ? `farm_cover_image_${user.id}` : "farm_cover_image_guest")
   const openAuth = useCallback(() => {
     setAuthError(null)
     setShowAuth(true)
@@ -1201,7 +1202,7 @@ export default function AppShell() {
   }, [activeTab, articleView, selectedArticleId, isMounted])
 
   useEffect(() => {
-    const savedUserId = localStorage.getItem("durian_current_user")
+    const savedUserId = localStorage.getItem(getModeStorageKey("durian_current_user"))
     if (savedUserId) {
       const savedUser = store.data.users.find(u => u.id === savedUserId && u.status === "active")
       if (savedUser) {
@@ -1212,17 +1213,17 @@ export default function AppShell() {
   }, [store.data.users])
 
   const handleLoginSuccess = useCallback((nextUser: AppUser) => {
-    const previousUserId = localStorage.getItem("durian_current_user")
+    const previousUserId = localStorage.getItem(getModeStorageKey("durian_current_user"))
     if (previousUserId && previousUserId !== nextUser.id) {
       setFarmLocation(null)
-      localStorage.removeItem("farm_location")
-      localStorage.removeItem("farm_location_guest")
+      localStorage.removeItem(getModeStorageKey("farm_location"))
+      localStorage.removeItem(getModeStorageKey("farm_location_guest"))
     }
     setUser(nextUser)
     setAuthChecking(false)
     setAuthError(null)
     setFailedAvatarUrl(null)
-    localStorage.setItem("durian_current_user", nextUser.id)
+    localStorage.setItem(getModeStorageKey("durian_current_user"), nextUser.id)
     setShowAuth(false)
   }, [])
 
@@ -1395,7 +1396,7 @@ export default function AppShell() {
   }
 
   const handleLogout = async () => {
-    localStorage.removeItem("durian_current_user")
+    localStorage.removeItem(getModeStorageKey("durian_current_user"))
     setUser(null)
     setAuthChecking(false)
     try {

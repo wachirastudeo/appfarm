@@ -1,7 +1,8 @@
 export type AppDataMode = "local" | "supabase"
 
 function normalizeDataMode(value: string | undefined): AppDataMode {
-  return value === "supabase" ? "supabase" : "local"
+  if (value === "local" || value === "supabase") return value
+  return process.env.NODE_ENV === "production" ? "supabase" : "local"
 }
 
 export const appRuntimeConfig = {
@@ -12,11 +13,17 @@ export const appRuntimeConfig = {
   supabaseStorageBucket: process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || "app-images",
 }
 
+export const isLocalDemo = appRuntimeConfig.dataMode === "local"
+
+export function getModeStorageKey(key: string) {
+  return isLocalDemo ? `demo_${key}` : key
+}
+
 export const supabasePublicKey =
   appRuntimeConfig.supabasePublishableKey || appRuntimeConfig.supabaseAnonKey
 
 export const isSupabaseConfigured = Boolean(
-  appRuntimeConfig.supabaseUrl && supabasePublicKey
+  !isLocalDemo && appRuntimeConfig.supabaseUrl && supabasePublicKey
 )
 
 export const supabasePublicKeyType = appRuntimeConfig.supabasePublishableKey

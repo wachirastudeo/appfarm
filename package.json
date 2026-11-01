@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/run-next.mjs local dev",
+    "build": "node scripts/run-next.mjs supabase build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:modes": "node --test tests/runtime-config.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

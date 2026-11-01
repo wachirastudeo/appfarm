@@ -14,6 +14,7 @@ import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
 import { TaskCard } from "./TaskPlanner"
 import DurianIcon from "./DurianIcon"
 import { Skeleton } from "./ui/skeleton"
+import styles from "./Dashboard.module.css"
 
 interface Props {
   data: AppData
@@ -56,15 +57,15 @@ function StatCard({
     <button
       type="button"
       onClick={onClick}
-      className="dashboard-stat-card group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card p-4 text-left shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:scale-[0.99] sm:p-5"
+      className={`${styles.control} dashboard-stat-card group relative flex min-w-0 flex-col justify-between rounded-2xl border border-border/80 bg-card p-4 text-left shadow-xs hover:border-primary/40 active:scale-[0.98] sm:p-6`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${bgColor} ring-1 ring-black/5 dark:ring-white/10`}>
-          <Icon size={22} className={color} />
+          <Icon size={22} className={color} aria-hidden="true" />
         </div>
         {badge && (
           <span
-            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${
+            className={`inline-flex min-w-0 break-all items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
               badge.positive
                 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                 : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
@@ -75,9 +76,9 @@ function StatCard({
         )}
       </div>
       <div className="mt-3 min-w-0">
-        <p className="text-xs font-semibold text-muted-foreground">{label}</p>
-        <p className={`mt-0.5 text-xl sm:text-2xl font-black tracking-tight ${color}`}>{value}</p>
-        {sub && <p className="mt-1 text-xs font-medium text-muted-foreground truncate">{sub}</p>}
+        <p className={`${styles.body} text-muted-foreground`}>{label}</p>
+        <p className={`${styles.value} mt-1 tracking-tight ${color}`}>{value}</p>
+        {sub && <p className="mt-2 text-xs text-muted-foreground wrap-break-word">{sub}</p>}
       </div>
     </button>
   )
@@ -557,32 +558,44 @@ export default function Dashboard({
       {/* 1. Hero & Weather Overview */}
       <div className="dashboard-hero relative overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm transition-all">
         {/* Banner Cover Image */}
-        <div className="relative h-40 sm:h-52 lg:h-56 w-full overflow-hidden">
+        <div className="relative isolate flex min-h-64 w-full items-end overflow-hidden sm:min-h-72">
           <Image
             src={coverImage || "/images/durian-banner.avif"}
             alt="สวนทุเรียน"
             fill
             sizes="100vw"
-            className="object-cover transition-transform duration-700 hover:scale-105"
+            className="object-cover"
             style={{ objectPosition: coverPosition || "center 40%" }}
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
+          <div className="absolute inset-0 bg-black/60" />
           
-          <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 text-white flex flex-col sm:flex-row sm:items-end justify-between gap-2.5">
-            <div>
+          <div className="relative w-full p-4 sm:p-6 text-white flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+            <div className="min-w-0 max-w-[680px]">
               <p className="text-xs sm:text-sm font-semibold text-emerald-300">
                 {new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </p>
-              <h1 className="mt-0.5 sm:mt-1 text-xl sm:text-3xl font-black tracking-tight text-white drop-shadow-sm">
+              <h1 className={`${styles.heading} mt-2 text-white`}>
                 สวัสดีคุณ{userName?.trim() || "ชาวสวน"}
               </h1>
+              <p className={`${styles.body} mt-2 text-white/90`}>
+                ดูภาพรวมสวน แล้ววางแผนงานที่ต้องทำวันนี้
+              </p>
+              <button
+                type="button"
+                onClick={() => setEntryModal("task")}
+                className={`${styles.control} mt-4 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-base font-semibold text-primary-foreground hover:bg-primary/90 active:scale-[0.98]`}
+              >
+                <Plus size={20} aria-hidden="true" />
+                เพิ่มงานวันนี้
+              </button>
             </div>
 
             {/* Farm Location Badge */}
             <button
               onClick={() => setShowLocationEditor(true)}
-              className="inline-flex w-fit items-center gap-1.5 sm:gap-2 rounded-xl bg-white/15 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs sm:text-sm font-bold text-white shadow-sm ring-1 ring-white/20 backdrop-blur-md transition-all hover:bg-white/25 active:scale-95"
+              type="button"
+              className={`${styles.control} inline-flex min-h-11 max-w-full w-fit shrink-0 items-center gap-2 rounded-xl bg-black/30 px-3 py-2 text-sm font-medium text-white ring-1 ring-white/30 backdrop-blur-md hover:bg-black/50 active:scale-[0.98]`}
             >
               <MapPin size={15} className="text-emerald-400 shrink-0" />
               <span className="max-w-[12rem] sm:max-w-[18rem] truncate">

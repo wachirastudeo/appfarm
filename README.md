@@ -79,19 +79,20 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to view the 
 
 ### Data Mode
 
-Use local browser storage:
+`npm run dev` always runs a local demo, even when `.env.local` contains Supabase credentials. Register an email account in the app to test login and orchard features. Demo records and login use separate `demo_` browser storage keys; Google/LINE login and Supabase access are disabled in this mode. Weather and place search still require internet access.
+
+`npm run build` always builds the production Supabase mode. Configure these variables on your hosting provider before building:
 
 ```env
-NEXT_PUBLIC_APP_DATA_MODE=local
-```
-
-Use Supabase:
-
-```env
-NEXT_PUBLIC_APP_DATA_MODE=supabase
 NEXT_PUBLIC_SUPABASE_URL=your-project-url
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 ```
+
+Set `NEXT_PUBLIC_SITE_URL` to the deployed website URL and configure its `/auth/callback` URL in Supabase for Google/LINE login. Production email authentication requires Supabase and never falls back to demo passwords when credentials are missing.
+
+Run `npm run build` then `npm start` to preview production mode locally. Public environment settings are fixed at build time; changing them requires rebuilding. Keep using `npm run dev` for isolated demo testing.
+
+Check mode separation with `npm run test:modes` (Node.js 22.18 or newer).
 
 ## Build for Production
 

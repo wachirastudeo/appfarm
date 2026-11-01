@@ -3,7 +3,7 @@ import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import type { AppUser } from "@/lib/store"
 import { createClient } from "@/lib/supabase/client"
-import { isSupabaseConfigured } from "@/lib/runtime-config"
+import { isLocalDemo, isSupabaseConfigured } from "@/lib/runtime-config"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { validateEmail, validateText } from "@/lib/form-validation"
 import { X, Mail, Eye, EyeOff, AlertCircle, ShieldCheck, Sparkles } from "lucide-react"
@@ -318,7 +318,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
 
               {!isSupabaseConfigured && (
                 <p className="rounded-xl bg-amber-50 px-3 py-2 text-center text-[11px] font-semibold leading-5 text-amber-700">
-                  Google และ LINE ต้องตั้งค่า Supabase ในไฟล์ .env.local ก่อนใช้งาน
+                  {isLocalDemo
+                    ? "โหมดทดลองในเครื่อง: สมัครและเข้าสู่ระบบด้วยอีเมล ข้อมูลเก็บเฉพาะเบราว์เซอร์นี้ โดยไม่เชื่อมต่อฐานข้อมูลจริง"
+                    : "Google และ LINE ต้องตั้งค่า Supabase ก่อนใช้งาน"}
                 </p>
               )}
 

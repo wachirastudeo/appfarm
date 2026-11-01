@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "./seo"
-import { appRuntimeConfig, isSupabaseConfigured } from "./runtime-config"
+import { appRuntimeConfig, getModeStorageKey } from "./runtime-config"
 import { loadRemoteAppData, loadStructuredAppData, saveRemoteAppData, saveStructuredAppData } from "./supabase/app-data"
 import {
   fetchArticles, upsertArticle, removeArticle,
@@ -351,7 +351,7 @@ const SEED: AppData = {
 }
 
 // ---- Hook ----
-const STORAGE_KEY_BASE = "durian_orchard_data"
+const STORAGE_KEY_BASE = getModeStorageKey("durian_orchard_data")
 function getStorageKey(userId?: string | null) {
   return userId ? `${STORAGE_KEY_BASE}_${userId}` : STORAGE_KEY_BASE
 }
@@ -466,7 +466,7 @@ export function useAppData(currentUserId?: string | null) {
     return currentUserId === "u-admin" || currentUserId === "u-user" || currentUserId === "u-staff" || !currentUserId.includes("-")
   }, [data.users, currentUserId])
 
-  const isSupabaseMode = appRuntimeConfig.dataMode === "supabase" && isSupabaseConfigured
+  const isSupabaseMode = appRuntimeConfig.dataMode === "supabase"
 
   const toRemoteResult = useCallback(async <T,>(promise: Promise<T>) => {
     try {
