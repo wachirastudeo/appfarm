@@ -10,6 +10,9 @@ const nextConfig = {
   },
   turbopack: {
     root: __dirname,
+    ...(process.env.APPFARM_TOOLCHAIN !== 'cloudflare' ? {
+      resolveAlias: { 'cloudflare:workers': './lib/cloudflare/node-bindings.ts' },
+    } : {}),
   },
   async headers() {
     return [

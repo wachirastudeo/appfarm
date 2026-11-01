@@ -3,7 +3,8 @@ import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import type { AppUser } from "@/lib/store"
 import { createClient } from "@/lib/supabase/client"
-import { isLocalDemo, isSupabaseConfigured } from "@/lib/runtime-config"
+import { isLocalDemo, isSupabaseConfigured, isCloudflareMode } from "@/lib/runtime-config"
+import { cloudflareRequest, startCloudflareOAuth } from "@/lib/cloudflare/client"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { validateEmail, validateText } from "@/lib/form-validation"
 import { X, Mail, Eye, EyeOff, AlertCircle, ShieldCheck, Sparkles } from "lucide-react"
@@ -55,6 +56,12 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [providers, setProviders] = useState({ google: false, line: false })
+
+  useEffect(() => {
+    if (!isOpen || !isCloudflareMode) return
+    void cloudflareRequest<{ google: boolean; line: boolean }>("providers").then(setProviders).catch(() => setProviders({ google: false, line: false }))
+  }, [isOpen])
 
   const emailInputId = "auth-email"
   const passwordInputId = "auth-password"
@@ -80,6 +87,10 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
     setSuccess("")
     setLoading(provider)
     try {
+      if (isCloudflareMode) {
+        await startCloudflareOAuth(provider === "google" ? "google" : "line")
+        return
+      }
       let supabase
       try {
         supabase = createClient()
@@ -131,7 +142,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
       return
     }
     if (!isSupabaseConfigured) {
-      setError("การรีเซ็ตรหัสผ่านทางอีเมลยังไม่พร้อมในโหมดนี้ (ต้องตั้งค่า Supabase) กรุณาติดต่อผู้ดูแลระบบ")
+      setError("ยังไม่ได้เปิดบริการส่งอีเมลรีเซ็ตรหัสผ่าน กรุณาติดต่อผู้ดูแลระบบ หรือเข้าสู่ระบบด้วยบัญชี Google/LINE เดิม")
       return
     }
     setLoading("reset")
@@ -286,8 +297,8 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
               {/* Google */}
               <button
                 onClick={() => handleOAuthLogin("google")}
-                disabled={!isSupabaseConfigured || loading !== null}
-                title={!isSupabaseConfigured ? "ต้องตั้งค่า Supabase ก่อนใช้งาน" : undefined}
+                disabled={!(isCloudflareMode ? providers.google : isSupabaseConfigured) || loading !== null}
+                title={!(isCloudflareMode ? providers.google : isSupabaseConfigured) ? "ยังไม่ได้เปิดบริการเข้าสู่ระบบด้วย Google" : undefined}
                 className="w-full flex items-center justify-center gap-3 border-2 border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 rounded-xl px-4 py-3.5 transition-all active:scale-[0.99] shadow-sm"
               >
                 <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
@@ -304,8 +315,8 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
               {/* LINE */}
               <button
                 onClick={() => handleOAuthLogin("custom:line")}
-                disabled={!isSupabaseConfigured || loading !== null}
-                title={!isSupabaseConfigured ? "ต้องตั้งค่า Supabase ก่อนใช้งาน" : undefined}
+                disabled={!(isCloudflareMode ? providers.line : isSupabaseConfigured) || loading !== null}
+                title={!(isCloudflareMode ? providers.line : isSupabaseConfigured) ? "ยังไม่ได้เปิดบริการเข้าสู่ระบบด้วย LINE" : undefined}
                 className="w-full flex items-center justify-center gap-3 border-2 border-gray-200 hover:border-[#06C755] hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50 rounded-xl px-4 py-3.5 transition-all active:scale-[0.99] shadow-sm"
               >
                 <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="#06C755" xmlns="http://www.w3.org/2000/svg">
@@ -320,7 +331,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, authenticat
                 <p className="rounded-xl bg-amber-50 px-3 py-2 text-center text-[11px] font-semibold leading-5 text-amber-700">
                   {isLocalDemo
                     ? "โหมดทดลองในเครื่อง: สมัครและเข้าสู่ระบบด้วยอีเมล ข้อมูลเก็บเฉพาะเบราว์เซอร์นี้ โดยไม่เชื่อมต่อฐานข้อมูลจริง"
-                    : "Google และ LINE ต้องตั้งค่า Supabase ก่อนใช้งาน"}
+                    : isCloudflareMode
+                      ? "สมัครและเข้าสู่ระบบด้วยอีเมลได้ ส่วน Google/LINE จะเปิดเมื่อผู้ดูแลตั้งค่าบริการแล้ว"
+                      : "Google และ LINE ต้องตั้งค่า Supabase ก่อนใช้งาน"}
                 </p>
               )}
 

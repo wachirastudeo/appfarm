@@ -1,0 +1,7 @@
+BETTER_AUTH_SECRET=replace-with-at-least-32-random-characters
+BETTER_AUTH_URL=http://localhost:3001
+# Optional OAuth. Configure callback URLs on each provider before enabling.
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+LINE_CLIENT_ID=
+LINE_CLIENT_SECRET=

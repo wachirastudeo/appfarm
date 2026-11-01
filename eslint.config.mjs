@@ -5,6 +5,9 @@ const eslintConfig = [
   {
     ignores: [
       "node_modules/**",
+      "dist/**",
+      ".wrangler/**",
+      "types/worker-bindings.d.ts",
     ],
   },
   {

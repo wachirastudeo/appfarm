@@ -6,7 +6,8 @@ import { useAppData } from "@/lib/store"
 import type { AppUser, Article, Product } from "@/lib/store"
 import { useNotificationScheduler } from "@/hooks/use-notification-scheduler"
 import { createClient } from "@/lib/supabase/client"
-import { getModeStorageKey } from "@/lib/runtime-config"
+import { getModeStorageKey, isCloudflareMode } from "@/lib/runtime-config"
+import { getCloudflareSession, signOutCloudflare } from "@/lib/cloudflare/client"
 import { SHOW_RECOMMENDED_PRODUCTS } from "@/lib/feature-flags"
 import { FlaskConical, TreePine, CalendarDays, Coins, BookOpen, Leaf, User, AlertTriangle, ShieldCheck, ArrowRight, ExternalLink, ChevronLeft, ChevronRight, Mail, Phone, ClipboardCheck, MapPinned, Sparkles, CloudRain, Droplets, Sprout, Sun, Wind, MessageSquare, MessageCircle, HeartHandshake, Check, Smartphone, Download, MoreHorizontal } from "lucide-react"
 import DurianIcon from "./DurianIcon"
@@ -1202,6 +1203,7 @@ export default function AppShell() {
   }, [activeTab, articleView, selectedArticleId, isMounted])
 
   useEffect(() => {
+    if (isCloudflareMode) return
     const savedUserId = localStorage.getItem(getModeStorageKey("durian_current_user"))
     if (savedUserId) {
       const savedUser = store.data.users.find(u => u.id === savedUserId && u.status === "active")
@@ -1253,6 +1255,17 @@ export default function AppShell() {
   // Stable listener — mounted once, never re-subscribes on user state changes
   useEffect(() => {
     let active = true
+
+    if (isCloudflareMode) {
+      void getCloudflareSession().then(nextUser => {
+        if (active && nextUser) handleLoginSuccess(nextUser)
+      }).catch(error => {
+        if (active) setAuthError(error instanceof Error ? error.message : "ตรวจสอบบัญชีไม่สำเร็จ")
+      }).finally(() => {
+        if (active) setAuthChecking(false)
+      })
+      return () => { active = false }
+    }
 
     let supabase: ReturnType<typeof createClient>
     try {
@@ -1396,6 +1409,7 @@ export default function AppShell() {
   }
 
   const handleLogout = async () => {
+    if (isCloudflareMode) await signOutCloudflare()
     localStorage.removeItem(getModeStorageKey("durian_current_user"))
     setUser(null)
     setAuthChecking(false)
@@ -1783,7 +1797,12 @@ export default function AppShell() {
             className="mx-auto w-full min-w-0 max-w-7xl px-3 py-3 sm:px-4 sm:py-4 md:px-8 md:py-6 flex-1 flex flex-col"
           >
             <div key={activeTab} className="animate-in fade-in duration-200 flex-1 flex flex-col">
-              {renderContent()}
+              {store.syncError && (
+                <p role="alert" className="mb-4 rounded-xl border border-destructive/30 bg-card p-4 text-sm text-destructive">
+                  {store.syncError} ข้อมูลล่าสุดอาจยังไม่ได้บันทึก กรุณาตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง
+                </p>
+              )}
+              {isCloudflareMode && !store.remoteReady ? <ContentSkeleton /> : renderContent()}
             </div>
           </div>
           <AppFooter onContactClick={() => setShowFeedbackModal(true)} />

@@ -62,7 +62,9 @@
 
 - `useAppData()` in `lib/store.ts` owns app state.
 - Storage key: `durian_orchard_data` is still used as browser fallback/cache.
-- `npm run dev` forces an isolated local demo; `npm run build` forces Supabase production mode through `scripts/run-next.mjs`.
+- `npm run dev` runs an isolated browser demo. `npm run dev:cloudflare` runs vinext with local D1/auth at localhost:3001. `npm run build` builds the Cloudflare Worker. See `CLOUDFLARE_SETUP_TH.md`.
+- Cloudflare production is deployed at `https://appfarm.wachira-appfarm.workers.dev` using Workers, D1 and Better Auth, with owner-scoped API access and server sessions. Production signup/login, isolation, D1 persistence and logout were verified on 2026-11-01. Supabase code is retained for rollback but disabled in Cloudflare mode. Old private data has not been migrated.
+- Cloudflare Worker/database: `appfarm`; D1 ID `d7775355-a909-4160-a4ec-861a3639fd7a`. Source bindings are in `wrangler.jsonc`. Production auth secret is stored in Worker secrets; local `.dev.vars` is separate. Google/LINE keys and transactional email are not configured.
 - Local demo storage keys use a `demo_` prefix. Supabase clients and OAuth are disabled in demo mode even when credentials exist. Production storage keys are preserved.
 - Supabase project currently used: `hpyoyjpqitpvgckxnlww`.
 - Structured Supabase tables: `profiles`, `plots`, `trees`, `batches`, `batch_stages`, `activities`, `tasks`, `finance_records`, `articles`, `products`, `site_settings`.
@@ -78,7 +80,8 @@
 
 - Dev: `npm run dev`
 - Lint: `npm run lint`
-- Build: `npm run build`
+- Build: `npm run build` (Cloudflare/vinext)
+- Database/auth integration tests: start `npm run dev:cloudflare`, then run `npm run test:cloudflare`.
 - Test: no `test` script exists right now.
 - There are both `package-lock.json` and `pnpm-lock.yaml`; avoid touching lockfiles unless dependency work requires it.
 

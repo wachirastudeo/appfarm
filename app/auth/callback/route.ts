@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { isCloudflareMode } from "@/lib/runtime-config"
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
+  if (isCloudflareMode) {
+    return NextResponse.redirect(new URL("/?auth_error=legacy_callback", requestUrl.origin))
+  }
   const code = requestUrl.searchParams.get("code")
   const error = requestUrl.searchParams.get("error")
   const errorDescription = requestUrl.searchParams.get("error_description")

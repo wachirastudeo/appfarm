@@ -1,7 +1,11 @@
 "use client"
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "./seo"
-import { appRuntimeConfig, getModeStorageKey } from "./runtime-config"
+import { appRuntimeConfig, getModeStorageKey, isCloudflareMode } from "./runtime-config"
+import {
+  authenticateCloudflare, registerCloudflare, loadCloudflareData, saveCloudflareData,
+  updateCloudflareProfile, saveCloudflareContent, deleteCloudflareContent, cloudflareRequest,
+} from "./cloudflare/client"
 import { loadRemoteAppData, loadStructuredAppData, saveRemoteAppData, saveStructuredAppData } from "./supabase/app-data"
 import {
   fetchArticles, upsertArticle, removeArticle,
@@ -419,14 +423,17 @@ function normalizeAppData(data: AppData): AppData {
 
   return {
     ...data,
-    users: data.users?.length ? withoutPlainPasswords(data.users) : seedUsers,
-    articles: data.articles?.length ? migrateArticleImagesToAvif(data.articles) : seedArticles.map(normalizeArticleSeo),
-    products: data.products?.length ? data.products.map(normalizeProductSeo) : seedProducts.map(normalizeProductSeo),
+    users: data.users?.length ? withoutPlainPasswords(data.users) : isCloudflareMode ? [] : seedUsers,
+    articles: data.articles?.length || isCloudflareMode ? migrateArticleImagesToAvif(data.articles ?? []) : seedArticles.map(normalizeArticleSeo),
+    products: data.products?.length || isCloudflareMode ? (data.products ?? []).map(normalizeProductSeo) : seedProducts.map(normalizeProductSeo),
     siteSettings: data.siteSettings ?? SEED.siteSettings,
   }
 }
 
 function getInitialAppData(userId?: string | null): AppData {
+  if (isCloudflareMode) {
+    return { ...SEED, plots: [], activities: [], tasks: [], finance: [], users: [] }
+  }
   if (typeof window === "undefined") return SEED
   try {
     const key = getStorageKey(userId)
@@ -457,6 +464,7 @@ function getInitialAppData(userId?: string | null): AppData {
 export function useAppData(currentUserId?: string | null) {
   const [data, setData] = useState<AppData>(() => getInitialAppData(currentUserId))
   const [remoteReady, setRemoteReady] = useState(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
   const initialDataRef = useRef(data)
   const lastRemoteJsonRef = useRef("")
   const isMockUser = useMemo(() => {
@@ -468,6 +476,36 @@ export function useAppData(currentUserId?: string | null) {
 
   const isSupabaseMode = appRuntimeConfig.dataMode === "supabase"
 
+  useEffect(() => {
+    if (!isCloudflareMode) return
+    let active = true
+    setRemoteReady(false)
+    setSyncError(null)
+    void loadCloudflareData().then(remote => {
+      if (!active) return
+      const next = normalizeAppData({ ...getInitialAppData(currentUserId), ...remote })
+      lastRemoteJsonRef.current = JSON.stringify(next)
+      setData(next)
+      setRemoteReady(true)
+    }).catch(error => {
+      if (active) setSyncError(error instanceof Error ? error.message : "โหลดข้อมูลไม่สำเร็จ")
+    })
+    return () => { active = false }
+  }, [currentUserId])
+
+  useEffect(() => {
+    if (!isCloudflareMode || !remoteReady || !currentUserId) return
+    const nextJson = JSON.stringify(data)
+    if (lastRemoteJsonRef.current === nextJson) return
+    const timeout = window.setTimeout(() => {
+      void saveCloudflareData(data).then(() => {
+        lastRemoteJsonRef.current = nextJson
+        setSyncError(null)
+      }).catch(error => setSyncError(error instanceof Error ? error.message : "บันทึกข้อมูลไม่สำเร็จ"))
+    }, STORAGE_WRITE_DELAY_MS)
+    return () => window.clearTimeout(timeout)
+  }, [currentUserId, data, remoteReady])
+
   const toRemoteResult = useCallback(async <T,>(promise: Promise<T>) => {
     try {
       return { data: await promise, ok: true }
@@ -477,6 +515,7 @@ export function useAppData(currentUserId?: string | null) {
   }, [])
 
   useEffect(() => {
+    if (isCloudflareMode) return
     const key = getStorageKey(currentUserId)
     const timeoutId = window.setTimeout(() => {
       try {
@@ -491,6 +530,7 @@ export function useAppData(currentUserId?: string | null) {
 
   // When the current user changes, reload their scoped local data (or seed if missing)
   useEffect(() => {
+    if (isCloudflareMode) return
     try {
       const next = getInitialAppData(currentUserId)
       initialDataRef.current = next
@@ -504,6 +544,7 @@ export function useAppData(currentUserId?: string | null) {
 
   // Load app_data (plots/activities/tasks/finance/users/settings) + articles + products from Supabase
   useEffect(() => {
+    if (isCloudflareMode) return
     if (!isSupabaseMode) {
       setRemoteReady(false)
       return
@@ -728,6 +769,12 @@ export function useAppData(currentUserId?: string | null) {
   const authenticateUser = useCallback(async (email: string, password: string) => {
     const normalized = email.trim().toLowerCase()
 
+    if (isCloudflareMode) {
+      const user = await authenticateCloudflare(normalized, password)
+      if (user) updateData(d => ({ ...d, users: [user] }))
+      return user
+    }
+
     if (isSupabaseMode) {
       const supabase = createClient()
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -754,10 +801,16 @@ export function useAppData(currentUserId?: string | null) {
 
     const passwordHash = await hashPassword(normalized, password)
     return data.users.find(u => u.email.toLowerCase() === normalized && u.passwordHash === passwordHash && u.status === "active") ?? null
-  }, [data.users, isSupabaseMode, upsertOAuthUser])
+  }, [data.users, isSupabaseMode, upsertOAuthUser, updateData])
 
   const addUser = useCallback(async (user: NewUserInput) => {
     const normalized = user.email.trim().toLowerCase()
+
+    if (isCloudflareMode) {
+      const nextUser = await registerCloudflare({ ...user, email: normalized })
+      if (nextUser) updateData(d => ({ ...d, users: [nextUser] }))
+      return nextUser
+    }
 
     if (isSupabaseMode) {
       const supabase = createClient()
@@ -811,6 +864,11 @@ export function useAppData(currentUserId?: string | null) {
   }, [data.users, isSupabaseMode, updateData, upsertOAuthUser])
 
   const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {
+    if (isCloudflareMode) {
+      const updatedUser = await updateCloudflareProfile(id, changes)
+      updateData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, ...updatedUser } : u) }))
+      return
+    }
     updateData(d => ({ ...d, users: d.users.map(u => u.id === id ? { ...u, ...changes } : u) }))
     
     const userToUpdate = data.users.find(u => u.id === id)
@@ -825,6 +883,12 @@ export function useAppData(currentUserId?: string | null) {
   }, [isSupabaseMode, updateData, data.users])
 
   const deleteUser = useCallback((id: string) => {
+    if (isCloudflareMode) {
+      void cloudflareRequest("users", { method: "DELETE", body: JSON.stringify({ id }) }).then(() => {
+        updateData(d => ({ ...d, users: d.users.filter(u => u.id !== id) }))
+      }).catch(error => setSyncError(error.message))
+      return
+    }
     updateData(d => ({ ...d, users: d.users.filter(u => u.id !== id) }))
   }, [updateData])
 
@@ -834,11 +898,13 @@ export function useAppData(currentUserId?: string | null) {
     const nextArticle = normalizeArticleSeo({ ...article, id: `art${Date.now()}`, createdAt: now, updatedAt: now })
     updateData(d => ({ ...d, articles: [nextArticle, ...d.articles] }))
     if (isSupabaseMode) void upsertArticle(nextArticle)
+    if (isCloudflareMode) void saveCloudflareContent("articles", nextArticle).catch(error => setSyncError(error.message))
   }, [updateData, isSupabaseMode])
 
   const updateArticle = useCallback((id: string, changes: Partial<Article>) => {
     updateData(d => {
       const next = d.articles.map(a => a.id === id ? normalizeArticleSeo({ ...a, ...changes, updatedAt: new Date().toISOString() }) : a)
+      if (isCloudflareMode) void saveCloudflareContent("articles", next.find(a => a.id === id), id).catch(error => setSyncError(error.message))
       if (isSupabaseMode) {
         const updated = next.find(a => a.id === id)
         if (updated) void upsertArticle(updated)
@@ -850,6 +916,7 @@ export function useAppData(currentUserId?: string | null) {
   const deleteArticle = useCallback((id: string) => {
     updateData(d => ({ ...d, articles: d.articles.filter(a => a.id !== id) }))
     if (isSupabaseMode) void removeArticle(id)
+    if (isCloudflareMode) void deleteCloudflareContent("articles", id).catch(error => setSyncError(error.message))
   }, [updateData, isSupabaseMode])
 
   // Products
@@ -858,11 +925,13 @@ export function useAppData(currentUserId?: string | null) {
     const nextProduct = normalizeProductSeo({ ...product, id: `prod${Date.now()}`, createdAt: now, updatedAt: now })
     updateData(d => ({ ...d, products: [nextProduct, ...d.products] }))
     if (isSupabaseMode) void upsertProduct(nextProduct)
+    if (isCloudflareMode) void saveCloudflareContent("products", nextProduct).catch(error => setSyncError(error.message))
   }, [updateData, isSupabaseMode])
 
   const updateProduct = useCallback((id: string, changes: Partial<Product>) => {
     updateData(d => {
       const next = d.products.map(p => p.id === id ? normalizeProductSeo({ ...p, ...changes, updatedAt: new Date().toISOString() }) : p)
+      if (isCloudflareMode) void saveCloudflareContent("products", next.find(p => p.id === id), id).catch(error => setSyncError(error.message))
       if (isSupabaseMode) {
         const updated = next.find(p => p.id === id)
         if (updated) void upsertProduct(updated)
@@ -874,10 +943,15 @@ export function useAppData(currentUserId?: string | null) {
   const deleteProduct = useCallback((id: string) => {
     updateData(d => ({ ...d, products: d.products.filter(p => p.id !== id) }))
     if (isSupabaseMode) void removeProduct(id)
+    if (isCloudflareMode) void deleteCloudflareContent("products", id).catch(error => setSyncError(error.message))
   }, [updateData, isSupabaseMode])
 
   const updateSiteSettings = useCallback((changes: Partial<SiteSettings>) => {
-    updateData(d => ({ ...d, siteSettings: { ...d.siteSettings, ...changes } }))
+    updateData(d => {
+      const siteSettings = { ...d.siteSettings, ...changes }
+      if (isCloudflareMode) void saveCloudflareContent("settings", siteSettings).catch(error => setSyncError(error.message))
+      return { ...d, siteSettings }
+    })
   }, [updateData])
 
   // Batches
@@ -944,6 +1018,7 @@ export function useAppData(currentUserId?: string | null) {
 
   return useMemo(() => ({
     data,
+    remoteReady, syncError,
     addPlot, updatePlot, deletePlot,
     addTree, addTrees, updateTree, deleteTree, bulkUpdateTrees,
     addActivity, deleteActivity, updateActivity,
@@ -956,6 +1031,7 @@ export function useAppData(currentUserId?: string | null) {
     updateSiteSettings,
   }), [
     data,
+    remoteReady, syncError,
     addPlot, updatePlot, deletePlot,
     addTree, addTrees, updateTree, deleteTree, bulkUpdateTrees,
     addActivity, deleteActivity, updateActivity,

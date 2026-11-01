@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { isSupabaseConfigured } from "@/lib/runtime-config"
+import { isCloudflareMode, isSupabaseConfigured } from "@/lib/runtime-config"
 import { validateText } from "@/lib/form-validation"
 import { Eye, EyeOff, AlertCircle, ShieldCheck } from "lucide-react"
 
@@ -87,7 +87,9 @@ export default function ResetPasswordPage() {
             <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">
               <AlertCircle size={14} className="mt-0.5 text-red-400 shrink-0" />
               <p className="text-xs leading-5 text-red-500">
-                ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้องหรือหมดอายุแล้ว กรุณาขอลิงก์ใหม่จากหน้าเข้าสู่ระบบ
+                {isCloudflareMode
+                  ? "ยังไม่ได้เปิดบริการส่งอีเมลรีเซ็ตรหัสผ่าน กรุณาติดต่อผู้ดูแลระบบ หรือเข้าสู่ระบบด้วย Google/LINE เดิม"
+                  : "ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้องหรือหมดอายุแล้ว กรุณาขอลิงก์ใหม่จากหน้าเข้าสู่ระบบ"}
               </p>
             </div>
             <button

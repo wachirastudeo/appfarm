@@ -1,8 +1,8 @@
-export type AppDataMode = "local" | "supabase"
+export type AppDataMode = "local" | "supabase" | "cloudflare"
 
 function normalizeDataMode(value: string | undefined): AppDataMode {
-  if (value === "local" || value === "supabase") return value
-  return process.env.NODE_ENV === "production" ? "supabase" : "local"
+  if (value === "local" || value === "supabase" || value === "cloudflare") return value
+  return process.env.NODE_ENV === "production" ? "cloudflare" : "local"
 }
 
 export const appRuntimeConfig = {
@@ -14,16 +14,17 @@ export const appRuntimeConfig = {
 }
 
 export const isLocalDemo = appRuntimeConfig.dataMode === "local"
+export const isCloudflareMode = appRuntimeConfig.dataMode === "cloudflare"
 
 export function getModeStorageKey(key: string) {
-  return isLocalDemo ? `demo_${key}` : key
+  return isLocalDemo ? `demo_${key}` : isCloudflareMode ? `cloudflare_${key}` : key
 }
 
 export const supabasePublicKey =
   appRuntimeConfig.supabasePublishableKey || appRuntimeConfig.supabaseAnonKey
 
 export const isSupabaseConfigured = Boolean(
-  !isLocalDemo && appRuntimeConfig.supabaseUrl && supabasePublicKey
+  appRuntimeConfig.dataMode === "supabase" && appRuntimeConfig.supabaseUrl && supabasePublicKey
 )
 
 export const supabasePublicKeyType = appRuntimeConfig.supabasePublishableKey
@@ -33,5 +34,6 @@ export const supabasePublicKeyType = appRuntimeConfig.supabasePublishableKey
     : "missing"
 
 export function getDataModeLabel(mode: AppDataMode) {
+  if (mode === "cloudflare") return "Cloudflare Workers / D1"
   return mode === "supabase" ? "Supabase / Server จริง" : "Local / ทดลองในเครื่อง"
 }

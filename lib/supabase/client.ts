@@ -1,8 +1,8 @@
 import { createBrowserClient } from "@supabase/ssr"
-import { appRuntimeConfig, isLocalDemo, supabasePublicKey } from "@/lib/runtime-config"
+import { appRuntimeConfig, supabasePublicKey } from "@/lib/runtime-config"
 
 export function createClient() {
-  if (isLocalDemo) throw new Error("Supabase is disabled in local demo mode.")
+  if (appRuntimeConfig.dataMode !== "supabase") throw new Error("Supabase is disabled in this mode.")
   if (!appRuntimeConfig.supabaseUrl || !supabasePublicKey) {
     throw new Error("Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.")
   }

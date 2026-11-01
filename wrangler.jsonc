@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "appfarm",
+  "account_id": "80ba2b947ec8ef47eb81e668a911f155",
+  "compatibility_date": "2026-10-30",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "main": "worker.ts",
+  "workers_dev": true,
+  "vars": {
+    "NEXT_PUBLIC_APP_DATA_MODE": "cloudflare",
+    "NEXT_PUBLIC_SITE_URL": "https://appfarm.wachira-appfarm.workers.dev",
+    "BETTER_AUTH_URL": "https://appfarm.wachira-appfarm.workers.dev"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "appfarm",
+      "database_id": "d7775355-a909-4160-a4ec-861a3639fd7a",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "assets": {
+    "directory": "dist/client",
+    "html_handling": "none",
+    "not_found_handling": "none",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/*",
+      "!/_next/static/*",
+      "!/*/_next/static/*"
+    ]
+  }
+}

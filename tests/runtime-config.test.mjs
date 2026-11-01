@@ -29,7 +29,13 @@ test("production retains existing storage keys and enables Supabase", () => {
   })
 })
 
-test("defaults use local development and Supabase production", () => {
+test("Cloudflare disables Supabase credentials and uses separate cache keys", () => {
+  assert.deepEqual(readConfig("cloudflare", "production"), {
+    mode: "cloudflare", remote: false, key: "cloudflare_durian_orchard_data",
+  })
+})
+
+test("defaults use local development and Cloudflare production", () => {
   assert.equal(readConfig(undefined).mode, "local")
-  assert.equal(readConfig(undefined, "production").mode, "supabase")
+  assert.equal(readConfig(undefined, "production").mode, "cloudflare")
 })

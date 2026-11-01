@@ -1,7 +1,7 @@
 "use client"
 import { useId, useState } from "react"
 import type { AppUser, Article, NewUserInput, Product, SiteSettings } from "@/lib/store"
-import { appRuntimeConfig, getDataModeLabel, isSupabaseConfigured } from "@/lib/runtime-config"
+import { appRuntimeConfig, getDataModeLabel, isSupabaseConfigured, isCloudflareMode } from "@/lib/runtime-config"
 import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "@/lib/seo"
 import { validateEmail, validateHttpUrl, validateImageFile, validateText, resizeAndCompressImage } from "@/lib/form-validation"
 import { BookOpen, Edit3, Image as ImageIcon, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users, MessageSquare, Sparkles, Globe, FileText, Eye, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
@@ -480,14 +480,14 @@ export default function AdminPanel({
                 <span className="text-muted-foreground">ใช้งานตอนนี้</span>
                 <span className="text-foreground">{getDataModeLabel(appRuntimeConfig.dataMode)}</span>
               </div>
-              <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-3 py-2">
+              {!isCloudflareMode && <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-3 py-2">
                 <span className="text-muted-foreground">Supabase env</span>
                 <span className={isSupabaseConfigured ? "text-primary" : "text-red-600"}>
                   {isSupabaseConfigured ? "พร้อม" : "ยังไม่พร้อม"}
                 </span>
-              </div>
+              </div>}
               <p className="text-xs font-semibold leading-6 text-muted-foreground">
-                สลับโหมดด้วย `NEXT_PUBLIC_APP_DATA_MODE=local` หรือ `NEXT_PUBLIC_APP_DATA_MODE=supabase` ใน `.env.local` และบน server จริง
+                ทดลองในเครื่องด้วย npm run dev หรือใช้งาน Cloudflare Workers และ D1 ผ่าน npm run dev:cloudflare
               </p>
             </div>
           </div>

@@ -2,8 +2,8 @@ import { spawn } from "node:child_process"
 import { createRequire } from "node:module"
 
 const [mode, command, ...args] = process.argv.slice(2)
-if (!["local", "supabase"].includes(mode) || !["dev", "build"].includes(command)) {
-  throw new Error("Usage: run-next.mjs <local|supabase> <dev|build> [args]")
+if (!["local", "supabase", "cloudflare"].includes(mode) || !["dev", "build"].includes(command)) {
+  throw new Error("Usage: run-next.mjs <local|supabase|cloudflare> <dev|build> [args]")
 }
 
 const require = createRequire(import.meta.url)

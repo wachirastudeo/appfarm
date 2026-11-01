@@ -1,4 +1,4 @@
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://appfarm-main.vercel.app"
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://appfarm.wachira-appfarm.workers.dev"
 export const SITE_NAME = "Durian Flow"
 export const DEFAULT_TITLE = "Durian Flow - ระบบจัดการสวนทุเรียนและคลังความรู้เกษตรกร"
 export const DEFAULT_DESCRIPTION =
