@@ -1363,7 +1363,8 @@ export default function AppShell() {
   // Google Analytics Injection
   useEffect(() => {
     if (typeof window === "undefined") return
-    const rawTrackingId = store.data.siteSettings?.googleAnalytics?.trim() ?? ""
+    const storedTrackingId: unknown = store.data.siteSettings?.googleAnalytics
+    const rawTrackingId = typeof storedTrackingId === "string" ? storedTrackingId.trim() : ""
     // Only allow real GA IDs; the value is interpolated into an inline script.
     const trackingId = /^(G-[A-Z0-9]{4,20}|UA-\d{4,12}-\d{1,4})$/i.test(rawTrackingId) ? rawTrackingId : ""
     const scriptId = 'google-analytics-script'

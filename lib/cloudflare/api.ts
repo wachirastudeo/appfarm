@@ -113,6 +113,7 @@ export async function handleCloudflareApi(request: Request) {
     }
     if (path === "profile" && request.method === "PATCH") {
       const input = await body(request)
+      if (!input || typeof input !== "object" || Array.isArray(input)) throw new ApiError(400, "รูปแบบข้อมูลไม่ถูกต้อง")
       const id = typeof input.id === "string" ? input.id : user.id
       if (id !== user.id && user.role !== "admin") throw new ApiError(403, "ไม่สามารถแก้ไขข้อมูลผู้ใช้อื่นได้")
       const changes = profileSchema.parse(input)
