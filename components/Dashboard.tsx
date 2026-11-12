@@ -15,6 +15,7 @@ import { TaskCard } from "./TaskPlanner"
 import DurianIcon from "./DurianIcon"
 import { Skeleton } from "./ui/skeleton"
 import styles from "./Dashboard.module.css"
+import { dateKeyToISO, todayKey } from "@/lib/date-utils"
 
 interface Props {
   data: AppData
@@ -405,7 +406,7 @@ export default function Dashboard({
     data.tasks.filter(t => t.status === "pending").sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(0, 4),
     [data.tasks])
 
-  const plotName = (id: string) => plotNameById.get(id) ?? id
+  const plotName = (id: string) => (id ? plotNameById.get(id) ?? "แปลงที่ถูกลบ" : "ทั้งสวน")
 
   const formatDate = (iso: string) => {
     const d = new Date(iso)
@@ -416,7 +417,7 @@ export default function Dashboard({
   const [entryModal, setEntryModal] = useState<"task" | "activity" | null>(null)
   const [quickForm, setQuickForm] = useState({
     title: "",
-    date: new Date().toISOString().split("T")[0],
+    date: todayKey(),
     plotId: data.plots[0]?.id ?? "",
     priority: "medium" as Task["priority"],
   })
@@ -449,18 +450,18 @@ export default function Dashboard({
 
     addTask({
       title: title.value,
-      date: new Date(date.value).toISOString(),
+      date: dateKeyToISO(date.value),
       plotId,
       priority: quickForm.priority,
       description: "",
       status: "pending",
     })
-    setQuickForm({ title: "", date: new Date().toISOString().split("T")[0], plotId: data.plots[0]?.id ?? "", priority: "medium" })
+    setQuickForm({ title: "", date: todayKey(), plotId: data.plots[0]?.id ?? "", priority: "medium" })
     setEntryModal(null)
   }
 
   const [activityForm, setActivityForm] = useState({
-    date: new Date().toISOString().split("T")[0],
+    date: todayKey(),
     plotId: data.plots[0]?.id ?? "",
     activityType: "fertilize" as ActivityType,
     description: "",
@@ -487,14 +488,14 @@ export default function Dashboard({
     }
 
     addActivity({
-      date: new Date(date.value).toISOString(),
+      date: dateKeyToISO(date.value),
       plotId: activityForm.plotId,
       activityType: activityForm.activityType,
       description: description.value,
       cost: 0,
       createdAt: new Date().toISOString(),
     })
-    setActivityForm({ date: new Date().toISOString().split("T")[0], plotId: data.plots[0]?.id ?? "", activityType: "fertilize", description: "" })
+    setActivityForm({ date: todayKey(), plotId: data.plots[0]?.id ?? "", activityType: "fertilize", description: "" })
     setEntryModal(null)
   }
 

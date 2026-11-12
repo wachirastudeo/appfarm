@@ -1502,6 +1502,7 @@ export default function AppShell() {
             deleteTree={store.deleteTree}
             bulkUpdateTrees={store.bulkUpdateTrees}
             addActivity={store.addActivity}
+            addFinance={store.addFinance}
             addBatch={store.addBatch}
             addBatchStage={store.addBatchStage}
             updateBatch={store.updateBatch}
@@ -1514,6 +1515,7 @@ export default function AppShell() {
           data={store.data}
           addTask={store.addTask} updateTask={store.updateTask} deleteTask={store.deleteTask}
           addActivity={store.addActivity} deleteActivity={store.deleteActivity} updateActivity={store.updateActivity}
+          addFinance={store.addFinance}
           onNavigate={setActiveTab}
           onPrint={handlePrint}
         />

@@ -684,7 +684,7 @@ export function useAppData(currentUserId?: string | null) {
 
   // Activities
   const addActivity = useCallback((act: Omit<Activity, "id" | "createdAt">) => {
-    updateData(d => ({ ...d, activities: [{ ...act, userId: currentUserId ?? act.userId, id: `a${Date.now()}`, createdAt: new Date().toISOString() }, ...d.activities] }))
+    updateData(d => ({ ...d, activities: [{ ...act, userId: currentUserId ?? act.userId, id: `a${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, createdAt: new Date().toISOString() }, ...d.activities] }))
   }, [currentUserId, updateData])
 
   const deleteActivity = useCallback((id: string) => {
@@ -710,7 +710,7 @@ export function useAppData(currentUserId?: string | null) {
 
   // Finance
   const addFinance = useCallback((rec: Omit<FinanceRecord, "id">) => {
-    updateData(d => ({ ...d, finance: [{ ...rec, userId: currentUserId ?? rec.userId, id: `f${Date.now()}` }, ...d.finance] }))
+    updateData(d => ({ ...d, finance: [{ ...rec, userId: currentUserId ?? rec.userId, id: `f${Date.now()}-${Math.random().toString(36).slice(2, 7)}` }, ...d.finance] }))
   }, [currentUserId, updateData])
 
   const deleteFinance = useCallback((id: string) => {

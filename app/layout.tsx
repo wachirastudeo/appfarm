@@ -3,6 +3,7 @@ import { Prompt, Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, DEFAULT_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo'
 import './globals.css'
+import { Toaster } from '@/components/ui/sonner'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const prompt = Prompt({ subsets: ['thai', 'latin'], variable: '--font-thai', weight: ['300', '400', '500', '600', '700'] })
@@ -79,6 +80,7 @@ export default function RootLayout({
     <html lang="th" className={`${inter.variable} ${prompt.variable} bg-background`}>
       <body className="font-sans antialiased">
         {children}
+        <Toaster position="top-center" richColors closeButton offset={16} mobileOffset={{ top: 12 }} />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

@@ -16,11 +16,12 @@ interface Props {
   addActivity: AppDataReturn["addActivity"]
   deleteActivity: AppDataReturn["deleteActivity"]
   updateActivity: AppDataReturn["updateActivity"]
+  addFinance?: AppDataReturn["addFinance"]
   onNavigate?: (tab: "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin") => void
   onPrint?: (reportData: Omit<PrintReportData, "farmName" | "userName" | "plots">) => void
 }
 
-export default function Operations({ data, addTask, updateTask, deleteTask, addActivity, deleteActivity, updateActivity, onNavigate, onPrint }: Props) {
+export default function Operations({ data, addTask, updateTask, deleteTask, addActivity, deleteActivity, updateActivity, addFinance, onNavigate, onPrint }: Props) {
   const [activeTab, setActiveTab] = useState<"tasks" | "activities">("tasks")
 
   useEffect(() => {
@@ -30,37 +31,37 @@ export default function Operations({ data, addTask, updateTask, deleteTask, addA
   }, [])
 
   return (
-    <div data-page="operations" className="min-w-0 space-y-6">
-      {/* Sub-Tab Switcher */}
-      <div className="flex min-w-0 bg-[#E7F3EC] p-1.5 rounded-2xl border-2 border-[#B9DCC8] shadow-[0_10px_24px_rgba(20,107,62,0.10)]">
-        <button
-          onClick={() => setActiveTab("tasks")}
-          className={`min-w-0 flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-black transition-all ${
-            activeTab === "tasks"
-              ? "bg-primary text-primary-foreground shadow-[0_12px_28px_rgba(20,107,62,0.24)]"
-              : "bg-white/70 text-[#146B3E] hover:bg-white"
-          }`}
-        >
-          <CalendarDays size={16} /> แผนงาน
-        </button>
-        <button
-          onClick={() => setActiveTab("activities")}
-          className={`min-w-0 flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-black transition-all ${
-            activeTab === "activities"
-              ? "bg-primary text-primary-foreground shadow-[0_12px_28px_rgba(20,107,62,0.24)]"
-              : "bg-white/70 text-[#146B3E] hover:bg-white"
-          }`}
-        >
-          <ClipboardList size={16} /> บันทึกสวน
-        </button>
+    <div data-page="operations" className="min-w-0 space-y-5">
+      {/* Sub-Tab Switcher: plan ahead vs. record what was done */}
+      <div role="tablist" aria-label="แผนงานและบันทึกสวน" className="grid min-w-0 grid-cols-2 gap-1 rounded-2xl p-1">
+        {([
+          ["tasks", "แผนงาน", "สิ่งที่ต้องทำ", CalendarDays],
+          ["activities", "บันทึกสวน", "สิ่งที่ทำแล้ว", ClipboardList],
+        ] as const).map(([id, label, hint, Icon]) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={activeTab === id}
+            onClick={() => setActiveTab(id)}
+            className={`flex min-w-0 items-center justify-center gap-2 rounded-xl px-2 py-2.5 transition-all ${
+              activeTab === id ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground/70 hover:bg-card"
+            }`}
+          >
+            <Icon size={18} className="shrink-0" />
+            <span className="min-w-0 text-left leading-tight">
+              <span className="block text-sm font-black">{label}</span>
+              <span className={`block truncate text-[11px] font-semibold ${activeTab === id ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{hint}</span>
+            </span>
+          </button>
+        ))}
       </div>
 
       {/* Content — no extra wrapper card */}
       {activeTab === "tasks" && (
-        <TaskPlanner data={data} addTask={addTask} updateTask={updateTask} deleteTask={deleteTask} onNavigate={onNavigate} onPrint={onPrint} />
+        <TaskPlanner data={data} addTask={addTask} updateTask={updateTask} deleteTask={deleteTask} addActivity={addActivity} addFinance={addFinance} onNavigate={onNavigate} onPrint={onPrint} />
       )}
       {activeTab === "activities" && (
-        <ActivityLog data={data} addActivity={addActivity} deleteActivity={deleteActivity} updateActivity={updateActivity} onPrint={onPrint} />
+        <ActivityLog data={data} addActivity={addActivity} deleteActivity={deleteActivity} updateActivity={updateActivity} addFinance={addFinance} onPrint={onPrint} />
       )}
     </div>
   )

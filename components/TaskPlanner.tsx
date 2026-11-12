@@ -1,13 +1,21 @@
 "use client"
-import { useState, useMemo, useEffect, useRef } from "react"
-import { useEscapeToClose } from "@/hooks/useEscapeToClose"
-import { downloadTaskCalendarFile, downloadTasksCalendarFile, getGoogleCalendarUrl } from "@/lib/calendar"
-import { Task, TaskStatus, useAppData } from "@/lib/store"
-import { validateDate, validateNumber, validateText } from "@/lib/form-validation"
-import { Plus, Check, X, Trash2, ChevronLeft, ChevronRight, CalendarDays, RotateCcw, Pencil, ChevronDown, ChevronUp, CalendarPlus, Download, Sparkles, AlertTriangle } from "lucide-react"
-import Portal from "./Portal"
+import { useMemo, useState } from "react"
+import { toast } from "sonner"
+import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Download, ListChecks, MoreHorizontal, Plus, Printer, CalendarPlus } from "lucide-react"
+import { Task, useAppData } from "@/lib/store"
+import { downloadTasksCalendarFile } from "@/lib/calendar"
 import { exportOperationsToCSV } from "@/lib/report-utils"
+import { addDaysToKey, DAYS_TH, daysBetween, formatThaiDate, MONTHS_TH, relativeDayLabel, toDateKey, todayKey } from "@/lib/date-utils"
+import { cn } from "@/lib/utils"
 import { PrintReportData } from "./PrintReportView"
+import TaskFormSheet, { TaskDraft } from "./records/TaskFormSheet"
+import ActivityFormSheet, { ActivityDefaults, ActivityDraft } from "./records/ActivityFormSheet"
+import { inferActivityType, PRIORITY_META } from "./records/meta"
+import { Fab } from "./records/ui"
+import { saveActivityWithExpense } from "./ActivityLog"
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 type AppDataReturn = ReturnType<typeof useAppData>
 interface Props {
@@ -15,974 +23,433 @@ interface Props {
   addTask: AppDataReturn["addTask"]
   updateTask: AppDataReturn["updateTask"]
   deleteTask: AppDataReturn["deleteTask"]
+  addActivity?: AppDataReturn["addActivity"]
+  addFinance?: AppDataReturn["addFinance"]
   onNavigate?: (tab: "dashboard" | "plots" | "operations" | "finance" | "articles" | "admin") => void
   onPrint?: (reportData: Omit<PrintReportData, "farmName" | "userName" | "plots">) => void
 }
 
-const PRIORITY_COLORS = {
-  high: "border-l-rose-500 bg-white dark:bg-[#14291E] dark:border-l-rose-500",
-  medium: "border-l-amber-400 bg-white dark:bg-[#14291E] dark:border-l-amber-400",
-  low: "border-l-emerald-500 bg-white dark:bg-[#14291E] dark:border-l-emerald-500",
-}
-const PRIORITY_LABELS = { high: "ด่วนสุด", medium: "ทั่วไป", low: "รอง" }
-const PRIORITY_OPTION_STYLES: Record<Task["priority"], { active: string; inactive: string }> = {
-  high: {
-    active: "bg-rose-600 text-white border-rose-600 shadow-[0_8px_18px_rgba(225,29,72,0.28)] dark:bg-rose-500 dark:border-rose-500 dark:text-rose-950 dark:shadow-[0_8px_18px_rgba(239,68,68,0.25)]",
-    inactive: "bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-900/30 hover:border-rose-300 dark:hover:border-rose-800/40",
-  },
-  medium: {
-    active: "bg-amber-500 text-white border-amber-500 shadow-[0_8px_18px_rgba(245,158,11,0.28)] dark:bg-amber-400 dark:border-amber-400 dark:text-amber-950 dark:shadow-[0_8px_18px_rgba(251,191,36,0.25)]",
-    inactive: "bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 hover:border-amber-300 dark:hover:border-amber-800/40",
-  },
-  low: {
-    active: "bg-emerald-600 text-white border-emerald-600 shadow-[0_8px_18px_rgba(5,150,105,0.28)] dark:bg-emerald-500 dark:border-emerald-500 dark:text-emerald-950 dark:shadow-[0_8px_18px_rgba(16,185,129,0.25)]",
-    inactive: "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/30 hover:border-emerald-300 dark:hover:border-emerald-800/40",
-  },
-}
-const STATUS_LABELS: Record<TaskStatus, string> = { pending: "รอดำเนินการ", done: "เสร็จแล้ว", cancelled: "ยกเลิก" }
+const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 }
+const byDateThenPriority = (a: Task, b: Task) =>
+  toDateKey(a.date).localeCompare(toDateKey(b.date)) || PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
 
-function getDaysInMonth(year: number, month: number) {
-  return new Date(year, month + 1, 0).getDate()
-}
-function getFirstDayOfMonth(year: number, month: number) {
-  return new Date(year, month, 1).getDay()
-}
-const MONTHS_TH = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
-const DAYS_TH = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"]
+export default function TaskPlanner({ data, addTask, updateTask, deleteTask, addActivity, addFinance, onNavigate, onPrint }: Props) {
+  const today = todayKey()
+  const [view, setView] = useState<"list" | "calendar">("list")
+  const [createOpen, setCreateOpen] = useState(false)
+  const [createDateKey, setCreateDateKey] = useState(today)
+  const [showDone, setShowDone] = useState(false)
+  const [laterLimit, setLaterLimit] = useState(8)
+  const [logDefaults, setLogDefaults] = useState<ActivityDefaults | null>(null)
 
-function getLocalDateString(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
-  return `${year}-${month}-${day}`
-}
+  const now = new Date()
+  const [cal, setCal] = useState({ year: now.getFullYear(), month: now.getMonth() })
+  const [selectedDay, setSelectedDay] = useState(today)
 
-export default function TaskPlanner({ data, addTask, updateTask, deleteTask, onNavigate, onPrint }: Props) {
-  const today = new Date()
-  const [calYear, setCalYear] = useState(today.getFullYear())
-  const [calMonth, setCalMonth] = useState(today.getMonth())
-  const [selectedDate, setSelectedDate] = useState<string>(getLocalDateString(today))
-  const [showForm, setShowForm] = useState(false)
-  const [showExportMenu, setShowExportMenu] = useState(false)
-  const [repeatEnabled, setRepeatEnabled] = useState(false)
-  const [repeatEveryDays, setRepeatEveryDays] = useState(2)
-  const [repeatLimitEnabled, setRepeatLimitEnabled] = useState(false)
-  const [repeatLimitMonths, setRepeatLimitMonths] = useState(3)
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all")
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [taskPage, setTaskPage] = useState(1)
+  const plotName = (id: string) => (id ? data.plots.find(p => p.id === id)?.name ?? "แปลงที่ถูกลบ" : "ทั้งสวน")
 
-  useEffect(() => {
-    setTaskPage(1)
-  }, [selectedDate, statusFilter])
-
-  const hasPlots = data.plots.length > 0
-
-  const activeRef = useRef<HTMLButtonElement | null>(null)
-  const scrollRef = useRef<HTMLDivElement | null>(null)
-  const isDragging = useRef(false)
-  const startX = useRef(0)
-  const scrollLeft = useRef(0)
-  const [dragged, setDragged] = useState(false)
-  const formModalRef = useRef<HTMLDivElement | null>(null)
-
-  useEscapeToClose({ enabled: showForm, onEscape: () => setShowForm(false), containerRef: formModalRef })
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!scrollRef.current) return
-    isDragging.current = true
-    startX.current = e.pageX - scrollRef.current.offsetLeft
-    scrollLeft.current = scrollRef.current.scrollLeft
-    setDragged(false)
-  }
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!scrollRef.current) return
-    isDragging.current = true
-    startX.current = e.touches[0].pageX - scrollRef.current.offsetLeft
-    scrollLeft.current = scrollRef.current.scrollLeft
-    setDragged(false)
-  }
-
-  const handleMouseLeave = () => {
-    isDragging.current = false
-  }
-
-  const handleMouseUp = () => {
-    setTimeout(() => {
-      isDragging.current = false
-    }, 50)
-  }
-
-  const handleTouchEnd = () => {
-    setTimeout(() => {
-      isDragging.current = false
-    }, 50)
-  }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging.current || !scrollRef.current) return
-    e.preventDefault()
-    const x = e.pageX - scrollRef.current.offsetLeft
-    const walk = (x - startX.current) * 1.5
-    if (Math.abs(x - startX.current) > 5) {
-      setDragged(true)
+  const sections = useMemo(() => {
+    const pending = data.tasks.filter(t => t.status === "pending").sort(byDateThenPriority)
+    const diff = (t: Task) => daysBetween(today, toDateKey(t.date))
+    return {
+      overdue: pending.filter(t => diff(t) < 0),
+      today: pending.filter(t => diff(t) === 0),
+      tomorrow: pending.filter(t => diff(t) === 1),
+      week: pending.filter(t => diff(t) >= 2 && diff(t) <= 7),
+      later: pending.filter(t => diff(t) > 7),
+      done: data.tasks
+        .filter(t => t.status !== "pending" && daysBetween(toDateKey(t.date), today) <= 14)
+        .sort((a, b) => toDateKey(b.date).localeCompare(toDateKey(a.date))),
     }
-    scrollRef.current.scrollLeft = scrollLeft.current - walk
-  }
+  }, [data.tasks, today])
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging.current || !scrollRef.current) return
-    const x = e.touches[0].pageX - scrollRef.current.offsetLeft
-    const walk = (x - startX.current) * 1.5
-    if (Math.abs(x - startX.current) > 5) {
-      setDragged(true)
-    }
-    scrollRef.current.scrollLeft = scrollLeft.current - walk
-  }
+  const todayAll = data.tasks.filter(t => toDateKey(t.date) === today && t.status !== "cancelled")
+  const todayDone = todayAll.filter(t => t.status === "done").length
+  const pendingAll = [...sections.overdue, ...sections.today, ...sections.tomorrow, ...sections.week, ...sections.later]
 
-  useEffect(() => {
-    if (!isExpanded && activeRef.current) {
-      activeRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "center",
-      })
-    }
-  }, [selectedDate, isExpanded, calMonth, calYear])
-
-  const [form, setForm] = useState({
-    date: selectedDate,
-    plotId: data.plots[0]?.id ?? "",
-    title: "",
-    description: "",
-    priority: "medium" as Task["priority"],
-    status: "pending" as TaskStatus,
-  })
-
-  const set = (k: string, v: unknown) => setForm(f => ({ ...f, [k]: v }))
-
-  const handleAdd = () => {
-    const title = validateText("ชื่อแผนงาน", form.title, { required: true, maxLength: 160 })
-    const description = validateText("รายละเอียด", form.description, { maxLength: 500, allowMultiline: true })
-    const date = validateDate("วันที่", form.date)
-    const interval = validateNumber("จำนวนวันทำซ้ำ", repeatEveryDays, { min: 1, max: 365, integer: true })
-    const monthLimit = validateNumber("จำนวนเดือนที่ทำซ้ำ", repeatLimitMonths, { min: 1, max: 24, integer: true })
-    if (!form.plotId) {
-      alert("กรุณาเลือกแปลงก่อนบันทึก")
+  const handleComplete = (task: Task) => {
+    updateTask(task.id, { status: "done" })
+    if (!addActivity) {
+      toast.success("ทำเสร็จแล้ว")
       return
     }
-    const invalid = [title, description, date, ...(repeatEnabled ? [interval] : []), ...(repeatEnabled && repeatLimitEnabled ? [monthLimit] : [])].find(result => !result.ok)
-    if (invalid && !invalid.ok) {
-      alert(invalid.message)
-      return
-    }
-    const intervalDays = interval.value
-    const monthsLimit = monthLimit.value
-    const startDate = new Date(`${date.value}T00:00:00`)
-    const maxDate = repeatEnabled && repeatLimitEnabled
-      ? new Date(startDate.getFullYear(), startDate.getMonth() + monthsLimit, startDate.getDate())
-      : null
-
-    const datesToCreate: Date[] = []
-    if (!repeatEnabled) {
-      datesToCreate.push(startDate)
-    } else {
-      let cursor = new Date(startDate)
-      while (!maxDate || cursor <= maxDate) {
-        datesToCreate.push(new Date(cursor))
-        cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + intervalDays)
-      }
-    }
-
-    datesToCreate.forEach((d) => {
-      addTask({ ...form, title: title.value, description: description.value, date: d.toISOString() })
+    toast.success(`เสร็จแล้ว: ${task.title}`, {
+      description: "จดลงบันทึกสวนไว้ดูย้อนหลังไหม?",
+      duration: 7000,
+      action: {
+        label: "ลงบันทึก",
+        onClick: () => setLogDefaults({
+          activityType: inferActivityType(task.title),
+          plotId: task.plotId,
+          description: [task.title, task.description].filter(Boolean).join(" · "),
+          dateKey: todayKey(),
+        }),
+      },
     })
-
-    setSelectedDate(form.date) // Switch to the date of the new task
-    setForm({ date: form.date, plotId: data.plots[0]?.id ?? "", title: "", description: "", priority: "medium", status: "pending" })
-    setRepeatEnabled(false)
-    setRepeatEveryDays(2)
-    setRepeatLimitEnabled(false)
-    setRepeatLimitMonths(3)
-    setShowForm(false)
   }
 
-  // Calendar data
-  const tasksByDate = useMemo(() => {
+  const handleCreate = (drafts: TaskDraft[]) => {
+    drafts.forEach(addTask)
+    toast.success(drafts.length > 1 ? `สร้างงานทำซ้ำ ${drafts.length} ครั้งแล้ว` : "เพิ่มงานแล้ว", {
+      description: `${drafts[0].title} · ${relativeDayLabel(drafts[0].date)}`,
+    })
+  }
+
+  const handleDelete = (task: Task) => {
+    deleteTask(task.id)
+    toast("ลบงานแล้ว", {
+      action: { label: "เลิกทำ", onClick: () => addTask({ title: task.title, description: task.description, date: task.date, plotId: task.plotId, priority: task.priority, status: task.status }) },
+    })
+  }
+
+  const openCreate = (dateKey = today) => {
+    setCreateDateKey(dateKey)
+    setCreateOpen(true)
+  }
+
+  const cardProps = { plots: data.plots, updateTask, onDelete: handleDelete, onComplete: handleComplete }
+
+  // ---- Calendar data ----
+  const tasksByDay = useMemo(() => {
     const map: Record<string, Task[]> = {}
     data.tasks.forEach(t => {
-      const d = t.date.split("T")[0]
-      if (!map[d]) map[d] = []
-      map[d].push(t)
+      const key = toDateKey(t.date)
+      ;(map[key] ??= []).push(t)
     })
     return map
   }, [data.tasks])
-
-  const daysInMonth = getDaysInMonth(calYear, calMonth)
-  const firstDay = getFirstDayOfMonth(calYear, calMonth)
-
-  const prevMonth = () => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) } else setCalMonth(m => m - 1) }
-  const nextMonth = () => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) } else setCalMonth(m => m + 1) }
-
-  const allFilteredTasks = useMemo(() =>
-    data.tasks
-      .filter(t => {
-        const matchesStatus = statusFilter === "all" || t.status === statusFilter
-        const matchesDate = t.date.split("T")[0] === selectedDate
-        return matchesStatus && matchesDate
-      })
-      .sort((a, b) => {
-        const order = { pending: 0, done: 1, cancelled: 2 }
-        return (order[a.status] - order[b.status]) || new Date(a.date).getTime() - new Date(b.date).getTime()
-      }),
-    [data.tasks, statusFilter, selectedDate])
-
-  const totalTaskItems = allFilteredTasks.length
-  const totalTaskPages = Math.ceil(totalTaskItems / 10)
-  const safeTaskPage = Math.min(taskPage, totalTaskPages || 1)
-  const paginatedTasks = useMemo(() => {
-    return allFilteredTasks.slice(
-      (safeTaskPage - 1) * 10,
-      safeTaskPage * 10
-    )
-  }, [allFilteredTasks, safeTaskPage])
-
-  const plotName = (id: string) => data.plots.find(p => p.id === id)?.name ?? id
-
-  const pendingTasks = allFilteredTasks.filter(t => t.status === "pending")
-  const completedTasks = allFilteredTasks.filter(t => t.status !== "pending")
-
-  const tasksOnSelectedDate = useMemo(() => 
-    data.tasks.filter(t => t.date.split("T")[0] === selectedDate),
-    [data.tasks, selectedDate]
-  )
-  
-  const completedTasksOnSelectedDateCount = useMemo(() => 
-    tasksOnSelectedDate.filter(t => t.status === "done").length,
-    [tasksOnSelectedDate]
-  )
-
-  const progressPercent = useMemo(() => {
-    if (tasksOnSelectedDate.length === 0) return 0
-    return Math.round((completedTasksOnSelectedDateCount / tasksOnSelectedDate.length) * 100)
-  }, [tasksOnSelectedDate, completedTasksOnSelectedDateCount])
+  const daysInMonth = new Date(cal.year, cal.month + 1, 0).getDate()
+  const firstWeekday = new Date(cal.year, cal.month, 1).getDay()
+  const moveMonth = (delta: number) => setCal(c => {
+    const d = new Date(c.year, c.month + delta, 1)
+    return { year: d.getFullYear(), month: d.getMonth() }
+  })
+  const selectedDayTasks = (tasksByDay[selectedDay] ?? []).slice().sort((a, b) =>
+    (a.status === "pending" ? 0 : 1) - (b.status === "pending" ? 0 : 1) || PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])
 
   return (
-    <div className="min-w-0 space-y-6 animate-slide-up">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 dark:bg-[#72C08A]/10 text-primary dark:text-[#72C08A]">
-            <Sparkles size={18} className="animate-pulse" />
-          </div>
-          <div>
-            <h2 className="text-lg font-black text-foreground -mb-0.5">วางแผนงานสวน</h2>
-            <p className="text-[10px] font-bold text-muted-foreground">จัดการแผนและขั้นตอนการปฏิบัติงานเกษตร</p>
-          </div>
+    <div className="space-y-4 pb-20 lg:pb-0">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-xl font-black text-foreground">วันนี้ <span className="font-bold text-muted-foreground">{formatThaiDate(today, { weekday: true })}</span></h2>
+          <p className="text-sm text-muted-foreground">
+            {pendingAll.length ? `เหลือ ${pendingAll.length} งานที่ยังไม่ได้ทำ` : "ไม่มีงานค้าง เยี่ยมมาก!"}
+          </p>
         </div>
-        {hasPlots && (
-          <div className="flex gap-2 items-center">
-            <div className="relative">
-              <button 
-                onClick={() => setShowExportMenu(v => !v)}
-                className="flex h-[38px] sm:h-[42px] items-center justify-center gap-1.5 rounded-xl border border-[#B9DCC8] bg-white hover:bg-[#E7F3EC] active:scale-95 transition-all px-3 text-xs font-black text-[#146B3E] shadow-sm"
-                title="ส่งออกรายงาน"
-              >
-                <Download size={14} /> <span className="hidden sm:inline">ส่งออก</span>
+        <div className="flex shrink-0 items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button type="button" aria-label="ตัวเลือกเพิ่มเติม" className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground/70 hover:bg-muted">
+                <MoreHorizontal size={20} />
               </button>
-              {showExportMenu && (
-                <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white p-1.5 shadow-xl border border-[#B9DCC8] z-50 text-gray-800 animate-slide-up">
-                  <button
-                    onClick={() => {
-                      exportOperationsToCSV(allFilteredTasks, [], (id) => id ? (data.plots.find(p => p.id === id)?.name ?? id) : "ไม่ระบุ")
-                      setShowExportMenu(false)
-                    }}
-                    className="w-full text-left rounded-lg px-3 py-2 text-xs font-black hover:bg-[#E7F3EC] hover:text-[#146B3E] transition-all flex items-center gap-2"
-                  >
-                    📊 ส่งออก Excel (CSV)
-                  </button>
-                  <button
-                    onClick={() => {
-                      onPrint?.({
-                        type: "operations",
-                        title: `รายงานสรุปแผนงานสวน ประจำวันที่ ${selectedDate}`,
-                        dateRange: `ประจำวันที่ ${selectedDate}`,
-                        tasks: allFilteredTasks,
-                        activities: []
-                      })
-                      setShowExportMenu(false)
-                    }}
-                    className="w-full text-left rounded-lg px-3 py-2 text-xs font-black hover:bg-[#E7F3EC] hover:text-[#146B3E] transition-all flex items-center gap-2"
-                  >
-                    🖨️ พิมพ์รายงาน (PDF)
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => {
-                setForm(f => ({ ...f, date: selectedDate, plotId: data.plots[0]?.id ?? "", title: "", description: "", priority: "medium" }))
-                setRepeatEnabled(false)
-                setRepeatEveryDays(2)
-                setRepeatLimitEnabled(false)
-                setRepeatLimitMonths(3)
-                setShowForm(true)
-              }}
-              className="flex items-center gap-1.5 bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] px-4 py-2.5 rounded-xl text-xs font-black hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] transition-all active:scale-[0.98] shadow-md shadow-primary/10 dark:shadow-[#72C08A]/10"
-            >
-              <Plus size={14} /> เพิ่มแผนงาน
-            </button>
-          </div>
-        )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-60">
+              <DropdownMenuItem disabled={!pendingAll.length} onSelect={() => downloadTasksCalendarFile(pendingAll, plotName, "durian-tasks")} className="gap-2 py-2.5 font-semibold">
+                <CalendarPlus size={16} /> ลงปฏิทินมือถือ (งานค้างทั้งหมด)
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled={!data.tasks.length} onSelect={() => exportOperationsToCSV(data.tasks, [], id => plotName(id ?? ""))} className="gap-2 py-2.5 font-semibold">
+                <Download size={16} /> ส่งออก Excel (CSV)
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={!pendingAll.length}
+                onSelect={() => onPrint?.({ type: "operations", title: "รายงานแผนงานสวนที่ยังค้าง", dateRange: `ณ ${formatThaiDate(today, { year: true })}`, tasks: pendingAll, activities: [] })}
+                className="gap-2 py-2.5 font-semibold"
+              >
+                <Printer size={16} /> พิมพ์แผนงาน (PDF)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <button type="button" onClick={() => openCreate()} className="hidden h-11 items-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-sm hover:bg-primary/90 lg:inline-flex">
+            <Plus size={18} /> เพิ่มแผนงาน
+          </button>
+        </div>
       </div>
 
-      {!hasPlots ? (
-        <div className="rounded-2xl border border-rose-200 dark:border-rose-950/60 bg-rose-50/50 dark:bg-rose-950/20 p-8 shadow-sm backdrop-blur-sm flex flex-col items-center gap-4 text-center max-w-xl mx-auto mt-8 orchard-card">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
-            <AlertTriangle size={32} className="animate-pulse" />
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-base font-black text-rose-900 dark:text-rose-300">ต้องการข้อมูลแปลงทุเรียน</h3>
-            <p className="text-sm font-semibold text-rose-700/80 dark:text-rose-400/80 leading-relaxed">
-              ไม่พบข้อมูลแปลงทุเรียนในระบบของคุณ เพื่อเริ่มต้นใช้งานฟังก์ชันวางแผนงานเกษตร กรุณาเพิ่มข้อมูลแปลงทุเรียนก่อน
-            </p>
-            <p className="text-xs text-muted-foreground font-bold">
-              คุณสามารถเพิ่มแปลงใหม่ได้ที่เมนู <span className="font-extrabold text-primary dark:text-[#72C08A]">&quot;จัดการแปลง&quot;</span>
-            </p>
-            {onNavigate && (
-              <button
-                type="button"
-                onClick={() => onNavigate("plots")}
-                className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary dark:bg-[#72C08A] px-5 py-2.5 text-xs font-black text-white dark:text-[#0B1B12] shadow-md hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] active:scale-95 transition-all"
-              >
-                จัดการแปลง
-              </button>
-            )}
-          </div>
-        </div>
-      ) : (
-        <>
+      {/* Today summary */}
+      <section className="grid grid-cols-3 gap-2">
+        <SummaryTile label="เลยกำหนด" value={sections.overdue.length} tone={sections.overdue.length ? "danger" : "muted"} />
+        <SummaryTile label="วันนี้" value={todayAll.length ? `${todayDone}/${todayAll.length}` : 0} tone="primary" progress={todayAll.length ? todayDone / todayAll.length : undefined} />
+        <SummaryTile label="7 วันข้างหน้า" value={sections.tomorrow.length + sections.week.length} tone="muted" />
+      </section>
 
-      {/* Progress Card */}
-      {tasksOnSelectedDate.length > 0 && (
-        <div className="rounded-2xl border border-white/60 dark:border-[#31533D]/60 bg-white dark:bg-[#14291E] p-5 shadow-sm transition-all duration-300 orchard-card">
-          <div className="flex flex-wrap items-center justify-between mb-3 gap-2">
-            <div>
-              <h3 className="text-sm font-black text-foreground flex items-center gap-1.5">
-                ความคืบหน้าของงานวันที่ {new Date(selectedDate).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}
-              </h3>
-              <p className="text-[10px] font-bold text-muted-foreground mt-0.5">
-                เสร็จสิ้น {completedTasksOnSelectedDateCount} จาก {tasksOnSelectedDate.length} รายการ
-              </p>
-            </div>
-            <span className="text-sm font-black text-[#146B3E] dark:text-[#72C08A]">{progressPercent}%</span>
-          </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-muted dark:bg-[#0B140F]">
-            <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-[#146B3E] dark:from-emerald-400 dark:to-[#72C08A] transition-all duration-500 rounded-full"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Status Filter */}
-      <div className="flex flex-wrap gap-2 sm:flex-nowrap sm:overflow-x-auto sm:pb-1 sm:scrollbar-hide">
-        {(["all", "pending", "done", "cancelled"] as (TaskStatus | "all")[]).map(s => (
+      {/* View switch */}
+      <div role="tablist" aria-label="มุมมองแผนงาน" className="grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+        {([["list", "รายการ", ListChecks], ["calendar", "ปฏิทิน", CalendarDays]] as const).map(([id, label, Icon]) => (
           <button
-            key={s}
-            onClick={() => setStatusFilter(s)}
-            className={`px-4 py-2 rounded-xl text-xs font-black border transition-all hover:-translate-y-0.5 active:scale-[0.98] ${
-              statusFilter === s
-                ? "bg-primary text-primary-foreground border-primary shadow-[0_8px_18px_rgba(20,107,62,0.18)] dark:bg-[#72C08A] dark:text-[#0B1B12] dark:border-[#72C08A] dark:shadow-[0_8px_18px_rgba(114,192,138,0.15)]"
-                : "border-[#B9DCC8] dark:border-[#31533D] bg-white dark:bg-[#14291E] text-primary dark:text-[#72C08A] hover:border-primary/50 dark:hover:border-[#72C08A]/50"
-            }`}
+            key={id}
+            role="tab"
+            aria-selected={view === id}
+            type="button"
+            onClick={() => setView(id)}
+            className={cn("inline-flex min-h-10 items-center justify-center gap-2 rounded-full text-sm font-bold transition", view === id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground")}
           >
-            {s === "all" ? "ทั้งหมด" : STATUS_LABELS[s]}
+            <Icon size={16} /> {label}
           </button>
         ))}
       </div>
 
-      {/* Calendar Card (Mobile/Tablet only) */}
-      <div className="lg:hidden bg-white dark:bg-[#14291E] rounded-2xl p-4 border border-[#B9DCC8] dark:border-[#31533D]/60 shadow-[0_4px_20px_rgba(20,107,62,0.04)] orchard-card">
-        <div className="flex flex-col min-[380px]:flex-row items-center justify-between gap-2.5 mb-3">
-          <div className="flex items-center gap-1">
-            <button onClick={prevMonth} className="p-2 text-[#527060] dark:text-[#B8D1C0] hover:text-primary dark:hover:text-[#72C08A] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] rounded-xl transition-all"><ChevronLeft size={18} /></button>
-            <span className="font-extrabold text-foreground text-base sm:text-lg">{MONTHS_TH[calMonth]} {calYear + 543}</span>
-            <button onClick={nextMonth} className="p-2 text-[#527060] dark:text-[#B8D1C0] hover:text-primary dark:hover:text-[#72C08A] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] rounded-xl transition-all"><ChevronRight size={18} /></button>
-          </div>
-          <button
-            onClick={() => setIsExpanded(v => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#B9DCC8] dark:border-[#31533D] bg-[#F7FAF8] dark:bg-[#0B140F] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] text-[#146B3E] dark:text-[#72C08A] hover:text-primary dark:hover:text-[#72C08A] text-xs font-black transition-all"
-          >
-            <CalendarDays size={14} />
-            {isExpanded ? "ย่อปฏิทิน" : "ดูรายเดือน"}
-            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
-        </div>
+      {view === "list" ? (
+        <div className="space-y-5">
+          {pendingAll.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-border bg-card px-6 py-10 text-center">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-muted text-primary">
+                <Check size={26} strokeWidth={3} />
+              </div>
+              <p className="font-bold text-foreground">ไม่มีงานค้าง</p>
+              <p className="mt-1 text-sm text-muted-foreground">วางแผนพ่นยา ใส่ปุ๋ย ล่วงหน้า ระบบจะเรียงให้ตามวัน</p>
+              <button type="button" onClick={() => openCreate()} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground">
+                <Plus size={16} /> เพิ่มแผนงาน
+              </button>
+              {data.plots.length === 0 && onNavigate && (
+                <button type="button" onClick={() => onNavigate("plots")} className="mt-2 block w-full text-sm font-bold text-primary">
+                  หรือเพิ่มแปลงทุเรียนก่อน →
+                </button>
+              )}
+            </div>
+          )}
+          <TaskSection title="เลยกำหนด" tone="danger" tasks={sections.overdue} cardProps={cardProps} plotName={plotName} />
+          <TaskSection title="วันนี้" hideDate tasks={sections.today} cardProps={cardProps} plotName={plotName} />
+          <TaskSection title="พรุ่งนี้" subtitle={formatThaiDate(addDaysToKey(today, 1), { weekday: true })} hideDate tasks={sections.tomorrow} cardProps={cardProps} plotName={plotName} />
+          <TaskSection title="ในสัปดาห์นี้" tasks={sections.week} cardProps={cardProps} plotName={plotName} />
+          <TaskSection title="ถัดไป" tasks={sections.later.slice(0, laterLimit)} cardProps={cardProps} plotName={plotName}
+            footer={sections.later.length > laterLimit && (
+              <button type="button" onClick={() => setLaterLimit(l => l + 20)} className="mt-2 w-full rounded-xl py-2.5 text-sm font-bold text-primary hover:bg-muted">
+                ดูเพิ่มอีก {Math.min(20, sections.later.length - laterLimit)} งาน
+              </button>
+            )}
+          />
 
-        {isExpanded ? (
-          /* Full Month Grid Calendar View */
-          <div className="mt-4 transition-all">
-            <div className="grid grid-cols-7 gap-1 mb-1">
-              {DAYS_TH.map(d => <div key={d} className="text-center text-xs font-black text-[#527060] dark:text-[#B8D1C0] py-1">{d}</div>)}
+          {sections.done.length > 0 && (
+            <section>
+              <button type="button" onClick={() => setShowDone(v => !v)} className="flex w-full items-center justify-between px-1 py-2 text-sm font-black text-muted-foreground">
+                เสร็จ/ยกเลิก ใน 14 วันที่ผ่านมา ({sections.done.length})
+                <ChevronDown size={18} className={cn("transition", showDone && "rotate-180")} />
+              </button>
+              {showDone && (
+                <ul className="space-y-2">
+                  {sections.done.map(t => <li key={t.id}><TaskCard task={t} plotName={plotName(t.plotId)} {...cardProps} /></li>)}
+                </ul>
+              )}
+            </section>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <section className="rounded-2xl border border-border bg-card p-3 shadow-sm">
+            <div className="mb-2 flex items-center justify-between">
+              <button type="button" onClick={() => moveMonth(-1)} aria-label="เดือนก่อน" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-muted"><ChevronLeft size={20} /></button>
+              <p className="font-black text-foreground">{MONTHS_TH[cal.month]} {cal.year + 543}</p>
+              <button type="button" onClick={() => moveMonth(1)} aria-label="เดือนถัดไป" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-muted"><ChevronRight size={20} /></button>
+            </div>
+            <div className="grid grid-cols-7 text-center text-xs font-bold text-muted-foreground">
+              {DAYS_TH.map(d => <div key={d} className="py-1">{d}</div>)}
             </div>
             <div className="grid grid-cols-7 gap-1">
-              {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
+              {Array.from({ length: firstWeekday }).map((_, i) => <div key={`e${i}`} />)}
               {Array.from({ length: daysInMonth }).map((_, i) => {
-                const day = i + 1
-                const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
-                const hasTasks = !!tasksByDate[dateStr]?.length
-                const isToday = dateStr === getLocalDateString(today)
-                const isSelected = dateStr === selectedDate
+                const key = `${cal.year}-${String(cal.month + 1).padStart(2, "0")}-${String(i + 1).padStart(2, "0")}`
+                const dayTasks = tasksByDay[key] ?? []
+                const pendingCount = dayTasks.filter(t => t.status === "pending").length
+                const hasOverdue = pendingCount > 0 && key < today
+                const isSelected = key === selectedDay
                 return (
                   <button
-                    key={day}
-                    onClick={() => { setSelectedDate(dateStr); setIsExpanded(false); }}
-                    className={`relative h-10 sm:h-11 flex flex-col items-center justify-center rounded-xl text-sm font-extrabold transition-all hover:scale-105 ${
-                      isSelected
-                        ? "bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] shadow-md shadow-primary/20 dark:shadow-[#72C08A]/20"
-                        : isToday
-                        ? "bg-primary/10 dark:bg-[#72C08A]/10 text-primary dark:text-[#72C08A] font-bold ring-1 ring-primary dark:ring-[#72C08A]"
-                        : hasTasks
-                        ? "text-foreground bg-[#E7F3EC] dark:bg-[#1D3A29] hover:bg-[#D8EEE2] dark:hover:bg-[#254A35]"
-                        : "text-[#527060] dark:text-[#B8D1C0] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] hover:text-foreground"
-                    }`}
+                    key={key}
+                    type="button"
+                    onClick={() => setSelectedDay(key)}
+                    className={cn(
+                      "relative flex aspect-square flex-col items-center justify-center rounded-full text-sm font-bold transition",
+                      isSelected ? "bg-primary text-primary-foreground" : key === today ? "text-primary ring-2 ring-primary/40" : "text-foreground hover:bg-muted",
+                    )}
                   >
-                    {day}
-                    {hasTasks && (
-                      <span className={`absolute bottom-1 w-1 h-1 rounded-full ${isSelected ? "bg-primary-foreground dark:bg-[#0B1B12]" : "bg-primary dark:bg-[#72C08A]"}`} />
+                    {i + 1}
+                    {dayTasks.length > 0 && (
+                      <span className={cn("absolute bottom-1 h-1.5 w-1.5 rounded-full",
+                        isSelected ? "bg-primary-foreground" : hasOverdue ? "bg-rose-500" : pendingCount ? "bg-amber-500" : "bg-primary/50")}
+                      />
                     )}
                   </button>
                 )
               })}
             </div>
-          </div>
-        ) : (
-          /* Compact Hotel-Booking style horizontal scrolling strip */
-          <div
-            ref={scrollRef}
-            onMouseDown={handleMouseDown}
-            onMouseLeave={handleMouseLeave}
-            onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            onTouchMove={handleTouchMove}
-            className="flex gap-2 overflow-x-auto py-2 scrollbar-hide cursor-grab active:cursor-grabbing select-none"
-          >
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day = i + 1
-              const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
-              const hasTasks = !!tasksByDate[dateStr]?.length
-              const isToday = dateStr === getLocalDateString(today)
-              const isSelected = dateStr === selectedDate
-              const dayOfWeekIndex = new Date(calYear, calMonth, day).getDay()
-              const dayOfWeekName = DAYS_TH[dayOfWeekIndex]
-              return (
-                <button
-                  key={day}
-                  ref={isSelected ? activeRef : null}
-                  onClick={() => {
-                    if (!dragged) {
-                      setSelectedDate(dateStr)
-                    }
-                  }}
-                  className={`shrink-0 w-11 sm:w-12 h-15 sm:h-16 flex flex-col items-center justify-between py-1.5 px-1 rounded-xl text-center transition-all hover:scale-105 ${
-                    isSelected
-                      ? "bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] shadow-md shadow-primary/20 dark:shadow-[#72C08A]/20 font-bold"
-                      : isToday
-                      ? "bg-primary/10 dark:bg-[#72C08A]/10 text-primary dark:text-[#72C08A] font-bold ring-1 ring-primary dark:ring-[#72C08A]"
-                      : hasTasks
-                      ? "bg-[#E7F3EC] dark:bg-[#1D3A29] text-foreground hover:bg-[#D8EEE2] dark:hover:bg-[#254A35]"
-                      : "bg-[#F7FAF8] dark:bg-[#0B140F] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] text-[#527060] dark:text-[#B8D1C0]"
-                  }`}
-                >
-                  <span className="text-[10px] font-bold opacity-80 pointer-events-none">{dayOfWeekName}</span>
-                  <span className="text-base font-extrabold pointer-events-none">{day}</span>
-                  <div className="h-1 flex items-center justify-center pointer-events-none">
-                    {hasTasks && (
-                      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-primary-foreground dark:bg-[#0B1B12]" : "bg-primary dark:bg-[#72C08A]"}`} />
-                    )}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        )}
-      </div>
+          </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-        {/* Left Side: Desktop Calendar & Add Form */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Desktop Calendar Card (hidden lg:block, always expanded month view) */}
-          <div className="hidden lg:block bg-white dark:bg-[#14291E] rounded-2xl p-4 border border-[#B9DCC8] dark:border-[#31533D]/60 shadow-[0_4px_20px_rgba(20,107,62,0.04)] orchard-card">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-1">
-                <button onClick={prevMonth} className="p-2 text-[#527060] dark:text-[#B8D1C0] hover:text-primary dark:hover:text-[#72C08A] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] rounded-xl transition-all"><ChevronLeft size={18} /></button>
-                <span className="font-extrabold text-foreground text-lg">{MONTHS_TH[calMonth]} {calYear + 543}</span>
-                <button onClick={nextMonth} className="p-2 text-[#527060] dark:text-[#B8D1C0] hover:text-primary dark:hover:text-[#72C08A] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] rounded-xl transition-all"><ChevronRight size={18} /></button>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <div className="grid grid-cols-7 gap-1 mb-1">
-                {DAYS_TH.map(d => <div key={d} className="text-center text-xs font-black text-[#527060] dark:text-[#B8D1C0] py-1">{d}</div>)}
-              </div>
-              <div className="grid grid-cols-7 gap-1">
-                {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
-                {Array.from({ length: daysInMonth }).map((_, i) => {
-                  const day = i + 1
-                  const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
-                  const hasTasks = !!tasksByDate[dateStr]?.length
-                  const isToday = dateStr === getLocalDateString(today)
-                  const isSelected = dateStr === selectedDate
-                  return (
-                    <button
-                      key={day}
-                      onClick={() => setSelectedDate(dateStr)}
-                      className={`relative h-10 flex flex-col items-center justify-center rounded-xl text-sm font-extrabold transition-all hover:scale-105 ${
-                        isSelected
-                          ? "bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] shadow-md shadow-primary/20 dark:shadow-[#72C08A]/20"
-                          : isToday
-                          ? "bg-primary/10 dark:bg-[#72C08A]/10 text-primary dark:text-[#72C08A] font-bold ring-1 ring-primary dark:ring-[#72C08A]"
-                          : hasTasks
-                          ? "text-foreground bg-[#E7F3EC] dark:bg-[#1D3A29] hover:bg-[#D8EEE2] dark:hover:bg-[#254A35]"
-                          : "text-[#527060] dark:text-[#B8D1C0] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] hover:text-foreground"
-                      }`}
-                    >
-                      {day}
-                      {hasTasks && (
-                        <span className={`absolute bottom-1 w-1 h-1 rounded-full ${isSelected ? "bg-primary-foreground dark:bg-[#0B1B12]" : "bg-primary dark:bg-[#72C08A]"}`} />
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Right Side: Task Lists */}
-        <div className="lg:col-span-3 min-w-0 space-y-6">
-          {/* Tasks Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-foreground flex items-center gap-2 text-sm">
-                <CalendarDays size={16} className="text-primary dark:text-[#72C08A]" />
-                งานวันที่ {new Date(selectedDate).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}
-                <span className="text-[10px] font-bold text-muted-foreground">({allFilteredTasks.length} รายการ)</span>
+          <section>
+            <div className="mb-2 flex items-center justify-between px-1">
+              <h3 className="text-sm font-black text-foreground">
+                {relativeDayLabel(selectedDay)}
+                <span className="ml-1.5 font-semibold text-muted-foreground">{selectedDayTasks.length} งาน</span>
               </h3>
-              {allFilteredTasks.length > 0 && (
-                <button
-                  onClick={() => downloadTasksCalendarFile(allFilteredTasks, plotName, `tasks-${selectedDate}`)}
-                  className="hidden shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#B9DCC8] dark:border-[#31533D] text-[10px] font-black text-primary dark:text-[#72C08A] hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-all active:scale-[0.98] sm:inline-flex"
-                >
-                  <Download size={13} />
-                  ลงทุกงาน
-                </button>
-              )}
+              <button type="button" onClick={() => openCreate(selectedDay)} className="inline-flex min-h-9 items-center gap-1 rounded-full px-3 text-sm font-bold text-primary hover:bg-muted">
+                <Plus size={16} /> เพิ่มวันนี้
+              </button>
             </div>
-
-            {paginatedTasks.length === 0 ? (
-              <div className="bg-white dark:bg-[#14291E] border-2 border-dashed border-[#B9DCC8] dark:border-[#31533D] rounded-2xl p-8 text-center shadow-sm">
-                <CalendarDays size={28} className="text-[#527060] dark:text-[#B8D1C0]/60 mx-auto mb-2 opacity-60" />
-                <p className="text-xs font-bold text-[#527060] dark:text-[#B8D1C0]">ไม่มีงานสำหรับวันที่เลือก</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">กดปุ่มเพิ่มแผนงานด้านบน เพื่อบันทึกงานใหม่</p>
-              </div>
+            {selectedDayTasks.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-border bg-card px-4 py-6 text-center text-sm text-muted-foreground">ไม่มีงานในวันนี้</p>
             ) : (
-              <div className="space-y-3">
-                {paginatedTasks.map(t => (
-                  <TaskCard key={t.id} task={t} plotName={plotName(t.plotId)} plots={data.plots} updateTask={updateTask} deleteTask={deleteTask} />
-                ))}
-              </div>
+              <ul className="space-y-2">
+                {selectedDayTasks.map(t => <li key={t.id}><TaskCard task={t} plotName={plotName(t.plotId)} {...cardProps} /></li>)}
+              </ul>
             )}
-
-            {totalTaskPages > 1 && (
-              <div className="mt-4 flex items-center justify-between bg-[#E7F3EC]/20 dark:bg-[#1D3A29]/10 rounded-2xl p-4 border border-[#B9DCC8]/30 dark:border-[#31533D]/25">
-                <span className="text-xs font-bold text-muted-foreground">
-                  งาน {Math.min(totalTaskItems, (safeTaskPage - 1) * 10 + 1)}-{Math.min(totalTaskItems, safeTaskPage * 10)} จาก {totalTaskItems}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setTaskPage(prev => Math.max(1, prev - 1))}
-                    disabled={safeTaskPage === 1}
-                    className="p-1 bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-40 transition-all"
-                  >
-                    <ChevronLeft size={14} />
-                  </button>
-                  <span className="text-xs font-black px-2">{safeTaskPage} / {totalTaskPages}</span>
-                  <button
-                    type="button"
-                    onClick={() => setTaskPage(prev => Math.min(totalTaskPages, prev + 1))}
-                    disabled={safeTaskPage === totalTaskPages}
-                    className="p-1 bg-white dark:bg-[#0B140F] border border-[#B9DCC8]/40 dark:border-[#31533D]/30 rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-40 transition-all"
-                  >
-                    <ChevronRight size={14} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          </section>
         </div>
-      </div>
-        </>
       )}
 
-      {showForm && (
-        <Portal>
-          <div ref={formModalRef} data-escapable-layer="true" className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
-          <div className="w-full max-w-lg bg-white dark:bg-[#14291E] rounded-2xl p-5 border border-[#B9DCC8] dark:border-[#31533D]/60 shadow-2xl space-y-4 animate-fade-in-up" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black text-foreground">เพิ่มแผนงานใหม่</h3>
-              <button onClick={() => setShowForm(false)} className="text-muted-foreground hover:text-foreground"><X size={16} /></button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-[10px] font-black text-muted-foreground mb-1 block">วันที่</label>
-                <input
-                  type="date"
-                  value={form.date}
-                  onChange={e => set("date", e.target.value)}
-                  className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-muted-foreground mb-1 block">แปลง</label>
-                <select
-                  value={form.plotId}
-                  onChange={e => set("plotId", e.target.value)}
-                  className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
-                >
-                  {data.plots.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="text-[10px] font-black text-muted-foreground mb-1 block">ชื่อแผนงาน</label>
-              <input
-                value={form.title}
-                onChange={e => set("title", e.target.value)}
-                placeholder="เช่น รดน้ำดึงตาดอก..."
-                className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-black text-muted-foreground mb-1 block">รายละเอียด</label>
-              <textarea
-                value={form.description}
-                onChange={e => set("description", e.target.value)}
-                placeholder="รายละเอียดเพิ่มเติม..."
-                rows={2}
-                className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3.5 py-2 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-[#146B3E]/30 dark:focus:ring-emerald-400 resize-none"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-black text-muted-foreground mb-1.5 block">ความสำคัญ</label>
-              <div className="flex gap-2">
-                {(["high", "medium", "low"] as Task["priority"][]).map(p => (
-                  <button
-                    type="button"
-                    key={p}
-                    onClick={() => set("priority", p)}
-                    className={`flex-1 py-2 rounded-xl text-xs font-black border transition-all ${form.priority === p ? PRIORITY_OPTION_STYLES[p].active : PRIORITY_OPTION_STYLES[p].inactive}`}
-                  >
-                    {PRIORITY_LABELS[p]}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-xl border border-[#B9DCC8] dark:border-[#31533D] bg-[#F7FAF8] dark:bg-[#0B140F] p-3 space-y-2">
-              <label className="flex items-center gap-2 text-xs font-black text-[#146B3E] dark:text-[#72C08A]">
-                <input
-                  type="checkbox"
-                  checked={repeatEnabled}
-                  onChange={(e) => setRepeatEnabled(e.target.checked)}
-                  className="h-4 w-4 accent-[#146B3E] dark:accent-[#72C08A] rounded"
-                />
-                งานทำซ้ำ (ทำซ้ำอัตโนมัติ)
-              </label>
-              {repeatEnabled && (
-                <div className="space-y-3 pt-1 animate-slide-up">
-                  <div className="flex items-center gap-2 text-xs font-bold">
-                    <span className="text-[#527060] dark:text-[#B8D1C0]">ทุก</span>
-                    <input
-                      type="text"
-                      value={repeatEveryDays === 0 ? "" : repeatEveryDays}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "")
-                        setRepeatEveryDays(val === "" ? 0 : Number(val))
-                      }}
-                      className="w-16 bg-white dark:bg-[#14291E] border border-[#B9DCC8] dark:border-[#31533D] rounded-lg px-2 py-1 text-xs font-bold text-center text-foreground focus:outline-none"
-                    />
-                    <span className="text-[#527060] dark:text-[#B8D1C0]">วัน</span>
-                  </div>
-                  <label className="flex items-center gap-2 text-xs font-bold text-[#527060] dark:text-[#B8D1C0]">
-                    <input
-                      type="checkbox"
-                      checked={repeatLimitEnabled}
-                      onChange={(e) => setRepeatLimitEnabled(e.target.checked)}
-                      className="h-4 w-4 accent-[#146B3E] dark:accent-[#72C08A] rounded"
-                    />
-                    จำกัดระยะเวลา (เดือน)
-                  </label>
-                  {repeatLimitEnabled && (
-                    <div className="flex items-center gap-2 text-xs font-bold animate-slide-up">
-                      <span className="text-[#527060] dark:text-[#B8D1C0]">สูงสุด</span>
-                      <input
-                        type="text"
-                        value={repeatLimitMonths === 0 ? "" : repeatLimitMonths}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "")
-                          setRepeatLimitMonths(val === "" ? 0 : Number(val))
-                        }}
-                        className="w-16 bg-white dark:bg-[#14291E] border border-[#B9DCC8] dark:border-[#31533D] rounded-lg px-2 py-1 text-xs font-bold text-center text-foreground focus:outline-none"
-                      />
-                      <span className="text-[#527060] dark:text-[#B8D1C0]">เดือน</span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="flex-1 border border-[#B9DCC8] dark:border-[#31533D] rounded-xl py-2.5 text-xs text-[#527060] dark:text-[#B8D1C0] font-black hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]/50 transition-all active:scale-[0.98]"
-              >
-                ยกเลิก
-              </button>
-              <button
-                type="button"
-                onClick={handleAdd}
-                className="flex-1 bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] rounded-xl py-2.5 text-xs font-black hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] transition-all active:scale-[0.98] shadow-md shadow-primary/10 dark:shadow-[#72C08A]/10"
-              >
-                บันทึก
-              </button>
-            </div>
-          </div>
-        </div>
-        </Portal>
+      <Fab onClick={() => openCreate(view === "calendar" ? selectedDay : today)} label="เพิ่มงาน" icon={<Plus size={20} strokeWidth={2.75} />} />
+
+      <TaskFormSheet
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        plots={data.plots}
+        defaultDateKey={createDateKey}
+        onCreate={handleCreate}
+      />
+
+      {addActivity && (
+        <ActivityFormSheet
+          open={logDefaults !== null}
+          onOpenChange={open => { if (!open) setLogDefaults(null) }}
+          plots={data.plots}
+          defaults={logDefaults ?? undefined}
+          onSave={(draft: ActivityDraft, { addExpense }) => {
+            saveActivityWithExpense(draft, addExpense, addActivity, addFinance)
+            toast.success("ลงบันทึกสวนแล้ว")
+          }}
+        />
       )}
     </div>
   )
 }
 
-export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask }: {
-  task: Task
-  plotName: string
-  plots?: { id: string; name: string }[]
-  updateTask: (id: string, c: Partial<Task>) => void
-  deleteTask: (id: string) => void
-}) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editForm, setEditForm] = useState({
-    date: task.date.split("T")[0],
-    plotId: task.plotId,
-    title: task.title,
-    description: task.description,
-    priority: task.priority,
-  })
+function SummaryTile({ label, value, tone, progress }: { label: string; value: number | string; tone: "danger" | "primary" | "muted"; progress?: number }) {
+  return (
+    <div className={cn(
+      "relative overflow-hidden rounded-2xl border px-3 py-3",
+      tone === "danger" ? "border-rose-200 bg-rose-50 dark:border-rose-400/30 dark:bg-rose-400/10" : "border-border bg-card",
+    )}>
+      <p className={cn("text-2xl font-black leading-none", tone === "danger" ? "text-rose-600 dark:text-rose-300" : tone === "primary" ? "text-primary" : "text-foreground")}>{value}</p>
+      <p className="mt-1.5 text-xs font-bold text-muted-foreground">{label}</p>
+      {progress !== undefined && (
+        <span className="absolute inset-x-0 bottom-0 h-1 bg-muted">
+          <span className="block h-full bg-primary transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
+        </span>
+      )}
+    </div>
+  )
+}
 
-  const priorityBorder = { 
-    high: "border-l-rose-500 dark:border-l-rose-500", 
-    medium: "border-l-amber-400 dark:border-l-amber-400", 
-    low: "border-l-emerald-500 dark:border-l-emerald-500" 
-  }
+type CardProps = {
+  plots: AppDataReturn["data"]["plots"]
+  updateTask: (id: string, changes: Partial<Task>) => void
+  onDelete: (task: Task) => void
+  onComplete?: (task: Task) => void
+}
+
+function TaskSection({ title, subtitle, tone, tasks, cardProps, plotName, footer, hideDate }: {
+  title: string
+  subtitle?: string
+  hideDate?: boolean
+  tone?: "danger"
+  tasks: Task[]
+  cardProps: CardProps
+  plotName: (id: string) => string
+  footer?: React.ReactNode
+}) {
+  if (!tasks.length) return null
+  return (
+    <section>
+      <h3 className={cn("mb-2 px-1 text-sm font-black", tone === "danger" ? "text-rose-600 dark:text-rose-300" : "text-foreground")}>
+        {title}
+        {subtitle && <span className="ml-1.5 font-semibold text-muted-foreground">{subtitle}</span>}
+        <span className="ml-1.5 font-semibold text-muted-foreground">· {tasks.length}</span>
+      </h3>
+      <ul className="space-y-2">
+        {tasks.map(t => <li key={t.id}><TaskCard task={t} plotName={plotName(t.plotId)} showDate={!hideDate} {...cardProps} /></li>)}
+      </ul>
+      {footer}
+    </section>
+  )
+}
+
+/**
+ * One task row: big tick target on the left, tap anywhere else to open details.
+ * Also used by the dashboard, so it owns its own edit sheet.
+ */
+export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask, onDelete, onComplete, showDate = true }: {
+  task: Task
+  showDate?: boolean
+  plotName: string
+  plots?: AppDataReturn["data"]["plots"]
+  updateTask: (id: string, changes: Partial<Task>) => void
+  deleteTask?: (id: string) => void
+  /** Preferred over deleteTask: receives the whole task (enables undo). */
+  onDelete?: (task: Task) => void
+  onComplete?: (task: Task) => void
+}) {
+  const [open, setOpen] = useState(false)
   const isDone = task.status === "done"
   const isCancelled = task.status === "cancelled"
-  const googleCalendarUrl = getGoogleCalendarUrl(task, plotName)
+  const key = toDateKey(task.date)
+  const overdue = task.status === "pending" && key < todayKey()
+  const priority = PRIORITY_META[task.priority]
 
-  const handleSaveEdit = () => {
-    const title = validateText("ชื่องาน", editForm.title, { required: true, maxLength: 160 })
-    const description = validateText("รายละเอียด", editForm.description, { maxLength: 500, allowMultiline: true })
-    const date = validateDate("วันที่", editForm.date)
-    if (!editForm.plotId) {
-      alert("กรุณาเลือกแปลงก่อนบันทึก")
-      return
-    }
-    const invalid = [title, description, date].find(result => !result.ok)
-    if (invalid && !invalid.ok) {
-      alert(invalid.message)
-      return
-    }
-    updateTask(task.id, { ...editForm, title: title.value, description: description.value, date: new Date(date.value).toISOString() })
-    setIsEditing(false)
-  }
-
-  if (isEditing) {
-    return (
-      <div className="bg-[#E7F3EC] dark:bg-[#1D3A29]/30 rounded-2xl p-4 space-y-4 border border-[#B9DCC8] dark:border-[#31533D] animate-fade-in-up">
-        <h3 className="font-extrabold text-foreground text-xs">แก้ไขรายละเอียดแผนงาน</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-[10px] font-black text-muted-foreground mb-1 block">วันที่</label>
-            <input
-              type="date"
-              value={editForm.date}
-              onChange={e => setEditForm({ ...editForm, date: e.target.value })}
-              className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] font-black text-muted-foreground mb-1 block">แปลง</label>
-            <select
-              value={editForm.plotId}
-              onChange={e => setEditForm({ ...editForm, plotId: e.target.value })}
-              className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none"
-            >
-              {plots.length > 0 ? plots.map(p => <option key={p.id} value={p.id}>{p.name}</option>) : <option value={task.plotId}>{plotName}</option>}
-            </select>
-          </div>
-        </div>
-        <div>
-          <label className="text-[10px] font-black text-muted-foreground mb-1 block">ชื่องาน</label>
-          <input
-            value={editForm.title}
-            onChange={e => setEditForm({ ...editForm, title: e.target.value })}
-            className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none"
-            placeholder="ชื่องาน..."
-          />
-        </div>
-        <div>
-          <label className="text-[10px] font-black text-muted-foreground mb-1 block">รายละเอียด</label>
-          <textarea
-            value={editForm.description}
-            onChange={e => setEditForm({ ...editForm, description: e.target.value })}
-            className="w-full bg-background dark:bg-[#0B140F] border border-[#B9DCC8] dark:border-[#31533D] rounded-xl px-3 py-1.5 text-xs font-bold text-foreground focus:outline-none resize-none"
-            placeholder="รายละเอียด..."
-            rows={2}
-          />
-        </div>
-        <div>
-          <label className="text-[10px] font-black text-muted-foreground mb-1.5 block">ความสำคัญ</label>
-          <div className="flex gap-2">
-            {(["high", "medium", "low"] as Task["priority"][]).map(p => (
-              <button
-                key={p}
-                onClick={() => setEditForm({ ...editForm, priority: p })}
-                className={`flex-1 py-1.5 rounded-xl text-xs font-black border transition-all ${editForm.priority === p ? PRIORITY_OPTION_STYLES[p].active : PRIORITY_OPTION_STYLES[p].inactive}`}
-              >
-                {PRIORITY_LABELS[p]}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={() => setIsEditing(false)} className="flex-1 border border-[#B9DCC8] dark:border-[#31533D] rounded-xl py-2 text-xs text-[#527060] dark:text-[#B8D1C0] font-black hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29]/50 transition-all active:scale-[0.98]">ยกเลิก</button>
-          <button onClick={handleSaveEdit} className="flex-1 bg-primary text-primary-foreground dark:bg-[#72C08A] dark:text-[#0B1B12] rounded-xl py-2 text-xs font-black hover:bg-[#0F5A34] dark:hover:bg-[#5bb375] transition-all active:scale-[0.98]">บันทึก</button>
-        </div>
-      </div>
-    )
+  const toggle = () => {
+    if (isCancelled) return
+    if (isDone) updateTask(task.id, { status: "pending" })
+    else if (onComplete) onComplete(task)
+    else { updateTask(task.id, { status: "done" }); toast.success("ทำเสร็จแล้ว") }
   }
 
   return (
-    <div className={`bg-white dark:bg-[#14291E] rounded-2xl border border-[#B9DCC8] dark:border-[#31533D]/60 border-l-4 p-4 transition-all hover:shadow-[0_10px_24px_rgba(20,107,62,0.06)] dark:hover:shadow-[0_10px_24px_rgba(0,0,0,0.15)] ${
-      isDone || isCancelled 
-        ? "border-l-[#B9DCC8] dark:border-l-[#31533D] opacity-75" 
-        : priorityBorder[task.priority]
-    }`}>
-      <div className="flex items-start justify-between gap-3 min-w-0">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          {/* Checkbox button */}
-          <button
-            onClick={() => updateTask(task.id, { status: isDone ? "pending" : "done" })}
-            className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all hover:scale-110 active:scale-95 ${
-              isDone
-                ? "bg-primary border-primary text-primary-foreground dark:bg-[#72C08A] dark:border-[#72C08A] dark:text-[#0B1B12]"
-                : "border-[#B9DCC8] dark:border-[#31533D] bg-white dark:bg-[#0B140F] hover:border-primary/50 dark:hover:border-[#72C08A]/50"
-            }`}
-            title={isDone ? "ทำเครื่องหมายเป็นรอดำเนินการ" : "ทำเครื่องหมายเป็นเสร็จสิ้น"}
-          >
-            {isDone && <Check size={12} strokeWidth={3} />}
-          </button>
-          
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`text-xs font-extrabold text-foreground ${isDone || isCancelled ? "line-through text-[#527060] dark:text-[#B8D1C0] opacity-80" : ""}`}>
-                {task.title}
-              </span>
-              <span className={`shrink-0 inline-flex rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase ${
-                task.priority === "high"
-                  ? "bg-rose-50 text-rose-600 border border-rose-100 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-900/30"
-                  : task.priority === "medium"
-                    ? "bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/30"
-                    : "bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/30"
-              }`}>
-                {PRIORITY_LABELS[task.priority]}
-              </span>
-              {isCancelled && (
-                <span className="shrink-0 inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase bg-gray-100 dark:bg-gray-800 text-[#527060] dark:text-[#B8D1C0]">
-                  <X size={10} /> ยกเลิก
+    <>
+      <div className={cn(
+        "flex items-stretch overflow-hidden rounded-2xl border bg-card shadow-sm transition",
+        overdue ? "border-rose-200 dark:border-rose-400/30" : "border-border",
+        (isDone || isCancelled) && "opacity-70",
+      )}>
+        <button
+          type="button"
+          onClick={toggle}
+          disabled={isCancelled}
+          aria-label={isDone ? "ทำเครื่องหมายว่ายังไม่เสร็จ" : "ทำเครื่องหมายว่าเสร็จแล้ว"}
+          className="flex w-14 shrink-0 items-center justify-center"
+        >
+          <span className={cn(
+            "flex h-7 w-7 items-center justify-center rounded-full border-2 transition",
+            isDone ? "border-primary bg-primary text-primary-foreground" : isCancelled ? "border-border" : "border-muted-foreground/40 hover:border-primary",
+          )}>
+            {isDone && <Check size={16} strokeWidth={3.5} />}
+          </span>
+        </button>
+        <button type="button" onClick={() => setOpen(true)} className="min-w-0 flex-1 py-3 pr-4 text-left">
+          <span className={cn("block font-bold text-foreground", (isDone || isCancelled) && "line-through decoration-2")}>{task.title}</span>
+          <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+            {showDate && (
+              <>
+                <span className={cn(overdue && "font-bold text-rose-600 dark:text-rose-300")}>
+                  {overdue ? `เลยกำหนด ${daysBetween(key, todayKey())} วัน` : relativeDayLabel(key)}
                 </span>
-              )}
-            </div>
-            
-            <p className="text-[10px] text-[#527060] dark:text-[#B8D1C0] mt-1 font-bold">
-              {plotName} · {new Date(task.date).toLocaleDateString("th-TH", { day: 'numeric', month: 'short' })}
-            </p>
-            
-            {task.description && (
-              <p className="text-xs text-[#527060] dark:text-[#B8D1C0]/85 mt-2 leading-relaxed break-words">
-                {task.description}
-              </p>
+                <span aria-hidden>·</span>
+              </>
             )}
-          </div>
-        </div>
-
-        {/* Action icons */}
-        <div className="flex items-center gap-0.5 shrink-0">
-          <a
-            href={googleCalendarUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="เพิ่มลง Google Calendar"
-            className="p-1.5 text-[#527060] dark:text-[#B8D1C0] hover:text-primary dark:hover:text-[#72C08A] rounded-lg hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-colors"
-          >
-            <CalendarPlus size={14} />
-          </a>
-          <button
-            onClick={() => downloadTaskCalendarFile(task, plotName)}
-            title="ดาวน์โหลดไฟล์ปฏิทินสำหรับ iPhone/Android"
-            className="hidden p-1.5 text-[#527060] dark:text-[#B8D1C0] hover:text-primary dark:hover:text-[#72C08A] rounded-lg hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-colors sm:block"
-          >
-            <Download size={14} />
-          </button>
-          
-          {isCancelled && (
-            <button
-              onClick={() => updateTask(task.id, { status: "pending" })}
-              title="คืนสถานะเป็นรอดำเนินการ"
-              className="p-1.5 text-[#527060] dark:text-[#B8D1C0] hover:text-primary dark:hover:text-[#72C08A] rounded-lg hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-colors"
-            >
-              <RotateCcw size={14} />
-            </button>
-          )}
-
-          {!isCancelled && !isDone && (
-            <button
-              onClick={() => setIsEditing(true)}
-              title="แก้ไขงาน"
-              className="p-1.5 text-[#527060] dark:text-[#B8D1C0] hover:text-primary dark:hover:text-[#72C08A] rounded-lg hover:bg-[#E7F3EC] dark:hover:bg-[#1D3A29] transition-colors"
-            >
-              <Pencil size={14} />
-            </button>
-          )}
-          
-          <button
-            onClick={() => deleteTask(task.id)}
-            title="ลบงาน"
-            className="p-1.5 text-[#527060]/50 dark:text-[#B8D1C0]/40 hover:text-destructive dark:hover:text-red-400 rounded-lg hover:bg-destructive/10 transition-colors"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
+            <span className="truncate">{plotName || "ทั้งสวน"}</span>
+            {task.priority === "high" && !isDone && !isCancelled && (
+              <span className={cn("rounded-full px-2 text-xs font-bold", priority.chip)}>{priority.label}</span>
+            )}
+            {isCancelled && <span className="rounded-full bg-muted px-2 text-xs font-bold">ยกเลิก</span>}
+          </span>
+          {task.description && <span className="mt-1 line-clamp-1 block text-sm text-foreground/70">{task.description}</span>}
+        </button>
       </div>
-    </div>
+      <TaskFormSheet
+        open={open}
+        onOpenChange={setOpen}
+        plots={plots}
+        task={task}
+        onUpdate={updateTask}
+        onDelete={onDelete ?? (t => deleteTask?.(t.id))}
+      />
+    </>
   )
 }

@@ -1,11 +1,12 @@
 "use client"
 
 import { Task } from "@/lib/store"
+import { toDateKey } from "@/lib/date-utils"
 
 const APP_NAME = "Durian Flow"
 
 function datePart(value: string) {
-  return value.split("T")[0]
+  return toDateKey(value)
 }
 
 function compactDate(value: string) {
