@@ -700,7 +700,7 @@ export default function AdminPanel({
                               <span className="text-[#5f6368] text-[10px] leading-none">&gt;</span>
                               <span className="truncate max-w-[120px] text-muted-foreground text-[10px] leading-none">{articleDraft.category || "การดูแลรักษา"}</span>
                             </div>
-                            <p className="text-[10px] text-muted-foreground font-medium leading-none truncate max-w-[200px] mt-0.5 font-sans">https://appfarm-main.vercel.app/?article={displaySlug}</p>
+                            <p className="text-[10px] text-muted-foreground font-medium leading-none truncate max-w-[200px] mt-0.5 font-sans">https://appfarm.wachira-appfarm.workers.dev/?article={displaySlug}</p>
                           </div>
                         </div>
                         <h4 className="text-[19px] leading-[1.3] text-[#1a0dab] dark:text-[#8ab4f8] hover:underline font-normal font-sans mb-1 cursor-pointer truncate">

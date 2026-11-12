@@ -24,7 +24,7 @@
 ## Important Files
 
 - `app/page.tsx`: renders `AppShell`.
-- `app/layout.tsx`: Thai metadata, fonts, viewport, next-themes wrapping, production Vercel Analytics.
+- `app/layout.tsx`: Thai metadata, fonts, viewport, next-themes wrapping, toast container.
 - `app/globals.css`: global styles, Light/Dark theme tokens, typography readability scales.
 - `components/AppShell.tsx`: main client shell, tab navigation, settings/auth/profile modals, farm location handling.
 - `components/ProfileModal.tsx`: personalized profile card, inline name updates, avatar upload with dynamic crop previews.

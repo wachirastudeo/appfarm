@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { Prompt, Inter } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
 import { DEFAULT_DESCRIPTION, DEFAULT_KEYWORDS, DEFAULT_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
@@ -81,7 +80,6 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         {children}
         <Toaster position="top-center" richColors closeButton offset={16} mobileOffset={{ top: 12 }} />
-        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )

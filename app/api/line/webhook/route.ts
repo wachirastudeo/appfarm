@@ -19,7 +19,7 @@ type LineWebhookPayload = {
 }
 
 function getSiteUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "https://appfarm-main.vercel.app").replace(/\/$/, "")
+  return (process.env.NEXT_PUBLIC_SITE_URL || "https://appfarm.wachira-appfarm.workers.dev").replace(/\/$/, "")
 }
 
 function verifySignature(body: string, signature: string, channelSecret: string) {
