@@ -467,7 +467,7 @@ function PlotDetailView({
   const allFilteredSelected = filteredTrees.length > 0 && filteredTrees.every(t => selectedIds.has(t.id))
 
   return (
-    <div className="relative space-y-4 p-4 pb-28 sm:p-5 lg:pb-6">
+    <div className="relative space-y-4 pb-28 lg:p-5 lg:pb-6">
       {qrTree && <QRModal tree={qrTree} plot={plot} onClose={() => setQrTree(null)} />}
       {showAllQR && <AllQRModal plot={plot} onClose={() => setShowAllQR(false)} />}
 
@@ -502,10 +502,10 @@ function PlotDetailView({
           </DropdownMenu>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 [&_p:last-child]:truncate">
           <button type="button" onClick={() => setSelectedHealth("all")} className={`rounded-xl px-3 py-2.5 text-left transition ${selectedHealth === "all" ? "bg-primary/10 ring-2 ring-primary/40" : "bg-muted/70"}`}>
             <p className="text-2xl font-black leading-none text-foreground">{total}</p>
-            <p className="mt-1 text-xs font-bold text-muted-foreground">ต้นทั้งหมด</p>
+            <p className="mt-1 text-xs font-bold text-muted-foreground">ต้น</p>
           </button>
           <button type="button" onClick={() => setSelectedHealth(selectedHealth === "fair" ? "all" : "fair")} className={`rounded-xl px-3 py-2.5 text-left transition ${watchCount ? "bg-amber-50 dark:bg-amber-400/10" : "bg-muted/70"} ${selectedHealth === "fair" ? "ring-2 ring-amber-400" : ""}`}>
             <p className={`text-2xl font-black leading-none ${watchCount ? "text-amber-600 dark:text-amber-300" : "text-foreground"}`}>{watchCount}</p>
@@ -513,7 +513,7 @@ function PlotDetailView({
           </button>
           <button type="button" onClick={() => setSelectedHealth(selectedHealth === "stale" ? "all" : "stale")} className={`rounded-xl bg-muted/70 px-3 py-2.5 text-left transition ${selectedHealth === "stale" ? "ring-2 ring-primary/40" : ""}`}>
             <p className="text-2xl font-black leading-none text-foreground">{staleCount}</p>
-            <p className="mt-1 text-xs font-bold text-muted-foreground">ไม่ได้เช็ก 2 สัปดาห์</p>
+            <p className="mt-1 text-xs font-bold text-muted-foreground">รอเช็ก</p>
           </button>
         </div>
       </section>
@@ -534,7 +534,7 @@ function PlotDetailView({
           value={selectedStage}
           onChange={e => setSelectedStage(e.target.value as "all" | FlowerStage)}
           aria-label="กรองตามระยะ"
-          className="min-h-11 max-w-[8.5rem] shrink-0 rounded-full border border-border bg-card px-3 text-sm font-bold text-foreground"
+          className="min-h-11 w-[6.75rem] shrink-0 rounded-full border border-border bg-card px-3 text-sm font-bold text-foreground"
         >
           <option value="all">ทุกระยะ</option>
           {FLOWER_STAGES.map(st => <option key={st} value={st}>{FLOWER_STAGE_LABELS[st]}</option>)}
@@ -542,10 +542,10 @@ function PlotDetailView({
       </div>
 
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-bold text-muted-foreground">
-          {filteredTrees.length === total ? `${total} ต้น` : `พบ ${filteredTrees.length} จาก ${total} ต้น`}
+        <p className="min-w-0 text-sm font-bold text-muted-foreground">
+          <span className="whitespace-nowrap">{filteredTrees.length === total ? `${total} ต้น` : `${filteredTrees.length}/${total} ต้น`}</span>
           {(selectedHealth !== "all" || selectedStage !== "all" || query) && (
-            <button type="button" onClick={() => { setSelectedHealth("all"); setSelectedStage("all"); setSearchQuery("") }} className="ml-2 text-primary">ล้างตัวกรอง</button>
+            <button type="button" onClick={() => { setSelectedHealth("all"); setSelectedStage("all"); setSearchQuery("") }} className="ml-2 whitespace-nowrap text-primary">ล้าง</button>
           )}
         </p>
         <div className="flex shrink-0 gap-2">
@@ -555,10 +555,10 @@ function PlotDetailView({
               onClick={() => (selectMode ? exitSelectMode() : setSelectMode(true))}
               className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-bold transition ${selectMode ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground/80 hover:bg-muted"}`}
             >
-              <ListChecks size={16} /> {selectMode ? "เสร็จ" : "เลือกหลายต้น"}
+              <ListChecks size={16} /> {selectMode ? "เสร็จ" : "เลือก"}
             </button>
           )}
-          <button type="button" onClick={() => setAddingTree(true)} className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-primary px-3.5 text-sm font-black text-primary-foreground shadow-sm">
+          <button type="button" onClick={() => setAddingTree(true)} className="inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full bg-primary px-3.5 text-sm font-black text-primary-foreground shadow-sm">
             <Plus size={16} strokeWidth={2.75} /> เพิ่มต้น
           </button>
         </div>
@@ -709,6 +709,15 @@ function PlotDetailView({
         confirmLabel="ลบแปลง"
         onConfirm={() => deletePlot(plot.id)}
       />
+    </div>
+  )
+}
+
+function StatTile({ value, label, tone }: { value: number | string; label: string; tone?: "warn" }) {
+  return (
+    <div className={`rounded-2xl border px-3 py-3 ${tone === "warn" ? "border-amber-200 bg-amber-50 dark:border-amber-400/30 dark:bg-amber-400/10" : "border-border bg-card"}`}>
+      <p className={`text-2xl font-black leading-none ${tone === "warn" ? "text-amber-600 dark:text-amber-300" : "text-foreground"}`}>{value}</p>
+      <p className="mt-1.5 truncate text-xs font-bold text-muted-foreground">{label}</p>
     </div>
   )
 }
@@ -927,13 +936,15 @@ function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick, onPrint }: 
   const healthyPercent = totalTrees > 0 ? Math.round((goodTreesCount / totalTrees) * 100) : 0
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 relative">
-      <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-6">
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div className="flex-1 space-y-5 pb-6 lg:p-5">
         {/* Overview header */}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <h2 className="text-xl font-black text-foreground">แปลงทุเรียน</h2>
-            <p className="text-sm text-muted-foreground">เลือกแปลงเพื่อดูและอัปเดตสถานะรายต้น</p>
+            <h2 className="truncate text-xl font-black text-foreground">แปลงทุเรียน</h2>
+            <p className="truncate text-sm text-muted-foreground">
+              {totalPlots ? `${totalArea.toLocaleString("th-TH", { maximumFractionDigits: 1 })} ไร่ · สุขภาพดี ${healthyPercent}%` : "เริ่มจากเพิ่มแปลงแรกของสวน"}
+            </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {totalPlots > 0 && (
@@ -953,7 +964,7 @@ function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick, onPrint }: 
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <button type="button" onClick={onAddPlotClick} className="inline-flex h-11 items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-black text-primary-foreground shadow-sm">
+            <button type="button" onClick={onAddPlotClick} className="inline-flex h-11 items-center gap-1.5 whitespace-nowrap rounded-full bg-primary px-3.5 text-sm font-black text-primary-foreground shadow-sm">
               <Plus size={16} strokeWidth={2.75} /> เพิ่มแปลง
             </button>
           </div>
@@ -961,24 +972,15 @@ function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick, onPrint }: 
 
         {totalPlots > 0 && (
           <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-2xl border border-border bg-card px-3 py-3">
-              <p className="text-2xl font-black leading-none text-foreground">{totalPlots}</p>
-              <p className="mt-1.5 text-xs font-bold text-muted-foreground">แปลง · {totalArea.toLocaleString("th-TH", { maximumFractionDigits: 1 })} ไร่</p>
-            </div>
-            <div className="rounded-2xl border border-border bg-card px-3 py-3">
-              <p className="text-2xl font-black leading-none text-foreground">{totalTrees}</p>
-              <p className="mt-1.5 text-xs font-bold text-muted-foreground">ต้นทั้งหมด</p>
-            </div>
-            <div className="rounded-2xl border border-border bg-card px-3 py-3">
-              <p className={`text-2xl font-black leading-none ${fairTreesCount + poorTreesCount ? "text-amber-600 dark:text-amber-300" : "text-primary"}`}>{fairTreesCount + poorTreesCount}</p>
-              <p className="mt-1.5 text-xs font-bold text-muted-foreground">ต้องดูแล · แข็งแรง {healthyPercent}%</p>
-            </div>
+            <StatTile value={totalPlots} label="แปลง" />
+            <StatTile value={totalTrees} label="ต้น" />
+            <StatTile value={fairTreesCount + poorTreesCount} label="ต้องดูแล" tone={fairTreesCount + poorTreesCount ? "warn" : undefined} />
           </div>
         )}
 
         {/* Plots List Panel */}
-        <div className="space-y-4">
-          <h3 className="text-xl font-black text-foreground lg:text-2xl">รายการแปลงทุเรียน</h3>
+        <div className="space-y-2.5">
+          <h3 className="px-1 text-sm font-black text-muted-foreground">เลือกแปลง</h3>
           {totalPlots === 0 ? (
             <div className="relative overflow-hidden rounded-[2.5rem] p-8 md:p-12 text-center bg-gradient-to-br from-[#0d5c34] via-[#146B3E] to-[#1D5C3A] dark:from-[#0B1B12] dark:via-[#14291E] dark:to-[#173021] text-white shadow-2xl flex flex-col items-center justify-center border border-white/10">
               {/* decorative glowing circle blobs */}
@@ -1009,7 +1011,7 @@ function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick, onPrint }: 
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5">
+            <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 lg:gap-3">
               {data.plots.map(plot => {
                 const pGood = plot.trees.filter(t => t.health === "good").length
                 const pFair = plot.trees.filter(t => t.health === "fair").length
@@ -1028,51 +1030,40 @@ function AllPlotsOverview({ data, setSelectedPlotId, onAddPlotClick, onPrint }: 
                   .map(([name, count]) => `${name} (${count})`)
                   .join(", ")
 
+                const needCare = pFair + pPoor
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={plot.id}
                     onClick={() => setSelectedPlotId(plot.id)}
-                    className="group cursor-pointer rounded-[2rem] p-5 bg-white/60 dark:bg-[#14291E]/60 backdrop-blur-sm border border-[#B9DCC8]/50 dark:border-[#31533D]/40 shadow-sm hover:border-[#146B3E] dark:hover:border-[#72C08A] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden lg:p-7"
+                    className="group w-full rounded-2xl border border-border bg-card p-4 text-left shadow-sm transition hover:border-primary/50 active:scale-[0.99]"
                   >
-                    <BorderBeam className="opacity-0 group-hover:opacity-100 transition-opacity" size={150} duration={8} />
-
-                    <div className="flex justify-between items-start mb-4 lg:mb-5">
-                      <div className="flex items-center gap-3 lg:gap-5">
-                        <div className="w-10 h-10 rounded-xl bg-[#E7F3EC] text-[#146B3E] dark:bg-[#1D3A29]/40 dark:text-[#72C08A] flex items-center justify-center lg:h-16 lg:w-16 lg:rounded-2xl">
-                          <DurianIcon className="h-5 w-5 lg:h-8 lg:w-8" />
-                        </div>
-                        <div>
-                          <h4 className="font-black text-lg leading-tight text-foreground group-hover:text-[#146B3E] dark:group-hover:text-[#72C08A] transition-colors lg:text-2xl">{plot.name}</h4>
-                          <p className="mt-1 text-sm font-bold text-muted-foreground lg:text-lg">{plot.area} ไร่ · ต้นทุเรียน {pTotal} ต้น</p>
-                        </div>
-                      </div>
-                      <div className="w-9 h-9 rounded-full bg-[#F7FAF8] dark:bg-[#0B140F] text-[#527060] dark:text-[#B8D1C0] flex items-center justify-center group-hover:bg-[#146B3E] group-hover:text-white dark:group-hover:bg-[#72C08A] dark:group-hover:text-[#0B1B12] transition-all lg:h-12 lg:w-12">
-                        <ChevronRight size={18} className="lg:h-6 lg:w-6" />
-                      </div>
-                    </div>
-
-                    {/* Varieties list */}
-                    <div className="mb-4 min-h-[1.5rem] text-sm font-semibold leading-relaxed text-muted-foreground lg:mb-6 lg:text-lg">
-                      {vString ? `สายพันธุ์: ${vString}` : "ยังไม่มีข้อมูลต้นไม้"}
-                    </div>
-
-                    {/* Health summary status line */}
+                    <span className="flex items-center gap-3">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <DurianIcon className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-lg font-black leading-tight text-foreground">{plot.name}</span>
+                        <span className="block truncate text-sm text-muted-foreground">{plot.area} ไร่ · {pTotal} ต้น{vString ? ` · ${Object.keys(vCounts).join(", ")}` : ""}</span>
+                      </span>
+                      <ChevronRight size={20} className="shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />
+                    </span>
                     {pTotal > 0 ? (
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-sm font-black text-muted-foreground lg:text-base">
-                          <span>สุขภาพต้นไม้</span>
-                          <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">{Math.round(goodPct)}% ดี</span>
-                        </div>
-                        <div className="h-2.5 w-full rounded-full bg-[#B9DCC8]/20 dark:bg-[#31533D]/20 overflow-hidden flex lg:h-3">
-                          {goodPct > 0 && <div className="h-full bg-emerald-500" style={{ width: `${goodPct}%` }} />}
-                          {fairPct > 0 && <div className="h-full bg-amber-400" style={{ width: `${fairPct}%` }} />}
-                          {poorPct > 0 && <div className="h-full bg-rose-500" style={{ width: `${poorPct}%` }} />}
-                        </div>
-                      </div>
+                      <span className="mt-3 block">
+                        <span className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
+                          {goodPct > 0 && <span className="h-full bg-emerald-500" style={{ width: `${goodPct}%` }} />}
+                          {fairPct > 0 && <span className="h-full bg-amber-400" style={{ width: `${fairPct}%` }} />}
+                          {poorPct > 0 && <span className="h-full bg-rose-500" style={{ width: `${poorPct}%` }} />}
+                        </span>
+                        <span className="mt-1.5 flex justify-between text-xs font-bold">
+                          <span className="text-emerald-700 dark:text-emerald-300">แข็งแรง {pGood}</span>
+                          <span className={needCare ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground"}>{needCare ? `ต้องดูแล ${needCare}` : "ไม่มีต้นที่ต้องดูแล"}</span>
+                        </span>
+                      </span>
                     ) : (
-                      <div className="h-2 w-full rounded-full bg-[#B9DCC8]/10 dark:bg-[#31533D]/10" />
+                      <span className="mt-3 block text-sm font-bold text-primary">+ เพิ่มต้นทุเรียนในแปลงนี้</span>
                     )}
-                  </div>
+                  </button>
                 )
               })}
             </div>
@@ -1173,7 +1164,7 @@ export default function PlotManagement({
         />
       )}
 
-      <div className="relative flex flex-col lg:min-h-[82vh] lg:rounded-3xl lg:border lg:border-border lg:bg-card/60">
+      <div className="relative flex flex-col lg:rounded-3xl lg:border lg:border-border lg:bg-card/60">
         <div className="relative flex min-h-0 flex-1 flex-col">
           {selectedPlot ? (
             <PlotDetailView

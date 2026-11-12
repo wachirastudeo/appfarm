@@ -170,7 +170,7 @@ export default function TaskPlanner({ data, addTask, updateTask, deleteTask, add
       <section className="grid grid-cols-3 gap-2">
         <SummaryTile label="เลยกำหนด" value={sections.overdue.length} tone={sections.overdue.length ? "danger" : "muted"} />
         <SummaryTile label="วันนี้" value={todayAll.length ? `${todayDone}/${todayAll.length}` : 0} tone="primary" progress={todayAll.length ? todayDone / todayAll.length : undefined} />
-        <SummaryTile label="7 วันข้างหน้า" value={sections.tomorrow.length + sections.week.length} tone="muted" />
+        <SummaryTile label="7 วันถัดไป" value={sections.tomorrow.length + sections.week.length} tone="muted" />
       </section>
 
       {/* View switch */}
@@ -329,7 +329,7 @@ function SummaryTile({ label, value, tone, progress }: { label: string; value: n
       tone === "danger" ? "border-rose-200 bg-rose-50 dark:border-rose-400/30 dark:bg-rose-400/10" : "border-border bg-card",
     )}>
       <p className={cn("text-2xl font-black leading-none", tone === "danger" ? "text-rose-600 dark:text-rose-300" : tone === "primary" ? "text-primary" : "text-foreground")}>{value}</p>
-      <p className="mt-1.5 text-xs font-bold text-muted-foreground">{label}</p>
+      <p className="mt-1.5 truncate text-xs font-bold text-muted-foreground">{label}</p>
       {progress !== undefined && (
         <span className="absolute inset-x-0 bottom-0 h-1 bg-muted">
           <span className="block h-full bg-primary transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
@@ -413,7 +413,7 @@ export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask, o
           onClick={toggle}
           disabled={isCancelled}
           aria-label={isDone ? "ทำเครื่องหมายว่ายังไม่เสร็จ" : "ทำเครื่องหมายว่าเสร็จแล้ว"}
-          className="flex w-14 shrink-0 items-center justify-center"
+          className="flex w-12 shrink-0 items-center justify-center pl-1"
         >
           <span className={cn(
             "flex h-7 w-7 items-center justify-center rounded-full border-2 transition",
@@ -422,7 +422,7 @@ export function TaskCard({ task, plotName, plots = [], updateTask, deleteTask, o
             {isDone && <Check size={16} strokeWidth={3.5} />}
           </span>
         </button>
-        <button type="button" onClick={() => setOpen(true)} className="min-w-0 flex-1 py-3 pr-4 text-left">
+        <button type="button" onClick={() => setOpen(true)} className="min-w-0 flex-1 py-3 pr-3.5 text-left">
           <span className={cn("block font-bold text-foreground", (isDone || isCancelled) && "line-through decoration-2")}>{task.title}</span>
           <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
             {showDate && (

@@ -140,9 +140,9 @@ export default function ActivityLog({ data, addActivity, deleteActivity, updateA
           <ChevronLeft size={20} />
         </button>
         <div className="min-w-0 flex-1 text-center">
-          <p className="truncate text-base font-black text-foreground">{monthLabel}</p>
+          <p className="truncate text-base font-black text-foreground"><span className="min-[400px]:hidden">{MONTHS_TH[cursor.month]} {cursor.year + 543}</span><span className="hidden min-[400px]:inline">{monthLabel}</span></p>
           <p className="truncate text-sm text-muted-foreground">
-            {visible.length} ครั้ง{totalCost > 0 && <> · ใช้ไป <span className="font-bold text-foreground">{baht(totalCost)}</span></>}
+            {visible.length} ครั้ง{totalCost > 0 && <> · <span className="font-bold text-foreground">{baht(totalCost)}</span></>}
           </p>
           {!isCurrentMonth && (
             <button type="button" onClick={() => setCursor({ year: now.getFullYear(), month: now.getMonth() })} className="text-xs font-bold text-primary">

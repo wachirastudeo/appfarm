@@ -136,14 +136,14 @@ export default function ActivityFormSheet({ open, onOpenChange, plots, activity,
                     onClick={() => set("activityType", type)}
                     aria-pressed={active}
                     className={cn(
-                      "flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-2xl border p-2 text-xs font-bold transition active:scale-95",
+                      "flex min-h-[4.5rem] min-w-0 flex-col items-center justify-center gap-1 rounded-2xl border px-1 py-2 text-xs font-bold transition active:scale-95",
                       active ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/30" : "border-border bg-background text-foreground/75 hover:bg-muted",
                     )}
                   >
                     <span className={cn("flex h-8 w-8 items-center justify-center rounded-full", m.chip)}>
                       <Icon size={17} />
                     </span>
-                    {ACTIVITY_LABELS[type]}
+                    <span className="w-full truncate text-center">{ACTIVITY_LABELS[type]}</span>
                   </button>
                 )
               })}

@@ -24,7 +24,7 @@ export function RecordSheet({ open, onOpenChange, title, description, children, 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
       <DrawerContent className="mx-auto w-full max-w-lg data-[vaul-drawer-direction=bottom]:max-h-[92dvh] data-[vaul-drawer-direction=bottom]:rounded-t-3xl border-border bg-card">
-        <DrawerHeader className="px-5 pb-2 pt-3 text-left">
+        <DrawerHeader className="px-5 pb-3 pt-3 group-data-[vaul-drawer-direction=bottom]/drawer-content:text-left">
           <DrawerTitle className="text-lg font-black">{title}</DrawerTitle>
           {description ? <DrawerDescription className="text-sm">{description}</DrawerDescription> : <DrawerDescription className="sr-only">{title}</DrawerDescription>}
         </DrawerHeader>

@@ -77,7 +77,7 @@ export default function TreeDetail({ tree, plot, activities, onBack, onShowQr, u
   }
 
   return (
-    <div className="space-y-4 p-4 pb-28 sm:p-5 lg:pb-6">
+    <div className="space-y-4 pb-28 lg:p-5 lg:pb-6">
       {/* Top bar */}
       <div className="flex items-center gap-2">
         <button type="button" onClick={onBack} aria-label="กลับไปหน้าแปลง" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground/80 hover:bg-muted">
