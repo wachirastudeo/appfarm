@@ -1,5 +1,5 @@
 "use client"
-import { useId, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import type { AppUser, Article, NewUserInput, Product, SiteSettings } from "@/lib/store"
 import { appRuntimeConfig, getDataModeLabel, isSupabaseConfigured, isCloudflareMode } from "@/lib/runtime-config"
 import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "@/lib/seo"
@@ -7,6 +7,7 @@ import { validateEmail, validateHttpUrl, validateImageFile, validateText, resize
 import { BookOpen, Edit3, Image as ImageIcon, Plus, Save, Settings, Shield, ShoppingBag, Trash2, Upload, Users, MessageSquare, Sparkles, Globe, FileText, Eye, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { orchardPests } from "@/lib/pest-planner"
+import { deleteCloudflareFeedback, loadCloudflareFeedback, type FeedbackEntry } from "@/lib/cloudflare/client"
 
 interface Props {
   users: AppUser[]
@@ -15,7 +16,7 @@ interface Props {
   siteSettings: SiteSettings
   currentUser: AppUser
   addUser: (user: NewUserInput) => Promise<AppUser | null>
-  updateUser: (id: string, changes: Partial<AppUser>) => void
+  updateUser: (id: string, changes: Partial<AppUser>) => Promise<void> | void
   deleteUser: (id: string) => void
   addArticle: (article: Omit<Article, "id" | "createdAt" | "updatedAt">) => void
   updateArticle: (id: string, changes: Partial<Article>) => void
@@ -103,8 +104,9 @@ export default function AdminPanel({
   updateSiteSettings,
 }: Props) {
   const [activeSection, setActiveSection] = useState<"site" | "articles" | "products" | "users" | "feedback">("site")
-  const [feedbacks, setFeedbacks] = useState<{ id: string, name: string, contact: string, message: string, date: string }[]>(() => {
-    if (typeof window === "undefined") return []
+  const [message, setMessage] = useState("")
+  const [feedbacks, setFeedbacks] = useState<FeedbackEntry[]>(() => {
+    if (typeof window === "undefined" || isCloudflareMode) return []
     try {
       const stored = localStorage.getItem("appfarm_feedback")
       return stored ? JSON.parse(stored) : []
@@ -113,10 +115,36 @@ export default function AdminPanel({
     }
   })
 
-  const handleDeleteFeedback = (id: string) => {
-    const updated = feedbacks.filter(f => f.id !== id)
-    setFeedbacks(updated)
-    localStorage.setItem("appfarm_feedback", JSON.stringify(updated))
+  useEffect(() => {
+    if (!isCloudflareMode || activeSection !== "feedback") return
+    let cancelled = false
+    loadCloudflareFeedback()
+      .then(items => { if (!cancelled) setFeedbacks(items) })
+      .catch(error => { if (!cancelled) setMessage(error instanceof Error ? error.message : "โหลดข้อเสนอแนะไม่สำเร็จ") })
+    return () => { cancelled = true }
+  }, [activeSection])
+
+  const handleDeleteFeedback = async (id: string) => {
+    if (!confirm("ลบข้อเสนอแนะนี้หรือไม่?")) return
+    try {
+      if (isCloudflareMode) await deleteCloudflareFeedback({ id })
+      const updated = feedbacks.filter(f => f.id !== id)
+      setFeedbacks(updated)
+      if (!isCloudflareMode) localStorage.setItem("appfarm_feedback", JSON.stringify(updated))
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "ลบข้อเสนอแนะไม่สำเร็จ")
+    }
+  }
+
+  const handleClearFeedback = async () => {
+    if (!confirm("คุณต้องการลบข้อเสนอแนะทั้งหมดหรือไม่? ลบแล้วกู้คืนไม่ได้")) return
+    try {
+      if (isCloudflareMode) await deleteCloudflareFeedback({ all: true })
+      else localStorage.setItem("appfarm_feedback", JSON.stringify([]))
+      setFeedbacks([])
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "ลบข้อเสนอแนะไม่สำเร็จ")
+    }
   }
   const [settingsDraft, setSettingsDraft] = useState(siteSettings)
   const [articleDraft, setArticleDraft] = useState<Omit<Article, "id" | "createdAt" | "updatedAt">>(emptyArticle)
@@ -124,11 +152,51 @@ export default function AdminPanel({
   const [productDraft, setProductDraft] = useState<Omit<Product, "id" | "createdAt" | "updatedAt">>(emptyProduct)
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
   const [userDraft, setUserDraft] = useState({ name: "", email: "", password: "", role: "user" as AppUser["role"] })
-  const [message, setMessage] = useState("")
   const [articlePage, setArticlePage] = useState(1)
   const [productPage, setProductPage] = useState(1)
   const [userPage, setUserPage] = useState(1)
   const [feedbackPage, setFeedbackPage] = useState(1)
+
+  useEffect(() => {
+    if (!message) return
+    const timer = window.setTimeout(() => setMessage(""), 5000)
+    return () => window.clearTimeout(timer)
+  }, [message])
+
+  const changeUser = async (target: AppUser, changes: Partial<AppUser>) => {
+    try {
+      await updateUser(target.id, changes)
+      setMessage(`อัปเดต ${target.name} แล้ว`)
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "อัปเดตผู้ใช้ไม่สำเร็จ")
+    }
+  }
+
+  const confirmDeleteUser = (target: AppUser) => {
+    if (!confirm(`ลบผู้ใช้ "${target.name}" (${target.email}) หรือไม่?\nข้อมูลสวนทั้งหมดของผู้ใช้นี้จะถูกลบด้วย และกู้คืนไม่ได้`)) return
+    deleteUser(target.id)
+    setMessage(`ลบ ${target.name} แล้ว`)
+  }
+
+  const confirmDeleteArticle = (article: Article) => {
+    if (!confirm(`ลบบทความ "${article.title}" หรือไม่? ลบแล้วกู้คืนไม่ได้`)) return
+    deleteArticle(article.id)
+    if (editingArticleId === article.id) {
+      setEditingArticleId(null)
+      setArticleDraft(emptyArticle)
+    }
+    setMessage("ลบบทความแล้ว")
+  }
+
+  const confirmDeleteProduct = (product: Product) => {
+    if (!confirm(`ลบ "${product.name}" หรือไม่? ลบแล้วกู้คืนไม่ได้`)) return
+    deleteProduct(product.id)
+    if (editingProductId === product.id) {
+      setEditingProductId(null)
+      setProductDraft(emptyProduct)
+    }
+    setMessage("ลบปุ๋ย/ยาแล้ว")
+  }
 
   const uploadImage = async (file: File | undefined, onDone: (dataUrl: string) => void, label: string) => {
     if (!file) return
@@ -342,16 +410,24 @@ export default function AdminPanel({
       setMessage(!name.ok ? name.message : !email.ok ? email.message : password.message)
       return
     }
-    const created = await addUser({
-      ...userDraft,
-      name: name.value,
-      email: email.value,
-      password: password.value,
-      status: "active",
-      provider: "email",
-    })
-    setMessage(created ? "สร้าง user แล้ว" : "อีเมลนี้มีผู้ใช้งานแล้ว")
-    if (created) setUserDraft({ name: "", email: "", password: "", role: "user" })
+    if (password.value.length < 8) {
+      setMessage("รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร")
+      return
+    }
+    try {
+      const created = await addUser({
+        ...userDraft,
+        name: name.value,
+        email: email.value,
+        password: password.value,
+        status: "active",
+        provider: "email",
+      })
+      setMessage(created ? `สร้างผู้ใช้ ${created.name} แล้ว` : "อีเมลนี้มีผู้ใช้งานแล้ว")
+      if (created) setUserDraft({ name: "", email: "", password: "", role: "user" })
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "สร้างผู้ใช้ไม่สำเร็จ")
+    }
   }
 
   return (
@@ -768,8 +844,8 @@ export default function AdminPanel({
                               {article.affiliateUrl ? " · มี affiliate" : ""}
                             </p>
                           </div>
-                          <button onClick={() => editArticle(article)} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16}/></button>
-                          <button onClick={() => deleteArticle(article.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16}/></button>
+                          <button onClick={() => editArticle(article)} aria-label={`แก้ไขบทความ ${article.title}`} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16}/></button>
+                          <button onClick={() => confirmDeleteArticle(article)} aria-label={`ลบบทความ ${article.title}`} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16}/></button>
                         </div>
                       ))}
                       {totalArticlePages > 1 && (
@@ -896,8 +972,8 @@ export default function AdminPanel({
                         <p className="text-xs font-semibold text-muted-foreground">{product.category} · {product.status === "active" ? "แสดง" : "ซ่อน"}</p>
                         {product.activeIngredient && <p className="truncate text-[11px] font-bold text-primary">เชื่อมยา: {product.activeIngredient}</p>}
                       </div>
-                      <button onClick={() => editProduct(product)} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16} /></button>
-                      <button onClick={() => deleteProduct(product.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16} /></button>
+                      <button onClick={() => editProduct(product)} aria-label={`แก้ไข ${product.name}`} className="rounded-lg p-2 text-primary hover:bg-primary/10"><Edit3 size={16} /></button>
+                      <button onClick={() => confirmDeleteProduct(product)} aria-label={`ลบ ${product.name}`} className="rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 size={16} /></button>
                     </div>
                   ))}
                   {totalProductPages > 1 && (
@@ -950,53 +1026,75 @@ export default function AdminPanel({
           </select>
           <button onClick={createUser} className="self-end rounded-xl bg-primary px-4 py-2.5 text-sm font-black text-primary-foreground">เพิ่ม User</button>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="text-xs font-black text-muted-foreground">
-              <tr className="border-b border-border">
-                <th className="py-3">ชื่อ</th>
-                <th>อีเมล</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th className="text-right">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(() => {
-                const usersPerPage = 10
-                const totalUserPages = Math.ceil(users.length / usersPerPage)
-                const safeUserPage = Math.min(userPage, totalUserPages || 1)
-                const paginatedUsers = users.slice(
-                  (safeUserPage - 1) * usersPerPage,
-                  safeUserPage * usersPerPage
-                )
-                return paginatedUsers.map(user => (
-                  <tr key={user.id} className="border-b border-border/60">
-                    <td className="py-3 font-bold">{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>
-                      <select value={user.role} onChange={e => updateUser(user.id, { role: e.target.value as AppUser["role"] })} className="rounded-lg border border-border bg-background px-2 py-1 text-xs font-bold">
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </td>
-                    <td>
-                      <select value={user.status} onChange={e => updateUser(user.id, { status: e.target.value as AppUser["status"] })} className="rounded-lg border border-border bg-background px-2 py-1 text-xs font-bold">
-                        <option value="active">Active</option>
-                        <option value="disabled">Disabled</option>
-                      </select>
-                    </td>
-                    <td className="text-right">
-                      <button disabled={user.id === currentUser.id} onClick={() => deleteUser(user.id)} className="rounded-lg p-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40">
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              })()}
-            </tbody>
-          </table>
-        </div>
+        {(() => {
+          const usersPerPage = 10
+          const totalUserPages = Math.ceil(users.length / usersPerPage)
+          const safeUserPage = Math.min(userPage, totalUserPages || 1)
+          const paginatedUsers = users.slice((safeUserPage - 1) * usersPerPage, safeUserPage * usersPerPage)
+          const selectClass = "rounded-lg border border-border bg-background px-2 py-1.5 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-60"
+          const roleSelect = (user: AppUser) => (
+            <select aria-label={`Role ของ ${user.name}`} value={user.role} disabled={user.id === currentUser.id} onChange={e => changeUser(user, { role: e.target.value as AppUser["role"] })} className={selectClass}>
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          )
+          const statusSelect = (user: AppUser) => (
+            <select aria-label={`Status ของ ${user.name}`} value={user.status} disabled={user.id === currentUser.id} onChange={e => changeUser(user, { status: e.target.value as AppUser["status"] })} className={selectClass}>
+              <option value="active">Active</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          )
+          const deleteButton = (user: AppUser) => (
+            <button aria-label={`ลบ ${user.name}`} disabled={user.id === currentUser.id} onClick={() => confirmDeleteUser(user)} className="rounded-lg p-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40">
+              <Trash2 size={16} />
+            </button>
+          )
+          return (
+            <>
+              <div className="space-y-2 md:hidden">
+                {paginatedUsers.map(user => (
+                  <div key={user.id} className="rounded-xl border border-border p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black">{user.name}{user.id === currentUser.id ? " (คุณ)" : ""}</p>
+                        <p className="truncate text-xs font-semibold text-muted-foreground">{user.email}</p>
+                      </div>
+                      {deleteButton(user)}
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {roleSelect(user)}
+                      {statusSelect(user)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="hidden overflow-x-auto md:block">
+                <table className="w-full text-left text-sm">
+                  <thead className="text-xs font-black text-muted-foreground">
+                    <tr className="border-b border-border">
+                      <th className="py-3">ชื่อ</th>
+                      <th>อีเมล</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th className="text-right">จัดการ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedUsers.map(user => (
+                      <tr key={user.id} className="border-b border-border/60">
+                        <td className="py-3 font-bold">{user.name}{user.id === currentUser.id ? " (คุณ)" : ""}</td>
+                        <td className="break-all pr-3">{user.email}</td>
+                        <td>{roleSelect(user)}</td>
+                        <td>{statusSelect(user)}</td>
+                        <td className="text-right">{deleteButton(user)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )
+        })()}
         {(() => {
           const usersPerPage = 10
           const totalUserPages = Math.ceil(users.length / usersPerPage)
@@ -1040,12 +1138,7 @@ export default function AdminPanel({
             </div>
             {feedbacks.length > 0 && (
               <button
-                onClick={() => {
-                  if (confirm("คุณต้องการลบข้อเสนอแนะทั้งหมดหรือไม่?")) {
-                    setFeedbacks([])
-                    localStorage.setItem("appfarm_feedback", JSON.stringify([]))
-                  }
-                }}
+                onClick={handleClearFeedback}
                 className="text-xs font-bold text-destructive hover:underline"
               >
                 ล้างทั้งหมด
@@ -1072,13 +1165,14 @@ export default function AdminPanel({
                     <div key={f.id} className="rounded-2xl border border-border bg-background p-4 relative group">
                       <button
                         onClick={() => handleDeleteFeedback(f.id)}
-                        className="absolute right-3 top-3 p-1.5 hover:bg-muted text-muted-foreground hover:text-destructive rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute right-3 top-3 p-1.5 hover:bg-muted text-muted-foreground hover:text-destructive rounded-lg transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                        aria-label="ลบข้อเสนอแนะ"
                         title="ลบข้อเสนอแนะ"
                       >
                         <Trash2 size={16} />
                       </button>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
-                        <span className="font-black text-[#146B3E] text-base">{f.name}</span>
+                        <span className="pr-8 font-black text-[#146B3E] text-base">{f.name}</span>
                         <span className="text-xs text-muted-foreground">{new Date(f.date).toLocaleString("th-TH")}</span>
                       </div>
                       <div className="text-sm font-semibold text-foreground bg-muted/40 rounded-xl px-3.5 py-2.5 mb-2 leading-relaxed">

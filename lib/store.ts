@@ -4,7 +4,7 @@ import { createExcerpt, createGeoSummary, createSlug, uniqueKeywords } from "./s
 import { appRuntimeConfig, getModeStorageKey, isCloudflareMode } from "./runtime-config"
 import {
   authenticateCloudflare, registerCloudflare, loadCloudflareData, saveCloudflareData,
-  updateCloudflareProfile, saveCloudflareContent, deleteCloudflareContent, cloudflareRequest,
+  updateCloudflareProfile, saveCloudflareContent, deleteCloudflareContent, cloudflareRequest, createCloudflareUser,
 } from "./cloudflare/client"
 import { loadRemoteAppData, loadStructuredAppData, saveRemoteAppData, saveStructuredAppData } from "./supabase/app-data"
 import {
@@ -863,6 +863,14 @@ export function useAppData(currentUserId?: string | null) {
     return newUser
   }, [data.users, isSupabaseMode, updateData, upsertOAuthUser])
 
+  // Admin-created accounts must not replace the admin's own session.
+  const adminCreateUser = useCallback(async (user: NewUserInput) => {
+    if (!isCloudflareMode) return addUser(user)
+    const created = await createCloudflareUser({ ...user, email: user.email.trim().toLowerCase() })
+    updateData(d => ({ ...d, users: [created, ...d.users.filter(u => u.id !== created.id)] }))
+    return created
+  }, [addUser, updateData])
+
   const updateUser = useCallback(async (id: string, changes: Partial<AppUser>) => {
     if (isCloudflareMode) {
       const updatedUser = await updateCloudflareProfile(id, changes)
@@ -1025,7 +1033,7 @@ export function useAppData(currentUserId?: string | null) {
     addTask, updateTask, deleteTask,
     addFinance, deleteFinance,
     addBatch, addBatchStage, updateBatch, deleteBatch,
-    authenticateUser, addUser, upsertOAuthUser, updateUser, deleteUser,
+    authenticateUser, addUser, adminCreateUser, upsertOAuthUser, updateUser, deleteUser,
     addArticle, updateArticle, deleteArticle,
     addProduct, updateProduct, deleteProduct,
     updateSiteSettings,
@@ -1038,7 +1046,7 @@ export function useAppData(currentUserId?: string | null) {
     addTask, updateTask, deleteTask,
     addFinance, deleteFinance,
     addBatch, addBatchStage, updateBatch, deleteBatch,
-    authenticateUser, addUser, upsertOAuthUser, updateUser, deleteUser,
+    authenticateUser, addUser, adminCreateUser, upsertOAuthUser, updateUser, deleteUser,
     addArticle, updateArticle, deleteArticle,
     addProduct, updateProduct, deleteProduct,
     updateSiteSettings,

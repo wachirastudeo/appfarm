@@ -1540,7 +1540,7 @@ export default function AppShell() {
             products={store.data.products}
             siteSettings={store.data.siteSettings}
             currentUser={user}
-            addUser={store.addUser}
+            addUser={store.adminCreateUser}
             updateUser={store.updateUser}
             deleteUser={store.deleteUser}
             addArticle={store.addArticle}

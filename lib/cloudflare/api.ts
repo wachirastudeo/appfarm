@@ -25,7 +25,37 @@ const profileSchema = z.object({
   savedArticleIds: z.array(z.string().max(100)).max(1000).optional(),
 })
 
+const newUserSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  email: z.string().trim().toLowerCase().email().max(254),
+  password: z.string().min(8).max(128),
+  role: z.enum(["admin", "user"]).default("user"),
+})
+
+const feedbackSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  contact: z.string().trim().max(160).default(""),
+  message: z.string().trim().min(1).max(1200),
+})
+
 const emptyOrchard = { plots: [], tasks: [], activities: [], finance: [] }
+
+type ProfileRow = { id: string; name: string; email: string; createdAt: number; role: AppUser["role"]; status: AppUser["status"]; data: string; providerId: string | null }
+
+function toAdminUser(row: ProfileRow): AppUser {
+  return {
+    ...JSON.parse(row.data), id: row.id, name: row.name, email: row.email,
+    role: row.role, status: row.status, provider: !row.providerId || row.providerId === "credential" ? "email" : row.providerId as AppUser["provider"],
+    passwordHash: "", createdAt: new Date(row.createdAt).toISOString(),
+  }
+}
+
+async function loadAdminUser(id: string) {
+  const row = await getBindings().DB.prepare(
+    'SELECT u.id, u.name, u.email, u."createdAt", p.role, p.status, p.data, (SELECT a."providerId" FROM account a WHERE a."userId" = u.id LIMIT 1) AS providerId FROM "user" u JOIN profiles p ON p.id = u.id WHERE u.id = ?',
+  ).bind(id).first<ProfileRow>()
+  return row ? toAdminUser(row) : null
+}
 
 function json(value: unknown, status = 200) {
   return Response.json(value, { status, headers: { "Cache-Control": "no-store" } })
@@ -94,17 +124,46 @@ export async function handleCloudflareApi(request: Request) {
       const settings = content.results.find(row => row.kind === "settings")
       const saved = user ? await env.DB.prepare("SELECT data FROM orchard_data WHERE owner_id = ?").bind(user.id).first<{ data: string }>() : null
       const users = user?.role === "admin" ? (await env.DB.prepare(
-        'SELECT u.id, u.name, u.email, u."createdAt", p.role, p.status, p.data FROM "user" u JOIN profiles p ON p.id = u.id',
-      ).all<{ id: string; name: string; email: string; createdAt: number; role: string; status: string; data: string }>()).results.map(row => ({
-        ...JSON.parse(row.data), id: row.id, name: row.name, email: row.email,
-        role: row.role, status: row.status, provider: "email", passwordHash: "", createdAt: new Date(row.createdAt).toISOString(),
-      })) : user ? [user] : []
+        'SELECT u.id, u.name, u.email, u."createdAt", p.role, p.status, p.data, (SELECT a."providerId" FROM account a WHERE a."userId" = u.id LIMIT 1) AS providerId FROM "user" u JOIN profiles p ON p.id = u.id',
+      ).all<ProfileRow>()).results.map(toAdminUser) : user ? [user] : []
       return json({
         ...(saved ? JSON.parse(saved.data) : emptyOrchard), users, articles, products,
         ...(settings ? { siteSettings: JSON.parse(settings.data) } : {}),
       })
     }
+    if (path === "feedback" && request.method === "POST") {
+      const input = feedbackSchema.parse(await body(request))
+      await env.DB.prepare("INSERT INTO feedback (id, name, contact, message, user_id) VALUES (?, ?, ?, ?, ?)")
+        .bind(crypto.randomUUID(), input.name, input.contact, input.message, user?.id ?? null).run()
+      return json({ ok: true })
+    }
     if (!user) throw new ApiError(401, "กรุณาเข้าสู่ระบบ")
+    if (path === "feedback" && ["GET", "DELETE"].includes(request.method)) {
+      if (user.role !== "admin") throw new ApiError(403, "เฉพาะผู้ดูแลระบบเท่านั้น")
+      if (request.method === "DELETE") {
+        const input = z.object({ id: z.string().min(1).max(100).optional(), all: z.literal(true).optional() }).parse(await body(request))
+        if (input.all) await env.DB.prepare("DELETE FROM feedback").run()
+        else if (input.id) await env.DB.prepare("DELETE FROM feedback WHERE id = ?").bind(input.id).run()
+        else throw new ApiError(400, "ไม่พบรหัสข้อมูล")
+        return json({ ok: true })
+      }
+      const rows = await env.DB.prepare("SELECT id, name, contact, message, created_at AS date FROM feedback ORDER BY created_at DESC LIMIT 500")
+        .all<{ id: string; name: string; contact: string; message: string; date: string }>()
+      return json({ feedback: rows.results.map(row => ({ ...row, date: new Date(`${row.date.replace(" ", "T")}Z`).toISOString() })) })
+    }
+    if (path === "users" && request.method === "POST") {
+      if (user.role !== "admin") throw new ApiError(403, "เฉพาะผู้ดูแลระบบเท่านั้น")
+      const input = newUserSchema.parse(await body(request))
+      const existing = await env.DB.prepare('SELECT id FROM "user" WHERE lower(email) = ?').bind(input.email).first()
+      if (existing) throw new ApiError(409, "อีเมลนี้มีผู้ใช้งานแล้ว")
+      // Server-side sign-up: the new session cookie is never sent to the admin's browser.
+      const created = await getAuth().api.signUpEmail({ body: { name: input.name, email: input.email, password: input.password } })
+      await env.DB.batch([
+        env.DB.prepare('DELETE FROM session WHERE "userId" = ?').bind(created.user.id),
+        env.DB.prepare("INSERT INTO profiles (id, role, data) VALUES (?, ?, '{}') ON CONFLICT(id) DO UPDATE SET role = excluded.role").bind(created.user.id, input.role),
+      ])
+      return json(await loadAdminUser(created.user.id), 201)
+    }
     if (path === "data" && request.method === "PUT") {
       const data = orchardSchema.parse(await body(request))
       await env.DB.prepare("INSERT INTO orchard_data (owner_id, data) VALUES (?, ?) ON CONFLICT(owner_id) DO UPDATE SET data = excluded.data, updated_at = CURRENT_TIMESTAMP")
@@ -126,7 +185,7 @@ export async function handleCloudflareApi(request: Request) {
         if (["active", "disabled"].includes(input.status)) statements.push(env.DB.prepare("UPDATE profiles SET status = ? WHERE id = ?").bind(input.status, id))
       }
       await env.DB.batch(statements)
-      return json(id === user.id ? await currentUser(request) : { ...changes, id })
+      return json(id === user.id ? await currentUser(request) : await loadAdminUser(id))
     }
     if (path === "users" && request.method === "DELETE") {
       if (user.role !== "admin") throw new ApiError(403, "เฉพาะผู้ดูแลระบบเท่านั้น")
