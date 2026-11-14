@@ -4,6 +4,8 @@ import { X, MessageSquare, Send } from "lucide-react"
 import { useEscapeToClose } from "@/hooks/useEscapeToClose"
 import { useToast } from "@/hooks/use-toast"
 import { validateText } from "@/lib/form-validation"
+import { isCloudflareMode } from "@/lib/runtime-config"
+import { sendCloudflareFeedback } from "@/lib/cloudflare/client"
 
 interface Props {
   isOpen: boolean
@@ -38,19 +40,17 @@ export default function FeedbackModal({ isOpen, onClose }: Props) {
 
     setLoading(true)
 
-    // Simulate network delay
-    setTimeout(() => {
+    void (async () => {
       try {
-        const stored = localStorage.getItem("appfarm_feedback")
-        const currentFeedbacks = stored ? JSON.parse(stored) : []
-        const newFeedback = {
-          id: `fb-${Date.now()}`,
-          name: checkedName.value,
-          contact: checkedContact.value,
-          message: checkedMessage.value,
-          date: new Date().toISOString()
+        const entry = { name: checkedName.value, contact: checkedContact.value, message: checkedMessage.value }
+        if (isCloudflareMode) {
+          await sendCloudflareFeedback(entry)
+        } else {
+          // Local demo: there is no server, so keep feedback in this browser.
+          const stored = localStorage.getItem("appfarm_feedback")
+          const currentFeedbacks = stored ? JSON.parse(stored) : []
+          localStorage.setItem("appfarm_feedback", JSON.stringify([{ id: `fb-${Date.now()}`, ...entry, date: new Date().toISOString() }, ...currentFeedbacks]))
         }
-        localStorage.setItem("appfarm_feedback", JSON.stringify([newFeedback, ...currentFeedbacks]))
 
         toast({
           title: "ส่งข้อมูลสำเร็จ",
@@ -71,7 +71,7 @@ export default function FeedbackModal({ isOpen, onClose }: Props) {
       } finally {
         setLoading(false)
       }
-    }, 800)
+    })()
   }
 
   return (

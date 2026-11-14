@@ -1363,7 +1363,10 @@ export default function AppShell() {
   // Google Analytics Injection
   useEffect(() => {
     if (typeof window === "undefined") return
-    const trackingId = store.data.siteSettings?.googleAnalytics
+    const storedTrackingId: unknown = store.data.siteSettings?.googleAnalytics
+    const rawTrackingId = typeof storedTrackingId === "string" ? storedTrackingId.trim() : ""
+    // Only allow real GA IDs; the value is interpolated into an inline script.
+    const trackingId = /^(G-[A-Z0-9]{4,20}|UA-\d{4,12}-\d{1,4})$/i.test(rawTrackingId) ? rawTrackingId : ""
     const scriptId = 'google-analytics-script'
     const configId = 'google-analytics-config'
 
@@ -1537,7 +1540,7 @@ export default function AppShell() {
             products={store.data.products}
             siteSettings={store.data.siteSettings}
             currentUser={user}
-            addUser={store.addUser}
+            addUser={store.adminCreateUser}
             updateUser={store.updateUser}
             deleteUser={store.deleteUser}
             addArticle={store.addArticle}

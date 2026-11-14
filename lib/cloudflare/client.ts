@@ -63,6 +63,26 @@ export function updateCloudflareProfile(id: string, changes: Partial<AppUser>) {
   return cloudflareRequest<AppUser>("profile", { method: "PATCH", body: JSON.stringify({ id, ...changes }) })
 }
 
+export function createCloudflareUser(user: NewUserInput) {
+  return cloudflareRequest<AppUser>("users", { method: "POST", body: JSON.stringify({
+    name: user.name, email: user.email, password: user.password, role: user.role,
+  }) })
+}
+
+export type FeedbackEntry = { id: string; name: string; contact: string; message: string; date: string }
+
+export function sendCloudflareFeedback(entry: Pick<FeedbackEntry, "name" | "contact" | "message">) {
+  return cloudflareRequest("feedback", { method: "POST", body: JSON.stringify(entry) })
+}
+
+export async function loadCloudflareFeedback() {
+  return (await cloudflareRequest<{ feedback: FeedbackEntry[] }>("feedback")).feedback
+}
+
+export function deleteCloudflareFeedback(target: { id: string } | { all: true }) {
+  return cloudflareRequest("feedback", { method: "DELETE", body: JSON.stringify(target) })
+}
+
 export function saveCloudflareContent(kind: "articles" | "products" | "settings", value: unknown, id?: string) {
   return cloudflareRequest("content", { method: "PUT", body: JSON.stringify({ kind, value, id }) })
 }

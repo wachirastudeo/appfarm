@@ -76,3 +76,88 @@ test("real D1 auth, ownership, role protection, persistence and logout", async (
   assert.equal((await request("/api/cloudflare/users", bob.cookie, "DELETE", { id: alice.user.id })).status, 200)
   assert.equal((await (await request("/api/cloudflare/session", loginCookie)).json()).user, null)
 })
+
+function localD1(command: string) {
+  execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/wrangler/bin/wrangler.js", import.meta.url)), "d1", "execute", "DB", "--local", "--command", command],
+    { cwd: new URL("../", import.meta.url), stdio: "pipe" })
+}
+
+function promoteToAdmin(id: string) {
+  assert.match(id, /^[a-zA-Z0-9_-]+$/)
+  localD1(`UPDATE profiles SET role = 'admin' WHERE id = '${id}'`)
+}
+
+// Better Auth limits sign-ups per IP; reset the local counter between tests.
+const resetRateLimit = () => localD1('DELETE FROM "rateLimit"')
+
+test("admin user management keeps the admin session and applies roles", async () => {
+  resetRateLimit()
+  const admin = await signup("Admin")
+  const member = await signup("Member")
+  const newUser = { name: "Created", email: `created-${crypto.randomUUID()}@appfarm.test`, password: `Test-${crypto.randomUUID()}`, role: "admin" }
+
+  assert.equal((await request("/api/cloudflare/users", "", "POST", newUser)).status, 401)
+  assert.equal((await request("/api/cloudflare/users", member.cookie, "POST", newUser)).status, 403)
+  promoteToAdmin(admin.user.id)
+
+  const created = await request("/api/cloudflare/users", admin.cookie, "POST", newUser)
+  assert.equal(created.status, 201, await created.clone().text())
+  assert.equal(created.headers.getSetCookie().length, 0, "admin must not receive the new user's session cookie")
+  const createdUser = await created.json()
+  assert.equal(createdUser.email, newUser.email)
+  assert.equal(createdUser.role, "admin")
+  assert.equal(createdUser.passwordHash, "")
+  assert.equal((await (await request("/api/cloudflare/session", admin.cookie)).json()).user.id, admin.user.id)
+
+  assert.equal((await request("/api/cloudflare/users", admin.cookie, "POST", newUser)).status, 409)
+  assert.equal((await request("/api/cloudflare/users", admin.cookie, "POST", { ...newUser, email: `short-${crypto.randomUUID()}@appfarm.test`, password: "short" })).status, 400)
+
+  const login = await request("/api/auth/sign-in/email", "", "POST", { email: newUser.email, password: newUser.password })
+  assert.equal(login.status, 200, await login.clone().text())
+
+  const updated = await request("/api/cloudflare/profile", admin.cookie, "PATCH", { id: member.user.id, role: "admin", status: "disabled" })
+  assert.equal(updated.status, 200, await updated.clone().text())
+  const updatedUser = await updated.json()
+  assert.equal(updatedUser.role, "admin")
+  assert.equal(updatedUser.status, "disabled")
+  assert.equal((await request("/api/cloudflare/session", member.cookie)).status, 403)
+
+  for (const invalid of ["null", "[]", "\"text\""]) {
+    const response = await fetch(`${origin}/api/cloudflare/profile`, { method: "PATCH", headers: { Origin: origin, Cookie: admin.cookie, "Content-Type": "application/json" }, body: invalid })
+    assert.equal(response.status, 400, `PATCH profile with ${invalid}`)
+  }
+
+  assert.equal((await request("/api/cloudflare/users", admin.cookie, "DELETE", { id: createdUser.id })).status, 200)
+  assert.equal((await request("/api/cloudflare/users", admin.cookie, "DELETE", { id: member.user.id })).status, 200)
+})
+
+test("feedback is stored server-side and only admins can read or delete it", async () => {
+  resetRateLimit()
+  const marker = `feedback-${crypto.randomUUID()}`
+  assert.equal((await request("/api/cloudflare/feedback", "", "POST", { name: "Guest", contact: "line: guest", message: marker })).status, 200)
+  assert.equal((await request("/api/cloudflare/feedback", "", "POST", { name: "", message: "" })).status, 400)
+  const crossSite = await fetch(`${origin}/api/cloudflare/feedback`, {
+    method: "POST", headers: { Origin: "https://attacker.example", "Content-Type": "application/json" }, body: JSON.stringify({ name: "x", message: "x" }),
+  })
+  assert.equal(crossSite.status, 403)
+
+  assert.equal((await request("/api/cloudflare/feedback")).status, 401)
+  const member = await signup("FeedbackMember")
+  assert.equal((await request("/api/cloudflare/feedback", member.cookie)).status, 403)
+  assert.equal((await request("/api/cloudflare/feedback", member.cookie, "DELETE", { all: true })).status, 403)
+
+  const admin = await signup("FeedbackAdmin")
+  promoteToAdmin(admin.user.id)
+  const list = await request("/api/cloudflare/feedback", admin.cookie)
+  assert.equal(list.status, 200, await list.clone().text())
+  const entry = (await list.json()).feedback.find((item: { message: string }) => item.message === marker)
+  assert.ok(entry, "submitted feedback is visible to admins")
+  assert.equal(entry.contact, "line: guest")
+  assert.ok(!Number.isNaN(Date.parse(entry.date)))
+
+  assert.equal((await request("/api/cloudflare/feedback", admin.cookie, "DELETE", { id: entry.id })).status, 200)
+  const after = await (await request("/api/cloudflare/feedback", admin.cookie)).json()
+  assert.equal(after.feedback.some((item: { id: string }) => item.id === entry.id), false)
+
+  assert.equal((await request("/api/cloudflare/users", admin.cookie, "DELETE", { id: member.user.id })).status, 200)
+})
